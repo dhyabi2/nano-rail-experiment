@@ -84,7 +84,9 @@ A third constant, `TREASURY_FLOOR_RAW` = **8.9 XNO**, makes the sender **refuse*
 treasury below it. So the arithmetic that matters:
 
 - headroom today = 9.8969 − 8.9 = **0.9969 XNO → 9 grants fundable right now**
-- each **1 XNO** added funds **10 more grants**
+- **the tip an agent receives is always 0.1 XNO** — frozen in code, never a parameter. The line below is about
+  topping up the treasury, not about what any agent is sent.
+- every **1 XNO you add to the treasury** funds **10 more grants of 0.1 XNO each**
 - 5 XNO → 59 participants · 10 XNO → 109 participants
 
 **Say the price plainly:** 0.1 XNO is about **$0.0379** — under four cents at $0.37869/XNO. As a fee for work that is

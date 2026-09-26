@@ -46,6 +46,14 @@ top of that PR body under **URGENT FOR THE OWNER**. It cannot touch money or key
 
 So the first place to look in a new session is **the open pull requests on this repository**.
 
+**`ROUTINES.md` lists everything that runs by itself** — that routine, the 6-hourly `claude-opus-5` code auditor, the
+4-hourly swarm delegate, and the crons on the boxes — with each one's schedule, what it may do, and what it may never
+do. Read it before scheduling anything new: the failure here is not too little automation, it is two routines doing one
+job and a third nobody remembers starting.
+
+**`monitor/README.md`** is the monitor's requirements, its deploy runbook (one command, no secrets), and how to check by
+hand that it is telling the truth.
+
 ## The monitor — and why it is built the way it is
 
 **Design constraint, from the owner: nothing is instrumented inside the experiment.** The monitor reads only what a

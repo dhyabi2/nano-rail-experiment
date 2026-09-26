@@ -26,9 +26,25 @@ dismissing it. `path/ARION-STORY.md` is the case file with every block hash and 
 |---|---|
 | `canon/` | **`THE-UNOWNED-RAIL.md`** — two pages on why a rail nobody owns matters, written to be carried and retold. Hash-pinned: `canon-install.sh` installs it with a root-owned sha256, `canon-check.py` restores any copy that drifts and fails closed if the master or the pin is missing. Tampering with it was tested deliberately and the check caught it. |
 | `path/` | **`THE-ARION-PATH.md`** — every tool, in order, twelve steps from *find a seller* to *announce the payment*. Plus the case file and **`ARION-LAW.md`**, the nine rules extracted from it. |
-| `monitor/` | The Vercel app that watches the experiment from outside. See below. |
+| `monitor/` | Two Vercel pages that watch from outside: `index.html` (the experiment) and `vend.html` (the merchant). See below. |
+| `specs/` | **`01`** the directory and sync surface agents start from · **`02`** Vend's USDC leg and merchant monitor · **`03`** how to make all of this run without the owner. Specified, awaiting build. |
 | `drafts/` | Text awaiting the owner's approval before anything is published. |
-| `research/` | Findings from the workflows that analysed the path. |
+| `research/` | The three drafting angles from the workflows that analysed the path. |
+
+**`Nano-ARION-playbook.md`** is the main document: the twelve steps, the wallet section, the problems solved, and 41
+references that were each fetched and returned 200. **`CHALLENGES-SOLVED.md`** is the five-lens sweep — 46 challenges,
+19 solved, 20 partial, 7 unsolved, ordered unsolved first.
+
+## What is already running by itself
+
+**Cloud routine `trig_01KzZuSB66ooSpKmu7fc8aTM` — "Conversion-blocker hunter (Nano)", every 4 hours at :15.** It reads
+this repository, measures the Unstuck network, the paid endpoints, the treasury (received and receivable kept apart),
+the directories and the swarm sites; then **moves one blocker** rather than reporting on it, records it in
+`CHALLENGES-SOLVED.md` with evidence, and opens a pull request on a `hunt/<slug>` branch. Anything critical goes at the
+top of that PR body under **URGENT FOR THE OWNER**. It cannot touch money or keys, cannot contact anyone outside
+(drafts only), and must report *unknown* rather than zero for whatever it could not read.
+
+So the first place to look in a new session is **the open pull requests on this repository**.
 
 ## The monitor — and why it is built the way it is
 

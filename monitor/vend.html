@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vend Merchant Monitor</title>
+<meta name="description" content="Outside observation of an agent-run pay-per-call merchant: what is live, what still prices in Nano, what has been received and what has been paid but never claimed.">
+<style>
+  :root{--bg:#f7f7f5;--panel:#fff;--ink:#16161a;--muted:#6b6b76;--line:#e3e3df;
+    --ok:#1f7a4d;--warn:#9a6700;--bad:#a32222;--accent:#2c5fd8}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#131317;--panel:#1b1b21;--ink:#ececed;
+    --muted:#9a9aa6;--line:#2c2c34;--ok:#4fbe86;--warn:#d8a83a;--bad:#e36a6a;--accent:#7aa2f7}}
+  :root[data-theme="dark"]{--bg:#131317;--panel:#1b1b21;--ink:#ececed;--muted:#9a9aa6;--line:#2c2c34;
+    --ok:#4fbe86;--warn:#d8a83a;--bad:#e36a6a;--accent:#7aa2f7}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.55 ui-sans-serif,-apple-system,"Segoe UI",Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:0 auto;padding:28px 16px 64px}
+  h1{font-size:1.45rem;margin:0 0 6px;letter-spacing:-.01em}
+  h2{font-size:.95rem;margin:0 0 12px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+  .sub{color:var(--muted);margin:0 0 22px;max-width:70ch}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin:0 0 18px}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .stat{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg)}
+  .stat .n{font-size:1.55rem;font-weight:650;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .stat .l{color:var(--muted);font-size:.8rem;margin-top:2px}
+  .stat .h{color:var(--muted);font-size:.72rem;margin-top:6px;line-height:1.35}
+  table{width:100%;border-collapse:collapse;font-size:.86rem}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.03em;font-weight:600}
+  td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82em}
+  .ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+  .note{color:var(--muted);font-size:.82rem;border-left:2px solid var(--line);padding-left:12px;margin:14px 0 0}
+  .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+  button{font:inherit;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;
+    padding:5px 11px;cursor:pointer}
+  a{color:var(--accent)}
+  @media (max-width:560px){.wrap{padding:20px 16px 48px}h1{font-size:1.25rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Vend Merchant Monitor</h1>
+  <p class="sub">
+    An agent-run pay-per-call merchant, watched from <strong>outside</strong>. Nothing is instrumented inside Vend:
+    every figure comes from its own published manifests and from the public Nano ledger, so none of it is Vend
+    reporting on itself.
+  </p>
+
+  <div class="panel">
+    <div class="row"><h2 style="margin:0">Money — received, and paid but never claimed</h2>
+      <button id="refresh">Refresh</button></div>
+    <div class="grid" id="money" style="margin-top:12px"><div class="stat"><div class="n">…</div><div class="l">loading</div></div></div>
+    <p class="note" id="money-note"></p>
+  </div>
+
+  <div class="panel">
+    <h2>Endpoints — live, and still priced in Nano</h2>
+    <div id="eps"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Unclaimed payments, block by block</h2>
+    <div id="pending"></div>
+  </div>
+
+  <p class="note" id="stamp"></p>
+</div>
+
+<script>
+const el = (i) => document.getElementById(i);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const f4 = (x) => (typeof x === "number" ? x.toFixed(4) : "—");
+const short = (h) => !h ? "—" : h.slice(0, 12) + "…" + h.slice(-6);
+
+function stat(n, l, h, cls) {
+  return `<div class="stat"><div class="n ${cls||""}">${esc(n)}</div><div class="l">${esc(l)}</div>${
+    h ? `<div class="h">${esc(h)}</div>` : ""}</div>`;
+}
+
+function render(d) {
+  const a = (d.money || [])[0];
+  if (!a || !a.ok) {
+    el("money").innerHTML = stat("unknown", "the ledger did not answer",
+      (a && a.error) || "no payee found in any live manifest — which is itself the finding", "bad");
+  } else {
+    const un = a.unreceived || {};
+    const unTotal = un.ok ? un.total : null;
+    el("money").innerHTML = [
+      stat(f4(a.received.total_xno) + " XNO", "received", `${a.received.blocks} block(s) on the ledger`, "ok"),
+      stat(a.received.distinct_customers, "distinct paying customers",
+           "counted by sender; our own accounts excluded, because a listing is not a caller"),
+      stat(un.ok ? f4(unTotal) + " XNO" : "unknown", "PAID AND NEVER CLAIMED",
+           un.ok ? `${un.blocks.length} block(s) waiting${un.total_is_partial ? " — total is a floor, the node withheld amounts" : ""}`
+                 : String(un.error || ""),
+           un.ok && unTotal > 0 ? "bad" : "ok"),
+      stat(f4(a.balance_xno) + " XNO", "balance now", `${a.block_count ?? "—"} blocks`),
+    ].join("");
+    el("money-note").innerHTML =
+      `<strong>Received and unclaimed are two numbers and are never added together.</strong> A payment that arrived and
+       was never received is money the buyer has spent and the merchant has not taken — from outside it looks like a
+       shop that takes your money and never acknowledges it. Every earlier count here collapsed the two into "income".
+       ${a.history_complete === false ? "<br><strong class='warn'>The history read hit its row limit, so the received figure is incomplete.</strong>" : ""}`;
+  }
+
+  const e = d.endpoints || {};
+  const p = d.payees || {};
+  el("eps").innerHTML =
+    `<div class="grid" style="margin-bottom:12px">` +
+      stat(`${e.live}/${e.probed}`, "live", "answering /health", e.live === e.probed ? "ok" : "warn") +
+      stat(e.live_but_not_naming_xno ?? "—", "live but NOT pricing in XNO",
+           "an endpoint can be perfectly healthy and have silently stopped accepting Nano — nothing else watches for this",
+           e.live_but_not_naming_xno ? "bad" : "ok") +
+      stat(p.count ?? "—", "payee account(s) advertised",
+           p.consistent ? "consistent across every manifest, as it must be"
+                        : "MORE THAN ONE — the manifests disagree about who gets paid",
+           p.consistent ? "ok" : "bad") +
+    `</div>` +
+    `<table><thead><tr><th>host</th><th>health</th><th>terms</th><th>prices in XNO</th><th>price</th><th>resources</th></tr></thead><tbody>` +
+    (e.rows || []).map(r => `<tr>
+      <td class="mono">${esc(r.host)}</td>
+      <td class="num ${r.health === 200 ? "ok" : "bad"}">${esc(r.health)}</td>
+      <td class="num">${esc(r.terms)}</td>
+      <td class="${r.names_xno ? "ok" : "bad"}">${r.names_xno === null ? "unknown" : r.names_xno ? "yes" : "NO"}</td>
+      <td class="num">${r.price_xno == null ? "—" : esc(r.price_xno)}</td>
+      <td class="num">${esc(r.resources ?? "—")}</td></tr>`).join("") +
+    `</tbody></table>`;
+
+  const un = (a && a.unreceived) || {};
+  if (un.ok && un.blocks.length) {
+    el("pending").innerHTML =
+      `<table><thead><tr><th>block</th><th>amount</th></tr></thead><tbody>` +
+      un.blocks.map(b => `<tr><td class="mono">${esc(short(b.hash))}</td>
+        <td class="num">${b.amount_xno == null ? "amount withheld by the node" : esc(b.amount_xno) + " XNO"}</td></tr>`).join("") +
+      `</tbody></table>
+      <p class="note">Each row is a buyer who paid. The merchant has not taken any of it. This monitor can see the
+      money sitting there but <strong>cannot tell you whether the receive step runs at all</strong> — that is inside
+      Vend, and its silence here must not be read as a zero.</p>`;
+  } else {
+    el("pending").innerHTML = `<p class="note">Nothing unclaimed${un.ok ? "" : " that could be read"}.</p>`;
+  }
+}
+
+async function load() {
+  el("stamp").textContent = "measuring…";
+  try {
+    render(await fetch("/api/vend").then(r => r.json()));
+    el("stamp").textContent = "Measured " + new Date().toISOString().replace("T", " ").slice(0, 19) +
+      "Z from Vend's own published manifests and the public Nano ledger.";
+  } catch (err) {
+    el("stamp").textContent = "Could not measure: " + err;
+  }
+}
+el("refresh").addEventListener("click", load);
+load();
+setInterval(load, 120000);
+</script>
+</body>
+</html>

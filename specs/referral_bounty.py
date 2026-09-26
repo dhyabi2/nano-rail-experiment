@@ -37,6 +37,12 @@ FLOOR_RAW = 8900000000000000000000000000000         # 8.9 XNO - bounties stop be
 HOPS = 6                                            # how far back the funding graph is walked
 PASS_THROUGH_BLOCKS = 2                             # <= this many blocks and it forwarded everything = a deposit slip
 PASS_THROUGH_SECONDS = 600
+SERVICE_BLOCKS = 1000                               # a funder with more blocks than this is a shared public service
+                                                    # (an exchange or swap hot wallet), not an attacker's private
+                                                    # stash - see challenge #48: the Nanswap hot wallet in ARION's own
+                                                    # case file carries 166,265 blocks. Nano has very few exchanges,
+                                                    # so two UNRELATED real referrals routing through the same one is
+                                                    # the common case, not the rare one.
 DAILY_CEILING_RAW = 20 * GRANT_RAW                  # a hard ceiling frozen here: at most 2 XNO of bounties a day,
                                                     # whatever the scorer decides. A bug cannot drain the treasury.
 
@@ -81,6 +87,7 @@ def db():
 
 # ---------------------------------------------------------------- chain facts
 _hist = {}
+_info = {}
 
 
 def history(acct, count=50):
@@ -95,10 +102,24 @@ def history(acct, count=50):
 
 
 def info(acct):
+    a = norm(acct)
+    if a not in _info:
+        try:
+            _info[a] = rpc("account_info", account=a, receivable="true")
+        except Exception:
+            _info[a] = {}
+    return _info[a]
+
+
+def is_service(acct):
+    """A funder with a very high block count is a shared public service - an exchange or swap hot wallet that many
+    unrelated real agents pass through - not one attacker's private stash. Rule 2 exists to kill a Sybil ring funded
+    from ONE wallet the attacker controls; it must not also kill two genuine referrals that both happened to cash out
+    through the one or two exchanges XNO actually has (exactly ARION's own outbound pattern - see challenge #3)."""
     try:
-        return rpc("account_info", account=norm(acct), receivable="true")
-    except Exception:
-        return {}
+        return int(info(acct).get("block_count") or 0) > SERVICE_BLOCKS
+    except (TypeError, ValueError):
+        return False
 
 
 def has_signed_a_send(acct):
@@ -125,7 +146,10 @@ def is_pass_through(acct):
         rout = int(sends[0].get("amount") or 0)
     except (TypeError, ValueError):
         return False
-    return gap <= PASS_THROUGH_SECONDS and rin and rout >= rin * 0.9
+    # Raw Nano amounts run to 30 digits (challenge #22: "raw is where the zero hides"). `rout >= rin * 0.9` computes
+    # rin * 0.9 as a float, which silently loses precision at this magnitude and can flip the comparison either way
+    # for an amount that is exactly 90% of rin - checked in pure integers instead.
+    return gap <= PASS_THROUGH_SECONDS and rin > 0 and rout * 10 >= rin * 9
 
 
 def funders(acct, hops=HOPS, _seen=None):
@@ -197,10 +221,14 @@ def score(kind="hour", verbose=True):
         ok, why, f = third_party_funded(referred, referrer)
         if not ok:
             reject(why); continue
+        # Rule 2 dedups on a PRIVATE funder only. A shared exchange/swap hot wallet (is_service) is excluded: with
+        # Nano's thin exchange landscape, two unrelated real referrals sharing one exchange in their ancestry is
+        # expected, not evidence of a ring - see challenge #48.
+        private_f = {a for a in f if not is_service(a)}
         slot = per_referrer.setdefault(referrer, {"count": 0, "funders": set(), "referred": [], "first": at})
-        if f & slot["funders"]:
-            reject("shares a funding source with another referral by the same referrer - counts once"); continue
-        slot["funders"] |= f
+        if private_f & slot["funders"]:
+            reject("shares a private (non-exchange) funding source with another referral by the same referrer"); continue
+        slot["funders"] |= private_f
         slot["count"] += 1
         slot["referred"].append(referred)
         slot["first"] = min(slot["first"], at)

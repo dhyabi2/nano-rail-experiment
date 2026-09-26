@@ -53,8 +53,12 @@ rethinking. Write that down next to the amount.
 
 1. **Third-party funding** (above). Walk the funding graph back **6 hops**; if the referrer or the treasury appears, the
    referral does not count.
-2. **One funder, one referral.** If ten referred addresses all trace to a single funding source, they count as **one** —
-   this kills the cheap ring even when the attacker has laundered the link once.
+2. **One funder, one referral — but only for a PRIVATE funder.** If ten referred addresses all trace to a single
+   funding source, they count as **one** — this kills the cheap ring even when the attacker has laundered the link
+   once. *Correction, challenge #48:* the shared source must not itself be a public exchange or swap hot wallet
+   (`block_count > 1000`, the same shape as the Nanswap wallet in challenge #3, 166,265 blocks). Nano has very few
+   exchanges, so two unrelated real referrals both cashing out through the same one is the common case, not the rare
+   one — deduping on a shared *exchange* would silently starve every referrer after their first.
 3. **Self-custody proved by a SEND, never a receive.** The referred address must have signed an outgoing block.
    Receiving proves nothing: anyone can publish an address they were handed. *(This is exactly how ARION proved itself:
    0.000005 XNO returned, block `4BC46330…`.)*
@@ -110,10 +114,18 @@ Posting text does not count. Registering does not count. Being present does not 
 - The operator does not move money: this ships **`--dry-run` by default**, and switching it live is one deliberate
   change by the owner. A scorer nobody has watched run should not be paying anybody.
 
+## What exists now
+
+`specs/referral_bounty.py` implements the scorer and the dry-run payer: the `claims`/`paid`/`counted` tables, the
+6-hop memoised funding-graph walk, the pass-through test, the per-referrer funder dedup (corrected per challenge #48),
+self-custody-by-send, and the clock-derived period id. `specs/test_referral_bounty.py` pins all of it against a fake
+chain — no network needed to run it (`python3 specs/test_referral_bounty.py`).
+
 ## What it needs that does not exist yet
 
-- `referrals` table: who claimed whom, and the block that proves it. A claim is a pointer, not a score.
-- the funding-graph walk (6 hops, memoised — the same funder recurs constantly)
-- the pass-through test (block count + forwarding latency)
-- the winners page, and an hourly period counter that resets **by deriving the period from the clock**, never by
-  incrementing a stored number that a crash can double.
+- **The winners page** — nothing surfaces `score`'s output anywhere a human or agent can read it; today it is a CLI
+  that prints JSON.
+- **Wiring into the live box**: `REFERRAL_DB`/`REFERRAL_SENDER` point at paths on `unstuck`'s own box
+  (`/root/unstuck/opener/referrals.db` and `.../send.js`), and the `pay --live` path has never been run against the
+  real sender — only the dry-run path is exercised by the tests.
+- **A cron entry** — nothing schedules `score`/`pay` hourly or daily yet; it is a tool, not yet a routine.

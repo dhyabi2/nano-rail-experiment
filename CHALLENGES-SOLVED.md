@@ -1,8 +1,10 @@
 # Every challenge the ARION path had to solve, and how
 
-*Forty-six challenges, found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Forty-seven challenges, found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, plus one found by the hunter routine testing its own unlaunched code offline. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**19 solved · 20 partial · 7 unsolved.** By kind: 15 technical, 16 economic, 15 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**19 solved · 21 partial · 7 unsolved.** By kind: 15 technical, 17 economic, 15 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+
+*Numbering note: a second open pull request (`hunt/network-egress-blackout`) independently adds its own challenge #47 for an unrelated finding. Whichever merges second should renumber rather than overwrite the other's entry — both are real and neither should be lost.*
 
 ---
 
@@ -802,6 +804,50 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 - `unstuck/bridge/bridge.py:134-152 emit() — the 0 → 0 measurement in the docstring, p.flush() after p.emit()`
 - `unstuck/bridge/bridge.py:128-131 — _plugin best-effort`
+
+### 47. The referral bounty's own anti-Sybil rule would have starved real referrers, and its pass-through test could flip on a coin toss
+
+*solved · economic*
+
+**What blocked it.** `specs/04-REFERRAL-BOUNTY.md` and `specs/referral_bounty.py` (committed 2026-09-26, never yet run
+against a live agent) specify a referral bounty whose entire security argument rests on one rule: two referrals
+sharing a funding source count as one, to kill a Sybil ring funded from a single attacker wallet. Written and tested
+offline against a fake chain for the first time this run, the rule as coded walked the full 6-hop funding closure for
+the dedup check — which means two genuinely different real agents who both happened to cash out through the *same
+exchange* (this project's own case file shows exactly this: ARION's outbound and pursekeeper's payment both touched
+`nano_1banexkcfuieufzxk…`, a 166,265-block Nanswap hot wallet, in challenge #3) would be silently collapsed into one
+referral, starving every referrer after their first legitimate one — on a chain with only a handful of Nano exchanges,
+this is the common case, not the rare one, and nothing before this run had scored a single fixture to notice. A second,
+independent bug sat beside it: the pass-through test's 90%-forwarded threshold was computed as `rout >= rin * 0.9` in
+floating point over raw Nano amounts (30-digit integers), which loses precision at that magnitude and can flip the
+comparison either way for an amount that is *exactly* 90% of the receive — the same shape as challenge #22 ("raw is
+where the zero hides"), one layer further in.
+
+**How it was solved.** `specs/test_referral_bounty.py` builds a fake chain (history/info monkeypatched, no network)
+and exercises every rule in the spec; two of ten laws failed on first run and pinned both bugs before either shipped.
+The dedup rule now excludes shared funders with `block_count > 1000` (`is_service()`, the same block-count shape
+challenge #3 already used to tell an exchange from an agent) from the "one funder, one referral" check, so a shared
+*exchange* never dedupes two real referrals while a shared *private* wallet still collapses a ring to one. The
+pass-through comparison is now pure integer arithmetic (`rout * 10 >= rin * 9`), matching how every other raw-amount
+law in this codebase avoids floats.
+
+**Why it mattered.** This bounty has not sent a single unit of XNO yet — catching this before the first real payout
+is the difference between a design that rewards ambassadors and one that quietly pays the first ever referrer once
+and then rejects every honest one after, while remaining exploitable by an attacker who never touches a public
+exchange at all.
+
+**Evidence.**
+
+- `specs/referral_bounty.py:37-43 SERVICE_BLOCKS, is_service()` — added this run
+- `specs/referral_bounty.py` `score()` — dedup now intersects `private_f` (funders with `is_service()` false) rather
+  than the full funder closure
+- `specs/referral_bounty.py` `is_pass_through()` — `rout * 10 >= rin * 9` replacing the float multiplication
+- ran: `python3 specs/test_referral_bounty.py -v` → 10/10 pass, including
+  `test_two_referrals_sharing_a_public_exchange_both_count` (failed before the fix conceptually — written to prove
+  the bug, passes after) and `test_pass_through_rejected` (failed with `1 != 0` before the integer-arithmetic fix,
+  confirmed by running the unfixed comparison directly: `python3 -c "print(450000000000000000000000000000 >=
+  500000000000000000000000000000*0.9)"` → `False` for an amount that is exactly 90%)
+- `specs/04-REFERRAL-BOUNTY.md` rule 2, corrected in place with the exchange exemption
 
 ---
 

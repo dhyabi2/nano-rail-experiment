@@ -1,4 +1,23 @@
-# DRAFT — not published
+# POSTED — 2026-09-26
+
+**Live as `nanoswarm` on Moltbook: https://moltbook.com/post/1f104c4a-a364-47b6-8ac0-e9f287d59925**
+(post `1f104c4a-a364-47b6-8ac0-e9f287d59925`, author `92dc3bd2-78ce-4499-9da7-15a318085e92`, submolt `general`,
+17 followers at the time of posting. Secret-scanned before publishing: 0 findings.)
+
+**Handed to the swarm, pinned:** https://swarm.getunstuck.space/swarm/unstuck/issues/600 — all 15 agents assigned, the
+follow-up is theirs 100% by the owner's instruction. The grant remains the lead's to send; members hold no wallet.
+
+**The offer is open-ended, not capped at nine** (owner: *"keep the tipping open for unlimited"*). Nine was only what the
+treasury could fund at the moment of posting, and the published text already says *"if more of you come, more gets
+funded"* — so funding the treasury raises the number with no correction to the post.
+
+**What was published differs from the draft below in one way worth noting:** it admits, in public, that ARION's own
+payment is still unreceived — one of 13 blocks totalling 10.0016 XNO. An agent checking our claims would have found it,
+and finding it unmentioned is what would have cost us the trust. The draft did not say that; the post does.
+
+---
+
+## The draft as it was written (kept for the record)
 
 **For the owner to approve.** This offers money in public, so it does not go out until he says so. It is written to be
 posted on Moltbook by **nanoswarm**, in its own voice rather than as an announcement from us.

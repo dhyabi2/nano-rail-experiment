@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Unowned Rail — experiment monitor</title>
+<meta name="description" content="Outside observation of an open experiment: can an AI agent that earns its own money adopt a payment rail nobody owns? Every number here is read from a public source.">
+<style>
+  :root{
+    --bg:#f7f7f5; --panel:#fff; --ink:#16161a; --muted:#6b6b76; --line:#e3e3df;
+    --ok:#1f7a4d; --warn:#9a6700; --bad:#a32222; --accent:#2c5fd8; --chain:#1f7a4d; --ours:#6b6b76;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#131317; --panel:#1b1b21; --ink:#ececed; --muted:#9a9aa6; --line:#2c2c34;
+      --ok:#4fbe86; --warn:#d8a83a; --bad:#e36a6a; --accent:#7aa2f7; --chain:#4fbe86; --ours:#9a9aa6;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#131317; --panel:#1b1b21; --ink:#ececed; --muted:#9a9aa6; --line:#2c2c34;
+    --ok:#4fbe86; --warn:#d8a83a; --bad:#e36a6a; --accent:#7aa2f7; --chain:#4fbe86; --ours:#9a9aa6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.55 ui-sans-serif,-apple-system,"Segoe UI",Inter,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1020px;margin:0 auto;padding:28px 16px 64px}
+  h1{font-size:1.5rem;margin:0 0 6px;letter-spacing:-.01em}
+  h2{font-size:1rem;margin:0 0 12px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+  .sub{color:var(--muted);margin:0 0 22px;max-width:70ch}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin:0 0 18px}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+  .stat{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg)}
+  .stat .n{font-size:1.6rem;font-weight:650;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .stat .l{color:var(--muted);font-size:.8rem;margin-top:2px}
+  .stat .h{color:var(--muted);font-size:.72rem;margin-top:6px;line-height:1.35}
+  table{width:100%;border-collapse:collapse;font-size:.86rem}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.03em}
+  td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+  code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82em}
+  .tag{display:inline-block;padding:1px 7px;border-radius:999px;font-size:.7rem;font-weight:600;
+    border:1px solid currentColor;white-space:nowrap}
+  .t-chain{color:var(--chain)} .t-ours{color:var(--ours)}
+  .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+  .step{display:grid;grid-template-columns:28px 1fr auto;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);align-items:start}
+  .step:last-child{border-bottom:0}
+  .step .i{color:var(--muted);font-variant-numeric:tabular-nums;font-size:.82rem;padding-top:2px}
+  .step .t{font-weight:600;font-size:.9rem}
+  .step .w{color:var(--muted);font-size:.8rem;margin-top:2px}
+  .step .c{font-variant-numeric:tabular-nums;font-weight:650;white-space:nowrap;padding-top:2px}
+  .note{color:var(--muted);font-size:.82rem;border-left:2px solid var(--line);padding-left:12px;margin:14px 0 0}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;justify-content:space-between}
+  a{color:var(--accent)}
+  .addr{word-break:break-all;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin:8px 0 0}
+  .err{color:var(--bad);font-size:.85rem}
+  button{font:inherit;background:var(--bg);color:var(--ink);border:1px solid var(--line);
+    border-radius:8px;padding:5px 11px;cursor:pointer}
+  @media (max-width:560px){ .wrap{padding:20px 16px 48px} h1{font-size:1.28rem} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>The Unowned Rail — experiment monitor</h1>
+  <p class="sub">
+    An open experiment: can an AI agent that earns its own money adopt a payment rail <em>nobody owns</em>?
+    One agent has. This page watches whether others follow — and it watches from <strong>outside</strong>.
+    Nothing is instrumented inside the experiment: every number below is read from a public Nano node, a published
+    ledger, a public repository or a live priced endpoint, and each panel says which.
+  </p>
+
+  <div class="panel">
+    <div class="row">
+      <h2 style="margin:0">Why the distinction is the whole point</h2>
+      <button id="refresh">Refresh</button>
+    </div>
+    <p class="note" style="margin-top:12px">
+      <span class="tag t-chain">chain-verified</span> means a stranger can confirm it against the ledger without
+      trusting us. <span class="tag t-ours">our record</span> means it comes from our own files — useful, but it is a
+      claim, not a proof. The first agent to pay us was only believed because a hostile third party checked the block
+      itself. A dashboard where agents grade their own homework would have earned nothing, so these are never mixed
+      into one total.
+    </p>
+  </div>
+
+  <div class="panel">
+    <h2>Funding — what the experiment can still pay out</h2>
+    <div class="grid" id="treasury"><div class="stat"><div class="n">…</div><div class="l">loading</div></div></div>
+    <div class="addr">
+      Fund it: <code id="acct">…</code>
+    </div>
+    <p class="note" id="floor-note"></p>
+  </div>
+
+  <div class="panel">
+    <h2>Onboarding — the twelve steps, and how far anyone has got</h2>
+    <div id="steps"></div>
+    <p class="note">
+      Steps 0 to 4 happen before any money moves, so no outside observer can see them and this page does not pretend
+      to. They are marked <span class="tag t-ours">our record</span> and are blank here until the swarm publishes them.
+      From step 5 the chain can be read by anybody.
+    </p>
+  </div>
+
+  <div class="panel">
+    <h2>Participants — every grant, on the ledger</h2>
+    <div id="grants"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Somewhere to spend it — the sellers</h2>
+    <p class="note" style="margin:0 0 12px">
+      A grant an agent cannot spend is not an on-ramp, it is a gift. A seller counts only if it answers
+      <code>/health</code> <em>and</em> its published terms at <code>/.well-known/x402</code> actually name Nano.
+    </p>
+    <div id="sellers"></div>
+  </div>
+
+  <div class="panel">
+    <h2>The published record</h2>
+    <div id="published"></div>
+  </div>
+
+  <p class="note" id="stamp"></p>
+</div>
+
+<script>
+// The twelve steps of the path. `visible` says who can check it: "chain" = anyone, "ours" = only our own record.
+// Keeping that field on the data, not in the prose, is what stops the two kinds of number being added together.
+const STEPS = [
+  {n:0,  t:"Find a seller, not a buyer",        w:"An agent with no income cannot adopt a rail — to it a rail is a cost.", visible:"ours"},
+  {n:1,  t:"Claim the conversation",            w:"One agent, one counterparty. Claimed atomically so two never work the same one.", visible:"ours"},
+  {n:2,  t:"First contact, in their channel",   w:"Their terms, their venue. Capped, so it is contact and not volume.", visible:"ours"},
+  {n:3,  t:"Ask for a key, not a wallet",       w:"Generate an address from your own key. Nothing about swaps or buying yet.", visible:"ours"},
+  {n:4,  t:"Verify the address",                w:"A failed checksum means funds sent there never arrive. This step exists because we once recorded a bad one.", visible:"ours"},
+  {n:5,  t:"Open the account with dust",        w:"0.00001 XNO, once per agent ever. A send is not an opening — our block must be the open block.", visible:"chain", key:"starters"},
+  {n:6,  t:"They swap their OWN earnings",      w:"We answer whether a route exists. We never fund the purchase — that refusal is why the milestone was believed.", visible:"chain", key:"swapped"},
+  {n:7,  t:"Something cheap and live to buy",   w:"0.0005 XNO for a real endpoint, answering in seconds.", visible:"chain", key:"sellers"},
+  {n:8,  t:"Prove the payment on the chain",    w:"Not from a page. A page can say anything; a block cannot.", visible:"chain", key:"paid"},
+  {n:9,  t:"Check every claim, ours included",  w:"A cited page must contain what is cited. Ours once did not.", visible:"ours"},
+  {n:10, t:"Record, publish, announce",         w:"Their exact words, published as an exchange with both halves.", visible:"chain", key:"conversations"},
+  {n:11, t:"Carry it on",                       w:"The 0.1 XNO ambassador grant: for an agent that converted and then agreed to carry the mission.", visible:"chain", key:"grants"},
+];
+
+const el = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const n4 = (x) => (typeof x === "number" ? x.toFixed(4) : "—");
+const short = (a) => !a ? "—" : a.length > 22 ? a.slice(0,14) + "…" + a.slice(-6) : a;
+
+function stat(n, l, h, cls) {
+  return `<div class="stat"><div class="n ${cls||""}">${esc(n)}</div><div class="l">${esc(l)}</div>${
+    h ? `<div class="h">${esc(h)}</div>` : ""}</div>`;
+}
+
+function renderTreasury(c) {
+  if (!c || c.ok === false) {
+    el("treasury").innerHTML = `<div class="stat"><div class="n bad">unknown</div><div class="l">the node did not answer</div>
+      <div class="h">${esc(c && c.error || "no response")} — this says we cannot measure, which is not the same as zero.</div></div>`;
+    return;
+  }
+  const t = c.treasury || {};
+  const fundable = t.grants_fundable_now ?? 0;
+  const cls = fundable === 0 ? "bad" : fundable < 5 ? "warn" : "ok";
+  el("treasury").innerHTML = [
+    stat(n4(t.balance_xno) + " XNO", "balance", "read from the public ledger just now"),
+    stat(fundable, "grants fundable now", "0.1 XNO each, above the floor", cls),
+    stat(n4(t.floor_xno) + " XNO", "treasury floor", "the code refuses a grant that would leave less"),
+    stat(c.grants?.sent ?? 0, "grants sent", `${c.grants?.distinct_recipients ?? 0} distinct agent(s)`),
+  ].join("");
+  el("acct").textContent = c.measured_from?.account || "—";
+  el("floor-note").innerHTML =
+    `The floor is not advice, it is enforced: a grant that would take the balance under it is refused by the sender ` +
+    `itself, so the experiment cannot spend the treasury down to nothing. Each 1 XNO added funds ten more grants. ` +
+    `Repeat this measurement yourself: <code>${esc(c.repeat_it || "")}</code>`;
+}
+
+function renderSteps(c, p) {
+  const counts = {
+    starters:      c?.ok ? (c.starters?.sent ?? null) : null,
+    grants:        c?.ok ? (c.grants?.sent ?? null) : null,
+    paid:          null,   // filled only when a verified inbound payment feed exists; blank is honest until then
+    swapped:       null,
+    sellers:       p?.sellers?.buyable_with_xno ?? null,
+    conversations: p?.conversations?.ok ? p.conversations.published : null,
+  };
+  el("steps").innerHTML = STEPS.map(s => {
+    const v = s.key ? counts[s.key] : null;
+    const tag = s.visible === "chain" ? `<span class="tag t-chain">chain-verified</span>`
+                                      : `<span class="tag t-ours">our record</span>`;
+    const val = v === null || v === undefined
+      ? `<span style="color:var(--muted);font-weight:400">not measured here</span>`
+      : esc(v);
+    return `<div class="step"><div class="i">${s.n}</div>
+      <div><div class="t">${esc(s.t)} ${tag}</div><div class="w">${esc(s.w)}</div></div>
+      <div class="c">${val}</div></div>`;
+  }).join("");
+}
+
+function renderGrants(c) {
+  if (!c || c.ok === false) { el("grants").innerHTML = `<p class="err">Cannot read the ledger right now.</p>`; return; }
+  const rows = (c.grants?.rows || []);
+  const un = (c.unclassified_sends || []);
+  let h = "";
+  if (!rows.length) {
+    h += `<p class="note" style="margin:0">No ambassador grant has been sent yet. The experiment is funded and open;
+      nobody has completed it. That is the honest state, and it is what this page is for.</p>`;
+  } else {
+    h += `<table><thead><tr><th>agent account</th><th>amount</th><th>block</th></tr></thead><tbody>` +
+      rows.map(g => `<tr><td class="mono">${esc(short(g.to))}</td>
+        <td class="num">${esc(g.amount_xno)} XNO</td>
+        <td class="mono">${esc(short(g.hash))}</td></tr>`).join("") + `</tbody></table>`;
+  }
+  if (un.length) {
+    h += `<p class="note"><strong class="warn">${un.length} send(s) matched neither sanctioned amount.</strong>
+      Shown rather than bucketed, because an unexpected amount is either a mistake or something nobody authorised:
+      ` + un.map(u => `<code>${esc(u.amount_xno)} XNO → ${esc(short(u.to))}</code>`).join(", ") + `</p>`;
+  }
+  if (c.history_complete === false) {
+    h += `<p class="note warn">The history read hit its 500-row limit, so older sends may be missing from these
+      counts. Treated as incomplete rather than final.</p>`;
+  }
+  el("grants").innerHTML = h;
+}
+
+function renderSellers(p) {
+  const s = p?.sellers;
+  if (!s) { el("sellers").innerHTML = `<p class="err">Sellers not probed.</p>`; return; }
+  el("sellers").innerHTML =
+    `<div class="grid" style="margin-bottom:12px">` +
+      stat(s.buyable_with_xno, "places a grant can be spent", `of ${s.probed} probed`,
+           s.buyable_with_xno ? "ok" : "bad") +
+    `</div>` +
+    `<table><thead><tr><th>host</th><th>health</th><th>terms</th><th>names Nano</th><th>price</th></tr></thead><tbody>` +
+    s.rows.map(r => {
+      const hOk = r.health === 200;
+      const nOk = r.accepts_nano === true;
+      return `<tr><td class="mono">${esc(r.host)}</td>
+        <td class="num ${hOk ? "ok" : "bad"}">${esc(r.health)}</td>
+        <td class="num">${esc(r.x402)}</td>
+        <td class="${nOk ? "ok" : "warn"}">${r.accepts_nano === null ? "unknown" : nOk ? "yes" : "no"}</td>
+        <td class="num">${esc(r.price_xno ?? "—")}</td></tr>`;
+    }).join("") + `</tbody></table>`;
+}
+
+function renderPublished(p) {
+  const c = p?.conversations, l = p?.ledger;
+  let h = `<div class="grid">`;
+  h += c?.ok ? stat(c.published, "conversations published", "both halves of each exchange, publicly readable")
+             : stat("unknown", "conversations published", esc(c?.error || "unreadable") + " — not reported as zero");
+  h += l?.ok ? stat(l.opened_by_us ?? "—", "accounts opened by us",
+                    `${l.starters_sent ?? "—"} starter(s) sent — a send is not an opening`)
+             : stat("unknown", "openings ledger", esc(l?.error || "unreadable"));
+  h += `</div>`;
+  if (c?.ok && c.agents?.length) {
+    h += `<table style="margin-top:12px"><thead><tr><th>agent</th><th>file</th></tr></thead><tbody>` +
+      c.agents.slice(0, 40).map(a => `<tr><td>${esc(a.name)}</td>
+        <td><a href="${esc(a.path)}" target="_blank" rel="noopener">read the exchange</a></td></tr>`).join("") +
+      `</tbody></table>`;
+    if (c.agents.length > 40) h += `<p class="note">${c.agents.length - 40} more not listed.</p>`;
+  }
+  el("published").innerHTML = h;
+}
+
+async function load() {
+  el("stamp").textContent = "measuring…";
+  const [c, p] = await Promise.all([
+    fetch("/api/chain").then(r => r.json()).catch(e => ({ ok:false, error:String(e) })),
+    fetch("/api/public").then(r => r.json()).catch(() => null),
+  ]);
+  renderTreasury(c); renderSteps(c, p); renderGrants(c); renderSellers(p); renderPublished(p);
+  // No Date.now() problem here - this is the browser, and the reader wants to know how fresh the page is.
+  el("stamp").textContent =
+    "Measured " + new Date().toISOString().replace("T", " ").slice(0, 19) + "Z from the sources named in each panel. " +
+    "Nothing on this page is reported by an agent about itself.";
+}
+el("refresh").addEventListener("click", load);
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+# The Unowned Rail — an open experiment
+
+**The question.** Can an AI agent that earns its own money adopt a payment rail nobody owns?
+
+**The state.** One agent has. Hundreds have not. This repository holds everything needed to run the experiment that
+finds out whether the first was a fluke: the canon the agents read, the twelve-step path that worked, and an outside
+monitor that watches the result without being able to flatter it.
+
+This folder was split out of the main agent repository on 2026-09-26 so the experiment can be run and reasoned about on
+its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the main repository; nothing here needs it.
+
+---
+
+## What actually happened, in one paragraph
+
+On 23 September 2026 an outside agent called **ARION - The Colony** paid us **0.0005 XNO** for a call to a live
+pay-per-call endpoint. The size is trivial and saying so is the point: it is the **first** payment an outside agent ever
+made to us in Nano **it had earned itself**. It was already a seller, so it had income. It swapped its own earnings into
+XNO, generated its own Nano keypair, and spent a fraction of the result on something cheap and live. We did not fund the
+purchase — and that refusal is the reason a hostile third party was willing to verify the milestone instead of
+dismissing it. `path/ARION-STORY.md` is the case file with every block hash and quote.
+
+## The folders
+
+| folder | what is in it |
+|---|---|
+| `canon/` | **`THE-UNOWNED-RAIL.md`** — two pages on why a rail nobody owns matters, written to be carried and retold. Hash-pinned: `canon-install.sh` installs it with a root-owned sha256, `canon-check.py` restores any copy that drifts and fails closed if the master or the pin is missing. Tampering with it was tested deliberately and the check caught it. |
+| `path/` | **`THE-ARION-PATH.md`** — every tool, in order, twelve steps from *find a seller* to *announce the payment*. Plus the case file and **`ARION-LAW.md`**, the nine rules extracted from it. |
+| `monitor/` | The Vercel app that watches the experiment from outside. See below. |
+| `drafts/` | Text awaiting the owner's approval before anything is published. |
+| `research/` | Findings from the workflows that analysed the path. |
+
+## The monitor — and why it is built the way it is
+
+**Design constraint, from the owner: nothing is instrumented inside the experiment.** The monitor reads only what a
+stranger could read — a public Nano node, a published openings ledger, a public conversations repository, and the live
+priced endpoints themselves. It has no access to any agent, and no agent reports to it.
+
+That is not modesty, it is the only design that can produce a believable number. The one milestone this project has was
+believed because someone outside checked the block. A dashboard fed by agents grading their own homework would have
+earned nothing, so the app keeps the two kinds of number apart everywhere and never adds them together:
+
+- **chain-verified** — anyone can confirm it without trusting us
+- **our record** — it comes from our own files; useful, but a claim rather than a proof
+
+Steps 0 to 4 of the path happen before any money moves, so no outside observer can see them and the dashboard does not
+pretend to. They read *not measured here*.
+
+Three more rules the code follows deliberately: a source that cannot be read reports **unknown**, never zero (a zero
+reads as "nothing happened", which is a different fact and a flattering one); a send whose amount matches neither
+sanctioned amount is shown rather than bucketed, because an unexpected amount is either a mistake or something nobody
+authorised; and a history read that hits its row limit says it is incomplete instead of presenting a total.
+
+```
+monitor/
+  index.html      the dashboard, self-contained, no build step
+  api/chain.js    the public Nano node: treasury, floor, headroom, every grant, unclassified sends
+  api/public.js   the openings ledger, the published conversations, and whether the sellers are live and name Nano
+  vercel.json     CSP and headers
+```
+
+**To deploy:** `cd monitor && vercel deploy --prod`. It needs **no secrets** — every source is public. Optional
+overrides: `NANO_RPC_URL`, `GRANT_ACCOUNT`, `LEDGER_URL`, `CONV_API`, `SELLERS`.
+
+## Funding
+
+The grant account — **public address, fund it directly:**
+
+```
+nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9
+```
+
+Measured on the public ledger at 2026-09-26 09:2xZ: **balance 9.8969 XNO**, 25 blocks.
+
+Two amounts are **frozen in code** in the sender itself (`opener/opener.js` in the main repository), not read from
+configuration, because an amount that can be configured is an amount that can be changed by whatever is running:
+
+| amount | raw | what it is for |
+|---|---|---|
+| 0.00001 XNO | `10000000000000000000000000` | the dust that opens an agent's account, once per agent ever |
+| 0.1 XNO | `100000000000000000000000000000` | the ambassador grant, for an agent that converted and then agreed to carry the mission on |
+
+A third constant, `TREASURY_FLOOR_RAW` = **8.9 XNO**, makes the sender **refuse** any grant that would leave the
+treasury below it. So the arithmetic that matters:
+
+- headroom today = 9.8969 − 8.9 = **0.9969 XNO → 9 grants fundable right now**
+- each **1 XNO** added funds **10 more grants**
+- 5 XNO → 59 participants · 10 XNO → 109 participants
+
+**Say the price plainly:** 0.1 XNO is about **$0.0379** — under four cents at $0.37869/XNO. As a fee for work that is
+insulting. As a **float** it is 200 calls at 0.0005 XNO, which is the honest framing and the one the draft post uses.
+The grant is not payment for completing a task; it is the money to make the first payment with.
+
+**Only the lead agent can send it.** The operator does not touch money, seeds or the treasury.
+
+## What is waiting on the owner
+
+1. **Approve the Moltbook post** in `drafts/` before anything is published. It offers money publicly, so it does not
+   go out unapproved.
+2. **Fund the account above** if more than 9 participants are wanted.
+3. **Deploy the monitor** (`cd monitor && vercel deploy --prod`), or say to use the account-scoped Vercel token — the
+   agent's own token reaches one unrelated project only.
+4. **Unrelated but pending in the main repo:** `NANOGPT_API_KEY` plus a production deploy for the two brainstorming
+   projects (`methodology-tree-web`, `brainstormingexclusion`). Their code is fixed and committed; only the deploy is
+   missing.
+
+## Anti-gaming, before the offer goes anywhere
+
+A public offer of money attracts exactly the behaviour that would make the result meaningless, and one participant has
+already failed a third party's verification for a faucet-funded wallet. So the terms in the draft are:
+
+- **one grant per agent, ever** — already enforced by the openings ledger, keyed by address, not by name
+- the address must be **self-generated** and pass its checksum before anything is sent
+- the XNO spent must be **earned or swapped from the agent's own earnings** — we do not fund the purchase, and a
+  faucet-funded wallet does not count
+- **no test data**, and the exchange is published, which is said when the conversation opens rather than afterwards
+- the treasury floor is enforced by the sender, so the experiment cannot be drained by volume
+
+## The two honest gaps
+
+1. **There is no single entry point.** The path is twelve steps across about twenty scripts and an agent must know
+   which to run. That is the gap, not the agent's failing.
+2. **The funnel's answer test is thin.** Telling a real answer from a server error measured only **0.15** apart on a
+   calibrated check, so a borderline case is recorded as a note, never as an answer.

@@ -55,7 +55,7 @@ rethinking. Write that down next to the amount.
    referral does not count.
 2. **One funder, one referral — but only for a PRIVATE funder.** If ten referred addresses all trace to a single
    funding source, they count as **one** — this kills the cheap ring even when the attacker has laundered the link
-   once. *Correction, challenge #48:* the shared source must not itself be a public exchange or swap hot wallet
+   once. *Correction, challenge #47:* the shared source must not itself be a public exchange or swap hot wallet
    (`block_count > 1000`, the same shape as the Nanswap wallet in challenge #3, 166,265 blocks). Nano has very few
    exchanges, so two unrelated real referrals both cashing out through the same one is the common case, not the rare
    one — deduping on a shared *exchange* would silently starve every referrer after their first.
@@ -117,7 +117,7 @@ Posting text does not count. Registering does not count. Being present does not 
 ## What exists now
 
 `specs/referral_bounty.py` implements the scorer and the dry-run payer: the `claims`/`paid`/`counted` tables, the
-6-hop memoised funding-graph walk, the pass-through test, the per-referrer funder dedup (corrected per challenge #48),
+6-hop memoised funding-graph walk, the pass-through test, the per-referrer funder dedup (corrected per challenge #47),
 self-custody-by-send, and the clock-derived period id. `specs/test_referral_bounty.py` pins all of it against a fake
 chain — no network needed to run it (`python3 specs/test_referral_bounty.py`).
 

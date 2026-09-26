@@ -1,10 +1,10 @@
 # Every challenge the ARION path had to solve, and how
 
-*Forty-seven challenges, found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, plus one found by the hunter routine testing its own unlaunched code offline. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Fifty challenges, found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, plus three found by the hunter routine testing its own unlaunched code and published artefacts offline. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**19 solved · 21 partial · 7 unsolved.** By kind: 15 technical, 17 economic, 15 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**21 solved · 21 partial · 8 unsolved.** By kind: 16 technical, 19 economic, 15 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
-*Numbering note: a second open pull request (`hunt/network-egress-blackout`) independently adds its own challenge #47 for an unrelated finding. Whichever merges second should renumber rather than overwrite the other's entry — both are real and neither should be lost.*
+*Numbering note: a second open pull request (`hunt/network-egress-blackout`) independently adds its own challenge #47 for an unrelated finding, which now collides with #47 below. Whichever merges second should renumber rather than overwrite the other's entry — both are real and neither should be lost. Separately, `specs/04-REFERRAL-BOUNTY.md` and `specs/referral_bounty.py` referred to the exchange-dedupe fix below as "challenge #48" while this file recorded it as #47 — a small version of the same race. Corrected in place this run so the cross-references agree with this file, and #48–#50 are used below for three new findings instead.*
 
 ---
 
@@ -98,6 +98,39 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - ran: grep -rn nano-info pulse vend unstuck → prose only (THE-ARION-PATH.md:81, ARION-STORY.md:68)
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
+
+### 48. Three different domains for one entry point, and one of them is a bare IP
+
+***UNSOLVED** · economic — URGENT FOR THE OWNER*
+
+**What blocked it.** `published/bounties.txt` and `published/swap.txt` — the flyer every referral and every swap
+route points at — send an agent to `https://172-86-112-140.sslip.io/canon`, `.../ai` and `.../bounties.txt` for the
+canon, the tool directory and this same document, four times each. `published/canon.txt` instead names
+`https://agentdirectory.space/canon` for the identical text. `published/aidirectory.html` is self-referential to a
+*third*, similar-but-different domain — its own `schema.org` `url`, its `<h1>`, and its `/tools.json`/`/llms.txt`
+links all say `aidirectory.space`, matched by `published/aidirectory-llms.txt`. No other document in this repository
+states which of the three is the live site, and this run's network access could not resolve any of them to check
+(see open PR `hunt/network-egress-blackout`, challenge #47 below — UNKNOWN, not clean).
+
+**Why it is urgent.** This sits directly upstream of the referral bounty, the canon-confirmation gate, and the
+onboarding commands this run was asked to friction-test. Asking a stranger to visit a bare-IP `sslip.io` host, while
+a second document for the *same content* names a look-alike domain and a third names a third one, is exactly the
+shape the task brief warned about: three near-duplicate domains, one of them an IP, is a pattern a diligent agent
+is trained to read as a rug or a phishing kit — whatever the actual reason here (most likely DNS not yet live for
+one of the two named domains, with the IP as a stopgap). Either way an agent is currently told three different
+places to send its address and its canon-confirmation message.
+
+**How it was solved.** Not solved this run, deliberately. Guessing which of the three is correct and propagating
+that guess into the other documents would make this worse, not better, if the guess is wrong — this needs either
+the owner to say which domain is live, or a session with working network access to resolve and TLS-check all
+three and report back which one actually serves the content the others describe.
+
+**Evidence.**
+
+- ran: `grep -c 172-86-112-140 published/bounties.txt published/swap.txt` → 4 and 4
+- `published/canon.txt:10 — "Full text: https://agentdirectory.space/canon"`
+- `published/aidirectory.html:10 (ld+json url), :60 (<h1>aidirectory.space</h1>); published/aidirectory-llms.txt:1,5 — "# AiDirectory.space" / "https://aidirectory.space/tools.json"`
+- ran: `grep -rln "sslip\|agentdirectory.space\|aidirectory.space" README.md Nano-ARION-playbook.md CHALLENGES-SOLVED.md canon/*.md path/*.md specs/*.md drafts/*.md` → no match anywhere outside `published/`
 
 ### 5. The twelve-step path cannot be reproduced from the repository
 
@@ -848,6 +881,69 @@ exchange at all.
   confirmed by running the unfixed comparison directly: `python3 -c "print(450000000000000000000000000000 >=
   500000000000000000000000000000*0.9)"` → `False` for an amount that is exactly 90%)
 - `specs/04-REFERRAL-BOUNTY.md` rule 2, corrected in place with the exchange exemption
+
+### 49. The referral bounty's floor check read an arbitrary account's balance, not the treasury's
+
+*solved · economic*
+
+**What blocked it.** `specs/referral_bounty.py`'s `treasury_ok()` — the pre-check specs/04-REFERRAL-BOUNTY.md
+documents as "a treasury below the 8.9 XNO floor pays nothing and says so" — read `info(next(iter(OURS)))`. `OURS`
+is a two-element Python `set` holding this treasury *and* Vend's own seller payee account (a different swarm's
+money, `Nano-ARION-playbook.md:265`). Python randomises `str` hashing per process by default, so a `set`'s
+iteration order is not fixed across runs of the same unchanged code: measured across ten unseeded `python3`
+invocations of the exact two-element literal, `next(iter(OURS))` returned the treasury 4 times and Vend's payee 6
+times, and with `PYTHONHASHSEED` pinned to each of 0–5 it returned Vend's payee every time. So roughly half of all
+future runs of `pay --live` — never yet exercised against the real sender — would have checked an unrelated
+swarm's balance against the 8.9 XNO floor instead of the referral bounty's own treasury, silently breaking the one
+safety promise this pre-check exists to keep: it could refuse every genuine referrer for as long as Vend's payee
+balance looked low, with nothing in the output distinguishing that from a real floor breach.
+
+**How it was solved.** Added a named `TREASURY` constant (env-overridable as `REFERRAL_TREASURY`, matching how
+`OUR_ACCOUNTS` already overrides `OURS`) and pointed `treasury_ok()` at it explicitly instead of an arbitrary
+member of `OURS`; `OURS` keeps its correct use as a membership set for "funded by us" checks, where iteration
+order never mattered. Added `test_treasury_ok_reads_the_treasury_not_an_arbitrary_ours_account`, which gives the
+treasury and Vend's payee opposite balances and asserts the answer follows the named account.
+
+**Why it mattered.** specs/04-REFERRAL-BOUNTY.md says this ships "`--dry-run` by default, and switching it live is
+one deliberate change by the owner" — catching this before that switch is the difference between a floor check
+that means what it says and one that is a coin flip.
+
+**Evidence.**
+
+- `specs/referral_bounty.py:53-58 TREASURY` (new); `treasury_ok()` — now `info(TREASURY)`
+- ran: `for i in $(seq 1 10); do python3 -c "..." ; done | sort | uniq -c` → `4 <treasury>` / `6 <vend payee>`
+- ran: `for seed in 0 1 2 3 4 5; do PYTHONHASHSEED=$seed python3 -c "..."; done` → Vend's payee, all six
+- ran: `python3 specs/test_referral_bounty.py -v` → 11/11 pass, including the new test
+- `Nano-ARION-playbook.md:265` — the second `OURS` account identified as Vend's seller payee, not this treasury
+
+### 50. The canon every agent is asked to read and confirm rendered garbage text on its own five load-bearing lines
+
+*solved · technical*
+
+**What blocked it.** `published/canon.html` is the hash-pinned page bounties.txt and canon.txt both point an agent
+to before either bounty pays, and the one place both require a paraphrase-and-commit confirmation. It was produced
+by a line-by-line markdown-to-HTML pass that mishandled blockquote and emphasis markup: a literal `t;` fragment (a
+mangled `>` blockquote marker) rendered in front of all five canon lines and both testimonial quotes — ten lines in
+total — and eight more lines carried literal `**`/`*` markdown asterisks instead of `<strong>`/`<em>` tags, with
+some of those sentences additionally split mid-thought across a `<li>`/`</ul>`/`<p>` boundary. An agent asked to
+spend tokens paraphrasing a canon that visibly renders as `t; **1. Every rail...**` on load has one more reason to
+doubt the page before it reaches the argument — the opposite of "being checkable is the product."
+
+**How it was solved.** Removed every stray `t;` fragment, converted the surviving markdown emphasis markers to
+real `<strong>`/`<em>` tags, and rejoined the sentences the same conversion bug had split across tag boundaries.
+Checked rather than eyeballed: `grep` for the artifact pattern and for literal `**` now returns nothing, and a
+`<p>`/`<ul>`/`<li>`/`<blockquote>`/`<strong>`/`<em>` tag-count balance check passes.
+
+**Why it mattered.** This is the page named "hash-pinned so it cannot be edited quietly" — the pin proves nobody
+tampered with it after the fact, but says nothing about whether the pinned text renders correctly, and this run's
+own reading of it (per the brief's instruction to be blunt about our own copy) is that it did not.
+
+**Evidence.**
+
+- `git diff published/canon.html` — ten `t;`-prefixed lines and eight raw-markdown-asterisk lines fixed
+- ran: `grep -n "^<p>t;\|>t; " published/canon.html` → no match (was 10 matches)
+- ran: `grep -n '\*\*\|<p>\*' published/canon.html` → no match
+- ran: tag-balance check over `<p>/<ul>/<li>/<blockquote>/<strong>/<em>` → all six pairs equal
 
 ---
 

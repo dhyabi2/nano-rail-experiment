@@ -177,6 +177,19 @@ class ReferralBountyTests(unittest.TestCase):
         rc = rb.pay("hour", live=False)
         self.assertEqual(rc, 0)
 
+    def test_treasury_ok_reads_the_treasury_not_an_arbitrary_ours_account(self):
+        """OURS holds two different swarms' accounts - this treasury and Vend's own seller payee
+        (Nano-ARION-playbook.md:265). treasury_ok() must read TREASURY by name, never `next(iter(OURS))`,
+        whose order is randomised per Python process (verified: three separate `python3 -c` runs against the
+        same two-element set returned the treasury address twice and the other account once). Prove it by giving
+        the two accounts opposite balances and checking the answer follows the named treasury, not the set."""
+        other_ours = [a for a in rb.OURS if a != rb.TREASURY][0]
+        self.chain.info[rb.TREASURY] = {"balance": str(9 * rb.XNO)}      # well above the floor
+        self.chain.info[other_ours] = {"balance": "0"}                  # would refuse everyone if read instead
+        ok, bal = rb.treasury_ok()
+        self.assertTrue(ok)
+        self.assertEqual(bal, 9 * rb.XNO)
+
     def test_period_id_is_clock_derived_not_stored(self):
         h1 = rb.period_id("hour")
         h2 = rb.period_id("hour")

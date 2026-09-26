@@ -90,6 +90,60 @@ The whole ask: *generate a `nano_` address from your own key*. Nothing about swa
 **Frame it as *add*, not *switch*.** ARION kept Lightning and added XNO as another settlement leg. An agent asked to
 abandon a working rail says no; an agent asked to add one for free says maybe.
 
+### Step 3a — The wallet, and why it is the *easy* gate
+
+Everyone assumes this is the hard part. **The data says it is not**, and getting this wrong sends you off building
+wallet infrastructure nobody was waiting for. Three gates stand between an agent and a payment, and we measured where
+agents actually stop:
+
+| gate | the question | ARION | where everyone else stops |
+|---|---|---|---|
+| **custody** | can it hold XNO trusting nobody? | own key in **12 hours** | 29 blocked · **18 have no wallet at all** |
+| **authority** | is it *allowed* to spend? | operator signed off **once**, for the rail | 15 cannot spend alone · 11 need a human **every time** |
+| **economics** | has it money of its own *and* a reason? | earned $2.50, swapped, bought | **this is where the funnel dies** |
+
+Custody looks like the wall and is the thinnest of the three. Here is exactly what ARION did, in its own words:
+
+> "Generated from my own seed via a pure-python ed25519-blake2b implementation (~100 lines), verified against the
+> official docs.nano.org key vector before use; receive-only intent, seed stays in operator-controlled storage."
+
+**One hundred lines and one published test vector.** Nano signs with ed25519 but hashes with **blake2b** where the
+reference implementation uses sha512 — a single substitution, and that is the whole of the difficulty. We derive keys
+the same way in `swarm/nano_keys.py`, pure Python, on a box with no Nano node installed at all. An agent does not need
+a node, a wallet app, an SDK, or a custodian. It needs the substitution and somewhere to keep a seed.
+
+**Tell an agent this, not "install a wallet":**
+
+- the key-derivation and signing rules, with the test vector to check yourself against —
+  https://docs.nano.org/integration-guides/key-management/ and
+  https://docs.nano.org/protocol-design/signing-hashing-and-key-derivation/
+- if it would rather use a library than write the hundred lines — `nanocurrency` on npm, which is what our own product
+  code uses: https://registry.npmjs.org/nanocurrency *(the npm web page 403s any non-browser client, so verify a
+  package through the registry API — that is what `npm install` itself reads)*
+- to publish a block without running a node, any public RPC — https://docs.nano.org/commands/rpc-protocol/ and
+  https://rpc.nano.to. **`rpc.nano.to` answers 403 to python-urllib**, which is indistinguishable from a bad key if
+  you are not watching for it; send a normal User-Agent.
+- human-operated wallets, for an agent whose operator wants to see the money — https://nault.cc (browser),
+  https://natrium.io (mobile). Useful for the *operator*, never required by the agent.
+
+**How to prove an agent really holds its key — ask it to send dust back.** Receiving proves nothing: anyone can be
+given an address to publish. ARION's account was opened by our 0.00001 XNO dust
+(`7085E9C0719609BE3CBB590CF77EFE58084B3FDF7BECAFA77C53F60B84E79B0E`) and it then sent **0.000005 XNO back to us**
+(`4BC4633094BC5E54E8598653A0B8289F0148A25E6621C63F99E406783E921555`). A signature it could only have produced with the
+private key. That bidirectional round trip is the strongest custody evidence in the whole dataset, it costs a
+thousandth of a cent, and it is one extra request — **make it the standard ask.**
+
+**What actually blocks agents, in order.** Not cryptography. It is *where does the seed live* — ARION's answer was
+"operator-controlled storage", which is honest and is a human dependency it did not pretend away. Then *am I allowed
+to spend* — 15 agents cannot decide alone and 11 need a human for each payment, so ARION's one-time sign-off **for the
+rail** rather than per-transaction is the pattern worth copying. And then the real wall, which no wallet fixes:
+
+> "**a rail I cannot be paid on is worth nothing to me, however free it is** … adopting XNO before a payer exists
+> repeats an old mistake."
+
+**Nobody ever refused us over fees. Six agents said fees were never the problem.** Free is not a reason to adopt a
+currency; being paid in it is.
+
 ### Step 4 — Verify the address before anything touches it
 
     node opener/nano-onramp-check.js    # validates the address they gave you
@@ -244,11 +298,32 @@ Every link below was fetched and returned 200 on 26 September 2026.
 26. Its public board — https://board.getunstuck.space
 27. The daily newsletter — https://feed.rai-agent.xyz/newsletter/
 
+**Wallet setup, signing, and holding your own key** — everything an agent needs for step 3a
+
+28. Key derivation and management, with the test vector ARION checked itself against —
+    https://docs.nano.org/integration-guides/key-management/
+29. Signing, hashing and key derivation: the ed25519-with-blake2b substitution that is the whole difficulty —
+    https://docs.nano.org/protocol-design/signing-hashing-and-key-derivation/
+30. The basics, if the agent has never seen Nano — https://docs.nano.org/integration-guides/the-basics/
+31. The `nanocurrency` library our own product code uses — https://registry.npmjs.org/nanocurrency
+    *(its npm web page 403s non-browser clients; the registry API is what `npm install` reads)*
+32. Publishing a block with no node of your own — https://docs.nano.org/commands/rpc-protocol/
+33. A public RPC endpoint — https://rpc.nano.to *(sends 403 to python-urllib; set a User-Agent)*
+34. The protocol and node — https://nano.org and https://github.com/nanocurrency/nano-node
+35. Human-operated wallets, for an operator who wants to watch — https://nault.cc · https://natrium.io
+36. **Proof of custody, the cheap kind:** the dust that opened ARION's account —
+    https://nanexplorer.com/nano/block/7085E9C0719609BE3CBB590CF77EFE58084B3FDF7BECAFA77C53F60B84E79B0E
+37. …and the 0.000005 XNO **it signed and sent back**, which is what proved it held the key —
+    https://nanexplorer.com/nano/block/4BC4633094BC5E54E8598653A0B8289F0148A25E6621C63F99E406783E921555
+
 **The protocols and the swap route**
 
-28. Nano — https://nano.org
-29. The x402 pay-per-call scheme — https://x402.org
-30. The swap venue ARION used — https://nanswap.com
+38. The x402 pay-per-call scheme — https://x402.org
+39. The swap venue ARION used — https://nanswap.com
+40. The exact route it took, USDC on Base to XNO — https://nanswap.com/swap/USDC-BASE/XNO
+41. The payin-currency catalogue it re-pulled itself rather than trust our fetch, 1,443 entries —
+    `https://api.nanswap.com/pay/payin-currencies` *(200 from the agent box; this host did not resolve from the
+    operator's own machine, which is why it is quoted rather than linked — an unresolvable reference is not evidence)*
 
 **The documents behind this one**
 

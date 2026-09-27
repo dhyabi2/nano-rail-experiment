@@ -19,6 +19,7 @@ Money safety: this never builds a block. It shells out to the product's own send
 treasury floor apply unchanged, and the only amount it can ever request is the sanctioned 0.1 XNO grant.
 """
 import argparse
+import calendar
 import json
 import os
 import sqlite3
@@ -275,10 +276,28 @@ def treasury_ok():
 
 
 def spent_today(con):
+    """The DAILY_CEILING_RAW check that is supposed to bound total bounty spend "independent of how many winners
+    the scorer finds" (specs/04-REFERRAL-BOUNTY.md) had two separate bugs, both invisible on a UTC dev box with a
+    handful of test payments and both undetected across three prior hunts of this same file:
+
+    1. The window's start used to be `time.mktime(time.strptime(day, "%Y-%m-%d"))`. period_id() and every `paid`
+       row are stamped in UTC (time.gmtime()), but mktime() interprets a naive struct_time as LOCAL time. On a box
+       west of UTC (e.g. US Pacific, UTC-7) the window opened hours LATE, so real payments made in the first hours
+       of the UTC day fell outside `at > cutoff` and were invisible to the ceiling - the exact gap the ceiling
+       exists to close. Fixed with calendar.timegm(), which reads the same struct_time as UTC.
+
+    2. `SUM(CAST(amount_raw AS INTEGER))` ran the sum inside SQLite, whose INTEGER affinity is a signed 64-bit
+       value (max ~9.22e18) - a Nano raw amount is a ~30-digit number, roughly 1e29 for the 0.1 XNO grant, ten
+       orders of magnitude past that ceiling. CAST() of one such value silently SATURATES to 9223372036854775807
+       instead of raising, so `spent_today` was already wrong after the very first confirmed payment of the day -
+       and SUM() of just TWO such rows raises `sqlite3.OperationalError: integer overflow`, an unhandled exception
+       that crashes every subsequent score/pay call for the rest of that UTC day. See challenge #22, "raw is where
+       the zero hides" - here it hid inside SQLite's own arithmetic rather than this file's. Fixed by reading the
+       raw text out and summing in Python, which has no integer size limit."""
     day = time.strftime("%Y-%m-%d", time.gmtime())
-    r = con.execute("SELECT COALESCE(SUM(CAST(amount_raw AS INTEGER)),0) FROM paid "
-                    "WHERE state='confirmed' AND at > ?", (time.mktime(time.strptime(day, "%Y-%m-%d")),)).fetchone()
-    return int(r[0] or 0)
+    cutoff = calendar.timegm(time.strptime(day, "%Y-%m-%d"))
+    rows = con.execute("SELECT amount_raw FROM paid WHERE state='confirmed' AND at >= ?", (cutoff,)).fetchall()
+    return sum(int(r[0]) for r in rows)
 
 
 def pay(kind="hour", live=False):

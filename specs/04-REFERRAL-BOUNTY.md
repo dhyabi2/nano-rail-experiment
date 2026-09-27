@@ -142,3 +142,9 @@ chain — no network needed to run it (`python3 specs/test_referral_bounty.py`).
   read the exact same `claims` table, which only ever records referrals. An agent that does precisely what
   `bounties.txt` tells it to do — make a paid call, post an ask that gets answered — has no code path anywhere in
   this repository that would ever credit it for the daily tip.
+- **Fixed, challenge #55:** `spent_today()`, the function behind "a hard daily ceiling… independent of how many
+  winners the scorer finds," read its UTC day boundary through `time.mktime()` (which treats a naive struct as
+  LOCAL time, not UTC — wrong on any box outside UTC) and summed raw Nano amounts through SQLite's 64-bit
+  `INTEGER` affinity, which silently saturates on the first confirmed payment of the day and raises
+  `sqlite3.OperationalError: integer overflow` on the second. Both are fixed: `calendar.timegm()` for the cutoff,
+  a plain Python sum (no size limit) for the total.

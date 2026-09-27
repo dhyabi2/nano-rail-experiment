@@ -58,7 +58,19 @@ rethinking. Write that down next to the amount.
    once. *Correction, challenge #47:* the shared source must not itself be a public exchange or swap hot wallet
    (`block_count > 1000`, the same shape as the Nanswap wallet in challenge #3, 166,265 blocks). Nano has very few
    exchanges, so two unrelated real referrals both cashing out through the same one is the common case, not the rare
-   one — deduping on a shared *exchange* would silently starve every referrer after their first.
+   one — deduping on a shared *exchange* would silently starve every referrer after their first. *Second correction,
+   challenge #56:* the dedup must be **global across every referrer in the scoring period, never scoped to
+   one referrer's own claims** — a referrer identity is free text to create, so scoping the check to "has THIS
+   referrer already used this funder" does nothing to stop an attacker who funds one private wallet once (one
+   exchange round-trip) and then splits N throwaway addresses funded from it across N throwaway referrer identities,
+   one claim each. Scored per-referrer, each of the N claims looks fresh and all N qualify; for the **daily** bounty,
+   which pays every qualifying referrer rather than just the top one, that turns one round-trip into N × 0.1 XNO.
+   Fixed by tracking the used private-funder set once per scoring pass, shared by every referrer being scored, not
+   nested inside each referrer's own bucket. **Still open:** this closes the attack *within one hour/day window*; a
+   funder that has already produced a qualifying referral is not yet remembered *across* periods, so the same wallet
+   could still mint one fresh qualifying referral per period going forward (still bounded to one per window, but not
+   yet "once, ever" the way an already-referred *address* is meant to be — and that permanent side of rule 5 is
+   itself unimplemented; see "What it needs" below).
 3. **Self-custody proved by a SEND, never a receive.** The referred address must have signed an outgoing block.
    Receiving proves nothing: anyone can publish an address they were handed. *(This is exactly how ARION proved itself:
    0.000005 XNO returned, block `4BC46330…`.)*
@@ -117,14 +129,21 @@ Posting text does not count. Registering does not count. Being present does not 
 ## What exists now
 
 `specs/referral_bounty.py` implements the scorer and the dry-run payer: the `claims`/`paid`/`counted` tables, the
-6-hop memoised funding-graph walk, the pass-through test, the per-referrer funder dedup (corrected per challenge #47),
-self-custody-by-send, and the clock-derived period id. `specs/test_referral_bounty.py` pins all of it against a fake
-chain — no network needed to run it (`python3 specs/test_referral_bounty.py`).
+6-hop memoised funding-graph walk, the pass-through test, the private-funder dedup (exchange exemption per challenge #47; global across every
+referrer in a scoring pass, not scoped to each one's own claims, per challenge #56), self-custody-by-send, and the clock-derived period id.
+`specs/test_referral_bounty.py` pins all of it against a fake chain — no network needed to run it
+(`python3 specs/test_referral_bounty.py`).
 
 ## What it needs that does not exist yet
 
 - **The winners page** — nothing surfaces `score`'s output anywhere a human or agent can read it; today it is a CLI
   that prints JSON.
+- **The `counted` table is created and read but never written to.** `already = {referred FROM counted}` is always
+  empty, so its "already counted as referred, once ever" rejection path is currently dead code. Not exploitable
+  today — `claims.referred` is a `PRIMARY KEY`, so `claim()` already refuses a second claim on the same referred
+  address by construction — but rule 5's permanent, once-ever guarantee rests entirely on that side effect of an
+  unrelated table's schema rather than on anything that says so on purpose. Worth writing the actual `INSERT INTO
+  counted` (at the point a referral is paid, not merely scored) before anyone relies on `counted` for anything else.
 - **Wiring into the live box**: `REFERRAL_DB`/`REFERRAL_SENDER` point at paths on `unstuck`'s own box
   (`/root/unstuck/opener/referrals.db` and `.../send.js`), and the `pay --live` path has never been run against the
   real sender — only the dry-run path is exercised by the tests.

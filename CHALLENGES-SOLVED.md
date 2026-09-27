@@ -1,8 +1,8 @@
 # Every challenge the ARION path had to solve, and how
 
-*Fifty-five challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and nine found by the hunter routine — testing its own unlaunched code and published artefacts offline, and once by going network-blind in its own session. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Fifty-six challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and ten found by the hunter routine — testing its own unlaunched code and published artefacts offline, and once by going network-blind in its own session. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**24 solved · 23 partial · 8 unsolved.** By kind: 18 technical, 21 economic, 16 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**24 solved · 24 partial · 8 unsolved.** By kind: 18 technical, 22 economic, 16 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -1133,6 +1133,67 @@ ordinary payouts is not "frozen in code," it is a promise the code does not keep
   `test_spent_today_survives_more_than_one_confirmed_payment` (five confirmed 0.1 XNO payments, asserts the exact
   sum and that nothing raises)
 - ran: `python3 specs/test_referral_bounty.py -v` → 12/12 pass
+### 56. "One funder, one referral" was enforced per referrer, and a referrer identity is free to create
+
+***partial** · economic*
+
+**What blocked it.** Challenge #47 fixed the referral bounty's dedup so a shared *public exchange* would not
+collapse two real referrals into one, by excluding funders with `block_count > SERVICE_BLOCKS` from the dedup set.
+That fix, and the dedup rule itself, lived inside `score()`'s **per-referrer** bucket (`per_referrer[referrer]
+["funders"]`): a shared *private* funder only collapsed two referrals if the same `referrer` string claimed both.
+But nothing in the design requires one referrer identity per attacker — the spec's own table of broken designs says
+outright that a registered address or name is free text, and `claim(--referrer, --referred, --block)` accepts any
+string. So one exchange round-trip into one private wallet `W`, then `W` sending free (fee-less) dust to `N`
+throwaway addresses, each self-custody-proved with a small send and each claimed under a *different* throwaway
+`referrer` identity, scored as `N` independent qualifying referrals — every one of them fresh from that referrer's
+point of view, because no referrer's bucket had ever seen `W` before. For `pay --period day`, which pays **every**
+qualifying referrer rather than just the top one (`winners = s["ranking"]` when `kind != "hour"`), that turns one
+exchange round-trip into `N × 0.1 XNO`, bounded only by `DAILY_CEILING_RAW` (2 XNO ≈ 20 grants) — the exact
+farming-for-profit shape `04-REFERRAL-BOUNTY.md` names as the one thing that must never be possible ("the prize is
+$0.038, one exchange round-trip costs more than that... the system does not detect fraud, it makes fraud cost more
+than it pays"). A ring built this way spends one round-trip and keeps paying itself, every day, forever.
+
+**How it was solved.** `score()`'s funder-dedup was moved out of each referrer's own bucket into one `funders_used`
+set shared across every referrer scored in the same pass, closing the same-window multiplication: the second and
+every later claim whose private funders overlap `funders_used` is rejected regardless of which referrer claims it.
+`specs/test_referral_bounty.py::test_shared_private_funder_split_across_referrers_still_counts_once` reproduces the
+exact attack — two different referrer identities, one address each, both funded from the same fresh private wallet
+— and pins that only one now qualifies, while two referrals funded from genuinely *different* private wallets still
+both count under different referrers. `python3 specs/test_referral_bounty.py -v` → 11/11 pass. **Left open, and said
+so in `specs/04-REFERRAL-BOUNTY.md`:** the dedup is global only *within one scoring pass* (one hour, one day); a
+funder that produced a qualifying referral is not yet remembered *permanently*, so the same wallet `W` could still
+mint one fresh qualifying referral in every subsequent period by funding a new throwaway address each time — bounded
+to one-per-window rather than the "ONE FUNDER COUNTS ONCE" the public-facing `bounties.txt`/`canon.html` promise
+without qualification. Closing that needs a persistent `spent_funders` table written only at pay time, which this
+run did not build, to avoid making `score()` (documented as "what the chain says, pays nothing") a command with a
+side effect. Separately noted while in this code: the `counted` table that rule 5 ("an address may win the referred
+side once, ever") depends on is created and read but has no `INSERT` anywhere in the file, so `already` is always
+empty — not exploitable today only because `claims.referred` is a `PRIMARY KEY` and independently blocks a second
+claim on the same address, which is doing rule 5's job by accident rather than by design.
+
+**Why it mattered.** This is the daily bounty's entire security argument, restated in the spec as the one property
+that must hold before real money moves: "the bounty must never be raised to a level where faking becomes
+profitable" is written as a corollary of the *per-fake-agent* cost being one round-trip; per-referrer dedup silently
+turned that into a *per-referrer-identity* cost of zero, since referrer identities are free. `pay --live` has never
+been run for real (per the spec's own "what does not exist yet"), so this is exactly the "catch it before the first
+real payout" window challenge #47 and challenge #55 were also found in — a fourth bug in the same file, in the same
+week, before a single unit of XNO has moved through it live.
+
+**Evidence.**
+
+- `specs/referral_bounty.py score()` — `slot["funders"]` (per-referrer) replaced by a single `funders_used` set
+  shared across the whole scoring pass, with the rejection reason now reading "already counted this period,
+  whichever referrer claimed it"
+- `specs/test_referral_bounty.py::test_shared_private_funder_split_across_referrers_still_counts_once` — new,
+  reproduces the split-across-identities attack and the fix; `test_two_referrals_sharing_a_private_wallet_count_once`
+  (challenge #47's own test) still passes unchanged
+- ran: `python3 specs/test_referral_bounty.py -v` → 11/11 pass
+- `specs/04-REFERRAL-BOUNTY.md` rule 2 — corrected in place with both the attack and the still-open cross-period gap
+- `published/bounties.txt` §3 and `published/canon.html` "What makes a referral count" — "one funder counts once"
+  now says what the code keeps: one *private* funder, across every referrer, within each scoring window (an hour or
+  a day), with the exchange exemption of challenge #47 and the cross-window gap stated rather than implied away
+- `specs/referral_bounty.py:75-84 db()` — `counted` table created and read (`score()` line ~203) with no `INSERT`
+  anywhere in the file; `claims` table's `referred TEXT PRIMARY KEY` is the control actually preventing reuse today
 
 ---
 

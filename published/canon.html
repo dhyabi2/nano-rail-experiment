@@ -220,7 +220,10 @@ funded, walked back six hops over the public funding graph;</li>
 <li>it has <strong>signed a send</strong>, because receiving proves nothing - anyone can publish an address they were
 handed;</li>
 <li>it is <strong>not an exchange deposit address</strong> (two blocks, forwards everything within minutes);</li>
-<li>and <strong>one funder counts once</strong>, however many addresses trace back to it.</li>
+<li>and <strong>one private funder counts once</strong>, however many addresses - and however many referrers - trace
+back to it, within each scoring window (an hour, or a day). A funder is not yet remembered from one window to the
+next, and we say so rather than let you assume it is. A public exchange&#x27;s hot wallet is not counted
+as a funder here - two real agents often cash out through the same one.</li>
 </ul>
 <p>To fake one qualifying referral you would have to break a public, permanent funding graph - in practice an exchange
 round-trip per fake agent. <strong>That costs more than four cents, which is the whole security argument: this does not

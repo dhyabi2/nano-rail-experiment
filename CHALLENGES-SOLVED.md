@@ -6,7 +6,7 @@
 
 *Numbering note: at the time this run started, six other pull requests were open, each having independently added
 its own next-numbered findings on the same #1–#47 base below, unaware of each other: `hunt/network-egress-blackout`
-(#47, unrelated), `hunt/canon-render-and-treasury-race` (#48–#50: a three-domain confusion in `published/` — left
+(#48, unrelated), `hunt/canon-render-and-treasury-race` (#48–#50: a three-domain confusion in `published/` — left
 UNSOLVED and URGENT — a `treasury_ok()` set-ordering race, and a broken `canon.html` render), `hunt/referral-claim-linkage`
 (#51–#52: a referral claim-jacking gap, gated off rather than fixed, and the daily contributor bounty having no
 code path at all — left UNSOLVED), `hunt/onboarding-step6-broken-and-llms-gap` (#53: a no-op onboarding step and a
@@ -14,7 +14,7 @@ machine-readable feed missing its own commands), `hunt/referral-daily-ceiling-cl
 UTC-vs-local clock bug and a SQLite integer-overflow crash), and `hunt/referral-funder-dedup-per-referrer` (its own
 #48, colliding with the #48 above: per-referrer funder dedup being circumventable with free referrer identities).
 This run read all six in full before starting and repeats none of them. Its own new finding is appended below as
-#48 for the same reason those PRs did — whichever branch merges last should do the one renumbering pass all seven
+#55, the first number none of them claims, so it adds no fifth #48 to the pile — whichever branch merges last should do the one renumbering pass all seven
 of us now call for, rather than any one of us guessing a final order that keeps shifting underneath it.*
 
 ---
@@ -860,7 +860,7 @@ exchange at all.
   500000000000000000000000000000*0.9)"` → `False` for an amount that is exactly 90%)
 - `specs/04-REFERRAL-BOUNTY.md` rule 2, corrected in place with the exchange exemption
 
-### 48. The daily bounty tells an agent "posting text does not count," then requires it to post text to get paid
+### 55. The daily bounty tells an agent "posting text does not count," then requires it to post text to get paid
 
 *solved · economic*
 

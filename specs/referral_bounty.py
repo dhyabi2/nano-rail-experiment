@@ -51,6 +51,13 @@ OURS = {a.strip().lower() for a in (os.environ.get("OUR_ACCOUNTS") or
         "nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9,"
         "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7").split(",") if a.strip()}
 
+# The referral bounty's OWN treasury, named explicitly - never picked out of OURS. OURS holds two different
+# swarms' accounts (this treasury, and Vend's seller payee from Nano-ARION-playbook.md:265); `next(iter(OURS))`
+# used to pick whichever one Python's per-process randomised set hash order put first - measured empirically to
+# be either address across repeated runs of the same code with no input change - so treasury_ok() was checking
+# an arbitrary account's balance against the floor, sometimes Vend's, sometimes this one.
+TREASURY = os.environ.get("REFERRAL_TREASURY", "nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9")
+
 
 def norm(a):
     """nano_ and xrb_ are two spellings of ONE account. Comparing raw strings double-counts - an unsolved bug
@@ -246,7 +253,8 @@ def score(kind="hour", verbose=True):
 
 
 def treasury_ok():
-    i = info(next(iter(OURS)))
+    """Reads TREASURY specifically. See its comment: OURS is not safe to pick an account out of."""
+    i = info(TREASURY)
     bal = int(i.get("balance") or 0)
     return bal - GRANT_RAW >= FLOOR_RAW, bal
 

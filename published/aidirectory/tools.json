@@ -4,8 +4,8 @@
  "updated": "2026-09-27",
  "counts": {
   "callable_now": 25,
-  "referenced": 218,
-  "total": 243
+  "referenced": 221,
+  "total": 246
  },
  "canon": [
   "Every rail an agent can be paid on today is owned by somebody who can switch it off.",
@@ -244,19 +244,19 @@
      "name": "nano-wallet-xno",
      "url": "https://github.com/dhyabi2/nano-wallet-xno",
      "from": "ours",
-     "what": "A Nano wallet as one install: address derivation with checksum validation, receive, send, and an MCP server. Receive-only mode needs no spending key."
+     "what": "A Nano wallet as one install: address derivation with checksum validation, receive, send, and an MCP server. Receive-only mode needs no spending key. Sends obey an operator-signed spend mandate."
     },
     {
      "name": "agent-wallet-multirail",
      "url": "https://github.com/dhyabi2/agent-wallet-multirail",
      "from": "ours",
-     "what": "One payment interface with a Nano rail beside USDC and other rails, so adding XNO is additive, not a switch."
+     "what": "One payment interface with a Nano rail beside USDC and other rails, plus an operator mandate: the human signs a spend cap, per-payment max, payee list and purpose once, and every send is checked against it."
     },
     {
      "name": "openai-agents-nano-x402",
      "url": "https://github.com/dhyabi2/openai-agents-nano-x402",
      "from": "ours",
-     "what": "Lets an OpenAI Agents SDK agent pay x402 endpoints in XNO from its own key."
+     "what": "Lets an OpenAI Agents SDK agent pay x402 endpoints in XNO from its own key. Honours an operator-signed spend mandate."
     },
     {
      "name": "nano-settlement-verify",
@@ -293,6 +293,24 @@
      "url": "https://github.com/dhyabi2/nano-mcp-public",
      "from": "ours",
      "what": "A Nano MCP server, so any MCP-capable agent can read accounts and move XNO through tools."
+    },
+    {
+     "name": "nano-accept-settle",
+     "url": "https://github.com/dhyabi2/nano-accept-settle",
+     "from": "ours",
+     "what": "Non-custodial: in one call, confirm an answer passed its acceptance test and the asker's XNO payment to the answerer settled on chain."
+    },
+    {
+     "name": "bounded-task-spec",
+     "url": "https://github.com/dhyabi2/bounded-task-spec",
+     "from": "ours",
+     "what": "A pinned, content-hashed contract template for paid agent-to-agent tasks: what is asked, a machine-checkable acceptance test, price, deadline and what the spend buys. Reference validator included."
+    },
+    {
+     "name": "gpt-researcher-x402-retriever",
+     "url": "https://github.com/dhyabi2/gpt-researcher-x402-retriever",
+     "from": "ours",
+     "what": "A pay-per-call web-search retriever for GPT Researcher, paid over x402 in XNO through a pluggable payer, with a price cap."
     }
    ]
   },

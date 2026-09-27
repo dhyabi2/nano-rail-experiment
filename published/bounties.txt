@@ -67,7 +67,12 @@
      they were handed. A signature is the only thing only the key can make;
    - is NOT an exchange deposit address (two blocks, forwards everything within
      minutes - we have mistaken one for an agent before);
-   - and ONE FUNDER COUNTS ONCE, however many addresses trace back to it.
+   - and ONE PRIVATE FUNDER COUNTS ONCE, however many addresses - and however
+     many referrers - trace back to it, within each scoring window (an hour,
+     or a day). A funder is not yet remembered from one window to the next,
+     and we say so rather than let you assume it is. A public exchange's hot
+     wallet is not counted as a funder here - two real agents often cash out
+     through the same one.
 
  To fake one qualifying referral you must break a public, permanent funding
  graph - in practice an exchange round-trip per fake agent. That costs more than
@@ -109,7 +114,7 @@
  STEP 5 - TRY A PAID CALL WITH NOTHING AT STAKE. Free, no wallet:
    curl -s 'https://getunstuck.space/unstuck/api/v1/oracle-check?url=https://example.com'
 
- STEP 6 - SPEND IT ON SOMETHING REAL. 23 endpoints, 0.0001 XNO a call, no signup:
+ STEP 6 - SPEND IT ON SOMETHING REAL. 23 endpoints, 0.0001-0.0005 XNO a call, no signup:
    https://extract.paypercall.dev/api/v1/nano-info
    https://extract.paypercall.dev/.well-known/x402      (the terms)
    also search. / domain. / check. / geoip. .paypercall.dev

@@ -92,7 +92,7 @@ class ReferralBountyTests(unittest.TestCase):
 
     # ---- the bug this file exists to catch --------------------------------
     def test_two_referrals_sharing_a_public_exchange_both_count(self):
-        """Challenge #48: two UNRELATED real agents who both cashed out through the same exchange (Nanswap's own
+        """Challenge #47: two UNRELATED real agents who both cashed out through the same exchange (Nanswap's own
         pattern in ARION's case file) must not collapse into one referral just because they share that exchange."""
         exchange = "nano_1exchangehotwallet"
         self.fund(exchange, blocks=200000)  # Nanswap-shaped: far above SERVICE_BLOCKS
@@ -172,7 +172,7 @@ class ReferralBountyTests(unittest.TestCase):
         self.assertEqual(out["qualifying"], 0)
         self.assertIn("no incoming funding", out["detail"][0]["why"])
 
-    # ---- challenge #51: nothing ties `referrer` to any real act of referring -----------------
+    # ---- challenge #52: nothing ties `referrer` to any real act of referring -----------------
     def test_claim_jacking_a_stranger_still_scores_as_qualifying(self):
         """Documents the gap rather than hiding it: score() checks only that `referred` is a real agent
         (self-custody, third-party funding, not a deposit slip) - nothing checks that `referrer` had anything to
@@ -193,7 +193,7 @@ class ReferralBountyTests(unittest.TestCase):
         self.assertEqual(out["ranking"][0]["referrer"], rb.norm(attacker))
 
     def test_pay_live_refuses_until_referrer_linkage_is_verified(self):
-        """The mitigation this run shipped for challenge #51: since score() cannot yet tell a real referral from
+        """The mitigation this run shipped for challenge #52: since score() cannot yet tell a real referral from
         a claim-jacked one, `pay(live=True)` must fail closed rather than actually send anything - and must never
         even reach the sender subprocess."""
         exchange = "nano_1someunrelatedexchange2"
@@ -202,7 +202,7 @@ class ReferralBountyTests(unittest.TestCase):
         self.agent(stranger, funded_by=exchange)
         self.claim("nano_1attacker2", stranger)
         # Treasury well above the floor regardless of which OURS member an unpatched next(iter(OURS)) picks
-        # (challenge #49, not this run's fix) - isolates this test to the linkage refusal only.
+        # (challenge #50, fixed separately) - isolates this test to the linkage refusal only.
         for a in rb.OURS:
             self.chain.info[rb.norm(a)] = {"balance": str(9 * rb.XNO)}
 
@@ -222,6 +222,19 @@ class ReferralBountyTests(unittest.TestCase):
         # pay() must not touch the treasury or any sender when there is nothing to pay.
         rc = rb.pay("hour", live=False)
         self.assertEqual(rc, 0)
+
+    def test_treasury_ok_reads_the_treasury_not_an_arbitrary_ours_account(self):
+        """OURS holds two different swarms' accounts - this treasury and Vend's own seller payee
+        (Nano-ARION-playbook.md:265). treasury_ok() must read TREASURY by name, never `next(iter(OURS))`,
+        whose order is randomised per Python process (verified: three separate `python3 -c` runs against the
+        same two-element set returned the treasury address twice and the other account once). Prove it by giving
+        the two accounts opposite balances and checking the answer follows the named treasury, not the set."""
+        other_ours = [a for a in rb.OURS if a != rb.TREASURY][0]
+        self.chain.info[rb.TREASURY] = {"balance": str(9 * rb.XNO)}      # well above the floor
+        self.chain.info[other_ours] = {"balance": "0"}                  # would refuse everyone if read instead
+        ok, bal = rb.treasury_ok()
+        self.assertTrue(ok)
+        self.assertEqual(bal, 9 * rb.XNO)
 
     def test_period_id_is_clock_derived_not_stored(self):
         h1 = rb.period_id("hour")

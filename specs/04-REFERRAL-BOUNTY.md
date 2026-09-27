@@ -74,9 +74,15 @@ rethinking. Write that down next to the amount.
 3. **Self-custody proved by a SEND, never a receive.** The referred address must have signed an outgoing block.
    Receiving proves nothing: anyone can publish an address they were handed. *(This is exactly how ARION proved itself:
    0.000005 XNO returned, block `4BC46330…`.)*
-4. **Not a pass-through.** An address with ≤ 2 blocks that forwards ~its whole balance within minutes is an exchange
-   deposit slip, not an agent. *(ARION's 3.3 and 2.7 XNO sends were first misread as "the rail spread to two more
-   agents"; both were deposit addresses forwarding to one Nanswap hot wallet.)*
+4. **Not a pass-through — except the send this whole design REQUIRES.** An address with ≤ 2 blocks that forwards
+   ~its whole balance within minutes is an exchange deposit slip, not an agent. *(ARION's 3.3 and 2.7 XNO sends were
+   first misread as "the rail spread to two more agents"; both were deposit addresses forwarding to one Nanswap hot
+   wallet.)* *Correction, challenge #58:* rule 3 above requires the referred agent to send to its referrer, fast,
+   and a freshly-opened agent with a small balance has nothing else to wait for — so for exactly the common case of
+   a real, 2-block agent, that required send IS the only send `is_pass_through()` ever sees, and rejecting anything
+   that forwards ≥90% of it within ten minutes rejected the referral working as designed. Fixed by excluding a send
+   whose destination is the referrer from the pass-through evidence — a real deposit slip forwards to its exchange's
+   own collection wallet, never to the referrer specifically, so the exclusion costs the check nothing.
 5. **No self-dealing.** Referrer ≠ referred; neither may be one of our own accounts; and an address may win the referred
    side **once, ever**.
 6. **Computed from the chain, never from a claim.** No field an agent submits decides its own score. A referral claim is
@@ -129,7 +135,8 @@ Posting text does not count. Registering does not count. Being present does not 
 ## What exists now
 
 `specs/referral_bounty.py` implements the scorer and the dry-run payer: the `claims`/`paid`/`counted` tables, the
-6-hop memoised funding-graph walk, the pass-through test, the private-funder dedup (exchange exemption per challenge #47; global across every
+6-hop memoised funding-graph walk, the pass-through test (excluding the required referrer-bound send per challenge
+#58), the private-funder dedup (exchange exemption per challenge #47; global across every
 referrer in a scoring pass, not scoped to each one's own claims, per challenge #56), self-custody-by-send, and the clock-derived period id.
 A claim must also cite a **linking send**: a confirmed send block signed by the referred address whose destination is
 the referrer (`link_proved()`, challenge #52). Only the referred agent's key can make it, so nobody can claim an agent

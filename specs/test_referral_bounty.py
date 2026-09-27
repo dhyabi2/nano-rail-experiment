@@ -208,6 +208,44 @@ class ReferralBountyTests(unittest.TestCase):
         self.assertEqual(out["qualifying"], 0)
         self.assertIn("deposit", out["detail"][0]["why"])
 
+    def test_genuine_referral_proof_send_is_not_mistaken_for_a_pass_through(self):
+        """Challenge #58, the next bug after #56: bounties.txt tells a referred agent to prove itself by sending
+        (any amount) to its referrer, fast - there is nothing else to wait for. For a freshly-opened agent with a
+        small balance and only two blocks ever (fund, then that one required send), the required proof send IS
+        `sends[0]` in is_pass_through's own history read: same destination, same timing window, same >=90%-forwarded
+        shape a real exchange deposit slip has. Before the fix, a genuine agent that forwarded most of a small
+        balance straight to its referrer within minutes - exactly as instructed - was rejected as an exchange
+        deposit address and never paid, silently, with no way for it to tell why."""
+        self.fund("nano_1funder4", blocks=50)
+        referrer, referred = "nano_1referrerR", "nano_1referredJ"
+        link_block = self.link(referred, referrer)  # the required proof-of-referral send, forwarding ~everything
+        self.chain.history[rb.norm(referred)] = [
+            {"type": "send", "account": rb.norm(referrer),
+             "local_timestamp": str(int(time.time() - 60)), "amount": str(int(XNO_HALF * 0.95))},
+            {"type": "receive", "account": rb.norm("nano_1funder4"),
+             "local_timestamp": str(int(time.time() - 120)), "amount": str(XNO_HALF)},
+        ]
+        self.chain.info[rb.norm(referred)] = {"block_count": "2"}
+        self.claim(referrer, referred, block=link_block)
+        out = rb.score("hour", verbose=False)
+        self.assertEqual(out["qualifying"], 1, out["detail"])
+        self.assertEqual(out["ranking"][0]["referrer"], rb.norm(referrer))
+
+    def test_a_real_deposit_slip_forwarding_elsewhere_still_rejected_even_with_a_referral_claim(self):
+        """The fix must not open a hole: an address that forwards to some OTHER destination (a real exchange
+        collection wallet, not the referrer) is still a pass-through, even if a claim happens to name it, because
+        third_party_funded/link_proved gate on a *different* cited block - this fixture proves is_pass_through
+        alone still catches the classic shape when the forwarding destination is not the referrer."""
+        self.fund("nano_1funder5", blocks=10)
+        self.chain.history[rb.norm("nano_1realdeposit")] = [
+            {"type": "send", "account": "nano_1someexchangecollectionwallet",
+             "local_timestamp": str(int(time.time() - 60)), "amount": str(int(XNO_HALF * 0.95))},
+            {"type": "receive", "account": rb.norm("nano_1funder5"),
+             "local_timestamp": str(int(time.time() - 120)), "amount": str(XNO_HALF)},
+        ]
+        self.chain.info[rb.norm("nano_1realdeposit")] = {"block_count": "2"}
+        self.assertTrue(rb.is_pass_through("nano_1realdeposit", "nano_1referrerR"))
+
     def test_never_funded_rejected(self):
         self.chain.history["nano_1referredi"] = [
             {"type": "send", "local_timestamp": str(int(time.time())), "amount": str(XNO_045)}]

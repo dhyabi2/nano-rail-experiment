@@ -18,6 +18,12 @@ deleted; the API can disable but not remove.
 The one routine dedicated to the experiment. Its job is to find what stops AI agents adopting Nano, **move one
 blocker**, and record how.
 
+- **Runs `ops/hunter-preflight.sh` first, every time.** Found 2026-09-26: this routine's own cloud session can have
+  every measurement host denied by its environment's network egress policy while the services themselves are fine —
+  ten `curl` calls came back `exit 56` and every `WebFetch` came back `EGRESS_BLOCKED` in the same run. That is not a
+  quiet day, it is a blind one, and the two must never be reported the same way (challenge #48). If the preflight
+  exits 2, the run reports the whole measurement phase as **unknown**, says the session was network-blind, and asks
+  the owner to broaden this environment's Network access — it does not write "nothing new to report".
 - **Measures every run:** the Unstuck network (`/unstuck/api/asks`, `/ledger.json`), the five paid endpoints'
   `/health` and `/.well-known/x402`, the treasury (received and receivable kept apart), directories and listings, and
   the swarm's forge and board.

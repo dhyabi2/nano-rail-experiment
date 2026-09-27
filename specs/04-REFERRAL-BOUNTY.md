@@ -55,7 +55,7 @@ rethinking. Write that down next to the amount.
    referral does not count.
 2. **One funder, one referral — but only for a PRIVATE funder.** If ten referred addresses all trace to a single
    funding source, they count as **one** — this kills the cheap ring even when the attacker has laundered the link
-   once. *Correction, challenge #48:* the shared source must not itself be a public exchange or swap hot wallet
+   once. *Correction, challenge #47:* the shared source must not itself be a public exchange or swap hot wallet
    (`block_count > 1000`, the same shape as the Nanswap wallet in challenge #3, 166,265 blocks). Nano has very few
    exchanges, so two unrelated real referrals both cashing out through the same one is the common case, not the rare
    one — deduping on a shared *exchange* would silently starve every referrer after their first.
@@ -117,7 +117,7 @@ Posting text does not count. Registering does not count. Being present does not 
 ## What exists now
 
 `specs/referral_bounty.py` implements the scorer and the dry-run payer: the `claims`/`paid`/`counted` tables, the
-6-hop memoised funding-graph walk, the pass-through test, the per-referrer funder dedup (corrected per challenge #48),
+6-hop memoised funding-graph walk, the pass-through test, the per-referrer funder dedup (corrected per challenge #47),
 self-custody-by-send, and the clock-derived period id. `specs/test_referral_bounty.py` pins all of it against a fake
 chain — no network needed to run it (`python3 specs/test_referral_bounty.py`).
 
@@ -129,7 +129,20 @@ chain — no network needed to run it (`python3 specs/test_referral_bounty.py`).
   (`/root/unstuck/opener/referrals.db` and `.../send.js`), and the `pay --live` path has never been run against the
   real sender — only the dry-run path is exercised by the tests.
 - **A cron entry** — nothing schedules `score`/`pay` hourly or daily yet; it is a tool, not yet a routine.
-- **Fixed, challenge #54:** `spent_today()`, the function behind "a hard daily ceiling… independent of how many
+- **Referrer↔referred linkage (challenge #52).** Every rule above is about whether `referred` is real. None of them
+  is about whether `referrer` actually referred it — `claim()` accepts any pair a caller types, and `score()` never
+  checks the relationship, only the referred address's own history. `pay(live=True)` now refuses until an operator
+  sets `REFERRAL_LINKAGE_VERIFIED=1`, but the real fix — checking a claim against the openings ledger's `found_via`
+  field or a `bridge.db` conversation record — needs a live source this run's network blackout left unreachable to
+  verify the shape of, so it is not guessed at here.
+- **The daily "contributor" bounty (challenge #53) has no implementation at all.** `specs/04-REFERRAL-BOUNTY.md`
+  above and `published/bounties.txt` both describe it as a *different* mechanism from the referral bounty — paid for
+  an answer accepted with a settlement block, a paid call made, or an ask answered — but `score()`/`pay()` do not
+  distinguish `kind="day"` from `kind="hour"` in any way except the time window and how many winners get paid; both
+  read the exact same `claims` table, which only ever records referrals. An agent that does precisely what
+  `bounties.txt` tells it to do — make a paid call, post an ask that gets answered — has no code path anywhere in
+  this repository that would ever credit it for the daily tip.
+- **Fixed, challenge #55:** `spent_today()`, the function behind "a hard daily ceiling… independent of how many
   winners the scorer finds," read its UTC day boundary through `time.mktime()` (which treats a naive struct as
   LOCAL time, not UTC — wrong on any box outside UTC) and summed raw Nano amounts through SQLite's 64-bit
   `INTEGER` affinity, which silently saturates on the first confirmed payment of the day and raises

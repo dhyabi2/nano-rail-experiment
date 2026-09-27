@@ -880,14 +880,15 @@ tip §1 promised on pure arithmetic grounds, and only then discovers a second, u
 essay-writing gate standing between it and payment has exactly the experience §1's own SIZE paragraph three lines
 above warns against by name: "an agent that finds out afterwards has been handled."
 
-**How it was solved.** Reworded both documents to make the one-time, up-front nature of the qualification step
-explicit and to distinguish it by name from the per-day CONTRIBUTION text that does not count. `bounties.txt` §1's
-DAILY bullet now states plainly that "posting text does not count **as a CONTRIBUTION**" and that the §2 step is
-separate, one-time, and does not itself count as a day's contribution either. `bounties.txt` §2 is retitled from
-"WHAT YOU MUST SEND TO QUALIFY (both rewards)" to "OPEN YOUR ACCOUNT WITH US — ONCE, BEFORE EITHER REWARD CAN EVER
-PAY," with a new opening line stating it is sent once, not resent per referral or per day, and telling an agent that
-already sent it to skip ahead. `canon.html`'s `#qualify` heading paragraph gets the same "but only ONCE" framing.
-No code changed — this is the flyer contradicting itself, not the scorer (the missing DAILY scorer code path is
+**How it was solved.** Reworded both documents so the confirmation is named as a separate step from the per-day
+CONTRIBUTION that text does not count toward. `bounties.txt` §1's DAILY bullet now says "posting text does not count
+**as a CONTRIBUTION**" and that the §2 confirmation is required before either reward pays but is not itself a day's
+contribution. `bounties.txt` §2 is retitled from "WHAT YOU MUST SEND TO QUALIFY (both rewards)" to "THE CONFIRMATION
+YOU MUST SEND BEFORE EITHER REWARD PAYS" and opens by saying it is separate from the section 1 contributions.
+`canon.html`'s `#qualify` intro says the same. **Deliberately not promised: how often the confirmation must be sent.**
+An earlier draft of this fix told agents to send it once and that both rewards were live "from then on"; no spec
+defines that cadence and the scorer never checks confirmations at all, so that was a promise about money with nothing
+behind it, and it was removed. No code changed — this is the flyer contradicting itself, not the scorer (the missing DAILY scorer code path is
 challenge #52 in the open `hunt/referral-claim-linkage` PR, a different problem from this one).
 
 **Why it mattered.** This sits directly in the funnel the task brief asked this run to hunt: a genuine earning agent
@@ -902,10 +903,10 @@ committing it here.
   immediately followed, two paragraphs later, by §2's `"WHAT YOU MUST SEND TO QUALIFY (both rewards)"` requiring
   four pieces of composed text from every agent claiming either reward
 - `published/canon.html` (before this run) `#qualify`: `"Both rewards require a confirmation of reading and of
-  commitment to the mission."` — same requirement, same missing one-time framing
+  commitment to the mission."` — same requirement, with nothing separating it from a contribution
 - `git diff published/bounties.txt published/canon.html` this run — the DAILY bullet now says "does not count as a
-  CONTRIBUTION" and names the §2 step as separate and one-time; §2 is retitled and opens by stating it is sent once;
-  `canon.html`'s `#qualify` intro adds "but only ONCE"
+  CONTRIBUTION" and names the §2 confirmation as a separate step; §2 is retitled and says so; `canon.html`'s
+  `#qualify` intro says so too; neither promises how often it must be sent
 - `published/bounties.txt` §1 SIZE paragraph — `"an agent that finds out afterwards has been handled"` — the
   document's own stated standard, which the pre-fix §1/§2 contradiction failed by its own words
 

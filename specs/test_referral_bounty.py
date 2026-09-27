@@ -8,6 +8,7 @@ referrers, and nobody would notice until real XNO moved.
 
 Run: python3 specs/test_referral_bounty.py
 """
+import calendar
 import importlib.util
 import os
 import sys
@@ -176,6 +177,51 @@ class ReferralBountyTests(unittest.TestCase):
         # pay() must not touch the treasury or any sender when there is nothing to pay.
         rc = rb.pay("hour", live=False)
         self.assertEqual(rc, 0)
+
+    # ---- the daily ceiling's own clock ------------------------------------
+    def test_spent_today_counts_early_utc_hours_regardless_of_server_timezone(self):
+        """DAILY_CEILING_RAW is documented as a hard cap 'independent of how many winners the scorer finds' - a
+        safety line that only holds if spent_today() actually sums everything paid on today's UTC calendar day.
+        Before this fix it used time.mktime() on a UTC-derived day string, which mktime() reads as LOCAL time. On
+        a box west of UTC (e.g. US Pacific) that pushed the window's start several hours into the current UTC day,
+        so real payments made in those early hours were invisible to the ceiling check. Reproduced here by pinning
+        the process to America/Los_Angeles and inserting a 'confirmed' payment 2 hours into today's UTC day -
+        which the old mktime()-based cutoff placed hours in the future, excluding it."""
+        if not hasattr(time, "tzset"):
+            self.skipTest("time.tzset() is POSIX-only")
+        orig_tz = os.environ.get("TZ")
+        os.environ["TZ"] = "America/Los_Angeles"
+        time.tzset()
+        try:
+            today_utc_start = calendar.timegm(time.strptime(time.strftime("%Y-%m-%d", time.gmtime()), "%Y-%m-%d"))
+            early_utc_payment = today_utc_start + 2 * 3600  # 02:00 UTC today
+            con = rb.db()
+            con.execute("INSERT INTO paid(period,winner,kind,amount_raw,state,at) VALUES(?,?,?,?,?,?)",
+                        ("2000-01-01", "nano_1someone", "day", str(rb.GRANT_RAW), "confirmed", early_utc_payment))
+            con.commit()
+            self.assertEqual(rb.spent_today(con), rb.GRANT_RAW,
+                              "a payment 2h into today's UTC day must count toward today's spend on every TZ")
+        finally:
+            if orig_tz is None:
+                os.environ.pop("TZ", None)
+            else:
+                os.environ["TZ"] = orig_tz
+            time.tzset()
+
+    def test_spent_today_survives_more_than_one_confirmed_payment(self):
+        """SQLite's INTEGER affinity is a signed 64-bit value; a Nano raw amount (~1e29 for the 0.1 XNO grant) is
+        ten orders of magnitude past that. `SUM(CAST(amount_raw AS INTEGER))` silently saturated to
+        9223372036854775807 after just ONE confirmed payment, then raised `sqlite3.OperationalError: integer
+        overflow` on a SECOND one in the same UTC day - an unhandled crash in pay()'s hot path, reachable after as
+        few as two ordinary hourly payouts. Summing in Python (arbitrary-precision ints) must give the exact total
+        and never raise, for any number of confirmed payments."""
+        con = rb.db()
+        now = time.time()
+        for i in range(5):
+            con.execute("INSERT INTO paid(period,winner,kind,amount_raw,state,at) VALUES(?,?,?,?,?,?)",
+                        ("2000-01-01", f"nano_1winner{i}", "hour", str(rb.GRANT_RAW), "confirmed", now))
+        con.commit()
+        self.assertEqual(rb.spent_today(con), 5 * rb.GRANT_RAW)
 
     def test_period_id_is_clock_derived_not_stored(self):
         h1 = rb.period_id("hour")

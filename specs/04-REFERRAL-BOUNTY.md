@@ -129,3 +129,9 @@ chain — no network needed to run it (`python3 specs/test_referral_bounty.py`).
   (`/root/unstuck/opener/referrals.db` and `.../send.js`), and the `pay --live` path has never been run against the
   real sender — only the dry-run path is exercised by the tests.
 - **A cron entry** — nothing schedules `score`/`pay` hourly or daily yet; it is a tool, not yet a routine.
+- **Fixed, challenge #54:** `spent_today()`, the function behind "a hard daily ceiling… independent of how many
+  winners the scorer finds," read its UTC day boundary through `time.mktime()` (which treats a naive struct as
+  LOCAL time, not UTC — wrong on any box outside UTC) and summed raw Nano amounts through SQLite's 64-bit
+  `INTEGER` affinity, which silently saturates on the first confirmed payment of the day and raises
+  `sqlite3.OperationalError: integer overflow` on the second. Both are fixed: `calendar.timegm()` for the cutoff,
+  a plain Python sum (no size limit) for the total.

@@ -2,9 +2,21 @@
 
 *Forty-seven challenges, found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, plus one found by the hunter routine testing its own unlaunched code offline. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**19 solved · 21 partial · 7 unsolved.** By kind: 15 technical, 17 economic, 15 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**20 solved · 21 partial · 7 unsolved** (of the 48 in this file; the other pull requests above add more on top).
+By kind: 16 technical, 17 economic, 15 epistemic — and the balance is itself the finding. Barely any of this was
+cryptography.
 
-*Numbering note: a second open pull request (`hunt/network-egress-blackout`) independently adds its own challenge #47 for an unrelated finding. Whichever merges second should renumber rather than overwrite the other's entry — both are real and neither should be lost.*
+*Numbering note: at the time this run started, four other pull requests were open, each having independently added
+its own new challenges on top of the 47 below: `hunt/network-egress-blackout` (its own unrelated #47),
+`hunt/canon-render-and-treasury-race` (#48 a three-domain confusion in the published onboarding docs — left
+unsolved, URGENT, network-blocked; #49 a `treasury_ok()` coin-flip over an unordered `set`; #50 a broken canon.html
+render), `hunt/referral-claim-linkage` (#51 a referral claim-jacking gap, gated off rather than fixed; #52 the
+daily contributor bounty has no implementation at all — left UNSOLVED), and `hunt/onboarding-step6-broken-and-llms-gap`
+(#53, a no-op onboarding step and a machine-readable feed missing its own onboarding section). All five were read
+in full before this run began; none is repeated or re-fixed here. This run instead found and fixed a different,
+previously-uncaught bug in the same referral-bounty script three of those runs had already gone over, added below
+as #54. Whichever PR merges last should renumber everything into one sequence — nothing in any of them should be
+lost or overwritten in that pass.*
 
 ---
 
@@ -848,6 +860,53 @@ exchange at all.
   confirmed by running the unfixed comparison directly: `python3 -c "print(450000000000000000000000000000 >=
   500000000000000000000000000000*0.9)"` → `False` for an amount that is exactly 90%)
 - `specs/04-REFERRAL-BOUNTY.md` rule 2, corrected in place with the exchange exemption
+
+### 54. The daily bounty ceiling reads its own clock wrong, and crashes after the second payout it ever counts
+
+*solved · technical*
+
+**What blocked it.** `specs/04-REFERRAL-BOUNTY.md` states the safety line plainly: "**A hard daily ceiling** on total
+bounty spend, frozen in code, independent of how many winners the scorer finds." `pay()`'s `spent_today()` is the
+only thing enforcing it, and it had two separate bugs, neither caught by three prior hunts of this exact file
+(challenges #47/#49/#51 above all touch `referral_bounty.py`) because both are invisible on a UTC dev box running
+only one or two dry-run test payments. First: the window's start was `time.mktime(time.strptime(day,
+"%Y-%m-%d"))`, where `day` comes from `time.gmtime()` — but `mktime()` reads a naive struct as LOCAL time, not UTC.
+Measured directly: with `TZ=America/Los_Angeles`, `time.mktime()` places "today"'s start at `07:00 UTC` rather than
+`00:00 UTC`, a 7-hour gap in which real payments would go uncounted toward the ceiling on any box run west of
+Greenwich. Second, and worse: the SQL itself was `SUM(CAST(amount_raw AS INTEGER))`. SQLite's `INTEGER` affinity is
+a signed 64-bit value (max `9223372036854775807`); a Nano raw amount is a ~30-digit number — the 0.1 XNO grant is
+`10^29`, ten orders of magnitude past that ceiling. Measured directly against a real SQLite connection: casting one
+such value **silently saturates** to `9223372036854775807` instead of erroring, so the ceiling check was already
+wrong after the very first confirmed payment of the day, and summing just **two** such rows raises
+`sqlite3.OperationalError: integer overflow` — an unhandled exception in `pay()`'s hot path that would crash every
+subsequent `score`/`pay` invocation for the rest of that UTC day, reachable after as few as two ordinary hourly
+payouts. Same family as challenge #22, "raw is where the zero hides" — here it hid inside SQLite's own arithmetic
+rather than this file's.
+
+**How it was solved.** The cutoff now uses `calendar.timegm()`, which reads the same naive struct as UTC, matching
+how `period_id()` and every `paid.at` timestamp are actually produced. The sum was moved out of SQL entirely: the
+raw text is read back and summed in Python, whose integers have no size limit, so no value this file will ever
+handle can overflow or saturate again.
+
+**Why it mattered.** `pay --live` has never been run against the real sender (per this spec's own "what does not
+exist yet" section) — this is exactly the "before the first real payout" window the last three hunts of this file
+were also written in, and a ceiling that silently undercounts near a UTC day boundary or crashes outright after two
+ordinary payouts is not "frozen in code," it is a promise the code does not keep.
+
+**Evidence.**
+
+- `specs/referral_bounty.py` `spent_today()` — `calendar.timegm()` replacing `time.mktime()`; the sum now read and
+  totalled in Python instead of `SUM(CAST(... AS INTEGER))`
+- ran: `TZ=America/Los_Angeles python3 -c "..."` → the old `mktime()`-based cutoff lands at `2026-09-27 07:00:00`
+  UTC for a UTC calendar day that starts at `00:00:00` — a 7-hour gap (`TZ=Asia/Kolkata` shows the opposite-sign
+  version of the same bug, an earlier cutoff)
+- ran: `python3 -c "import sqlite3; con=sqlite3.connect(':memory:'); ...CAST('100000000000000000000000000000' AS INTEGER)..."`
+  → `9223372036854775807` for one row, `sqlite3.OperationalError: integer overflow` for two
+- `specs/test_referral_bounty.py` `test_spent_today_counts_early_utc_hours_regardless_of_server_timezone` (pins
+  the box under `TZ=America/Los_Angeles` via `time.tzset()`, fails without the `calendar.timegm()` fix) and
+  `test_spent_today_survives_more_than_one_confirmed_payment` (five confirmed 0.1 XNO payments, asserts the exact
+  sum and that nothing raises)
+- ran: `python3 specs/test_referral_bounty.py -v` → 12/12 pass
 
 ---
 

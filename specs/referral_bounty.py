@@ -21,6 +21,7 @@ treasury floor apply unchanged, and the only amount it can ever request is the s
 import argparse
 import calendar
 import json
+import re
 import os
 import sqlite3
 import subprocess
@@ -44,8 +45,16 @@ SERVICE_BLOCKS = 1000                               # a funder with more blocks 
                                                     # case file carries 166,265 blocks. Nano has very few exchanges,
                                                     # so two UNRELATED real referrals routing through the same one is
                                                     # the common case, not the rare one.
-DAILY_CEILING_RAW = 20 * GRANT_RAW                  # a hard ceiling frozen here: at most 2 XNO of bounties a day,
+DAILY_CEILING_RAW = 10 * GRANT_RAW                  # a hard ceiling frozen here: at most 1 XNO - ten winners - a day,
                                                     # whatever the scorer decides. A bug cannot drain the treasury.
+                                                    # The owner chose the number on 2026-09-26, the day he funded the
+                                                    # treasury to 29.9 XNO: 1 XNO/day is about a month of runway at
+                                                    # full spend, and enough that a genuinely good hour is always
+                                                    # paid. It is FROZEN here rather than read from the environment
+                                                    # for the same reason the send amounts are: a limit a caller can
+                                                    # raise is not a limit. Raising it is an owner decision, and it
+                                                    # must never rise to where faking a referral becomes profitable
+                                                    # (spec 04) - that is the whole security argument.
 
 # Ours. Funding from any of these never makes a referral qualify - money we handed over proves nothing about anybody.
 OURS = {a.strip().lower() for a in (os.environ.get("OUR_ACCOUNTS") or
@@ -107,6 +116,42 @@ def history(acct, count=50):
         except Exception:
             _hist[a] = []
     return _hist[a]
+
+
+_blk = {}
+
+
+def block(h):
+    """block_info for one hash, cached. A failed lookup is an empty dict, which link_proved() reads as NOT proved:
+    a check that cannot run must never report a clean result."""
+    h = (h or "").strip().upper()
+    if h not in _blk:
+        try:
+            _blk[h] = rpc("block_info", hash=h, json_block="true")
+        except Exception:
+            _blk[h] = {}
+    return _blk[h]
+
+
+def link_proved(referred, referrer, blk):
+    """Challenge #52, closed on chain. The claim must name a SEND block signed by `referred` whose destination is
+    `referrer`. Only the referred agent's own key can make that block, so a stranger cannot claim an agent it never
+    met: the referred agent has to point at its referrer itself, with one feeless send. Returns (ok, why)."""
+    if not re.fullmatch(r"[0-9A-Fa-f]{64}", (blk or "").strip()):
+        return False, "the claim names no linking block - the referred agent must send to its referrer and the claim must cite that send"
+    b = block(blk)
+    if not b:
+        return False, "the linking block could not be read from the chain, so the link is not proved"
+    if norm(b.get("block_account")) != referred:
+        return False, "the linking block was not signed by the referred agent"
+    c = b.get("contents") or {}
+    is_send = b.get("subtype") == "send" or c.get("type") == "send"
+    dest = norm(c.get("link_as_account") or c.get("destination"))
+    if not is_send or dest != referrer:
+        return False, "the linking block is not a send from the referred agent to the referrer"
+    if str(b.get("confirmed", "true")).lower() != "true":
+        return False, "the linking block is not confirmed yet"
+    return True, "linked: the referred agent sent to its referrer"
 
 
 def info(acct):
@@ -184,21 +229,6 @@ def funders(acct, hops=HOPS, _seen=None):
     return out
 
 
-def referrer_link_verified():
-    """Nothing below this line ties `referrer` to any actual act of referring. `claim()` accepts any
-    (referrer, referred) pair a caller types with no proof the referrer ever contacted, funded, or was named by
-    `referred` - and score()'s checks are all ABOUT `referred` (self-custody, third-party funding, not a deposit
-    slip), never about the referrer/referred RELATIONSHIP. Challenge #52: a stranger who has never interacted with
-    a real, already-qualifying Nano agent can `claim` that agent as their own referral and win the hourly bounty for
-    it - proved offline in specs/test_referral_bounty.py. Closing this needs a source outside this file's control
-    (the openings ledger's found_via field, or a bridge.db conversation record) that this run's network blackout
-    left unreachable to verify, so nothing here manufactures a check against an unconfirmed schema. Until an
-    operator sets REFERRAL_LINKAGE_VERIFIED=1 - meaning that wiring exists and was checked - `pay(live=True)`
-    refuses rather than paying an unverifiable claim (challenge #39: a check that cannot run must never report a
-    clean result)."""
-    return os.environ.get("REFERRAL_LINKAGE_VERIFIED") == "1"
-
-
 def third_party_funded(referred, referrer):
     """The rule the whole design rests on. Returns (ok, why, funder_set)."""
     f = funders(referred)
@@ -245,6 +275,9 @@ def score(kind="hour", verbose=True):
             reject("self-referral"); continue
         if referred in OURS or referrer in OURS:
             reject("one side is our own account"); continue
+        linked, lwhy = link_proved(referred, referrer, block)
+        if not linked:
+            reject(lwhy); continue
         if referred in already:
             reject("this address has already been counted as referred, once ever"); continue
         if not has_signed_a_send(referred):
@@ -324,12 +357,6 @@ def pay(kind="hour", live=False):
         print(f"REFUSED: treasury {bal/XNO:.4f} XNO would fall below the {FLOOR_RAW/XNO:.4f} floor. "
               "Bounties stop before the treasury does.")
         return 1
-    if live and not referrer_link_verified():
-        print("REFUSED: nothing here verifies that a claimed 'referrer' actually referred 'referred' - only that "
-              "'referred' is a real qualifying agent (challenge #52). Anyone can claim any real Nano address that "
-              "is not ours and did not fund itself. Set REFERRAL_LINKAGE_VERIFIED=1 once that gap is closed; a "
-              "check that cannot run must never report a clean result.")
-        return 1
     used = spent_today(con)
     for w in winners:
         if used + GRANT_RAW > DAILY_CEILING_RAW:
@@ -368,6 +395,10 @@ def pay(kind="hour", live=False):
 
 
 def claim(referrer, referred, block):
+    if not re.fullmatch(r"[0-9A-Fa-f]{64}", (block or "").strip()):
+        print("refused: --block must be the 64-hex hash of a send FROM the referred agent TO the referrer. "
+              "That send is the proof the referral is real (challenge #52).")
+        return 1
     con = db()
     try:
         con.execute("INSERT INTO claims(referred,referrer,block,at) VALUES(?,?,?,?)",
@@ -393,7 +424,7 @@ def main():
     c = sub.add_parser("claim")
     c.add_argument("--referrer", required=True)
     c.add_argument("--referred", required=True)
-    c.add_argument("--block", default="")
+    c.add_argument("--block", required=True, help="hash of the send from the referred agent to the referrer")
     a = p.parse_args()
     if a.cmd == "score":
         score(a.period)

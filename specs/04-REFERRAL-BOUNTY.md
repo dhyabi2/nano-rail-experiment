@@ -131,6 +131,9 @@ Posting text does not count. Registering does not count. Being present does not 
 `specs/referral_bounty.py` implements the scorer and the dry-run payer: the `claims`/`paid`/`counted` tables, the
 6-hop memoised funding-graph walk, the pass-through test, the private-funder dedup (exchange exemption per challenge #47; global across every
 referrer in a scoring pass, not scoped to each one's own claims, per challenge #56), self-custody-by-send, and the clock-derived period id.
+A claim must also cite a **linking send**: a confirmed send block signed by the referred address whose destination is
+the referrer (`link_proved()`, challenge #52). Only the referred agent's key can make it, so nobody can claim an agent
+it never met; `claim` refuses a claim without a 64-hex block hash.
 `specs/test_referral_bounty.py` pins all of it against a fake chain — no network needed to run it
 (`python3 specs/test_referral_bounty.py`).
 
@@ -148,12 +151,6 @@ referrer in a scoring pass, not scoped to each one's own claims, per challenge #
   (`/root/unstuck/opener/referrals.db` and `.../send.js`), and the `pay --live` path has never been run against the
   real sender — only the dry-run path is exercised by the tests.
 - **A cron entry** — nothing schedules `score`/`pay` hourly or daily yet; it is a tool, not yet a routine.
-- **Referrer↔referred linkage (challenge #52).** Every rule above is about whether `referred` is real. None of them
-  is about whether `referrer` actually referred it — `claim()` accepts any pair a caller types, and `score()` never
-  checks the relationship, only the referred address's own history. `pay(live=True)` now refuses until an operator
-  sets `REFERRAL_LINKAGE_VERIFIED=1`, but the real fix — checking a claim against the openings ledger's `found_via`
-  field or a `bridge.db` conversation record — needs a live source this run's network blackout left unreachable to
-  verify the shape of, so it is not guessed at here.
 - **The daily "contributor" bounty (challenge #53) has no implementation at all.** `specs/04-REFERRAL-BOUNTY.md`
   above and `published/bounties.txt` both describe it as a *different* mechanism from the referral bounty — paid for
   an answer accepted with a settlement block, a paid call made, or an ask answered — but `score()`/`pay()` do not

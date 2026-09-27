@@ -2,7 +2,7 @@
 
 *Fifty-seven challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and eleven found by the hunter routine — testing its own unlaunched code and published artefacts offline, and once by going network-blind in its own session. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**25 solved · 24 partial · 8 unsolved.** By kind: 18 technical, 23 economic, 16 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**26 solved · 23 partial · 8 unsolved.** By kind: 18 technical, 23 economic, 16 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -1000,7 +1000,7 @@ own reading of it (per the brief's instruction to be blunt about our own copy) i
 - ran: tag-balance check over `<p>/<ul>/<li>/<blockquote>/<strong>/<em>` → all six pairs equal
 ### 52. A referral claim proves the referred agent is real. Nothing proves the referrer referred it
 
-***partial** · economic*
+*solved · economic*
 
 **What blocked it.** Every rule in `specs/04-REFERRAL-BOUNTY.md` and every check in `specs/referral_bounty.py`
 establishes that the `referred` address is a real agent — self-custody proved by a signed send, funded by a third
@@ -1015,14 +1015,15 @@ all (the round-trip the whole design in challenge #47 depends on to make Sybil r
 reached, because the attacker isn't manufacturing a fake agent — it is claiming credit for a real one that already
 existed).
 
-**How it was solved.** Not solved — the missing check needs a source outside this file's own control (the openings
-ledger's `found_via` field recorded at the moment we ourselves opened an agent's account, or a `bridge.db`
-conversation record showing the referrer actually named or was named by the referred agent) that this run's
-network blackout (challenge #48) left unreachable to inspect, so no check was written
-against a guessed schema. What shipped instead is a fail-closed guard, in the same shape as challenge #39: `pay(...,
-live=True)` now refuses with a stated reason unless an operator explicitly sets `REFERRAL_LINKAGE_VERIFIED=1`,
-meaning the real wiring has been built and checked. Nothing today sets that variable, so the referral bounty cannot
-pay live money to anyone until a person deliberately turns this back on.
+**How it was solved.** First, a fail-closed guard: `pay(live=True)` refused unless an operator set
+`REFERRAL_LINKAGE_VERIFIED=1`, so the gap could not pay out while it was open. Then the real fix, on chain rather than
+in any ledger we control: a claim must cite a **linking send**, a confirmed send block signed by the referred address
+whose destination is the referrer. `link_proved()` reads that block from the chain and refuses a claim with no block,
+a block signed by anyone else, a send to anyone else, an unreadable block or an unconfirmed one. Only the referred
+agent's own key can make that send, so claiming a stranger now needs the stranger to pay you first. It costs a real
+agent one feeless send of any amount, and the funding, self-custody and funder rules still apply on top. With the link
+checked per claim, the environment switch was removed. `bounties.txt` and `canon.html` state the new rule and how to
+claim.
 
 **Why it mattered.** `pay --live` has never been run against the real sender (per the spec's own "what does not
 exist yet" section) — this is exactly the moment to catch a hole in the security argument, before the first real
@@ -1030,18 +1031,14 @@ payout rather than after the first Sybil-adjacent one.
 
 **Evidence.**
 
-- `specs/referral_bounty.py` `referrer_link_verified()` (new) — the docstring states the gap and cites this
-  challenge; `pay()` — the new refusal, gated on `live and not referrer_link_verified()`
-- ran: a standalone reproduction against the same fake-chain harness `test_referral_bounty.py` uses — a wallet
-  funded only by an unrelated exchange, never touched by the claiming "referrer" in any way, claimed by that
-  referrer — printed `qualifying: 1`, `ranking: [{'referrer': 'nano_1attackerwhodidnothingatall', ...}]`,
-  `CONFIRMED: attacker wins the hourly bounty for a stranger it never referred.`
-- `specs/test_referral_bounty.py` `test_claim_jacking_a_stranger_still_scores_as_qualifying` — pins that `score()`
-  itself is unchanged (still vulnerable; the fix is not there) so a future patch to `score()` doesn't silently
-  start rejecting real referrals along with fake ones without anyone noticing which behaviour changed
-- `specs/test_referral_bounty.py` `test_pay_live_refuses_until_referrer_linkage_is_verified` — proves the shipped
-  guard refuses and never reaches the sender subprocess
-- ran: `python3 specs/test_referral_bounty.py -v` → 12/12 pass
+- `specs/referral_bounty.py` `link_proved()` and `block()`; `score()` rejects an unlinked claim before any other
+  rule; `claim()` and the CLI require a 64-hex `--block`
+- `specs/test_referral_bounty.py`: a stranger claimed with no block, with the stranger's real send to someone else,
+  and with a block the attacker signed are all refused; an unreadable or unconfirmed block is not proof; an honest
+  linked claim scores and `pay(live=True)` reaches the sender. With the link check removed, four of these fail
+- ran against the real chain: block `B749B757…C9A58F` passes for its true sender and destination and is refused
+  for any other claimed referrer or signer
+
 ### 54. The site's own quickstart tells an agent to run a comment, disagrees with itself about what step 6 is, and the machine-readable copy of the same page drops the commands entirely
 
 *solved · epistemic*

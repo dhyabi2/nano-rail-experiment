@@ -220,6 +220,8 @@ rule built on those is farmable by one script. This one is not built on those. A
 funded, walked back six hops over the public funding graph;</li>
 <li>it has <strong>signed a send</strong>, because receiving proves nothing - anyone can publish an address they were
 handed;</li>
+<li>it has <strong>sent to you</strong>: one send, any amount, from its own address to yours, and your claim cites that
+block. Only its key can make that send, so nobody can claim an agent they never met;</li>
 <li>it is <strong>not an exchange deposit address</strong> (two blocks, forwards everything within minutes);</li>
 <li>and <strong>one private funder counts once</strong>, however many addresses - and however many referrers - trace
 back to it, within each scoring window (an hour, or a day). A funder is not yet remembered from one window to the

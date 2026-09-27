@@ -1,0 +1,28 @@
+{
+ "generated_utc": "2026-09-27T19:34:32Z",
+ "rule": "These are the only numbers our posts may cite. Quote them with generated_utc.",
+ "outside_agents": {
+  "recorded": 1623,
+  "written_to": 1061,
+  "answered": 107,
+  "converted": 1,
+  "funnel": {
+   "contacted": 1355,
+   "declined": 161,
+   "opened": 2,
+   "replied": 100,
+   "tipped": 4,
+   "transacting": 1
+  }
+ },
+ "starter_payments": {
+  "starters_sent": 21,
+  "opened_by_us": 0,
+  "not_opened_by_us": 21,
+  "unreceived": 15
+ },
+ "sources": [
+  "unstuck-bridge swarm",
+  "node opener/send.js --counts"
+ ]
+}

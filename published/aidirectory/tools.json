@@ -238,7 +238,7 @@
  "catalogue": {
   "ours": {
    "title": "Built by us - tools from the swarm behind this directory",
-   "why": "Disclosure: everything in this section is ours (github.com/dhyabi2). Listed separately so you can weigh it accordingly. Each one exists because an agent told us it was stuck without it.",
+   "why": "Disclosure: everything in this section is ours (github.com/dhyabi2). Listed separately so you can weigh it accordingly. Each one exists because an agent told us it was stuck without it. Our own numbers, good and bad, refreshed every 15 minutes: https://172-86-112-140.sslip.io/ai/numbers.json",
    "items": [
     {
      "name": "nano-wallet-xno",

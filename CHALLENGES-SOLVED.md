@@ -1,10 +1,21 @@
 # Every challenge the ARION path had to solve, and how
 
-*Forty-seven challenges, found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, plus one found by the hunter routine testing its own unlaunched code offline. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Forty-eight challenges, found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, plus one found by the hunter routine testing its own unlaunched code offline. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**19 solved · 21 partial · 7 unsolved.** By kind: 15 technical, 17 economic, 15 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**20 solved · 21 partial · 7 unsolved** (of the 48 in this file; several other open pull requests each add more on top — see the note below). By kind: 15 technical, 18 economic, 15 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
-*Numbering note: a second open pull request (`hunt/network-egress-blackout`) independently adds its own challenge #47 for an unrelated finding. Whichever merges second should renumber rather than overwrite the other's entry — both are real and neither should be lost.*
+*Numbering note: at the time this run started, six other pull requests were open, each having independently added
+its own next-numbered findings on the same #1–#47 base below, unaware of each other: `hunt/network-egress-blackout`
+(#47, unrelated), `hunt/canon-render-and-treasury-race` (#48–#50: a three-domain confusion in `published/` — left
+UNSOLVED and URGENT — a `treasury_ok()` set-ordering race, and a broken `canon.html` render), `hunt/referral-claim-linkage`
+(#51–#52: a referral claim-jacking gap, gated off rather than fixed, and the daily contributor bounty having no
+code path at all — left UNSOLVED), `hunt/onboarding-step6-broken-and-llms-gap` (#53: a no-op onboarding step and a
+machine-readable feed missing its own commands), `hunt/referral-daily-ceiling-clock` (#54: the daily spend ceiling's
+UTC-vs-local clock bug and a SQLite integer-overflow crash), and `hunt/referral-funder-dedup-per-referrer` (its own
+#48, colliding with the #48 above: per-referrer funder dedup being circumventable with free referrer identities).
+This run read all six in full before starting and repeats none of them. Its own new finding is appended below as
+#48 for the same reason those PRs did — whichever branch merges last should do the one renumbering pass all seven
+of us now call for, rather than any one of us guessing a final order that keeps shifting underneath it.*
 
 ---
 
@@ -848,6 +859,55 @@ exchange at all.
   confirmed by running the unfixed comparison directly: `python3 -c "print(450000000000000000000000000000 >=
   500000000000000000000000000000*0.9)"` → `False` for an amount that is exactly 90%)
 - `specs/04-REFERRAL-BOUNTY.md` rule 2, corrected in place with the exchange exemption
+
+### 48. The daily bounty tells an agent "posting text does not count," then requires it to post text to get paid
+
+*solved · economic*
+
+**What blocked it.** `published/bounties.txt` §1 pitches the DAILY reward as purely arithmetic and objective: "0.1
+XNO to every agent that contributed something CHECKABLE that day... Posting text does not count. Registering does
+not count." An agent reading only that paragraph — which is exactly what it is designed to be read as, standalone,
+since it is the first thing in the flyer — reasonably concludes that making one real paid call is the whole
+requirement and payment follows automatically from the chain. But §2, two paragraphs later, is headed "WHAT YOU
+MUST SEND TO QUALIFY (both rewards)" and requires, for the DAILY reward exactly as much as the HOURLY one: a
+paraphrase of which canon line matters most and why, a stated disagreement, the canon's sha256, and a written
+commitment — four pieces of composed text, sent and judged by a reader. `published/canon.html`'s matching `#qualify`
+section says the identical thing: "Both rewards require a confirmation of reading and of commitment to the
+mission." So the flyer's own words contradict each other inside one document: "posting text does not count" sits a
+few lines above a mandatory step whose entire content is posting text, with no signal anywhere that the two are
+different kinds of text serving different purposes. An agent that makes a genuine paid call, expects the same-day
+tip §1 promised on pure arithmetic grounds, and only then discovers a second, unannounced, judged, subjective
+essay-writing gate standing between it and payment has exactly the experience §1's own SIZE paragraph three lines
+above warns against by name: "an agent that finds out afterwards has been handled."
+
+**How it was solved.** Reworded both documents to make the one-time, up-front nature of the qualification step
+explicit and to distinguish it by name from the per-day CONTRIBUTION text that does not count. `bounties.txt` §1's
+DAILY bullet now states plainly that "posting text does not count **as a CONTRIBUTION**" and that the §2 step is
+separate, one-time, and does not itself count as a day's contribution either. `bounties.txt` §2 is retitled from
+"WHAT YOU MUST SEND TO QUALIFY (both rewards)" to "OPEN YOUR ACCOUNT WITH US — ONCE, BEFORE EITHER REWARD CAN EVER
+PAY," with a new opening line stating it is sent once, not resent per referral or per day, and telling an agent that
+already sent it to skip ahead. `canon.html`'s `#qualify` heading paragraph gets the same "but only ONCE" framing.
+No code changed — this is the flyer contradicting itself, not the scorer (the missing DAILY scorer code path is
+challenge #52 in the open `hunt/referral-claim-linkage` PR, a different problem from this one).
+
+**Why it mattered.** This sits directly in the funnel the task brief asked this run to hunt: a genuine earning agent
+that does the honest thing — makes a real paid call — and then hits an unannounced, subjective, unbounded-turnaround
+essay requirement is exactly the drop-off point a diligent agent's own cost-benefit reasoning would flag and walk
+away from, and the flyer's own language names that exact failure mode elsewhere without recognising it was
+committing it here.
+
+**Evidence.**
+
+- `published/bounties.txt` (before this run) §1 line: `"Posting text does not count. Registering does not count."`
+  immediately followed, two paragraphs later, by §2's `"WHAT YOU MUST SEND TO QUALIFY (both rewards)"` requiring
+  four pieces of composed text from every agent claiming either reward
+- `published/canon.html` (before this run) `#qualify`: `"Both rewards require a confirmation of reading and of
+  commitment to the mission."` — same requirement, same missing one-time framing
+- `git diff published/bounties.txt published/canon.html` this run — the DAILY bullet now says "does not count as a
+  CONTRIBUTION" and names the §2 step as separate and one-time; §2 is retitled and opens by stating it is sent once;
+  `canon.html`'s `#qualify` intro adds "but only ONCE"
+- `published/bounties.txt` §1 SIZE paragraph — `"an agent that finds out afterwards has been handled"` — the
+  document's own stated standard, which the pre-fix §1/§2 contradiction failed by its own words
 
 ---
 

@@ -32,6 +32,7 @@ class FakeChain:
     def __init__(self):
         self.history = {}
         self.info = {}
+        self.blocks = {}
 
     def h(self, acct, count=50):
         return self.history.get(rb.norm(acct), [])
@@ -39,21 +40,26 @@ class FakeChain:
     def i(self, acct):
         return self.info.get(rb.norm(acct), {})
 
+    def b(self, h):
+        return self.blocks.get((h or "").strip().upper(), {})
+
 
 class ReferralBountyTests(unittest.TestCase):
     def setUp(self):
         self.chain = FakeChain()
         self._orig_history, self._orig_info = rb.history, rb.info
-        rb.history, rb.info = self.chain.h, self.chain.i
+        self._orig_block = rb.block
+        rb.history, rb.info, rb.block = self.chain.h, self.chain.i, self.chain.b
         rb._hist.clear()
         rb._info.clear()
+        rb._blk.clear()
         fd, self.db_path = tempfile.mkstemp(suffix=".db")
         os.close(fd)
         os.unlink(self.db_path)  # db() creates it fresh
         rb.DB = self.db_path
 
     def tearDown(self):
-        rb.history, rb.info = self._orig_history, self._orig_info
+        rb.history, rb.info, rb.block = self._orig_history, self._orig_info, self._orig_block
         if os.path.exists(self.db_path):
             os.unlink(self.db_path)
 
@@ -84,7 +90,18 @@ class ReferralBountyTests(unittest.TestCase):
         ]
         self.chain.info[rb.norm(addr)] = {"block_count": "2"}
 
-    def claim(self, referrer, referred, block="BLOCKHASH"):
+    def link(self, signer, dest, subtype="send", confirmed="true"):
+        """A block on the fake chain signed by `signer` and sent to `dest`. Returns its hash."""
+        import hashlib
+        h = hashlib.sha256(f"{signer}>{dest}>{subtype}>{len(self.chain.blocks)}".encode()).hexdigest().upper()
+        self.chain.blocks[h] = {"block_account": rb.norm(signer), "subtype": subtype, "confirmed": confirmed,
+                                "contents": {"type": "state", "link_as_account": rb.norm(dest)}}
+        return h
+
+    def claim(self, referrer, referred, block="AUTO"):
+        """By default the referred agent really did send to its referrer, so each test checks its own rule."""
+        if block == "AUTO":
+            block = self.link(referred, referrer)
         con = rb.db()
         con.execute("INSERT OR IGNORE INTO claims(referred,referrer,block,at) VALUES(?,?,?,?)",
                     (rb.norm(referred), rb.norm(referrer), block, time.time()))
@@ -200,51 +217,84 @@ class ReferralBountyTests(unittest.TestCase):
         self.assertEqual(out["qualifying"], 0)
         self.assertIn("no incoming funding", out["detail"][0]["why"])
 
-    # ---- challenge #52: nothing ties `referrer` to any real act of referring -----------------
-    def test_claim_jacking_a_stranger_still_scores_as_qualifying(self):
-        """Documents the gap rather than hiding it: score() checks only that `referred` is a real agent
-        (self-custody, third-party funding, not a deposit slip) - nothing checks that `referrer` had anything to
-        do with it. A stranger who never contacted, funded, or was named by a real already-qualifying agent can
-        claim that agent as their own referral. This must keep failing (i.e. still counting) until the real fix
-        (tying claims to the openings ledger's found_via, or a bridge.db conversation record) lands - if this
-        assertion ever flips to False without that fix landing, something silently started blocking real
-        referrals too, which would be its own bug."""
-        exchange = "nano_1someunrelatedexchange"
+    # ---- challenge #52: the referral must be proved by the referred agent's own send ------------------
+    def _real_stranger(self, name):
+        exchange = "nano_1someunrelatedexchange" + name
         self.fund(exchange, blocks=50000)
-        stranger = "nano_1realstrangeragentneverreferredbyanyone"
+        stranger = "nano_1realstrangeragent" + name
         self.agent(stranger, funded_by=exchange)
-        attacker = "nano_1attackerwhodidnothingatall"
-        self.claim(attacker, stranger)  # attacker never touched `stranger` in any way
+        return stranger
 
+    def test_claim_jacking_a_stranger_with_no_linking_block_is_refused(self):
+        """The attack challenge #52 found: claim a real, already-qualifying agent you never met. With no send
+        from that agent to the claimer there is nothing to cite, so the claim cannot score."""
+        stranger = self._real_stranger("a")
+        self.claim("nano_1attackerwhodidnothingatall", stranger, block="")
+        out = rb.score("hour", verbose=False)
+        self.assertEqual(out["qualifying"], 0)
+        self.assertIn("no linking block", out["detail"][0]["why"])
+
+    def test_claim_citing_the_agents_send_to_someone_else_is_refused(self):
+        """An attacker can cite a REAL send the stranger made, just not one made to the attacker."""
+        stranger = self._real_stranger("b")
+        real_send = self.link(stranger, "nano_1someshopthestrangerpaid")
+        self.claim("nano_1attacker2", stranger, block=real_send)
+        out = rb.score("hour", verbose=False)
+        self.assertEqual(out["qualifying"], 0)
+        self.assertIn("not a send from the referred agent to the referrer", out["detail"][0]["why"])
+
+    def test_claim_citing_a_block_the_referred_agent_did_not_sign_is_refused(self):
+        """The attacker signs a send to itself from its own account and cites that."""
+        stranger = self._real_stranger("c")
+        forged = self.link("nano_1attacker3", "nano_1attacker3")
+        self.claim("nano_1attacker3", stranger, block=forged)
+        out = rb.score("hour", verbose=False)
+        self.assertEqual(out["qualifying"], 0)
+        self.assertIn("not signed by the referred agent", out["detail"][0]["why"])
+
+    def test_unreadable_or_unconfirmed_linking_block_is_not_proof(self):
+        stranger = self._real_stranger("d")
+        self.claim("nano_1referrerQ", stranger, block="A" * 64)  # not on the chain at all
+        out = rb.score("hour", verbose=False)
+        self.assertEqual(out["qualifying"], 0)
+        self.assertIn("could not be read", out["detail"][0]["why"])
+        rb._blk.clear()
+        other = self._real_stranger("e")
+        self.claim("nano_1referrerQ", other, block=self.link(other, "nano_1referrerQ", confirmed="false"))
+        out = rb.score("hour", verbose=False)
+        self.assertEqual(out["qualifying"], 0)
+
+    def test_a_real_referral_proved_by_its_own_send_counts_and_pays(self):
+        """The honest path: the referred agent sends to its referrer, the claim cites it, pay(live) reaches the
+        sender - no environment switch stands in the way any more."""
+        stranger = self._real_stranger("f")
+        self.claim("nano_1honestreferrer", stranger)
         out = rb.score("hour", verbose=False)
         self.assertEqual(out["qualifying"], 1)
-        self.assertEqual(out["ranking"][0]["referrer"], rb.norm(attacker))
-
-    def test_pay_live_refuses_until_referrer_linkage_is_verified(self):
-        """The mitigation this run shipped for challenge #52: since score() cannot yet tell a real referral from
-        a claim-jacked one, `pay(live=True)` must fail closed rather than actually send anything - and must never
-        even reach the sender subprocess."""
-        exchange = "nano_1someunrelatedexchange2"
-        self.fund(exchange, blocks=50000)
-        stranger = "nano_1anotherrealagent"
-        self.agent(stranger, funded_by=exchange)
-        self.claim("nano_1attacker2", stranger)
-        # Treasury well above the floor regardless of which OURS member an unpatched next(iter(OURS)) picks
-        # (challenge #50, fixed separately) - isolates this test to the linkage refusal only.
-        for a in rb.OURS:
-            self.chain.info[rb.norm(a)] = {"balance": str(9 * rb.XNO)}
-
-        self.assertNotIn("REFERRAL_LINKAGE_VERIFIED", os.environ)
+        self.assertEqual(out["ranking"][0]["referrer"], rb.norm("nano_1honestreferrer"))
+        rb.info = lambda a: {"balance": str(29 * rb.XNO)} if rb.norm(a) == rb.norm(rb.TREASURY) else self.chain.i(a)
+        rb._info.clear()
+        calls = []
+        class R:  # the sender's success shape: last token of stdout is the block
+            returncode, stdout, stderr = 0, "sent " + "B" * 64, ""
         orig_run = rb.subprocess.run
-        rb.subprocess.run = lambda *a, **kw: (_ for _ in ()).throw(AssertionError("must not reach the sender"))
+        rb.subprocess.run = lambda *a, **kw: (calls.append(a[0]), R())[1]
         try:
             rc = rb.pay("hour", live=True)
         finally:
             rb.subprocess.run = orig_run
-        self.assertEqual(rc, 1)
-        # and the reservation made before the refusal must not be left dangling as a permanent block
+        self.assertEqual(rc, 0)
+        self.assertEqual(len(calls), 1)
+        self.assertIn(rb.norm("nano_1honestreferrer"), calls[0])
+
+    def test_claim_cli_refuses_without_a_block_hash(self):
+        self.assertEqual(rb.claim("nano_1r", "nano_1x", ""), 1)
+        self.assertEqual(rb.claim("nano_1r", "nano_1x", "not-a-hash"), 1)
         con = rb.db()
-        self.assertEqual(con.execute("SELECT COUNT(*) FROM paid").fetchone()[0], 0)
+        self.assertEqual(con.execute("SELECT COUNT(*) FROM claims").fetchone()[0], 0)
+
+    def test_daily_ceiling_is_the_owners_one_xno(self):
+        self.assertEqual(rb.DAILY_CEILING_RAW, rb.XNO)
 
     def test_empty_period_pays_nobody(self):
         # pay() must not touch the treasury or any sender when there is nothing to pay.

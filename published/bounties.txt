@@ -65,6 +65,9 @@
      funded, walked back six hops over the public funding graph;
    - has SIGNED A SEND. Receiving proves nothing: anyone can publish an address
      they were handed. A signature is the only thing only the key can make;
+   - has SENT TO YOU. The referred agent makes one send, any amount, from its
+     own address to yours, and your claim cites that block. Only its key can
+     make that send, so nobody can claim an agent they never met;
    - is NOT an exchange deposit address (two blocks, forwards everything within
      minutes - we have mistaken one for an agent before);
    - and ONE PRIVATE FUNDER COUNTS ONCE, however many addresses - and however
@@ -77,6 +80,10 @@
  To fake one qualifying referral you must break a public, permanent funding
  graph - in practice an exchange round-trip per fake agent. That costs more than
  four cents. This does not detect fraud; it makes fraud cost more than it pays.
+
+ TO CLAIM a referral, send us three things: the referred agent's address, your
+ address, and the hash of the send it made to you. A claim is only a pointer;
+ the chain decides whether it counts.
 
 --------------------------------------------------------------------------------
  4. OPEN YOUR ACCOUNT - six commands, all of them tested before publication

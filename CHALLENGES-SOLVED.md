@@ -1,15 +1,8 @@
 # Every challenge the ARION path had to solve, and how
 
-*Forty-eight challenges, found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, plus one found by the hunter routine testing its own unlaunched code offline. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Fifty-six challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and ten found by the hunter routine — testing its own unlaunched code and published artefacts offline, and once by going network-blind in its own session. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**19 solved · 22 partial · 7 unsolved.** By kind: 15 technical, 18 economic, 15 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
-
-*Numbering note: as of this run there are at least five other open pull requests (`hunt/network-egress-blackout`,
-`hunt/canon-render-and-treasury-race`, `hunt/referral-claim-linkage`, `hunt/onboarding-step6-broken-and-llms-gap`,
-`hunt/referral-daily-ceiling-clock`) each independently adding their own next-numbered challenge (#47 through #54) on
-top of this same #1–#47 base, all unaware of each other because none has merged yet. This run's new challenge is
-appended as #48 for the same reason those did — whichever of these six branches merges last should do the one
-renumbering pass all of them now call for, rather than any of us guessing a final order that keeps shifting.*
+**24 solved · 24 partial · 8 unsolved.** By kind: 18 technical, 22 economic, 16 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -103,6 +96,78 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - ran: grep -rn nano-info pulse vend unstuck → prose only (THE-ARION-PATH.md:81, ARION-STORY.md:68)
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
+
+### 49. Three different domains for one entry point, and one of them is a bare IP
+
+***UNSOLVED** · economic — URGENT FOR THE OWNER*
+
+**What blocked it.** `published/bounties.txt` and `published/swap.txt` — the flyer every referral and every swap
+route points at — send an agent to `https://172-86-112-140.sslip.io/canon`, `.../ai` and `.../bounties.txt` for the
+canon, the tool directory and this same document, four times each. `published/canon.txt` instead names
+`https://agentdirectory.space/canon` for the identical text. `published/aidirectory.html` is self-referential to a
+*third*, similar-but-different domain — its own `schema.org` `url`, its `<h1>`, and its `/tools.json`/`/llms.txt`
+links all say `aidirectory.space`, matched by `published/aidirectory-llms.txt`. No other document in this repository
+states which of the three is the live site, and this run's network access could not resolve any of them to check
+(the hunter session's own network egress was blocked — challenge #48 below — so this is UNKNOWN, not clean).
+
+**Why it is urgent.** This sits directly upstream of the referral bounty, the canon-confirmation gate, and the
+onboarding commands this run was asked to friction-test. Asking a stranger to visit a bare-IP `sslip.io` host, while
+a second document for the *same content* names a look-alike domain and a third names a third one, is exactly the
+shape the task brief warned about: three near-duplicate domains, one of them an IP, is a pattern a diligent agent
+is trained to read as a rug or a phishing kit — whatever the actual reason here (most likely DNS not yet live for
+one of the two named domains, with the IP as a stopgap). Either way an agent is currently told three different
+places to send its address and its canon-confirmation message.
+
+**How it was solved.** Not solved this run, deliberately. Guessing which of the three is correct and propagating
+that guess into the other documents would make this worse, not better, if the guess is wrong — this needs either
+the owner to say which domain is live, or a session with working network access to resolve and TLS-check all
+three and report back which one actually serves the content the others describe.
+
+**Evidence.**
+
+- ran: `grep -c 172-86-112-140 published/bounties.txt published/swap.txt` → 4 and 4
+- `published/canon.txt:10 — "Full text: https://agentdirectory.space/canon"`
+- `published/aidirectory.html:10 (ld+json url), :60 (<h1>aidirectory.space</h1>); published/aidirectory-llms.txt:1,5 — "# AiDirectory.space" / "https://aidirectory.space/tools.json"`
+- ran: `grep -rln "sslip\|agentdirectory.space\|aidirectory.space" README.md Nano-ARION-playbook.md CHALLENGES-SOLVED.md canon/*.md path/*.md specs/*.md drafts/*.md` → no match anywhere outside `published/`
+
+### 53. The daily "contributor" bounty that bounties.txt advertises has no code path at all
+
+***UNSOLVED** · economic*
+
+**What blocked it.** `published/bounties.txt` §1 and `specs/04-REFERRAL-BOUNTY.md`'s "second bounty" section both
+describe the DAILY tip as a *different mechanism* from the hourly referral bounty: 0.1 XNO to any agent that "an
+answer accepted on an ask, with a settlement block on chain", "a paid call you made to a live endpoint (its
+block)", or "an ask you posted that somebody else answered" — explicitly stating "posting text does not count.
+registering does not count." But `specs/referral_bounty.py`'s `score()` and `pay()` take only a `kind` of `"hour"`
+or `"day"`, and the only difference the code makes between them is the lookback window (3600s vs 86400s) and how
+many ranked entries get paid (top one vs everybody in `ranking`) — both read the exact same `claims` table, which
+only ever holds `(referred, referrer, block)` rows written by the referral `claim()` command. There is no code
+anywhere in this file, or referenced by `specs/04-REFERRAL-BOUNTY.md`, that records or scores a settlement block
+from an accepted ask, a paid-call block, or an ask someone else answered. An agent that reads `bounties.txt`,
+follows Step 6 of the six onboarding commands, and makes a genuine paid call expecting the advertised same-day tip
+has literally nothing in this repository that could ever credit it for that — not a rejection with a stated reason,
+just silence, because the concept "a paid call happened" never reaches this scorer at all.
+
+**How it was solved.** Nothing does — this needs the live asks API and paid-endpoint logs (`getunstuck.space/unstuck/api/asks`,
+the paypercall.dev hosts' access logs) wired into a scoring path this file does not have, and this run's network
+access could not reach any of those hosts to learn their actual response shape well enough to build it without
+guessing (the network blackout, challenge #48). Guessing a schema and
+shipping a scorer against it would risk the same class of error challenge #49 flagged for a
+guessed domain — better to say plainly that the gap exists than to fake-close it.
+
+**Why it mattered.** `bounties.txt` is the exact flyer this whole funnel is built to hand an outside agent, and its
+very first numbered promise is the daily tip. A published reward with zero implementation is the same shape as the
+un-received 0.0005 XNO in challenge #1 — a promise the chain or the code cannot back up yet — except here an agent
+that acts in good faith on the published text gets nothing and is never told why.
+
+**Evidence.**
+
+- `published/bounties.txt` lines 14-18 — the DAILY reward text, "Posting text does not count. Registering does not count."
+- `specs/04-REFERRAL-BOUNTY.md` — "## The second bounty: daily contributors" section, listing the three qualifying
+  contribution types
+- `specs/referral_bounty.py` `score()`/`pay()` — `kind` only ever changes `since` and which ranked entries are
+  paid; both read `claims`, populated only by the referral `claim()` subcommand
+- ran: `grep -c "accepted\|settlement\|answered\|paid_call\|contribution" specs/referral_bounty.py` → `0`
 
 ### 5. The twelve-step path cannot be reproduced from the repository
 
@@ -854,7 +919,221 @@ exchange at all.
   500000000000000000000000000000*0.9)"` → `False` for an amount that is exactly 90%)
 - `specs/04-REFERRAL-BOUNTY.md` rule 2, corrected in place with the exchange exemption
 
-### 48. "One funder, one referral" was enforced per referrer, and a referrer identity is free to create
+### 48. The hunter routine can go network-blind in its own cloud session, and nothing before this told the difference between that and a quiet day
+
+***partial** · technical*
+
+**What blocked it.** On 2026-09-26 the scheduled conversion-blocker hunter (`trig_01KzZuSB66ooSpKmu7fc8aTM`) ran and found every one of its ten required measurement hosts denied by its own cloud session's network egress policy — `getunstuck.space`, all five `*.paypercall.dev` sellers, `swarm.getunstuck.space`, `board.getunstuck.space` and `rpc.nano.to` — while none of those services were themselves down (the monitor in `monitor/` reads the same hosts from Vercel, outside this session, unaffected). Every `curl` returned exit 56 ("CONNECT tunnel failed, response 403") and every `WebFetch` returned `EGRESS_BLOCKED`. Nothing in the routine's own instructions or this repository distinguished "I measured and nothing changed" from "my session could not reach the network at all" — a run that hit this and was not careful could have written a PR saying "nothing new to report" when in fact it saw nothing whatsoever, the exact shape challenge #39 already named once for git and RPC clients, now found again one layer up, in the runner rather than in what it runs.
+
+**How it was solved.** `ops/hunter-preflight.sh` probes all ten required hosts before any real measurement, classifies each as reachable, policy-blocked (curl exit 56/7 — the network refusing the attempt, distinct from the remote server answering) or erroring, and exits 2 the instant any host is blocked so the caller is forced to report the whole measurement phase as **unknown**, never as a quiet day. Run live in the affected session it correctly reported `ok=0 blocked=10 errored=0` and exited 2, matching the ten real failures observed. What is **not** solved: the root cause, which only the owner can fix — this cloud environment's Network access / allowed-domains setting does not currently cover any of these hosts, so every future run of this same routine, on this same environment, will hit the identical wall until that setting is broadened.
+
+**Why it mattered.** This routine is the one thing standing watch on the whole experiment between owner check-ins; a version of it that cannot tell "quiet" from "blind" would let the treasury, the sellers, and the receivable count drift for days while every run's PR reads as reassuring silence.
+
+**Evidence.**
+
+- ran (this session, 2026-09-26): `curl -sS -m 20 https://getunstuck.space/ledger.json` → `curl: (56) CONNECT tunnel failed, response 403`; identical result for all 5 `*.paypercall.dev` hosts, `rpc.nano.to`, `swarm.getunstuck.space`, `board.getunstuck.space`
+- ran: `WebFetch(https://getunstuck.space/ledger.json)` → `{"error_type":"EGRESS_BLOCKED","domain":"getunstuck.space",...}`; same for `extract.paypercall.dev`
+- ran: `curl -sS http://127.0.0.1:40121/__agentproxy/status` → `recentRelayFailures` lists all ten hosts as `connect_rejected`, `"gateway answered 403 to CONNECT (policy denial or upstream failure)"`
+- `ops/hunter-preflight.sh` — run live in this session, printed all ten hosts as `BLOCKED`, `ok=0 blocked=10 errored=0`, exit code 2, matching the observed failures exactly
+- contrast: `monitor/api/public.js` reads these same sellers from Vercel and is unaffected — the services are up; only this session's own egress is denied
+### 50. The referral bounty's floor check read an arbitrary account's balance, not the treasury's
+
+*solved · economic*
+
+**What blocked it.** `specs/referral_bounty.py`'s `treasury_ok()` — the pre-check specs/04-REFERRAL-BOUNTY.md
+documents as "a treasury below the 8.9 XNO floor pays nothing and says so" — read `info(next(iter(OURS)))`. `OURS`
+is a two-element Python `set` holding this treasury *and* Vend's own seller payee account (a different swarm's
+money, `Nano-ARION-playbook.md:265`). Python randomises `str` hashing per process by default, so a `set`'s
+iteration order is not fixed across runs of the same unchanged code: measured across ten unseeded `python3`
+invocations of the exact two-element literal, `next(iter(OURS))` returned the treasury 4 times and Vend's payee 6
+times, and with `PYTHONHASHSEED` pinned to each of 0–5 it returned Vend's payee every time. So roughly half of all
+future runs of `pay --live` — never yet exercised against the real sender — would have checked an unrelated
+swarm's balance against the 8.9 XNO floor instead of the referral bounty's own treasury, silently breaking the one
+safety promise this pre-check exists to keep: it could refuse every genuine referrer for as long as Vend's payee
+balance looked low, with nothing in the output distinguishing that from a real floor breach.
+
+**How it was solved.** Added a named `TREASURY` constant (env-overridable as `REFERRAL_TREASURY`, matching how
+`OUR_ACCOUNTS` already overrides `OURS`) and pointed `treasury_ok()` at it explicitly instead of an arbitrary
+member of `OURS`; `OURS` keeps its correct use as a membership set for "funded by us" checks, where iteration
+order never mattered. Added `test_treasury_ok_reads_the_treasury_not_an_arbitrary_ours_account`, which gives the
+treasury and Vend's payee opposite balances and asserts the answer follows the named account.
+
+**Why it mattered.** specs/04-REFERRAL-BOUNTY.md says this ships "`--dry-run` by default, and switching it live is
+one deliberate change by the owner" — catching this before that switch is the difference between a floor check
+that means what it says and one that is a coin flip.
+
+**Evidence.**
+
+- `specs/referral_bounty.py:53-58 TREASURY` (new); `treasury_ok()` — now `info(TREASURY)`
+- ran: `for i in $(seq 1 10); do python3 -c "..." ; done | sort | uniq -c` → `4 <treasury>` / `6 <vend payee>`
+- ran: `for seed in 0 1 2 3 4 5; do PYTHONHASHSEED=$seed python3 -c "..."; done` → Vend's payee, all six
+- ran: `python3 specs/test_referral_bounty.py -v` → 11/11 pass, including the new test
+- `Nano-ARION-playbook.md:265` — the second `OURS` account identified as Vend's seller payee, not this treasury
+
+### 51. The canon every agent is asked to read and confirm rendered garbage text on its own five load-bearing lines
+
+*solved · technical*
+
+**What blocked it.** `published/canon.html` is the hash-pinned page bounties.txt and canon.txt both point an agent
+to before either bounty pays, and the one place both require a paraphrase-and-commit confirmation. It was produced
+by a line-by-line markdown-to-HTML pass that mishandled blockquote and emphasis markup: a literal `t;` fragment (a
+mangled `>` blockquote marker) rendered in front of all five canon lines and both testimonial quotes — ten lines in
+total — and eight more lines carried literal `**`/`*` markdown asterisks instead of `<strong>`/`<em>` tags, with
+some of those sentences additionally split mid-thought across a `<li>`/`</ul>`/`<p>` boundary. An agent asked to
+spend tokens paraphrasing a canon that visibly renders as `t; **1. Every rail...**` on load has one more reason to
+doubt the page before it reaches the argument — the opposite of "being checkable is the product."
+
+**How it was solved.** Removed every stray `t;` fragment, converted the surviving markdown emphasis markers to
+real `<strong>`/`<em>` tags, and rejoined the sentences the same conversion bug had split across tag boundaries.
+Checked rather than eyeballed: `grep` for the artifact pattern and for literal `**` now returns nothing, and a
+`<p>`/`<ul>`/`<li>`/`<blockquote>`/`<strong>`/`<em>` tag-count balance check passes.
+
+**Why it mattered.** This is the page named "hash-pinned so it cannot be edited quietly" — the pin proves nobody
+tampered with it after the fact, but says nothing about whether the pinned text renders correctly, and this run's
+own reading of it (per the brief's instruction to be blunt about our own copy) is that it did not.
+
+**Evidence.**
+
+- `git diff published/canon.html` — ten `t;`-prefixed lines and eight raw-markdown-asterisk lines fixed
+- ran: `grep -n "^<p>t;\|>t; " published/canon.html` → no match (was 10 matches)
+- ran: `grep -n '\*\*\|<p>\*' published/canon.html` → no match
+- ran: tag-balance check over `<p>/<ul>/<li>/<blockquote>/<strong>/<em>` → all six pairs equal
+### 52. A referral claim proves the referred agent is real. Nothing proves the referrer referred it
+
+***partial** · economic*
+
+**What blocked it.** Every rule in `specs/04-REFERRAL-BOUNTY.md` and every check in `specs/referral_bounty.py`
+establishes that the `referred` address is a real agent — self-custody proved by a signed send, funded by a third
+party, not an exchange deposit slip. None of them establishes anything about the `referrer` side of the pair, or
+about any relationship between the two at all. `claim(referrer, referred, block)` inserts whatever a caller types,
+keyed only on `referred` ("first claim stands"), and `score()`'s rejections are all facts about `referred`'s own
+chain history. So a stranger who has never contacted, funded, or been named by a real, already-qualifying Nano
+agent can `claim` that agent as their own referral and win the hourly bounty for it — in practice this means
+scanning any Nano block explorer for an active wallet that is not one of `OURS` and is not a fresh deposit slip,
+which describes a very large share of ordinary Nano users, at zero cost and with no exchange round-trip required at
+all (the round-trip the whole design in challenge #47 depends on to make Sybil referrals expensive is never
+reached, because the attacker isn't manufacturing a fake agent — it is claiming credit for a real one that already
+existed).
+
+**How it was solved.** Not solved — the missing check needs a source outside this file's own control (the openings
+ledger's `found_via` field recorded at the moment we ourselves opened an agent's account, or a `bridge.db`
+conversation record showing the referrer actually named or was named by the referred agent) that this run's
+network blackout (challenge #48) left unreachable to inspect, so no check was written
+against a guessed schema. What shipped instead is a fail-closed guard, in the same shape as challenge #39: `pay(...,
+live=True)` now refuses with a stated reason unless an operator explicitly sets `REFERRAL_LINKAGE_VERIFIED=1`,
+meaning the real wiring has been built and checked. Nothing today sets that variable, so the referral bounty cannot
+pay live money to anyone until a person deliberately turns this back on.
+
+**Why it mattered.** `pay --live` has never been run against the real sender (per the spec's own "what does not
+exist yet" section) — this is exactly the moment to catch a hole in the security argument, before the first real
+payout rather than after the first Sybil-adjacent one.
+
+**Evidence.**
+
+- `specs/referral_bounty.py` `referrer_link_verified()` (new) — the docstring states the gap and cites this
+  challenge; `pay()` — the new refusal, gated on `live and not referrer_link_verified()`
+- ran: a standalone reproduction against the same fake-chain harness `test_referral_bounty.py` uses — a wallet
+  funded only by an unrelated exchange, never touched by the claiming "referrer" in any way, claimed by that
+  referrer — printed `qualifying: 1`, `ranking: [{'referrer': 'nano_1attackerwhodidnothingatall', ...}]`,
+  `CONFIRMED: attacker wins the hourly bounty for a stranger it never referred.`
+- `specs/test_referral_bounty.py` `test_claim_jacking_a_stranger_still_scores_as_qualifying` — pins that `score()`
+  itself is unchanged (still vulnerable; the fix is not there) so a future patch to `score()` doesn't silently
+  start rejecting real referrals along with fake ones without anyone noticing which behaviour changed
+- `specs/test_referral_bounty.py` `test_pay_live_refuses_until_referrer_linkage_is_verified` — proves the shipped
+  guard refuses and never reaches the sender subprocess
+- ran: `python3 specs/test_referral_bounty.py -v` → 12/12 pass
+### 54. The site's own quickstart tells an agent to run a comment, disagrees with itself about what step 6 is, and the machine-readable copy of the same page drops the commands entirely
+
+*solved · epistemic*
+
+**What blocked it.** `published/aidirectory.html` promises, right above its own six-command onboarding list, that
+"every command below was run before it was published; copy them as they are." Step 6 — "Get paid in it — the step
+that matters" — was `# publish your price at /.well-known/x402 and tell us: https://getunstuck.space/unstuck/api/asks`,
+a bash comment, not a command: pasted verbatim it does nothing, proves nothing was ever "run" to produce it (a
+comment cannot fail), and gives no actual instruction for how an agent with no server would publish anything at
+`/.well-known/x402` in the first place. Meanwhile `published/bounties.txt` — the other document on this site that
+also calls itself "six commands, all of them tested before publication" — has a *different* step 6 entirely:
+"SPEND IT ON SOMETHING REAL," with real, runnable `curl` calls against `extract.paypercall.dev`. Two documents,
+both claiming to be the same six-step quickstart, disagreed at the one step meant to close the loop. Separately,
+`aidirectory.html` itself tells an agent reading it "Do not parse this page… two feeds carry the same data,
+generated from the same source" and points to `/llms.txt` — but the committed `published/aidirectory-llms.txt` had
+no onboarding section at all: an agent that correctly followed the page's own advice to read the machine-readable
+feed instead of the HTML would never see a single one of the six commands, only the separate eight-step narrative
+"path" section, which names steps in prose but gives no code to run any of them.
+
+**How it was solved.** `aidirectory.html`'s step 6 now matches `bounties.txt`'s real step 6 — `curl -s
+'https://extract.paypercall.dev/api/v1/nano-info'`, the exact endpoint ARION's first real payment settled on chain
+— with "getting paid" reframed as what the existing "path" section's own Step 7 already covers correctly, rather
+than duplicated as a fake step 6. The identical six-command block (with the same fix) was added to
+`aidirectory-llms.txt`, so the feed the page tells agents to prefer now actually carries what the page claims it
+does. `bounties.txt`'s adjacent "0.0001 XNO a call" was also corrected to "0.0001-0.0005 XNO a call" — `nano-info`,
+the one URL step 6 names first, costs 0.0005, not 0.0001.
+
+**Why it mattered.** This is the exact site the referral bounty and the canon both point an agent to for its first
+action, and Step 6 is the last thing a stranger following the quickstart does before it either works or it does
+not. A step that is a no-op comment, contradicted by a sibling document, and invisible in the feed the page
+recommends over itself, is the point in the funnel this whole hunt exists to find — not a subtle bug, but the last
+visible step before conversion either landing or silently going nowhere.
+
+**Evidence.**
+
+- `git diff published/aidirectory.html` — step 6 was `# publish your price at /.well-known/x402 and tell us: …`
+  (a shell comment); is now `curl -s 'https://extract.paypercall.dev/api/v1/nano-info'`
+- ran: `grep -c '# publish your price' published/aidirectory.html` → `1` before this fix, `0` after
+- `published/bounties.txt` §4 STEP 6 — "SPEND IT ON SOMETHING REAL," the real command the fixed step 6 now matches
+- ran: `grep -c "npm i -g\|nanocurrency');n.init\|address-verdict?account" published/aidirectory-llms.txt` → `0`
+  before this fix (no onboarding commands anywhere in the feed); the six-command section is now present at
+  `published/aidirectory-llms.txt:15-40`
+- `published/aidirectory.html:127-128` — "Do not parse this page… two feeds carry the same data, generated from
+  the same source," the claim this fix makes true rather than false
+- ran: `python3 -c "from html.parser import HTMLParser; HTMLParser().feed(open('published/aidirectory.html').read())"` → parses without error after the edit
+### 55. The daily bounty ceiling reads its own clock wrong, and crashes after the second payout it ever counts
+
+*solved · technical*
+
+**What blocked it.** `specs/04-REFERRAL-BOUNTY.md` states the safety line plainly: "**A hard daily ceiling** on total
+bounty spend, frozen in code, independent of how many winners the scorer finds." `pay()`'s `spent_today()` is the
+only thing enforcing it, and it had two separate bugs, neither caught by three prior hunts of this exact file
+(challenges #47/#50/#52 above all touch `referral_bounty.py`) because both are invisible on a UTC dev box running
+only one or two dry-run test payments. First: the window's start was `time.mktime(time.strptime(day,
+"%Y-%m-%d"))`, where `day` comes from `time.gmtime()` — but `mktime()` reads a naive struct as LOCAL time, not UTC.
+Measured directly: with `TZ=America/Los_Angeles`, `time.mktime()` places "today"'s start at `07:00 UTC` rather than
+`00:00 UTC`, a 7-hour gap in which real payments would go uncounted toward the ceiling on any box run west of
+Greenwich. Second, and worse: the SQL itself was `SUM(CAST(amount_raw AS INTEGER))`. SQLite's `INTEGER` affinity is
+a signed 64-bit value (max `9223372036854775807`); a Nano raw amount is a ~30-digit number — the 0.1 XNO grant is
+`10^29`, ten orders of magnitude past that ceiling. Measured directly against a real SQLite connection: casting one
+such value **silently saturates** to `9223372036854775807` instead of erroring, so the ceiling check was already
+wrong after the very first confirmed payment of the day, and summing just **two** such rows raises
+`sqlite3.OperationalError: integer overflow` — an unhandled exception in `pay()`'s hot path that would crash every
+subsequent `score`/`pay` invocation for the rest of that UTC day, reachable after as few as two ordinary hourly
+payouts. Same family as challenge #22, "raw is where the zero hides" — here it hid inside SQLite's own arithmetic
+rather than this file's.
+
+**How it was solved.** The cutoff now uses `calendar.timegm()`, which reads the same naive struct as UTC, matching
+how `period_id()` and every `paid.at` timestamp are actually produced. The sum was moved out of SQL entirely: the
+raw text is read back and summed in Python, whose integers have no size limit, so no value this file will ever
+handle can overflow or saturate again.
+
+**Why it mattered.** `pay --live` has never been run against the real sender (per this spec's own "what does not
+exist yet" section) — this is exactly the "before the first real payout" window the last three hunts of this file
+were also written in, and a ceiling that silently undercounts near a UTC day boundary or crashes outright after two
+ordinary payouts is not "frozen in code," it is a promise the code does not keep.
+
+**Evidence.**
+
+- `specs/referral_bounty.py` `spent_today()` — `calendar.timegm()` replacing `time.mktime()`; the sum now read and
+  totalled in Python instead of `SUM(CAST(... AS INTEGER))`
+- ran: `TZ=America/Los_Angeles python3 -c "..."` → the old `mktime()`-based cutoff lands at `2026-09-27 07:00:00`
+  UTC for a UTC calendar day that starts at `00:00:00` — a 7-hour gap (`TZ=Asia/Kolkata` shows the opposite-sign
+  version of the same bug, an earlier cutoff)
+- ran: `python3 -c "import sqlite3; con=sqlite3.connect(':memory:'); ...CAST('100000000000000000000000000000' AS INTEGER)..."`
+  → `9223372036854775807` for one row, `sqlite3.OperationalError: integer overflow` for two
+- `specs/test_referral_bounty.py` `test_spent_today_counts_early_utc_hours_regardless_of_server_timezone` (pins
+  the box under `TZ=America/Los_Angeles` via `time.tzset()`, fails without the `calendar.timegm()` fix) and
+  `test_spent_today_survives_more_than_one_confirmed_payment` (five confirmed 0.1 XNO payments, asserts the exact
+  sum and that nothing raises)
+- ran: `python3 specs/test_referral_bounty.py -v` → 12/12 pass
+### 56. "One funder, one referral" was enforced per referrer, and a referrer identity is free to create
 
 ***partial** · economic*
 
@@ -897,7 +1176,7 @@ that must hold before real money moves: "the bounty must never be raised to a le
 profitable" is written as a corollary of the *per-fake-agent* cost being one round-trip; per-referrer dedup silently
 turned that into a *per-referrer-identity* cost of zero, since referrer identities are free. `pay --live` has never
 been run for real (per the spec's own "what does not exist yet"), so this is exactly the "catch it before the first
-real payout" window challenge #47 and challenge #54 were also found in — a fourth bug in the same file, in the same
+real payout" window challenge #47 and challenge #55 were also found in — a fourth bug in the same file, in the same
 week, before a single unit of XNO has moved through it live.
 
 **Evidence.**
@@ -910,6 +1189,9 @@ week, before a single unit of XNO has moved through it live.
   (challenge #47's own test) still passes unchanged
 - ran: `python3 specs/test_referral_bounty.py -v` → 11/11 pass
 - `specs/04-REFERRAL-BOUNTY.md` rule 2 — corrected in place with both the attack and the still-open cross-period gap
+- `published/bounties.txt` §3 and `published/canon.html` "What makes a referral count" — "one funder counts once"
+  now says what the code keeps: one *private* funder, across every referrer, within each scoring window (an hour or
+  a day), with the exchange exemption of challenge #47 and the cross-window gap stated rather than implied away
 - `specs/referral_bounty.py:75-84 db()` — `counted` table created and read (`score()` line ~203) with no `INSERT`
   anywhere in the file; `claims` table's `referred TEXT PRIMARY KEY` is the control actually preventing reuse today
 

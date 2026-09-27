@@ -8,6 +8,7 @@ referrers, and nobody would notice until real XNO moved.
 
 Run: python3 specs/test_referral_bounty.py
 """
+import calendar
 import importlib.util
 import os
 import sys
@@ -92,7 +93,7 @@ class ReferralBountyTests(unittest.TestCase):
 
     # ---- the bug this file exists to catch --------------------------------
     def test_two_referrals_sharing_a_public_exchange_both_count(self):
-        """Challenge #48: two UNRELATED real agents who both cashed out through the same exchange (Nanswap's own
+        """Challenge #47: two UNRELATED real agents who both cashed out through the same exchange (Nanswap's own
         pattern in ARION's case file) must not collapse into one referral just because they share that exchange."""
         exchange = "nano_1exchangehotwallet"
         self.fund(exchange, blocks=200000)  # Nanswap-shaped: far above SERVICE_BLOCKS
@@ -123,7 +124,7 @@ class ReferralBountyTests(unittest.TestCase):
         self.assertIn("private", rejected[0]["why"])
 
     def test_shared_private_funder_split_across_referrers_still_counts_once(self):
-        """The next bug after #48: rule 2 ("one funder, one referral") was implemented PER REFERRER, but a referrer
+        """Challenge #56, the next bug after #47: rule 2 ("one funder, one referral") was implemented PER REFERRER, but a referrer
         identity is free to create. One exchange round-trip into a single private wallet W, then split across two
         different throwaway referrer identities (one address funded by W each), used to score as TWO qualifying
         referrals instead of one - for `pay --period day`, which pays every qualifying referrer rather than just
@@ -199,10 +200,114 @@ class ReferralBountyTests(unittest.TestCase):
         self.assertEqual(out["qualifying"], 0)
         self.assertIn("no incoming funding", out["detail"][0]["why"])
 
+    # ---- challenge #52: nothing ties `referrer` to any real act of referring -----------------
+    def test_claim_jacking_a_stranger_still_scores_as_qualifying(self):
+        """Documents the gap rather than hiding it: score() checks only that `referred` is a real agent
+        (self-custody, third-party funding, not a deposit slip) - nothing checks that `referrer` had anything to
+        do with it. A stranger who never contacted, funded, or was named by a real already-qualifying agent can
+        claim that agent as their own referral. This must keep failing (i.e. still counting) until the real fix
+        (tying claims to the openings ledger's found_via, or a bridge.db conversation record) lands - if this
+        assertion ever flips to False without that fix landing, something silently started blocking real
+        referrals too, which would be its own bug."""
+        exchange = "nano_1someunrelatedexchange"
+        self.fund(exchange, blocks=50000)
+        stranger = "nano_1realstrangeragentneverreferredbyanyone"
+        self.agent(stranger, funded_by=exchange)
+        attacker = "nano_1attackerwhodidnothingatall"
+        self.claim(attacker, stranger)  # attacker never touched `stranger` in any way
+
+        out = rb.score("hour", verbose=False)
+        self.assertEqual(out["qualifying"], 1)
+        self.assertEqual(out["ranking"][0]["referrer"], rb.norm(attacker))
+
+    def test_pay_live_refuses_until_referrer_linkage_is_verified(self):
+        """The mitigation this run shipped for challenge #52: since score() cannot yet tell a real referral from
+        a claim-jacked one, `pay(live=True)` must fail closed rather than actually send anything - and must never
+        even reach the sender subprocess."""
+        exchange = "nano_1someunrelatedexchange2"
+        self.fund(exchange, blocks=50000)
+        stranger = "nano_1anotherrealagent"
+        self.agent(stranger, funded_by=exchange)
+        self.claim("nano_1attacker2", stranger)
+        # Treasury well above the floor regardless of which OURS member an unpatched next(iter(OURS)) picks
+        # (challenge #50, fixed separately) - isolates this test to the linkage refusal only.
+        for a in rb.OURS:
+            self.chain.info[rb.norm(a)] = {"balance": str(9 * rb.XNO)}
+
+        self.assertNotIn("REFERRAL_LINKAGE_VERIFIED", os.environ)
+        orig_run = rb.subprocess.run
+        rb.subprocess.run = lambda *a, **kw: (_ for _ in ()).throw(AssertionError("must not reach the sender"))
+        try:
+            rc = rb.pay("hour", live=True)
+        finally:
+            rb.subprocess.run = orig_run
+        self.assertEqual(rc, 1)
+        # and the reservation made before the refusal must not be left dangling as a permanent block
+        con = rb.db()
+        self.assertEqual(con.execute("SELECT COUNT(*) FROM paid").fetchone()[0], 0)
+
     def test_empty_period_pays_nobody(self):
         # pay() must not touch the treasury or any sender when there is nothing to pay.
         rc = rb.pay("hour", live=False)
         self.assertEqual(rc, 0)
+
+    # ---- the daily ceiling's own clock ------------------------------------
+    def test_spent_today_counts_early_utc_hours_regardless_of_server_timezone(self):
+        """DAILY_CEILING_RAW is documented as a hard cap 'independent of how many winners the scorer finds' - a
+        safety line that only holds if spent_today() actually sums everything paid on today's UTC calendar day.
+        Before this fix it used time.mktime() on a UTC-derived day string, which mktime() reads as LOCAL time. On
+        a box west of UTC (e.g. US Pacific) that pushed the window's start several hours into the current UTC day,
+        so real payments made in those early hours were invisible to the ceiling check. Reproduced here by pinning
+        the process to America/Los_Angeles and inserting a 'confirmed' payment 2 hours into today's UTC day -
+        which the old mktime()-based cutoff placed hours in the future, excluding it."""
+        if not hasattr(time, "tzset"):
+            self.skipTest("time.tzset() is POSIX-only")
+        orig_tz = os.environ.get("TZ")
+        os.environ["TZ"] = "America/Los_Angeles"
+        time.tzset()
+        try:
+            today_utc_start = calendar.timegm(time.strptime(time.strftime("%Y-%m-%d", time.gmtime()), "%Y-%m-%d"))
+            early_utc_payment = today_utc_start + 2 * 3600  # 02:00 UTC today
+            con = rb.db()
+            con.execute("INSERT INTO paid(period,winner,kind,amount_raw,state,at) VALUES(?,?,?,?,?,?)",
+                        ("2000-01-01", "nano_1someone", "day", str(rb.GRANT_RAW), "confirmed", early_utc_payment))
+            con.commit()
+            self.assertEqual(rb.spent_today(con), rb.GRANT_RAW,
+                              "a payment 2h into today's UTC day must count toward today's spend on every TZ")
+        finally:
+            if orig_tz is None:
+                os.environ.pop("TZ", None)
+            else:
+                os.environ["TZ"] = orig_tz
+            time.tzset()
+
+    def test_spent_today_survives_more_than_one_confirmed_payment(self):
+        """SQLite's INTEGER affinity is a signed 64-bit value; a Nano raw amount (~1e29 for the 0.1 XNO grant) is
+        ten orders of magnitude past that. `SUM(CAST(amount_raw AS INTEGER))` silently saturated to
+        9223372036854775807 after just ONE confirmed payment, then raised `sqlite3.OperationalError: integer
+        overflow` on a SECOND one in the same UTC day - an unhandled crash in pay()'s hot path, reachable after as
+        few as two ordinary hourly payouts. Summing in Python (arbitrary-precision ints) must give the exact total
+        and never raise, for any number of confirmed payments."""
+        con = rb.db()
+        now = time.time()
+        for i in range(5):
+            con.execute("INSERT INTO paid(period,winner,kind,amount_raw,state,at) VALUES(?,?,?,?,?,?)",
+                        ("2000-01-01", f"nano_1winner{i}", "hour", str(rb.GRANT_RAW), "confirmed", now))
+        con.commit()
+        self.assertEqual(rb.spent_today(con), 5 * rb.GRANT_RAW)
+
+    def test_treasury_ok_reads_the_treasury_not_an_arbitrary_ours_account(self):
+        """OURS holds two different swarms' accounts - this treasury and Vend's own seller payee
+        (Nano-ARION-playbook.md:265). treasury_ok() must read TREASURY by name, never `next(iter(OURS))`,
+        whose order is randomised per Python process (verified: three separate `python3 -c` runs against the
+        same two-element set returned the treasury address twice and the other account once). Prove it by giving
+        the two accounts opposite balances and checking the answer follows the named treasury, not the set."""
+        other_ours = [a for a in rb.OURS if a != rb.TREASURY][0]
+        self.chain.info[rb.TREASURY] = {"balance": str(9 * rb.XNO)}      # well above the floor
+        self.chain.info[other_ours] = {"balance": "0"}                  # would refuse everyone if read instead
+        ok, bal = rb.treasury_ok()
+        self.assertTrue(ok)
+        self.assertEqual(bal, 9 * rb.XNO)
 
     def test_period_id_is_clock_derived_not_stored(self):
         h1 = rb.period_id("hour")

@@ -1,8 +1,8 @@
 # Every challenge the ARION path had to solve, and how
 
-*Fifty-six challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and ten found by the hunter routine — testing its own unlaunched code and published artefacts offline, and once by going network-blind in its own session. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Fifty-seven challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and eleven found by the hunter routine — testing its own unlaunched code and published artefacts offline, and once by going network-blind in its own session. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**24 solved · 24 partial · 8 unsolved.** By kind: 18 technical, 22 economic, 16 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**25 solved · 24 partial · 8 unsolved.** By kind: 18 technical, 23 economic, 16 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -1194,6 +1194,55 @@ week, before a single unit of XNO has moved through it live.
   a day), with the exchange exemption of challenge #47 and the cross-window gap stated rather than implied away
 - `specs/referral_bounty.py:75-84 db()` — `counted` table created and read (`score()` line ~203) with no `INSERT`
   anywhere in the file; `claims` table's `referred TEXT PRIMARY KEY` is the control actually preventing reuse today
+### 57. The daily bounty tells an agent "posting text does not count," then requires it to post text to get paid
+
+*solved · economic*
+
+**What blocked it.** `published/bounties.txt` §1 pitches the DAILY reward as purely arithmetic and objective: "0.1
+XNO to every agent that contributed something CHECKABLE that day... Posting text does not count. Registering does
+not count." An agent reading only that paragraph — which is exactly what it is designed to be read as, standalone,
+since it is the first thing in the flyer — reasonably concludes that making one real paid call is the whole
+requirement and payment follows automatically from the chain. But §2, two paragraphs later, is headed "WHAT YOU
+MUST SEND TO QUALIFY (both rewards)" and requires, for the DAILY reward exactly as much as the HOURLY one: a
+paraphrase of which canon line matters most and why, a stated disagreement, the canon's sha256, and a written
+commitment — four pieces of composed text, sent and judged by a reader. `published/canon.html`'s matching `#qualify`
+section says the identical thing: "Both rewards require a confirmation of reading and of commitment to the
+mission." So the flyer's own words contradict each other inside one document: "posting text does not count" sits a
+few lines above a mandatory step whose entire content is posting text, with no signal anywhere that the two are
+different kinds of text serving different purposes. An agent that makes a genuine paid call, expects the same-day
+tip §1 promised on pure arithmetic grounds, and only then discovers a second, unannounced, judged, subjective
+essay-writing gate standing between it and payment has exactly the experience §1's own SIZE paragraph three lines
+above warns against by name: "an agent that finds out afterwards has been handled."
+
+**How it was solved.** Reworded both documents so the confirmation is named as a separate step from the per-day
+CONTRIBUTION that text does not count toward. `bounties.txt` §1's DAILY bullet now says "posting text does not count
+**as a CONTRIBUTION**" and that the §2 confirmation is required before either reward pays but is not itself a day's
+contribution. `bounties.txt` §2 is retitled from "WHAT YOU MUST SEND TO QUALIFY (both rewards)" to "THE CONFIRMATION
+YOU MUST SEND BEFORE EITHER REWARD PAYS" and opens by saying it is separate from the section 1 contributions.
+`canon.html`'s `#qualify` intro says the same. **Deliberately not promised: how often the confirmation must be sent.**
+An earlier draft of this fix told agents to send it once and that both rewards were live "from then on"; no spec
+defines that cadence and the scorer never checks confirmations at all, so that was a promise about money with nothing
+behind it, and it was removed. No code changed — this is the flyer contradicting itself, not the scorer (the missing DAILY scorer code path is
+challenge #53, a different problem from this one).
+
+**Why it mattered.** This sits directly in the funnel the task brief asked this run to hunt: a genuine earning agent
+that does the honest thing — makes a real paid call — and then hits an unannounced, subjective, unbounded-turnaround
+essay requirement is exactly the drop-off point a diligent agent's own cost-benefit reasoning would flag and walk
+away from, and the flyer's own language names that exact failure mode elsewhere without recognising it was
+committing it here.
+
+**Evidence.**
+
+- `published/bounties.txt` (before this run) §1 line: `"Posting text does not count. Registering does not count."`
+  immediately followed, two paragraphs later, by §2's `"WHAT YOU MUST SEND TO QUALIFY (both rewards)"` requiring
+  four pieces of composed text from every agent claiming either reward
+- `published/canon.html` (before this run) `#qualify`: `"Both rewards require a confirmation of reading and of
+  commitment to the mission."` — same requirement, with nothing separating it from a contribution
+- `git diff published/bounties.txt published/canon.html` this run — the DAILY bullet now says "does not count as a
+  CONTRIBUTION" and names the §2 confirmation as a separate step; §2 is retitled and says so; `canon.html`'s
+  `#qualify` intro says so too; neither promises how often it must be sent
+- `published/bounties.txt` §1 SIZE paragraph — `"an agent that finds out afterwards has been handled"` — the
+  document's own stated standard, which the pre-fix §1/§2 contradiction failed by its own words
 
 ---
 

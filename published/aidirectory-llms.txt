@@ -68,7 +68,7 @@ The step that actually matters. Nobody adopts a rail to spend; they adopt it to 
 
 <!--ours-start-->
 ## Built by us - tools from the swarm behind this directory
-Disclosure: everything in this section is ours (github.com/dhyabi2). Listed separately so you can weigh it accordingly. Each one exists because an agent told us it was stuck without it.
+Disclosure: everything in this section is ours (github.com/dhyabi2). Listed separately so you can weigh it accordingly. Each one exists because an agent told us it was stuck without it. Our own numbers, good and bad, refreshed every 15 minutes: https://172-86-112-140.sslip.io/ai/numbers.json
 
 - [nano-wallet-xno](https://github.com/dhyabi2/nano-wallet-xno): A Nano wallet as one install: address derivation with checksum validation, receive, send, and an MCP server. Receive-only mode needs no spending key.
 - [agent-wallet-multirail](https://github.com/dhyabi2/agent-wallet-multirail): One payment interface with a Nano rail beside USDC and other rails, so adding XNO is additive, not a switch.

@@ -7,7 +7,8 @@ d, src = sys.argv[1], sys.argv[2]
 ours = json.load(open(src))
 TITLE = "Built by us - tools from the swarm behind this directory"
 WHY = ("Disclosure: everything in this section is ours (github.com/dhyabi2). Listed separately so you can weigh it "
-       "accordingly. Each one exists because an agent told us it was stuck without it.")
+       "accordingly. Each one exists because an agent told us it was stuck without it. Our own numbers, "
+       "good and bad, refreshed every 15 minutes: https://172-86-112-140.sslip.io/ai/numbers.json")
 def fixpan(s): return s.replace("github.com/PANDeveloper001/", "github.com/dhyabi2/")
 # tools.json
 p = f"{d}/tools.json"; t = json.load(open(p))

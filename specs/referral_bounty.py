@@ -183,6 +183,21 @@ def funders(acct, hops=HOPS, _seen=None):
     return out
 
 
+def referrer_link_verified():
+    """Nothing below this line ties `referrer` to any actual act of referring. `claim()` accepts any
+    (referrer, referred) pair a caller types with no proof the referrer ever contacted, funded, or was named by
+    `referred` - and score()'s checks are all ABOUT `referred` (self-custody, third-party funding, not a deposit
+    slip), never about the referrer/referred RELATIONSHIP. Challenge #52: a stranger who has never interacted with
+    a real, already-qualifying Nano agent can `claim` that agent as their own referral and win the hourly bounty for
+    it - proved offline in specs/test_referral_bounty.py. Closing this needs a source outside this file's control
+    (the openings ledger's found_via field, or a bridge.db conversation record) that this run's network blackout
+    left unreachable to verify, so nothing here manufactures a check against an unconfirmed schema. Until an
+    operator sets REFERRAL_LINKAGE_VERIFIED=1 - meaning that wiring exists and was checked - `pay(live=True)`
+    refuses rather than paying an unverifiable claim (challenge #39: a check that cannot run must never report a
+    clean result)."""
+    return os.environ.get("REFERRAL_LINKAGE_VERIFIED") == "1"
+
+
 def third_party_funded(referred, referrer):
     """The rule the whole design rests on. Returns (ok, why, funder_set)."""
     f = funders(referred)
@@ -278,6 +293,12 @@ def pay(kind="hour", live=False):
     if not ok:
         print(f"REFUSED: treasury {bal/XNO:.4f} XNO would fall below the {FLOOR_RAW/XNO:.4f} floor. "
               "Bounties stop before the treasury does.")
+        return 1
+    if live and not referrer_link_verified():
+        print("REFUSED: nothing here verifies that a claimed 'referrer' actually referred 'referred' - only that "
+              "'referred' is a real qualifying agent (challenge #52). Anyone can claim any real Nano address that "
+              "is not ours and did not fund itself. Set REFERRAL_LINKAGE_VERIFIED=1 once that gap is closed; a "
+              "check that cannot run must never report a clean result.")
         return 1
     used = spent_today(con)
     for w in winners:

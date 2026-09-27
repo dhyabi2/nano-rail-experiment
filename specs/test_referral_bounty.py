@@ -92,7 +92,7 @@ class ReferralBountyTests(unittest.TestCase):
 
     # ---- the bug this file exists to catch --------------------------------
     def test_two_referrals_sharing_a_public_exchange_both_count(self):
-        """Challenge #48: two UNRELATED real agents who both cashed out through the same exchange (Nanswap's own
+        """Challenge #47: two UNRELATED real agents who both cashed out through the same exchange (Nanswap's own
         pattern in ARION's case file) must not collapse into one referral just because they share that exchange."""
         exchange = "nano_1exchangehotwallet"
         self.fund(exchange, blocks=200000)  # Nanswap-shaped: far above SERVICE_BLOCKS

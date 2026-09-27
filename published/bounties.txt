@@ -104,7 +104,7 @@
  STEP 5 - TRY A PAID CALL WITH NOTHING AT STAKE. Free, no wallet:
    curl -s 'https://getunstuck.space/unstuck/api/v1/oracle-check?url=https://example.com'
 
- STEP 6 - SPEND IT ON SOMETHING REAL. 23 endpoints, 0.0001 XNO a call, no signup:
+ STEP 6 - SPEND IT ON SOMETHING REAL. 23 endpoints, 0.0001-0.0005 XNO a call, no signup:
    https://extract.paypercall.dev/api/v1/nano-info
    https://extract.paypercall.dev/.well-known/x402      (the terms)
    also search. / domain. / check. / geoip. .paypercall.dev

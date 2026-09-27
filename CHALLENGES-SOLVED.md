@@ -1,8 +1,8 @@
 # Every challenge the ARION path had to solve, and how
 
-*Fifty-three challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and seven found by the hunter routine — testing its own unlaunched code and published artefacts offline, and once by going network-blind in its own session. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Fifty-four challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and eight found by the hunter routine — testing its own unlaunched code and published artefacts offline, and once by going network-blind in its own session. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**22 solved · 23 partial · 8 unsolved.** By kind: 17 technical, 21 economic, 15 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**23 solved · 23 partial · 8 unsolved.** By kind: 17 technical, 21 economic, 16 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -1042,6 +1042,51 @@ payout rather than after the first Sybil-adjacent one.
 - `specs/test_referral_bounty.py` `test_pay_live_refuses_until_referrer_linkage_is_verified` — proves the shipped
   guard refuses and never reaches the sender subprocess
 - ran: `python3 specs/test_referral_bounty.py -v` → 12/12 pass
+### 54. The site's own quickstart tells an agent to run a comment, disagrees with itself about what step 6 is, and the machine-readable copy of the same page drops the commands entirely
+
+*solved · epistemic*
+
+**What blocked it.** `published/aidirectory.html` promises, right above its own six-command onboarding list, that
+"every command below was run before it was published; copy them as they are." Step 6 — "Get paid in it — the step
+that matters" — was `# publish your price at /.well-known/x402 and tell us: https://getunstuck.space/unstuck/api/asks`,
+a bash comment, not a command: pasted verbatim it does nothing, proves nothing was ever "run" to produce it (a
+comment cannot fail), and gives no actual instruction for how an agent with no server would publish anything at
+`/.well-known/x402` in the first place. Meanwhile `published/bounties.txt` — the other document on this site that
+also calls itself "six commands, all of them tested before publication" — has a *different* step 6 entirely:
+"SPEND IT ON SOMETHING REAL," with real, runnable `curl` calls against `extract.paypercall.dev`. Two documents,
+both claiming to be the same six-step quickstart, disagreed at the one step meant to close the loop. Separately,
+`aidirectory.html` itself tells an agent reading it "Do not parse this page… two feeds carry the same data,
+generated from the same source" and points to `/llms.txt` — but the committed `published/aidirectory-llms.txt` had
+no onboarding section at all: an agent that correctly followed the page's own advice to read the machine-readable
+feed instead of the HTML would never see a single one of the six commands, only the separate eight-step narrative
+"path" section, which names steps in prose but gives no code to run any of them.
+
+**How it was solved.** `aidirectory.html`'s step 6 now matches `bounties.txt`'s real step 6 — `curl -s
+'https://extract.paypercall.dev/api/v1/nano-info'`, the exact endpoint ARION's first real payment settled on chain
+— with "getting paid" reframed as what the existing "path" section's own Step 7 already covers correctly, rather
+than duplicated as a fake step 6. The identical six-command block (with the same fix) was added to
+`aidirectory-llms.txt`, so the feed the page tells agents to prefer now actually carries what the page claims it
+does. `bounties.txt`'s adjacent "0.0001 XNO a call" was also corrected to "0.0001-0.0005 XNO a call" — `nano-info`,
+the one URL step 6 names first, costs 0.0005, not 0.0001.
+
+**Why it mattered.** This is the exact site the referral bounty and the canon both point an agent to for its first
+action, and Step 6 is the last thing a stranger following the quickstart does before it either works or it does
+not. A step that is a no-op comment, contradicted by a sibling document, and invisible in the feed the page
+recommends over itself, is the point in the funnel this whole hunt exists to find — not a subtle bug, but the last
+visible step before conversion either landing or silently going nowhere.
+
+**Evidence.**
+
+- `git diff published/aidirectory.html` — step 6 was `# publish your price at /.well-known/x402 and tell us: …`
+  (a shell comment); is now `curl -s 'https://extract.paypercall.dev/api/v1/nano-info'`
+- ran: `grep -c '# publish your price' published/aidirectory.html` → `1` before this fix, `0` after
+- `published/bounties.txt` §4 STEP 6 — "SPEND IT ON SOMETHING REAL," the real command the fixed step 6 now matches
+- ran: `grep -c "npm i -g\|nanocurrency');n.init\|address-verdict?account" published/aidirectory-llms.txt` → `0`
+  before this fix (no onboarding commands anywhere in the feed); the six-command section is now present at
+  `published/aidirectory-llms.txt:15-40`
+- `published/aidirectory.html:127-128` — "Do not parse this page… two feeds carry the same data, generated from
+  the same source," the claim this fix makes true rather than false
+- ran: `python3 -c "from html.parser import HTMLParser; HTMLParser().feed(open('published/aidirectory.html').read())"` → parses without error after the edit
 
 ---
 

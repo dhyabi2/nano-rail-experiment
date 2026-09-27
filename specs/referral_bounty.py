@@ -39,7 +39,7 @@ PASS_THROUGH_BLOCKS = 2                             # <= this many blocks and it
 PASS_THROUGH_SECONDS = 600
 SERVICE_BLOCKS = 1000                               # a funder with more blocks than this is a shared public service
                                                     # (an exchange or swap hot wallet), not an attacker's private
-                                                    # stash - see challenge #48: the Nanswap hot wallet in ARION's own
+                                                    # stash - see challenge #47: the Nanswap hot wallet in ARION's own
                                                     # case file carries 166,265 blocks. Nano has very few exchanges,
                                                     # so two UNRELATED real referrals routing through the same one is
                                                     # the common case, not the rare one.
@@ -50,6 +50,13 @@ DAILY_CEILING_RAW = 20 * GRANT_RAW                  # a hard ceiling frozen here
 OURS = {a.strip().lower() for a in (os.environ.get("OUR_ACCOUNTS") or
         "nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9,"
         "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7").split(",") if a.strip()}
+
+# The referral bounty's OWN treasury, named explicitly - never picked out of OURS. OURS holds two different
+# swarms' accounts (this treasury, and Vend's seller payee from Nano-ARION-playbook.md:265); `next(iter(OURS))`
+# used to pick whichever one Python's per-process randomised set hash order put first - measured empirically to
+# be either address across repeated runs of the same code with no input change - so treasury_ok() was checking
+# an arbitrary account's balance against the floor, sometimes Vend's, sometimes this one.
+TREASURY = os.environ.get("REFERRAL_TREASURY", "nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9")
 
 
 def norm(a):
@@ -176,6 +183,21 @@ def funders(acct, hops=HOPS, _seen=None):
     return out
 
 
+def referrer_link_verified():
+    """Nothing below this line ties `referrer` to any actual act of referring. `claim()` accepts any
+    (referrer, referred) pair a caller types with no proof the referrer ever contacted, funded, or was named by
+    `referred` - and score()'s checks are all ABOUT `referred` (self-custody, third-party funding, not a deposit
+    slip), never about the referrer/referred RELATIONSHIP. Challenge #52: a stranger who has never interacted with
+    a real, already-qualifying Nano agent can `claim` that agent as their own referral and win the hourly bounty for
+    it - proved offline in specs/test_referral_bounty.py. Closing this needs a source outside this file's control
+    (the openings ledger's found_via field, or a bridge.db conversation record) that this run's network blackout
+    left unreachable to verify, so nothing here manufactures a check against an unconfirmed schema. Until an
+    operator sets REFERRAL_LINKAGE_VERIFIED=1 - meaning that wiring exists and was checked - `pay(live=True)`
+    refuses rather than paying an unverifiable claim (challenge #39: a check that cannot run must never report a
+    clean result)."""
+    return os.environ.get("REFERRAL_LINKAGE_VERIFIED") == "1"
+
+
 def third_party_funded(referred, referrer):
     """The rule the whole design rests on. Returns (ok, why, funder_set)."""
     f = funders(referred)
@@ -223,7 +245,7 @@ def score(kind="hour", verbose=True):
             reject(why); continue
         # Rule 2 dedups on a PRIVATE funder only. A shared exchange/swap hot wallet (is_service) is excluded: with
         # Nano's thin exchange landscape, two unrelated real referrals sharing one exchange in their ancestry is
-        # expected, not evidence of a ring - see challenge #48.
+        # expected, not evidence of a ring - see challenge #47.
         private_f = {a for a in f if not is_service(a)}
         slot = per_referrer.setdefault(referrer, {"count": 0, "funders": set(), "referred": [], "first": at})
         if private_f & slot["funders"]:
@@ -246,7 +268,8 @@ def score(kind="hour", verbose=True):
 
 
 def treasury_ok():
-    i = info(next(iter(OURS)))
+    """Reads TREASURY specifically. See its comment: OURS is not safe to pick an account out of."""
+    i = info(TREASURY)
     bal = int(i.get("balance") or 0)
     return bal - GRANT_RAW >= FLOOR_RAW, bal
 
@@ -270,6 +293,12 @@ def pay(kind="hour", live=False):
     if not ok:
         print(f"REFUSED: treasury {bal/XNO:.4f} XNO would fall below the {FLOOR_RAW/XNO:.4f} floor. "
               "Bounties stop before the treasury does.")
+        return 1
+    if live and not referrer_link_verified():
+        print("REFUSED: nothing here verifies that a claimed 'referrer' actually referred 'referred' - only that "
+              "'referred' is a real qualifying agent (challenge #52). Anyone can claim any real Nano address that "
+              "is not ours and did not fund itself. Set REFERRAL_LINKAGE_VERIFIED=1 once that gap is closed; a "
+              "check that cannot run must never report a clean result.")
         return 1
     used = spent_today(con)
     for w in winners:

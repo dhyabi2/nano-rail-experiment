@@ -1,11 +1,62 @@
 [
- {"name": "nano-wallet-xno", "url": "https://github.com/dhyabi2/nano-wallet-xno", "what": "A Nano wallet as one install: address derivation with checksum validation, receive, send, and an MCP server. Receive-only mode needs no spending key."},
- {"name": "agent-wallet-multirail", "url": "https://github.com/dhyabi2/agent-wallet-multirail", "what": "One payment interface with a Nano rail beside USDC and other rails, so adding XNO is additive, not a switch."},
- {"name": "openai-agents-nano-x402", "url": "https://github.com/dhyabi2/openai-agents-nano-x402", "what": "Lets an OpenAI Agents SDK agent pay x402 endpoints in XNO from its own key."},
- {"name": "nano-settlement-verify", "url": "https://github.com/dhyabi2/nano-settlement-verify", "what": "Prove a XNO payment settled, with no node client and no trust in the payer."},
- {"name": "nano-receipt-ledger", "url": "https://github.com/dhyabi2/nano-receipt-ledger", "what": "A receipt ledger for agent payments that anyone can check against the public chain."},
- {"name": "nano-work-queue", "url": "https://github.com/dhyabi2/nano-work-queue", "what": "Paid work where the outside agent is the seller: claim a task with no account, deliver, get paid in XNO."},
- {"name": "paid-work-queue", "url": "https://github.com/dhyabi2/paid-work-queue", "what": "A static, schema-validated queue of paid work for agents, with the payment receipts published."},
- {"name": "tollstile-rail-nano", "url": "https://github.com/dhyabi2/tollstile-rail-nano", "what": "A Nano settlement rail for the Tollstile paywall: feeless, instant, payer-published sends."},
- {"name": "nano-mcp-public", "url": "https://github.com/dhyabi2/nano-mcp-public", "what": "A Nano MCP server, so any MCP-capable agent can read accounts and move XNO through tools."}
+ {
+  "name": "nano-wallet-xno",
+  "url": "https://github.com/dhyabi2/nano-wallet-xno",
+  "what": "A Nano wallet as one install: address derivation with checksum validation, receive, send, and an MCP server. Receive-only mode needs no spending key. Sends obey an operator-signed spend mandate."
+ },
+ {
+  "name": "agent-wallet-multirail",
+  "url": "https://github.com/dhyabi2/agent-wallet-multirail",
+  "what": "One payment interface with a Nano rail beside USDC and other rails, plus an operator mandate: the human signs a spend cap, per-payment max, payee list and purpose once, and every send is checked against it."
+ },
+ {
+  "name": "openai-agents-nano-x402",
+  "url": "https://github.com/dhyabi2/openai-agents-nano-x402",
+  "what": "Lets an OpenAI Agents SDK agent pay x402 endpoints in XNO from its own key. Honours an operator-signed spend mandate."
+ },
+ {
+  "name": "nano-settlement-verify",
+  "url": "https://github.com/dhyabi2/nano-settlement-verify",
+  "what": "Prove a XNO payment settled, with no node client and no trust in the payer."
+ },
+ {
+  "name": "nano-receipt-ledger",
+  "url": "https://github.com/dhyabi2/nano-receipt-ledger",
+  "what": "A receipt ledger for agent payments that anyone can check against the public chain."
+ },
+ {
+  "name": "nano-work-queue",
+  "url": "https://github.com/dhyabi2/nano-work-queue",
+  "what": "Paid work where the outside agent is the seller: claim a task with no account, deliver, get paid in XNO."
+ },
+ {
+  "name": "paid-work-queue",
+  "url": "https://github.com/dhyabi2/paid-work-queue",
+  "what": "A static, schema-validated queue of paid work for agents, with the payment receipts published."
+ },
+ {
+  "name": "tollstile-rail-nano",
+  "url": "https://github.com/dhyabi2/tollstile-rail-nano",
+  "what": "A Nano settlement rail for the Tollstile paywall: feeless, instant, payer-published sends."
+ },
+ {
+  "name": "nano-mcp-public",
+  "url": "https://github.com/dhyabi2/nano-mcp-public",
+  "what": "A Nano MCP server, so any MCP-capable agent can read accounts and move XNO through tools."
+ },
+ {
+  "name": "nano-accept-settle",
+  "url": "https://github.com/dhyabi2/nano-accept-settle",
+  "what": "Non-custodial: in one call, confirm an answer passed its acceptance test and the asker's XNO payment to the answerer settled on chain."
+ },
+ {
+  "name": "bounded-task-spec",
+  "url": "https://github.com/dhyabi2/bounded-task-spec",
+  "what": "A pinned, content-hashed contract template for paid agent-to-agent tasks: what is asked, a machine-checkable acceptance test, price, deadline and what the spend buys. Reference validator included."
+ },
+ {
+  "name": "gpt-researcher-x402-retriever",
+  "url": "https://github.com/dhyabi2/gpt-researcher-x402-retriever",
+  "what": "A pay-per-call web-search retriever for GPT Researcher, paid over x402 in XNO through a pluggable payer, with a price cap."
+ }
 ]

@@ -1,10 +1,8 @@
 # Every challenge the ARION path had to solve, and how
 
-*Forty-seven challenges, found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, plus one found by the hunter routine testing its own unlaunched code offline. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Forty-eight challenges, found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, plus two found live: one by the referral bounty's own offline test suite catching two bugs before its first payout, one by the hunter routine's own cloud session going network-blind mid-run. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**19 solved · 21 partial · 7 unsolved.** By kind: 15 technical, 17 economic, 15 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
-
-*Numbering note: a second open pull request (`hunt/network-egress-blackout`) independently adds its own challenge #47 for an unrelated finding. Whichever merges second should renumber rather than overwrite the other's entry — both are real and neither should be lost.*
+**20 solved · 22 partial · 6 unsolved.** By kind: 16 technical, 17 economic, 15 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -848,6 +846,24 @@ exchange at all.
   confirmed by running the unfixed comparison directly: `python3 -c "print(450000000000000000000000000000 >=
   500000000000000000000000000000*0.9)"` → `False` for an amount that is exactly 90%)
 - `specs/04-REFERRAL-BOUNTY.md` rule 2, corrected in place with the exchange exemption
+
+### 48. The hunter routine can go network-blind in its own cloud session, and nothing before this told the difference between that and a quiet day
+
+***partial** · technical*
+
+**What blocked it.** On 2026-09-26 the scheduled conversion-blocker hunter (`trig_01KzZuSB66ooSpKmu7fc8aTM`) ran and found every one of its ten required measurement hosts denied by its own cloud session's network egress policy — `getunstuck.space`, all five `*.paypercall.dev` sellers, `swarm.getunstuck.space`, `board.getunstuck.space` and `rpc.nano.to` — while none of those services were themselves down (the monitor in `monitor/` reads the same hosts from Vercel, outside this session, unaffected). Every `curl` returned exit 56 ("CONNECT tunnel failed, response 403") and every `WebFetch` returned `EGRESS_BLOCKED`. Nothing in the routine's own instructions or this repository distinguished "I measured and nothing changed" from "my session could not reach the network at all" — a run that hit this and was not careful could have written a PR saying "nothing new to report" when in fact it saw nothing whatsoever, the exact shape challenge #39 already named once for git and RPC clients, now found again one layer up, in the runner rather than in what it runs.
+
+**How it was solved.** `ops/hunter-preflight.sh` probes all ten required hosts before any real measurement, classifies each as reachable, policy-blocked (curl exit 56/7 — the network refusing the attempt, distinct from the remote server answering) or erroring, and exits 2 the instant any host is blocked so the caller is forced to report the whole measurement phase as **unknown**, never as a quiet day. Run live in the affected session it correctly reported `ok=0 blocked=10 errored=0` and exited 2, matching the ten real failures observed. What is **not** solved: the root cause, which only the owner can fix — this cloud environment's Network access / allowed-domains setting does not currently cover any of these hosts, so every future run of this same routine, on this same environment, will hit the identical wall until that setting is broadened.
+
+**Why it mattered.** This routine is the one thing standing watch on the whole experiment between owner check-ins; a version of it that cannot tell "quiet" from "blind" would let the treasury, the sellers, and the receivable count drift for days while every run's PR reads as reassuring silence.
+
+**Evidence.**
+
+- ran (this session, 2026-09-26): `curl -sS -m 20 https://getunstuck.space/ledger.json` → `curl: (56) CONNECT tunnel failed, response 403`; identical result for all 5 `*.paypercall.dev` hosts, `rpc.nano.to`, `swarm.getunstuck.space`, `board.getunstuck.space`
+- ran: `WebFetch(https://getunstuck.space/ledger.json)` → `{"error_type":"EGRESS_BLOCKED","domain":"getunstuck.space",...}`; same for `extract.paypercall.dev`
+- ran: `curl -sS http://127.0.0.1:40121/__agentproxy/status` → `recentRelayFailures` lists all ten hosts as `connect_rejected`, `"gateway answered 403 to CONNECT (policy denial or upstream failure)"`
+- `ops/hunter-preflight.sh` — run live in this session, printed all ten hosts as `BLOCKED`, `ok=0 blocked=10 errored=0`, exit code 2, matching the observed failures exactly
+- contrast: `monitor/api/public.js` reads these same sellers from Vercel and is unaffected — the services are up; only this session's own egress is denied
 
 ---
 

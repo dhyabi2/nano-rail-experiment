@@ -122,6 +122,33 @@ class ReferralBountyTests(unittest.TestCase):
         self.assertEqual(len(rejected), 1)
         self.assertIn("private", rejected[0]["why"])
 
+    def test_shared_private_funder_split_across_referrers_still_counts_once(self):
+        """The next bug after #48: rule 2 ("one funder, one referral") was implemented PER REFERRER, but a referrer
+        identity is free to create. One exchange round-trip into a single private wallet W, then split across two
+        different throwaway referrer identities (one address funded by W each), used to score as TWO qualifying
+        referrals instead of one - for `pay --period day`, which pays every qualifying referrer rather than just
+        the top one, that multiplies one round-trip into N * 0.1 XNO. The dedup must be global across referrers,
+        not scoped to each one's own claims."""
+        stash = "nano_1splitattackerstash"
+        self.fund(stash, blocks=4)  # a fresh private wallet, not a service
+        self.agent("nano_1referredsplitA", funded_by=stash)
+        self.agent("nano_1referredsplitB", funded_by=stash)
+        self.claim("nano_1referrerX", "nano_1referredsplitA")
+        self.claim("nano_1referrerY", "nano_1referredsplitB")
+
+        out = rb.score("hour", verbose=False)
+        self.assertEqual(out["qualifying"], 1)
+        rejected = [d for d in out["detail"] if not d["counted"]]
+        self.assertEqual(len(rejected), 1)
+        self.assertIn("already counted this period", rejected[0]["why"])
+        # two distinct referrers each still get their OWN slot for a referral funded from a DIFFERENT private wallet
+        stash2 = "nano_1secondstash"
+        self.fund(stash2, blocks=5)
+        self.agent("nano_1referredsplitC", funded_by=stash2)
+        self.claim("nano_1referrerY", "nano_1referredsplitC")
+        out2 = rb.score("hour", verbose=False)
+        self.assertEqual(out2["qualifying"], 2)
+
     # ---- the rules that already existed, still enforced --------------------
     def test_self_referral_rejected(self):
         self.fund("nano_1funder", blocks=10)

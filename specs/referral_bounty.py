@@ -204,6 +204,16 @@ def score(kind="hour", verbose=True):
 
     per_referrer = {}
     detail = []
+    # GLOBAL across every referrer in this pass - not per-referrer. Referrer identities are free to create (the
+    # spec's own "why every obvious design is already broken" table says so), so a per-referrer funder-dedup only
+    # stops ONE referrer from padding its own count; it does nothing to stop an attacker who does a single exchange
+    # round-trip into one private wallet W and then splits addresses funded from W across N throwaway referrer
+    # identities, one address each. Each referrer's own funder set would then be empty on first sight and the
+    # referral would pass, multiplying one exchange round-trip into N qualifying referrals - for `pay --period day`,
+    # which pays EVERY qualifying referrer rather than just the top one, that is N * 0.1 XNO from one round-trip,
+    # up to the daily ceiling. "ONE FUNDER COUNTS ONCE, however many addresses trace back to it" (bounties.txt,
+    # canon.html) is stated as an absolute, not a per-referrer one, and the score must match that.
+    funders_used = set()
     for referred, referrer, block, at in rows:
         referred, referrer = norm(referred), norm(referrer)
         def reject(why):
@@ -225,10 +235,11 @@ def score(kind="hour", verbose=True):
         # Nano's thin exchange landscape, two unrelated real referrals sharing one exchange in their ancestry is
         # expected, not evidence of a ring - see challenge #48.
         private_f = {a for a in f if not is_service(a)}
-        slot = per_referrer.setdefault(referrer, {"count": 0, "funders": set(), "referred": [], "first": at})
-        if private_f & slot["funders"]:
-            reject("shares a private (non-exchange) funding source with another referral by the same referrer"); continue
-        slot["funders"] |= private_f
+        if private_f & funders_used:
+            reject("shares a private (non-exchange) funding source with another referral already counted this "
+                   "period, whichever referrer claimed it"); continue
+        funders_used |= private_f
+        slot = per_referrer.setdefault(referrer, {"count": 0, "referred": [], "first": at})
         slot["count"] += 1
         slot["referred"].append(referred)
         slot["first"] = min(slot["first"], at)

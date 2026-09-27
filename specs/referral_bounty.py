@@ -375,11 +375,32 @@ def pay(kind="hour", live=False):
             con.execute("DELETE FROM paid WHERE period=? AND winner=? AND kind=?", (s["period"], w["referrer"], kind))
             con.commit()
             continue
-        # The product's own sender: the amount lock and the floor live there, and this passes no amount at all.
-        r = subprocess.run(["node", SENDER, "--to", w["referrer"], "--kind", "ambassador_grant", "--verify"],
+        # The product's own sender, called with ITS REAL INTERFACE - verified by reading send.js, not assumed:
+        #   send.js --grant <nano_address> --agent NAME [--agreement "..."] [--dry-run]
+        # An earlier version of this called `--to X --kind ambassador_grant --verify`, which does not exist: it would
+        # have hit the usage error, returned 2, and marked every winner "unknown" while paying nobody, silently, every
+        # hour. Nothing passes an amount - the sender holds the frozen 0.1 and the treasury floor.
+        #
+        # NOTE the sender's grants ledger refuses a SECOND grant to the same account or agent name, ever. That is a
+        # deliberate product rule, not a bug, and it means a winner can take this bounty once in its life. The public
+        # text says so; do not try to route around it.
+        agreement = f"referral bounty, {kind} period {s['period']}: {w['count']} qualifying referral(s)"
+        r = subprocess.run(["node", SENDER, "--grant", w["referrer"], "--agent", w["referrer"][:24],
+                            "--agreement", agreement],
                            capture_output=True, text=True, timeout=300)
+        combined = (r.stdout or "") + (r.stderr or "")
+        if r.returncode != 0 and "already" in combined.lower():
+            # Already granted once: not an error, and not a payment. Recorded so it is never retried.
+            con.execute("UPDATE paid SET state='already_granted' WHERE period=? AND winner=? AND kind=?",
+                        (s["period"], w["referrer"], kind))
+            con.commit()
+            print(f"  {w['referrer'][:26]}... has already had its one grant - nothing sent, recorded, not retried")
+            continue
         if r.returncode == 0:
-            blk = (r.stdout or "").strip().split()[-1][:64]
+            try:
+                blk = (json.loads(r.stdout).get("block") or "")[:64]
+            except Exception:
+                blk = ""
             con.execute("UPDATE paid SET state='confirmed', block=? WHERE period=? AND winner=? AND kind=?",
                         (blk, s["period"], w["referrer"], kind))
             used += GRANT_RAW

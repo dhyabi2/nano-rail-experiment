@@ -276,7 +276,7 @@ class ReferralBountyTests(unittest.TestCase):
         rb._info.clear()
         calls = []
         class R:  # the sender's success shape: last token of stdout is the block
-            returncode, stdout, stderr = 0, "sent " + "B" * 64, ""
+            returncode, stdout, stderr = 0, '{"block": "' + "B" * 64 + '"}', ""
         orig_run = rb.subprocess.run
         rb.subprocess.run = lambda *a, **kw: (calls.append(a[0]), R())[1]
         try:
@@ -285,7 +285,29 @@ class ReferralBountyTests(unittest.TestCase):
             rb.subprocess.run = orig_run
         self.assertEqual(rc, 0)
         self.assertEqual(len(calls), 1)
-        self.assertIn(rb.norm("nano_1honestreferrer"), calls[0])
+        # the sender's REAL interface (send.js --grant ADDR --agent NAME --agreement TEXT); nothing passes an amount
+        argv = calls[0]
+        self.assertEqual(argv[argv.index("--grant") + 1], rb.norm("nano_1honestreferrer"))
+        self.assertIn("--agent", argv)
+        self.assertNotIn("--to", argv)
+        con = rb.db()
+        self.assertEqual(con.execute("SELECT state, block FROM paid").fetchone(), ("confirmed", "B" * 64))
+
+    def test_a_winner_that_already_had_its_one_grant_is_recorded_not_retried(self):
+        stranger = self._real_stranger("g")
+        self.claim("nano_1alreadygranted", stranger)
+        rb.info = lambda a: {"balance": str(29 * rb.XNO)} if rb.norm(a) == rb.norm(rb.TREASURY) else self.chain.i(a)
+        rb._info.clear()
+        class R:
+            returncode, stdout, stderr = 1, "", "refused: nano_1alreadygranted already has its grant"
+        orig_run = rb.subprocess.run
+        rb.subprocess.run = lambda *a, **kw: R()
+        try:
+            rb.pay("hour", live=True)
+        finally:
+            rb.subprocess.run = orig_run
+        con = rb.db()
+        self.assertEqual(con.execute("SELECT state FROM paid").fetchone()[0], "already_granted")
 
     def test_claim_cli_refuses_without_a_block_hash(self):
         self.assertEqual(rb.claim("nano_1r", "nano_1x", ""), 1)

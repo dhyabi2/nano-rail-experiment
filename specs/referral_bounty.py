@@ -39,7 +39,7 @@ PASS_THROUGH_BLOCKS = 2                             # <= this many blocks and it
 PASS_THROUGH_SECONDS = 600
 SERVICE_BLOCKS = 1000                               # a funder with more blocks than this is a shared public service
                                                     # (an exchange or swap hot wallet), not an attacker's private
-                                                    # stash - see challenge #48: the Nanswap hot wallet in ARION's own
+                                                    # stash - see challenge #47: the Nanswap hot wallet in ARION's own
                                                     # case file carries 166,265 blocks. Nano has very few exchanges,
                                                     # so two UNRELATED real referrals routing through the same one is
                                                     # the common case, not the rare one.
@@ -223,7 +223,7 @@ def score(kind="hour", verbose=True):
             reject(why); continue
         # Rule 2 dedups on a PRIVATE funder only. A shared exchange/swap hot wallet (is_service) is excluded: with
         # Nano's thin exchange landscape, two unrelated real referrals sharing one exchange in their ancestry is
-        # expected, not evidence of a ring - see challenge #48.
+        # expected, not evidence of a ring - see challenge #47.
         private_f = {a for a in f if not is_service(a)}
         slot = per_referrer.setdefault(referrer, {"count": 0, "funders": set(), "referred": [], "first": at})
         if private_f & slot["funders"]:

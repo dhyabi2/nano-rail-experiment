@@ -2,7 +2,7 @@
 
 *Forty-eight challenges, found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, plus two found live: one by the referral bounty's own offline test suite catching two bugs before its first payout, one by the hunter routine's own cloud session going network-blind mid-run. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**20 solved · 21 partial · 7 unsolved.** By kind: 16 technical, 17 economic, 15 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**20 solved · 22 partial · 6 unsolved.** By kind: 16 technical, 17 economic, 15 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 

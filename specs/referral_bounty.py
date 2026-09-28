@@ -181,16 +181,25 @@ def has_signed_a_send(acct):
     return any(h.get("type") == "send" for h in history(acct))
 
 
-def is_pass_through(acct):
+def is_pass_through(acct, referrer=None):
     """An address with two blocks that forwarded ~everything within minutes is an exchange deposit slip, not an agent.
-    ARION's 3.3 and 2.7 XNO sends were first misread as the rail spreading; both were deposit addresses."""
+    ARION's 3.3 and 2.7 XNO sends were first misread as the rail spreading; both were deposit addresses.
+
+    Challenge #58: bounties.txt itself tells a referred agent to prove itself with exactly this shape - get funded,
+    then send (any amount) to its referrer, fast, because there is nothing else to wait for. For a freshly-opened
+    agent with a small balance and only two blocks ever, that REQUIRED proof send is also the only send this test
+    ever sees, so `sends[0]` is provably the same block link_proved() already confirmed goes to the referrer - not
+    evidence of forwarding to an exchange. A send to the referrer is the referral working as designed, so it is
+    excluded here; only a send to somewhere else counts as pass-through evidence. A real deposit-slip forwards to
+    its exchange's own collection wallet, never to the referrer specifically, so this costs the check nothing."""
     i = info(acct)
     n = int(i.get("block_count") or 0)
     if n == 0 or n > PASS_THROUGH_BLOCKS:
         return False
     h = history(acct, count=10)
     recvs = [x for x in h if x.get("type") == "receive"]
-    sends = [x for x in h if x.get("type") == "send"]
+    r = norm(referrer) if referrer else None
+    sends = [x for x in h if x.get("type") == "send" and norm(x.get("account")) != r]
     if not recvs or not sends:
         return False
     try:
@@ -282,7 +291,7 @@ def score(kind="hour", verbose=True):
             reject("this address has already been counted as referred, once ever"); continue
         if not has_signed_a_send(referred):
             reject("no signed send: self-custody not proved (receiving proves nothing)"); continue
-        if is_pass_through(referred):
+        if is_pass_through(referred, referrer):
             reject("looks like an exchange deposit address, not an agent"); continue
         ok, why, f = third_party_funded(referred, referrer)
         if not ok:

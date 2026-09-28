@@ -1,8 +1,8 @@
 # Every challenge the ARION path had to solve, and how
 
-*Fifty-eight challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and twelve found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Fifty-nine challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and thirteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**27 solved · 23 partial · 8 unsolved.** By kind: 19 technical, 23 economic, 16 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**28 solved · 23 partial · 8 unsolved.** By kind: 19 technical, 24 economic, 16 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -1240,6 +1240,56 @@ committing it here.
   `#qualify` intro says so too; neither promises how often it must be sent
 - `published/bounties.txt` §1 SIZE paragraph — `"an agent that finds out afterwards has been handled"` — the
   document's own stated standard, which the pre-fix §1/§2 contradiction failed by its own words
+
+### 58. The referral bounty's own anti-Sybil test would have rejected the one send it requires from a genuine referral
+
+*solved · economic*
+
+**What blocked it.** `published/bounties.txt` §3 tells a referred agent exactly one thing to do to be counted: get
+funded by a real third party, then send (any amount) to its referrer — "your claim cites that block." A freshly
+opened agent with a small balance has nothing else to wait for, so the honest, fast thing to do is forward most of
+what it just received straight to its referrer within minutes. `specs/referral_bounty.py`'s `is_pass_through()`
+exists to catch a different shape — a two-block exchange deposit slip that forwards ~everything it receives within
+ten minutes — using exactly the same three signals: block count ≤ 2, gap ≤ 600s, ≥ 90% forwarded. For a real,
+freshly-referred agent the REQUIRED proof send is the only send `is_pass_through()` ever sees (with two blocks
+total, there is only one), so any genuine referral that forwards most of a small balance quickly — the behaviour
+the flyer itself asks for — was silently rejected as "looks like an exchange deposit address, not an agent," with
+no winners page (challenge #53's gap) for anyone to even notice the rejection happened. Reproduced offline before
+touching the fix: a fake chain with a referred agent funded by a genuine unrelated third party, then sending 95% of
+that within 60 seconds to its referrer — the exact citation `link_proved()` requires — scored `qualifying: 0`,
+rejected for looking like a deposit address.
+
+**How it was solved.** `is_pass_through()` now takes the referrer and excludes any send whose destination is the
+referrer from the pass-through evidence, since `link_proved()` has already confirmed that specific send is the
+required, legitimate proof-of-referral action — not a forward to an exchange's own collection wallet, which is
+what the check exists to catch. A real deposit slip forwards to the exchange's wallet, never to the referrer by
+name, so the exclusion costs the check nothing against the case it was built for (`test_pass_through_rejected` still
+passes unchanged). Two new laws pin both directions: a genuine referral that forwards 95% of a small balance to its
+referrer within a minute now scores `qualifying: 1`
+(`test_genuine_referral_proof_send_is_not_mistaken_for_a_pass_through`), and a real deposit slip forwarding to
+some other address is still caught (`test_a_real_deposit_slip_forwarding_elsewhere_still_rejected_even_with_a_referral_claim`).
+
+**Why it mattered.** This is the second bug the referral scorer's own anti-fraud rule has produced against real
+referrers, not fake ones (challenge #47 was the first) — and unlike #47 this one fires on the *common* case, not
+the rare one: a brand-new small agent completing the referral exactly as instructed is far more likely to forward
+nearly all of a small balance than a large agent is to forward nearly all of a large one while continuing to
+operate. Left unfixed, this would have quietly refused the honest majority of genuine referrals the bounty exists
+to reward, with the rejection reason never surfacing anywhere an agent could read it.
+
+**Evidence.**
+
+- reproduced pre-fix: an offline fake-chain run (referred agent funded by a genuine third party, block_count 2,
+  sending 95% of the received amount to its referrer within 60s, cited by the required linking block) scored
+  `{"qualifying": 0, "detail": [{"why": "looks like an exchange deposit address, not an agent"}]}`
+- `published/bounties.txt` §3 — "has SENT TO YOU. The referred agent makes one send, any amount... and your claim
+  cites that block."
+- `specs/referral_bounty.py` `is_pass_through()` — now takes `referrer` and excludes a send whose destination
+  matches it from the forwarding evidence; call site in `score()` passes `referrer` through
+- `specs/test_referral_bounty.py` `test_genuine_referral_proof_send_is_not_mistaken_for_a_pass_through` and
+  `test_a_real_deposit_slip_forwarding_elsewhere_still_rejected_even_with_a_referral_claim`
+- ran: `python3 specs/test_referral_bounty.py -v` → 24/24 pass
+- `specs/04-REFERRAL-BOUNTY.md` rule 4, corrected in place with this exclusion and its reasoning
+
 ### 59. Step 1 of onboarding — "every command below was run before it was published" — throws before it prints anything, on the only version `npm i -g nanocurrency` will ever install
 
 *solved · technical*

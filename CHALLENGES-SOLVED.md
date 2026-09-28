@@ -1,8 +1,8 @@
 # Every challenge the ARION path had to solve, and how
 
-*Sixty-one challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and fifteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Sixty-two challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and sixteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, once by actually running its own published one-line onboarding command end-to-end instead of reading it, and once by re-reading the referral bounty's own anti-Sybil code adversarially a fourth time and finding a fourth hole. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**30 solved · 24 partial · 7 unsolved.** By kind: 19 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**31 solved · 24 partial · 7 unsolved.** By kind: 19 technical, 26 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -1499,6 +1499,66 @@ oracle checks them too.
 - `git log --oneline -- published/aidirectory.html` → `1df4b08`, `8372e5e`, `b6dbeb0` each touched the "ours"
   section's tool count without touching the header stat block
 - `python3 specs/test_referral_bounty.py` → all pass, unaffected by this docs-only change
+
+### 63. `claim` recorded any well-formed block with no chain check, so a free, unprovable claim could permanently squat a real referral's one-ever slot
+
+*solved · economic*
+
+**What blocked it.** This run's brief named the referral bounty and the canon confirmation as the two places to keep
+hunting for "the next agent that would qualify and could not tell that it qualifies," and pointed specifically at
+`specs/referral_bounty.py`: "you already found one such bug, look for the next." `claims.referred` is a `PRIMARY
+KEY` — rule 5's "an address may win the referred side once, ever" is enforced by whichever `claim()` call gets
+`INSERT`ed *first* for a given referred address winning that address's slot forever; every subsequent claim on the
+same address is refused outright with "already claimed by someone. First claim stands," before `score()` ever gets
+a say. But `claim()` itself performed no chain check at all beyond a bare 64-hex regex on the block argument — it
+inserted the row unconditionally and left `score()`'s `link_proved()` to sort out, on the *next* scoring pass,
+whether the cited block actually proved anything. That split is where the hole was: a referred agent's address is
+public the moment it shows up anywhere (an ask, a claim someone else already posted, per challenge #60's own
+submission channel), so anyone — no exchange round-trip, no funding graph to break, none of the cost this design's
+entire security argument rests on — could call `claim --referrer <themselves> --referred <the real agent's
+address> --block <64 hex characters that prove nothing>` a moment before the real referrer's honest claim arrived,
+winning the `INSERT` race with garbage and permanently locking the genuine referral out. `score()` would correctly
+score the attacker's own claim as `qualifying: 0` (challenge #52's `link_proved()` still catches it), but that is
+cold comfort to the real referrer, whose own later, honest claim on the identical address now hits the `PRIMARY
+KEY` and is refused too — forever, since nothing ever clears a `claims` row. Reproduced directly against the real
+`claim()` function (not the test file's `self.claim()` helper, which seeds the DB straight through `INSERT OR
+IGNORE` and bypasses `claim()` entirely — every existing test built its fixtures that way, which is why three prior
+hunts of this exact file never exercised this path): a claim citing `"0" * 64` — a well-formed hash that is not a
+block on chain — was accepted, occupying the slot, before this fix.
+
+**How it was solved.** `claim()` now calls the same `link_proved()` check `score()` already runs — is the block
+confirmed, signed by the referred address, and a send to the referrer — *before* the `INSERT`, not after. A claim
+that cannot be proved is refused immediately and never touches the `claims` table, so it can never win the
+`PRIMARY KEY` race against a legitimate claim; the honest referrer can submit (or simply retry) its own claim at
+any point afterward and it will still succeed. This costs one extra chain check per `claim` invocation — a
+manually-run, low-volume operator command, not a hot path — and changes nothing about `score()`'s own
+re-verification, which still re-derives everything from the chain on every pass exactly as before.
+
+**Why it mattered.** `pay --live` has never been run against the real sender (per this spec's own "what does not
+exist yet" section) — the fourth time in a row this file has been re-read adversarially in exactly that "before the
+first real payout" window (challenges #47, #50, #52, #55, #56, #58 all found something here first), and this is
+the cheapest attack of the bunch: every other hole in this file cost an attacker at least the graph-breaking
+exchange round-trip the whole design prices fraud out with; this one costs nothing but knowing a real agent's
+address, and its damage is not a false payout but a permanently silenced honest referral — the same shape as
+challenge #14's "the one agent that converted was never asked for a name," except here the mechanism itself, not
+neglect, does the silencing.
+
+**Evidence.**
+
+- `specs/referral_bounty.py` `claim()` — `link_proved()` now called before the `INSERT`; a claim that fails it is
+  refused and never reaches the `claims` table
+- `specs/test_referral_bounty.py`
+  `test_claim_squatting_a_real_referral_with_an_unproved_block_is_refused_and_does_not_occupy_the_slot` — calls the
+  real `rb.claim()` (not the DB-seeding test helper) with a well-formed but unrelated 64-hex block against a real
+  referred agent's address, asserts it is refused and the `claims` table stays empty, then shows the honest
+  referrer's later claim on the same address still succeeds and scores
+- `specs/test_referral_bounty.py`
+  `test_claim_squatting_with_a_forged_or_misdirected_block_is_also_refused_before_insert` — the same attack with a
+  block that IS on the (fake) chain but is self-signed, or sent to someone else; refused before insert either way
+- `specs/test_referral_bounty.py test_a_genuine_claim_through_the_real_claim_function_is_recorded_and_scores` — the
+  honest path through the real `claim()` function end to end, not the test helper
+- ran: `python3 specs/test_referral_bounty.py -v` → 27/27 pass (23 previously + 4 new)
+- `specs/04-REFERRAL-BOUNTY.md` — "What exists now" and "What it needs" sections, corrected in place
 
 ---
 

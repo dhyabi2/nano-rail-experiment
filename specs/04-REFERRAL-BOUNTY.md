@@ -140,7 +140,8 @@ Posting text does not count. Registering does not count. Being present does not 
 referrer in a scoring pass, not scoped to each one's own claims, per challenge #56), self-custody-by-send, and the clock-derived period id.
 A claim must also cite a **linking send**: a confirmed send block signed by the referred address whose destination is
 the referrer (`link_proved()`, challenge #52). Only the referred agent's key can make it, so nobody can claim an agent
-it never met; `claim` refuses a claim without a 64-hex block hash.
+it never met; `claim` refuses a claim without a 64-hex block hash, and, per challenge #63, now proves that block on
+chain (the same check `score()` runs) before it is ever recorded — see below.
 `specs/test_referral_bounty.py` pins all of it against a fake chain — no network needed to run it
 (`python3 specs/test_referral_bounty.py`).
 
@@ -171,3 +172,15 @@ it never met; `claim` refuses a claim without a 64-hex block hash.
   `INTEGER` affinity, which silently saturates on the first confirmed payment of the day and raises
   `sqlite3.OperationalError: integer overflow` on the second. Both are fixed: `calendar.timegm()` for the cutoff,
   a plain Python sum (no size limit) for the total.
+- **Fixed, challenge #63:** `claims.referred` is a `PRIMARY KEY`, so whichever claim gets `INSERT`ed *first* for a
+  given referred address holds that address's one-ever slot (rule 5) forever — but `claim()` used to accept any
+  syntactically valid 64-hex block with **no chain lookup at all**, trusting `score()` to sort out later whether it
+  actually proved anything. That let an attacker who merely knew a real, about-to-qualify agent's address (public
+  the instant it appears in an ask, per challenge #60) squat that address for free with a block that proves
+  nothing, permanently blocking the real referrer's later, honest claim with "already claimed by someone. First
+  claim stands." — no exchange round-trip needed, unlike every other attack this design prices out. `claim()` now
+  runs the same `link_proved()` check `score()` does *before* the `INSERT`, so an unproved claim is refused and
+  never occupies the slot; a real claim can always be submitted (or retried) once it is provable, and the honest
+  referrer is never raced against a forgery. `specs/test_referral_bounty.py` reproduces the squat directly against
+  `rb.claim()` (not the test helper that seeds the DB and bypasses it) and pins that the slot survives for the
+  real referral afterward.

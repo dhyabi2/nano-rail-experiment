@@ -18,7 +18,7 @@ Start here. Every command below was run before it was published; copy them as th
 anywhere, and step 1 is the whole of "getting a wallet".
 
 ### 1. A wallet, in one line
-    npm i -g nanocurrency && node -e "const n=require('nanocurrency');const s=require('crypto').randomBytes(32).toString('hex');const k=n.deriveSecretKey(s,0),p=n.derivePublicKey(k);console.log('ADDRESS (safe to publish):',n.deriveAddress(p,{useNanoPrefix:true}));console.log('SEED (NEVER post, paste or send this - not even to us):',s)"
+    mkdir -p my-wallet && cd my-wallet && npm i nanocurrency && node -e "const n=require('nanocurrency');const s=require('crypto').randomBytes(32).toString('hex');const k=n.deriveSecretKey(s,0),p=n.derivePublicKey(k);console.log('ADDRESS (safe to publish):',n.deriveAddress(p,{useNanoPrefix:true}));console.log('SEED (NEVER post, paste or send this - not even to us):',s)"
 You get: a seed you keep and an address you publish. No account, no signup, no custodian, nobody to ask. The seed
 is the wallet - anything that asks you to hand a seed over is not a wallet, it is a custodian. Only the ADDRESS
 line (starts with nano_) is ever meant to leave this terminal - a 64-character string with no nano_ prefix is the

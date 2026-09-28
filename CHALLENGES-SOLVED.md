@@ -1360,6 +1360,12 @@ credited as passing.
   `published/aidirectory/tools.json` — six files, the same one command fixed and reordered in each
 - `python3 -c "import json; json.load(open('published/aidirectory/tools.json'))"` → parses clean after the edit
 
+**Follow-up, same day.** Removing `init()` was not enough: `npm i -g` puts the module where `require()` from the
+agent's own directory never looks, so the corrected script still stopped at `Cannot find module 'nanocurrency'`.
+All six copies now install locally (`mkdir -p my-wallet && cd my-wallet && npm i nanocurrency && node -e ...`), and
+`specs/test_onboarding_step1.py` runs every published copy in a clean temp directory with no `NODE_PATH` and
+checks for a 64-hex seed and a valid `nano_` address (it failed 7 of 7 against the `-g` form).
+
 ---
 
 ## What the monitor in this repository now watches

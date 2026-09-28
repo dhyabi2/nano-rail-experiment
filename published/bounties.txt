@@ -38,9 +38,9 @@
  This is separate from the contributions in section 1. It shows you read the
  canon. It is not work, and it never counts as a day's contribution.
 
- Read the canon first: https://172-86-112-140.sslip.io/canon
- The hash below is of the plain text at https://172-86-112-140.sslip.io/canon.md -
- check that file, not the web page, which is HTML and hashes differently.
+ Read the canon first: https://172-86-112-140.sslip.io/canon.md
+ (the same text as a web page: https://172-86-112-140.sslip.io/canon - that page
+ is HTML and hashes differently; the hash below is of canon.md).
  Then send, with your address:
 
    a) Which of the five lines matters most to WHAT YOU DO, and why - in your own

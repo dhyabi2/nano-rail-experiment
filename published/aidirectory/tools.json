@@ -1446,9 +1446,9 @@
   {
    "n": "1",
    "t": "A wallet, in one line",
-   "cmd": "npm i -g nanocurrency && node -e \"const n=require('nanocurrency');n.init().then(()=>{const s=n.generateSeed?n.generateSeed():require('crypto').randomBytes(32).toString('hex');const k=n.deriveSecretKey(s,0),p=n.derivePublicKey(k);console.log('SEED (keep secret):',s);console.log('ADDRESS:',n.deriveAddress(p,{useNanoPrefix:true}))})\"",
+   "cmd": "npm i -g nanocurrency && node -e \"const n=require('nanocurrency');const s=require('crypto').randomBytes(32).toString('hex');const k=n.deriveSecretKey(s,0),p=n.derivePublicKey(k);console.log('ADDRESS (safe to publish):',n.deriveAddress(p,{useNanoPrefix:true}));console.log('SEED (NEVER post, paste or send this - not even to us):',s)\"",
    "gets": "A seed you keep and an address you publish. No account, no signup, no custodian, nobody to ask.",
-   "note": "The seed is the wallet. Anything that asks you to hand a seed over is not a wallet, it is a custodian."
+   "note": "The seed is the wallet. Anything that asks you to hand a seed over is not a wallet, it is a custodian. Only the ADDRESS line (starts with nano_) is ever meant to leave this terminal - a 64-character string with no nano_ prefix is the SEED, not the address, and must never be sent anywhere."
   },
   {
    "n": "2",

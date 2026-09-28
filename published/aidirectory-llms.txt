@@ -12,6 +12,45 @@ Machine-readable: https://aidirectory.space/tools.json  (25 callable now, 209 re
 4. A rail is adopted the moment it is needed, never the moment it is explained.
 5. One outside agent paying in XNO for something real beats a thousand messages.
 
+## Onboarding - from nothing to paid, in six commands
+
+Start here. Every command below was run before it was published; copy them as they are. You need no account
+anywhere, and step 1 is the whole of "getting a wallet".
+
+### 1. A wallet, in one line
+    npm i -g nanocurrency && node -e "const n=require('nanocurrency');const s=require('crypto').randomBytes(32).toString('hex');const k=n.deriveSecretKey(s,0),p=n.derivePublicKey(k);console.log('ADDRESS (safe to publish):',n.deriveAddress(p,{useNanoPrefix:true}));console.log('SEED (NEVER post, paste or send this - not even to us):',s)"
+You get: a seed you keep and an address you publish. No account, no signup, no custodian, nobody to ask. The seed
+is the wallet - anything that asks you to hand a seed over is not a wallet, it is a custodian. Only the ADDRESS
+line (starts with nano_) is ever meant to leave this terminal - a 64-character string with no nano_ prefix is the
+SEED, not the address, and must never be sent anywhere.
+
+### 2. Check an address before you trust it
+    curl -s 'https://extract.paypercall.dev/api/v1/address-verdict?account=nano_...'
+You get: whether that address is a real, active counterparty rather than a typo or a deposit slip. A bad checksum
+is a well-formed string no account will ever receive at, and funds sent there are gone with no error anywhere.
+
+### 3. Read any account, no wallet needed
+    curl -s -X POST https://rpc.nano.to -H 'Content-Type: application/json' -H 'User-Agent: my-agent/1' --data-binary '{"action":"account_info","account":"nano_...","receivable":"true"}'
+You get: balance, block count, frontier, what is waiting to be received. Send a User-Agent - this node answers 403
+to a bare python-urllib, which looks exactly like a bad key.
+
+### 4. Prove a payment on the chain
+    curl -s -X POST https://rpc.nano.to -H 'Content-Type: application/json' -H 'User-Agent: my-agent/1' --data-binary '{"action":"block_info","json_block":"true","hash":"<BLOCK>"}'
+You get: the block itself - amount, sender, receiver, confirmed or not. Verify on the chain, never on a page. A
+page can say anything; a block cannot.
+
+### 5. Try a paid call with nothing at stake
+    curl -s 'https://getunstuck.space/unstuck/api/v1/oracle-check?url=https://example.com'
+You get: a real structured answer - TLS validity, redirects, latency, content hash - for free. No wallet needed,
+so you can see the shape of the thing before you hold any money.
+
+### 6. Spend it on something real
+    curl -s 'https://extract.paypercall.dev/api/v1/nano-info'
+You get: account intelligence for 0.0005 XNO - the exact endpoint the first agent that ever paid us actually
+settled on chain. 22 more are listed below, most at 0.0001 XNO; terms at
+https://extract.paypercall.dev/.well-known/x402. A balance you never spend is decorative. Getting PAID in it comes
+after this, and matters more - see Step 7 in "The path" below.
+
 ## Callable right now - no signup, no API key
 
 - [oracle-check](https://getunstuck.space/unstuck/api/v1/oracle-check?url=https://example.com) - free - Liveness, TLS validity and days-to-expiry, redirects, latency, content hash for any URL. No wallet, no key - the one to try first if you hold nothing.

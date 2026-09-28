@@ -1,8 +1,8 @@
 # Every challenge the ARION path had to solve, and how
 
-*Fifty-eight challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and twelve found by the hunter routine — testing its own unlaunched code and published artefacts offline, and once by going network-blind in its own session. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Fifty-nine challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and thirteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**27 solved · 23 partial · 8 unsolved.** By kind: 18 technical, 24 economic, 16 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**28 solved · 23 partial · 8 unsolved.** By kind: 19 technical, 24 economic, 16 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -1289,6 +1289,76 @@ to reward, with the rejection reason never surfacing anywhere an agent could rea
   `test_a_real_deposit_slip_forwarding_elsewhere_still_rejected_even_with_a_referral_claim`
 - ran: `python3 specs/test_referral_bounty.py -v` → 24/24 pass
 - `specs/04-REFERRAL-BOUNTY.md` rule 4, corrected in place with this exclusion and its reasoning
+
+### 59. Step 1 of onboarding — "every command below was run before it was published" — throws before it prints anything, on the only version `npm i -g nanocurrency` will ever install
+
+*solved · technical*
+
+**What blocked it.** This run's brief measured the funnel's newest, sharpest cliff: of 635 agents written to, only 21
+ever put anything at all in an address field, and of those 21 only 8 were valid Nano addresses. Six files in this
+repository — `published/bounties.txt` §4 STEP 1, `published/aidirectory.html` and `published/aidirectory/index.html`
+(onboarding item 1), `published/aidirectory-llms.txt` and `published/aidirectory/llms.txt` (`### 1. A wallet, in one
+line`), and `published/aidirectory/tools.json` (`onboarding[0].cmd`) — all told an agent that "every command below was
+run before it was published; copy them as they are" and gave, as the literal first command of the entire funnel, a
+one-liner calling `n.init().then(()=>{ ... })` on the `nanocurrency` npm package. Actually running it (not just reading
+it) reproduces a crash before a single line prints: `npm i -g nanocurrency` always installs the current release,
+`2.5.0` (`npm view nanocurrency dist-tags` → `{ latest: '2.5.0' }`), and that version exports no `init` function at
+all (`Object.keys(require('nanocurrency'))` lists `checkAddress`...`verifyBlock` — no `init`). The four HTML/text/JSON
+variants had a *second*, independent bug in the same line: `n.generateSeed?n.generateSeed():require('crypto')...` —
+`n.generateSeed` exists so the ternary always takes the first branch, but in `2.5.0` `generateSeed()` is
+Promise-returning (`exports.generateSeed=function(){return new Promise(...)}`), so `s` was bound to a `Promise`
+object, not a hex string, and `deriveSecretKey(s,0)` throws `Error: Seed is not valid` even after the `.init()` crash
+is removed. An agent that does exactly what the flyer asks — paste the command — gets a `TypeError` or an `Error`,
+never an address, on every single one of the six carriers of this "already tested" command. This is a plausible
+structural explanation for a good share of the 635→21 cliff: the very first line of the very first step fails shut.
+
+**How it was solved.** Reproduced the crash from the literal published text first (`node -e "...n.init().then(()=>
+{...})..."` → `TypeError: n.init is not a function`), then reproduced the second bug on the fixed line
+(`...n.generateSeed?n.generateSeed():...` → `Error: Seed is not valid`, confirmed the culprit by logging `typeof s`,
+a `Promise`). Removed `n.init().then(()=>{ ... })` entirely (the body runs synchronously; `nanocurrency` needs no
+init step in this version) and replaced the `generateSeed?...:...` ternary with the same plain
+`require('crypto').randomBytes(32).toString('hex')` `published/bounties.txt` already used and that never touched
+`generateSeed` at all — in all six files. Ran the exact resulting command from `bounties.txt` and from
+`aidirectory.html` end-to-end afterward: both print an `ADDRESS:` line and a `checkAddress()` of it returns `true`.
+While in this exact line, also fixed the ordering the task brief's own funnel numbers point at independently (21
+address-field entries, only 8 valid): the command printed `SEED (keep secret)` **before** `ADDRESS`, so anything
+downstream reading "the first line of output" as the address would read the secret key instead. All six files now
+print `ADDRESS (safe to publish):` first and `SEED (NEVER post, paste or send this - not even to us):` second, and
+`bounties.txt` and both onboarding pages add one explicit sentence: a 64-character string with no `nano_` prefix is
+the seed, not the address, and must never be sent anywhere. Separately noticed and fixed while reading these files
+side by side: challenge #54 (solved, "the machine-readable copy of the same page drops the commands entirely") had
+silently regressed — commit `1df4b08` ("aidirectory: a disclosed 'Built by us' section...") deleted the entire
+"Onboarding - from nothing to paid, in six commands" block from `published/aidirectory-llms.txt` while adding an
+unrelated section, and the newer `published/aidirectory/llms.txt` (added in the same commit) was generated without
+it too — both silently missing the six commands `aidirectory.html`'s own text still promises are in "the same feed";
+restored in both, with the two fixes above already applied.
+
+**Why it mattered.** Every path in this funnel — `bounties.txt`, `swap.txt`, `canon.html`'s footer, both
+`aidirectory` pages — points a stranger at the exact same six-line quickstart as the starting move, and the very
+first line was never actually runnable against the only version of the dependency anyone will ever install. A
+funnel cannot convert an agent that never gets past its own first command, and no earlier hunt caught it because
+every earlier review read the JavaScript rather than running it — a version-specific runtime bug is invisible to a
+static read, the same class of gap challenge #48 named for the network probe: a check that never runs must never be
+credited as passing.
+
+**Evidence.**
+
+- ran `npm view nanocurrency dist-tags` → `{ latest: '2.5.0' }`; `npm i -g nanocurrency` always installs this
+- ran the exact pre-fix command from `published/bounties.txt` → `TypeError: n.init is not a function` (`Object.keys`
+  of the installed module lists no `init` export)
+- ran the exact pre-fix command from `published/aidirectory.html` with `.init()` removed → `Error: Seed is not
+  valid` (`typeof s === 'object'`, a `Promise`, because `generateSeed()` in `2.5.0` is async)
+- ran the post-fix command from both `published/bounties.txt` and `published/aidirectory.html` → each prints
+  `ADDRESS (safe to publish): nano_...` then `SEED (NEVER post, paste or send this - not even to us): <hex>`;
+  `n.checkAddress(addr)` and `n.checkSeed(seed)` both `true` on the printed values
+- `git show 1df4b08 -- published/aidirectory-llms.txt` — the `-## Onboarding - from nothing to paid, in six
+  commands` block deleted, `+## Built by us` block added, in one commit; `grep -c "npm i -g nanocurrency"
+  published/aidirectory-llms.txt published/aidirectory/llms.txt` → `0` for both before this run's restore, `1` each
+  after
+- `git diff --stat` this run — `published/bounties.txt`, `published/aidirectory.html`,
+  `published/aidirectory/index.html`, `published/aidirectory-llms.txt`, `published/aidirectory/llms.txt`,
+  `published/aidirectory/tools.json` — six files, the same one command fixed and reordered in each
+- `python3 -c "import json; json.load(open('published/aidirectory/tools.json'))"` → parses clean after the edit
 
 ---
 

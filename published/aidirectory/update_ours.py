@@ -29,6 +29,12 @@ if "<!--ours-start-->" in h:
     h = re.sub(r"<!--ours-start-->.*?<!--ours-end-->", lambda m: sec, h, flags=re.S)
 else:
     anchor = '<section id="own-key">'; assert h.count(anchor) == 1; h = h.replace(anchor, sec + anchor)
+# The header stats and meta description restate the counts; derive them here so a grown section cannot leave
+# them behind (challenge #61: "Built by us" went 9 -> 12 and the header kept saying 209 / 234).
+c = t["counts"]
+h = re.sub(r"<span><b>\d+</b>tools referenced</span>", f"<span><b>{c['referenced']}</b>tools referenced</span>", h)
+h = re.sub(r"<span><b>\d+</b>total</span>", f"<span><b>{c['total']}</b>total</span>", h)
+h = re.sub(r"\d+ callable without signup, \d+ more referenced", f"{c['callable_now']} callable without signup, {c['referenced']} more referenced", h)
 open(p, "w").write(h)
 # llms.txt
 p = f"{d}/llms.txt"; l = fixpan(open(p).read())
@@ -37,5 +43,6 @@ if "<!--ours-start-->" in l:
     l = re.sub(r"<!--ours-start-->.*?<!--ours-end-->\n\n", lambda m: block, l, flags=re.S)
 else:
     anchor = "## Hosted APIs and payment tooling"; assert l.count(anchor) == 1; l = l.replace(anchor, block + anchor)
+l = re.sub(r"\(\d+ callable now, \d+ referenced\)", f"({c['callable_now']} callable now, {c['referenced']} referenced)", l)
 open(p, "w").write(l)
 print("ours:", len(ours), "| total", t["counts"]["total"])

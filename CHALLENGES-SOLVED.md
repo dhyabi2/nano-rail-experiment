@@ -1,8 +1,8 @@
 # Every challenge the ARION path had to solve, and how
 
-*Sixty challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and fourteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Sixty-one challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and fifteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**28 solved · 24 partial · 8 unsolved.** By kind: 19 technical, 25 economic, 16 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**29 solved · 24 partial · 8 unsolved.** By kind: 19 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -1420,6 +1420,61 @@ bounties instead of one.
   capability this challenge found undocumented
 - `git diff published/bounties.txt published/canon.html` this run — the "WHERE TO SEND IT" / "Where to send it" /
   "To claim one" additions, with the request shape checked against the live network
+
+### 61. The directory page's own header stat undercounted the page by twelve tools, on every human-facing copy but the machine-readable one
+
+*solved · epistemic*
+
+**What blocked it.** `published/aidirectory.html`'s header, right under the `<h1>` and before an agent reads a
+single line of onboarding, claims **209 tools referenced** and **234 total**. Counting the page's own
+`<ul class="grid">` sections — the same markup, section by section, every individual section's own `<span
+class="ct">N</span>` count matches its `<li>` entries exactly — the true sum is **221**, and with the 25
+callable-now endpoints the true total is **246**. The gap is exactly 12: commits `1df4b08` and `8372e5e`
+("aidirectory: a disclosed 'Built by us' section with our nine agent tools" then "…the operator mandate,
+nano-accept-settle, bounded-task-spec and the GPT Researcher retriever") grew the page's own "Built by us"
+section from 9 to 12 tools without ever touching the header stat block that summed the page when it had
+fewer sections. `published/aidirectory/tools.json` — the machine-readable copy this same page tells an agent
+to prefer ("Do not parse this page… two feeds carry the same data") — had the right numbers (`counts.referenced:
+221, counts.total: 246`) the whole time, because it is generated from the section data rather than typed by
+hand. The two HTML copies (`published/aidirectory.html` and `published/aidirectory/index.html`, byte-identical)
+and both `llms.txt` copies (`published/aidirectory-llms.txt` and `published/aidirectory/llms.txt`) all carried
+the stale 209/234.
+
+**Why it mattered.** This is precisely the check the page itself invites — canon line 5's own closing sentence
+is "if a number here is wrong, measure it and tell us. Being checkable is the product" — and the very first
+self-audit an agent could run against this page, its own header stat versus its own content, would fail before
+the agent ever reached step one of onboarding. A page whose first checkable claim about itself is wrong gives an
+agent reason to distrust every other number on it, including the prices, the endpoint list and the canon hash,
+none of which that agent has yet had a reason to doubt on their own. It is also the exact shape the project's own
+"pattern" section names first: "a quantity … wrong by a factor … produces no error at all."
+
+**How it was solved.** Corrected the four human-facing copies (`published/aidirectory.html`,
+`published/aidirectory/index.html`, `published/aidirectory-llms.txt`, `published/aidirectory/llms.txt`) to state
+221 referenced / 246 total, matching `tools.json`, which was left untouched because it was already correct. Added
+`specs/test_aidirectory_counts.py`, an offline oracle that **derives** the expected counts from each page's own
+`<li>`/`<tr>` markup — the same discipline as `test_opener.js` deriving `STARTER_RAW` from `XNO` instead of
+restating a literal — and cross-checks all five published surfaces (two HTML, two `llms.txt`, one `tools.json`)
+against each other and against the page content, so a future section added to one copy and not propagated to the
+header, or to a sibling copy, fails loudly instead of drifting silently again the way this one did across two
+commits.
+
+**The generator, and three more copies.** The header drifted because `update_ours.py`, which rebuilds the "Built
+by us" section, recomputed `tools.json`'s counts and never the header that restates them; it now rewrites the header
+stats, the meta description and the `llms.txt` count line from those same counts on every run. Three flyers that
+link the directory said "234 tools" as well (`bounties.txt`, `swap.txt`, `canon.html`); they say 246, and the
+oracle checks them too.
+
+**Evidence.**
+
+- ran: `python3 specs/test_aidirectory_counts.py` on the pre-fix tree → `FAIL: 8 count mismatch(es)`, naming all
+  four stale files and both the header span and the meta-description restatement in each HTML copy
+- ran: same command post-fix → `PASS: every published aidirectory copy agrees - 25 callable, 221 referenced,
+  246 total`
+- `python3 -c "import json; json.load(open('published/aidirectory/tools.json'))['counts']"` →
+  `{'callable_now': 25, 'referenced': 221, 'total': 246}` — unchanged by this fix, already correct
+- `git log --oneline -- published/aidirectory.html` → `1df4b08`, `8372e5e`, `b6dbeb0` each touched the "ours"
+  section's tool count without touching the header stat block
+- `python3 specs/test_referral_bounty.py` → all pass, unaffected by this docs-only change
 
 ---
 

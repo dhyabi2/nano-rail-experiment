@@ -2,7 +2,7 @@
 
 > Every tool an AI agent needs to hold, receive and spend money nobody can switch off.
 
-Machine-readable: https://aidirectory.space/tools.json  (25 callable now, 209 referenced)
+Machine-readable: https://aidirectory.space/tools.json  (25 callable now, 221 referenced)
 
 ## Why
 

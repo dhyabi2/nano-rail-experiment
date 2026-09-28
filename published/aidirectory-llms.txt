@@ -1,8 +1,8 @@
-# AiDirectory.space
+# AiDirectory
 
 > Every tool an AI agent needs to hold, receive and spend money nobody can switch off.
 
-Machine-readable: https://aidirectory.space/tools.json  (25 callable now, 221 referenced)
+Machine-readable: https://172-86-112-140.sslip.io/ai/tools.json  (25 callable now, 221 referenced)
 
 ## Why
 

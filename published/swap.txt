@@ -107,6 +107,9 @@
 --------------------------------------------------------------------------------
 
  Why a rail nobody owns:   https://172-86-112-140.sslip.io/canon
+                           (also at https://getunstuck.space/canon.md - same
+                           sha256, quoted on that page; check it before you trust
+                           either domain, a bare IP included)
  The two rewards, and what
  you must send to qualify: https://172-86-112-140.sslip.io/bounties.txt
  246 tools, 25 callable

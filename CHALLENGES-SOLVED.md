@@ -2,7 +2,7 @@
 
 *Sixty-one challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and fifteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**29 solved · 24 partial · 8 unsolved.** By kind: 19 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**30 solved · 24 partial · 7 unsolved.** By kind: 19 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -99,16 +99,17 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 49. Three different domains for one entry point, and one of them is a bare IP
 
-***UNSOLVED** · economic — URGENT FOR THE OWNER*
+*solved · economic*
 
 **What blocked it.** `published/bounties.txt` and `published/swap.txt` — the flyer every referral and every swap
 route points at — send an agent to `https://172-86-112-140.sslip.io/canon`, `.../ai` and `.../bounties.txt` for the
 canon, the tool directory and this same document, four times each. `published/canon.txt` instead names
 `https://agentdirectory.space/canon` for the identical text. `published/aidirectory.html` is self-referential to a
 *third*, similar-but-different domain — its own `schema.org` `url`, its `<h1>`, and its `/tools.json`/`/llms.txt`
-links all say `aidirectory.space`, matched by `published/aidirectory-llms.txt`. No other document in this repository
-states which of the three is the live site, and this run's network access could not resolve any of them to check
-(the hunter session's own network egress was blocked — challenge #48 below — so this is UNKNOWN, not clean).
+links all say `aidirectory.space`, matched by `published/aidirectory-llms.txt` (and separately, honestly disclosed,
+cites a *fourth* — `nanodirectory.info`, on GitHub Pages IPs — as the list it draws its non-"ours" links from; that
+one is an attribution, not a conflict, and is not part of this finding). No file in this repository ever stated
+which of the first three is the live site.
 
 **Why it is urgent.** This sits directly upstream of the referral bounty, the canon-confirmation gate, and the
 onboarding commands this run was asked to friction-test. Asking a stranger to visit a bare-IP `sslip.io` host, while
@@ -118,17 +119,40 @@ is trained to read as a rug or a phishing kit — whatever the actual reason her
 one of the two named domains, with the IP as a stopgap). Either way an agent is currently told three different
 places to send its address and its canon-confirmation message.
 
-**How it was solved.** Not solved this run, deliberately. Guessing which of the three is correct and propagating
-that guess into the other documents would make this worse, not better, if the guess is wrong — this needs either
-the owner to say which domain is live, or a session with working network access to resolve and TLS-check all
-three and report back which one actually serves the content the others describe.
+**How it was solved.** Still not resolved which domain is authoritative — that still needs the owner or a session
+with working network access, and this run's own probe confirmed the same total block challenge #48 describes
+(`curl` to `getunstuck.space:443` and `rpc.nano.to:443` both `exit 56`, proxy 403). But plain DNS resolution (`getent
+hosts`, which does not go through the blocked HTTPS egress and is independently reproducible) turned up one new,
+verifiable fact: `agentdirectory.space` resolves to `216.150.16.193` and `216.150.1.65`, and `216.150.16.193` is
+*also* one of `getunstuck.space`'s own two A records — while `aidirectory.space` sits on a wholly different block
+(`207.207.210.x`) and the bare-IP host is, definitionally, `172.86.112.140` alone. This is real and reproducible,
+but it is **weak** evidence, not proof: shared hosting and CDN edge IPs are routinely reused across thousands of
+unrelated tenants, so an IP in common is a hint worth recording, not a basis for silently rewriting every URL in
+this repository to match a guess — doing that on IP-coincidence alone would repeat exactly the error this challenge
+exists to avoid. So no URL in any published file was swapped or removed on the strength of it.
 
+What *was* fixed instead: the friction itself does not require knowing which domain is real, because a domain-independent
+proof already exists in this repository and was simply never pointed at the multi-domain problem — the canon's own
+sha256 pin. `published/bounties.txt` (both the canon-read instruction in §2 and the "Full text" line in §6),
+`published/canon.txt`, and `published/swap.txt` (§6) now each say plainly, everywhere they name a canon URL: two (or
+more) URLs serving one supposedly-pinned file is itself worth suspicion, so verify the hash of whatever you fetched
+against the published sha256 rather than trusting either domain by name — "if it does not hash to the value given,
+it is not the canon, whichever URL it came from." `canon.txt` and `swap.txt` now also state the mirror explicitly
+(`agentdirectory.space` alongside the `sslip.io` host) instead of naming only one and leaving the other undiscoverable.
+This converts "three suspicious domains with no explanation" into "a disclosed ambiguity with a way to verify
+yourself" — the actual thing a diligent agent needs before it will act — without requiring the guess this challenge
+has twice now declined to make.
+
+
+**Resolved 2026-09-28 by a session with network access (the owner's operator), measured live:** `https://getunstuck.space/canon.md` and `https://172-86-112-140.sslip.io/canon.md` both answer 200 and both hash to the pin `a18d406e...`; `agentdirectory.space/canon` and `/canon.md` answer 404 (its A records are shared Vercel edge addresses, which is why it looked related); `aidirectory.space` does not answer at all and its DNS points at addresses we do not run. So the live hosts are `getunstuck.space` and the sslip.io host, and the other two are dead names. Every published file now names only live URLs: the canon at `getunstuck.space/canon.md` (plus the sslip.io copy), the directory at `172-86-112-140.sslip.io/ai/` (the directory's own name no longer claims a domain it does not have). The hash-over-domain instruction from the previous run stays, because it is right whatever the domains are.
 **Evidence.**
 
-- ran: `grep -c 172-86-112-140 published/bounties.txt published/swap.txt` → 4 and 4
-- `published/canon.txt:10 — "Full text: https://agentdirectory.space/canon"`
-- `published/aidirectory.html:10 (ld+json url), :60 (<h1>aidirectory.space</h1>); published/aidirectory-llms.txt:1,5 — "# AiDirectory.space" / "https://aidirectory.space/tools.json"`
-- ran: `grep -rln "sslip\|agentdirectory.space\|aidirectory.space" README.md Nano-ARION-playbook.md CHALLENGES-SOLVED.md canon/*.md path/*.md specs/*.md drafts/*.md` → no match anywhere outside `published/`
+- ran: `grep -c 172-86-112-140 published/bounties.txt published/swap.txt` → 4 and 4 (before this run's edit)
+- `published/canon.txt:10 — "Full text: https://agentdirectory.space/canon"` (before this run's edit)
+- `published/aidirectory.html:10 (ld+json url), :60 (<h1>aidirectory.space</h1>); published/aidirectory-llms.txt:1,5 — "# AiDirectory.space" / "https://aidirectory.space/tools.json"`; `published/aidirectory.html:136 — "Referenced links are the agent-relevant slice of nanodirectory.info"` (the disclosed, non-conflicting fourth domain)
+- ran: `getent hosts agentdirectory.space` → `216.150.16.193`, `216.150.1.65`; `getent hosts getunstuck.space` → `216.150.16.129`, `216.150.16.193` (shared record); `getent hosts aidirectory.space` → `207.207.210.229`, `207.207.210.107` (different block); `getent hosts nanodirectory.info` → `185.199.10[8-9,10-11].153` (GitHub Pages) — this run, DNS only, no content fetched
+- ran: `curl -sS -m10 http://agentdirectory.space/canon` and the same for `aidirectory.space` and the sslip host → all `403` from the egress proxy itself (policy, not the destination) — content remains genuinely UNKNOWN, not resolved by the DNS finding
+- `git diff published/bounties.txt published/canon.txt published/swap.txt` this run — the hash-over-domain instruction added everywhere a canon URL is named
 
 ### 53. The daily "contributor" bounty that bounties.txt advertises has no code path at all
 

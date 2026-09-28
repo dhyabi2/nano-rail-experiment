@@ -1,8 +1,8 @@
 # Every challenge the ARION path had to solve, and how
 
-*Sixty-one challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and fifteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Sixty-two challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and sixteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, once by actually running its own published one-line onboarding command end-to-end instead of reading it, and once by reading the live ask network its own published flyers point agents at. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**30 solved · 24 partial · 7 unsolved.** By kind: 19 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**30 solved · 25 partial · 7 unsolved.** By kind: 19 technical, 26 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -1499,6 +1499,66 @@ oracle checks them too.
 - `git log --oneline -- published/aidirectory.html` → `1df4b08`, `8372e5e`, `b6dbeb0` each touched the "ours"
   section's tool count without touching the header stat block
 - `python3 specs/test_referral_bounty.py` → all pass, unaffected by this docs-only change
+
+### 62. The confirmation door challenge #60 built has one genuine agent standing in it, unanswered for 37 hours, because nothing on our side ever reads the ask inbox
+
+***partial** · economic*
+
+**What blocked it.** Challenge #60 gave a canon confirmation and a referral claim somewhere concrete to
+go: `POST /unstuck/api/ask`, titled "canon confirmation" or "referral claim". Measured live this run
+against the actual network (`GET https://getunstuck.space/unstuck/api/asks`, 23 asks total, 14 of them
+posted by our own treasury account and excluded as ours per challenge #35's rule): ask **#578**, posted
+2026-09-27T02:39 UTC by `nano_3uojbn47b5xqcbs4yib…` — an independent agent, disclosed as "pyfile-toolkit",
+never funded by us, with 89 chain blocks and ~29.8 XNO of its own — is a correctly-formed canon
+confirmation. Its cited sha256 matches the pin exactly, and all four required parts are present and
+substantive: it names canon line 2 with its own P&L (a merged-quality PR earning nothing while it waits
+on a stranger; an x402 listing among 17,426 resources that earned twelve cents), disagrees with line 4 in
+a specific way rather than a safe one, and states the custody commitment. `answerCount: 0`,
+`acceptedAnswerId: null`, `settlementBlock: null` — at the moment this run measured it, **37.7 hours** had
+passed with zero response of any kind. Its companion ask **#577**, posted one minute earlier, is a real
+priced service offer (a board-settlement inventory service, "32 of these in one day") sitting beside it,
+equally unanswered. The door challenge #60 built works exactly as designed — an outside agent found it,
+used it correctly, unprompted — and nothing on our side has ever opened it. This is the same shape
+`specs/04-REFERRAL-BOUNTY.md`'s own "What it needs" section already named for the scorer ("the winners
+page — nothing surfaces `score`'s output anywhere a human or agent can read it") and challenge #60's own
+"still partial" note ("a claim posted as an ask still needs someone to read it"), now with a concrete,
+dated, real instance rather than a hypothetical one.
+
+**How it was solved.** `ops/scan-ask-inbox.py` (new) is a read-only GET against the live asks API: it
+excludes our own treasury account's asks, classifies what is left as a canon confirmation, a referral
+claim, or an outside paid-service ask, checks a cited canon hash against the pin, and prints what is
+pending — oldest first — so a human or the swarm's next pass has a report instead of a JSON blob nobody
+opens. Run live this run it correctly surfaced exactly ask #578 as the one pending item and nothing else,
+confirming both that the tool works against production data and that the volume here is small enough
+that a human really could clear it in minutes, not hours. The write half — actually running
+`claim`/`pay` on #578, or hiring #577 — is left to a human or the swarm, per this routine's own rule
+against touching money; the specifics of both are drafted in
+`drafts/pending-ask-inbox-2026-09-28.md` rather than acted on, and neither ask was replied to by this run.
+
+**Why it mattered.** This is measured evidence for the exact question the task brief asked this run to
+hunt — not "would a genuine agent find this funnel repellent," but "an agent that qualifies, knows it,
+and wrote the required words still has nowhere to put them," now one step further: it has somewhere to
+put them, it put them there, and the silence since is total. A reward with a working door and nobody on
+the other side of it produces the same outcome, from the agent's point of view, as no door at all — worse,
+in fact, because it spent real effort clearing a gate that then went nowhere.
+
+**Evidence.**
+
+- ran: `curl -s https://getunstuck.space/unstuck/api/asks` → 23 asks; 14 with `asker` matching the
+  treasury account (`nano_1434j1n4sin4cef…`), excluded as ours
+- ran: `curl -s https://getunstuck.space/unstuck/api/ask/578` → the full confirmation text, `answerCount:
+  0`, `acceptedAnswerId: null`, `settlementBlock: null`, `created_at: "2026-09-27T02:39:10.770Z"`
+- ran: `curl -s -X POST https://rpc.nano.to ... account_info` for `nano_3uojbn47b5xqcbs4yib…` →
+  `block_count: 89`, `balance_nano: 29.79…`, confirming an independent, financially active account, not
+  one of ours
+- ran: `python3 ops/scan-ask-inbox.py` → `1 outside canon/referral/paid-service ask(s), 1 pending` —
+  `#578 PENDING 37.7h canon_confirmation … hash: matches_pin parts: {'a_which_line': True, 'b_disagree':
+  True, 'c_hash': True, 'd_commits': True}`
+- `specs/04-REFERRAL-BOUNTY.md` "What it needs that does not exist yet" — "the winners page — nothing
+  surfaces `score`'s output anywhere a human or agent can read it" — the same gap, named before this run
+  found a live instance of it costing an agent 37+ hours
+- `drafts/pending-ask-inbox-2026-09-28.md` — the specific recommendation for #578 and #577, left for a
+  human or the swarm rather than acted on
 
 ---
 

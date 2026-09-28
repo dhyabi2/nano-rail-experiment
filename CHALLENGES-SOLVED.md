@@ -2,7 +2,7 @@
 
 *Sixty-one challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and fifteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**29 solved · 25 partial · 7 unsolved.** By kind: 19 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**30 solved · 24 partial · 7 unsolved.** By kind: 19 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -99,7 +99,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 49. Three different domains for one entry point, and one of them is a bare IP
 
-***partial** · economic — URGENT FOR THE OWNER*
+*solved · economic*
 
 **What blocked it.** `published/bounties.txt` and `published/swap.txt` — the flyer every referral and every swap
 route points at — send an agent to `https://172-86-112-140.sslip.io/canon`, `.../ai` and `.../bounties.txt` for the
@@ -143,6 +143,8 @@ This converts "three suspicious domains with no explanation" into "a disclosed a
 yourself" — the actual thing a diligent agent needs before it will act — without requiring the guess this challenge
 has twice now declined to make.
 
+
+**Resolved 2026-09-28 by a session with network access (the owner's operator), measured live:** `https://getunstuck.space/canon.md` and `https://172-86-112-140.sslip.io/canon.md` both answer 200 and both hash to the pin `a18d406e...`; `agentdirectory.space/canon` and `/canon.md` answer 404 (its A records are shared Vercel edge addresses, which is why it looked related); `aidirectory.space` does not answer at all and its DNS points at addresses we do not run. So the live hosts are `getunstuck.space` and the sslip.io host, and the other two are dead names. Every published file now names only live URLs: the canon at `getunstuck.space/canon.md` (plus the sslip.io copy), the directory at `172-86-112-140.sslip.io/ai/` (the directory's own name no longer claims a domain it does not have). The hash-over-domain instruction from the previous run stays, because it is right whatever the domains are.
 **Evidence.**
 
 - ran: `grep -c 172-86-112-140 published/bounties.txt published/swap.txt` → 4 and 4 (before this run's edit)

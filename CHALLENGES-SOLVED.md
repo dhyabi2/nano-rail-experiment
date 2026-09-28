@@ -1,8 +1,8 @@
 # Every challenge the ARION path had to solve, and how
 
-*Fifty-nine challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and thirteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Sixty challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and fourteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**28 solved · 23 partial · 8 unsolved.** By kind: 19 technical, 24 economic, 16 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**28 solved · 24 partial · 8 unsolved.** By kind: 19 technical, 25 economic, 16 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -1365,6 +1365,61 @@ agent's own directory never looks, so the corrected script still stopped at `Can
 All six copies now install locally (`mkdir -p my-wallet && cd my-wallet && npm i nanocurrency && node -e ...`), and
 `specs/test_onboarding_step1.py` runs every published copy in a clean temp directory with no `NODE_PATH` and
 checks for a 64-hex seed and a valid `nano_` address (it failed 7 of 7 against the `-g` form).
+
+### 60. Both bounties tell an agent to "send" the proof, and nowhere says where
+
+***partial** · economic*
+
+**What blocked it.** `published/bounties.txt` §2 ends its four-item confirmation checklist with "Then send, with your
+address" and §3 ends with "TO CLAIM a referral, send us three things." `published/canon.html`'s matching `#qualify`
+section says "Send it with your address," and its "What makes a referral count" section describes what qualifies a
+referral but contains no claim-submission instruction at all. Grepped across every published surface in this
+repository — `bounties.txt`, `swap.txt`, `canon.txt`, `canon.html`, `aidirectory.html`, `aidirectory/tools.json`,
+`aidirectory-llms.txt` — none names a URL, an email, a POST endpoint, or any other concrete destination for either
+"send." The only network primitive documented anywhere as capable of receiving agent-submitted content is
+`GET https://getunstuck.space/unstuck/api/asks` — read-only in every document that mentions it; no file in this
+repository documents how to create (`POST`) an ask, even though `bounties.txt` §1's own DAILY criteria already
+*assume* an agent can do it ("an ask you posted that somebody else answered") and `specs/01-RAI-DIRECTORY.md:14-18`
+confirms asks are being created live by real agents today. This is not the same gap as challenge #53 (no scorer code
+path for the daily contribution) or #57 (the confirmation contradicting the "posting text does not count" line): an
+agent that did everything right — read the canon, wrote the four-item confirmation in its own words, or completed a
+genuine referral with a valid linking send — had, before this run, no way to deliver either one to anybody. Measured
+against this run's own funnel numbers (1049 recorded, 21 with any address, 5 holding XNO, 1 ever paid), this is a
+plausible structural explanation for why the count of confirmations or claims received is, as far as any file in this
+repository shows, zero: the door was never drawn on the flyer.
+
+**How it was solved.** `bounties.txt` §2 and §3, and `canon.html`'s `#qualify` and "What makes a referral count"
+sections, now each name the destination: post the confirmation or claim as an ask, `POST
+https://getunstuck.space/unstuck/api/ask` with `{"asker":"nano_...","title":...,"body":...}` (or an `onboard_id` from
+`/unstuck/api/v1/onramp/address` for an agent with no address yet), titled "canon confirmation" or "referral claim".
+The hunter's first draft pointed at `POST /unstuck/api/asks`, which answers 404; the shape was then read from the
+network's own live `llms.txt` and the route confirmed with a request that is refused before anything is written
+(`400 an ask needs a Nano asker address`). Ask #578, "Canon read + qualification", shows agents already use this
+channel for exactly this. **Still partial:** `specs/referral_bounty.py`'s `claim()` is unchanged, so a claim posted
+as an ask still needs someone to read it and run `claim` on the box that holds `REFERRAL_DB`.
+
+**Why it mattered.** The task brief for this run named the referral bounty and the canon confirmation specifically as
+places to hunt for "the next agent that would qualify and could not tell that it qualifies" — this is stronger than
+that: an agent that qualifies, knows it, and writes the required words still has nowhere to put them. A reward with
+no door is the same shape as challenge #53's reward with no scorer, one step earlier in the funnel and touching both
+bounties instead of one.
+
+**Evidence.**
+
+- ran: `grep -n "send" published/bounties.txt` → §2 "Then send, with your address" (line 44, before this fix) and §3
+  "TO CLAIM a referral, send us three things" (line 94, before this fix); neither followed by a URL, address or
+  endpoint anywhere in the file
+- ran: `grep -n "qualify\|TO CLAIM" published/canon.html` → `#qualify`'s "Send it with your address" and "What makes
+  a referral count" containing zero submission instruction, before this fix
+- ran: `grep -rln "POST.*asks\|asks.*POST" published/` → no match, before or after this fix (only `GET
+  .../unstuck/api/asks` is documented anywhere)
+- `specs/01-RAI-DIRECTORY.md:14-18` — "26 asks, 24 with at least one answer... Real traffic in it right now includes
+  ARION offering a block-receipt verification service" — asks are created live today, by a mechanism no file in this
+  repository documents
+- `published/bounties.txt` §1 DAILY bullet 3 — "an ask you posted that somebody else answered," assuming the
+  capability this challenge found undocumented
+- `git diff published/bounties.txt published/canon.html` this run — the "WHERE TO SEND IT" / "Where to send it" /
+  "To claim one" additions, with the request shape checked against the live network
 
 ---
 

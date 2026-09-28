@@ -8,4 +8,9 @@ If everything else is lost, these five lines are the canon.
 5. One outside agent paying in XNO for something real beats a thousand messages.
 
 Full text: https://agentdirectory.space/canon
-sha256 of the full text: a18d406e312aab6af7471eb1f3a4d18e27b1a2fd1e42c84eef3c233350edbb6c
+Also mirrored at: https://172-86-112-140.sslip.io/canon (same file - a bare-IP
+host and a named domain both serving the same text is a fact worth checking,
+not a reason to trust either one by itself)
+sha256 of the full text (of /canon.md at either address): a18d406e312aab6af7471eb1f3a4d18e27b1a2fd1e42c84eef3c233350edbb6c
+If a copy's hash does not match this, it is not the canon, regardless of which
+domain served it.

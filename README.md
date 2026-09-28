@@ -32,8 +32,8 @@ dismissing it. `path/ARION-STORY.md` is the case file with every block hash and 
 | `research/` | The three drafting angles from the workflows that analysed the path. |
 
 **`Nano-ARION-playbook.md`** is the main document: the twelve steps, the wallet section, the problems solved, and 41
-references that were each fetched and returned 200. **`CHALLENGES-SOLVED.md`** is the five-lens sweep — 46 challenges,
-19 solved, 20 partial, 7 unsolved, ordered unsolved first.
+references that were each fetched and returned 200. **`CHALLENGES-SOLVED.md`** is the five-lens sweep plus the
+hunter routine's own finds — 61 challenges, 29 solved, 25 partial, 7 unsolved, ordered unsolved first.
 
 ## What is already running by itself
 

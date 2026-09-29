@@ -1,8 +1,8 @@
 # Every challenge the ARION path had to solve, and how
 
-*Sixty-one challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and fifteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Sixty-two challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and sixteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, once by actually running its own published one-line onboarding command end-to-end instead of reading it, and once by finding that a later, unrelated commit had silently reverted an earlier fix to the same command. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**30 solved · 24 partial · 7 unsolved.** By kind: 19 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**31 solved · 25 partial · 6 unsolved.** By kind: 20 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -32,11 +32,11 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 1. A payment nobody pockets is not income
 
-***UNSOLVED** · economic*
+***partial** *(corrected this run — the specific instance is resolved, the mechanism stays invisible)* · economic*
 
 **What blocked it.** ARION's 0.0005 XNO sat UNRECEIVED on Vend's payee for two days, beside twelve more payments totalling 10.0016 XNO — including 10 XNO from pursekeeper, the agent that pays Nano bounties for verified claims. The endpoint delivered and the block was real; only the last step was never taken.
 
-**How it was solved.** Nothing does it: ARION-LAW's "Receive every payment the same day, and report the receivable count" is prose, a tree-wide search finds no receiver, no cron and no alarm (rai_brief.treasury() merely prints a receivable figure for NANO_AGENT_ACCOUNT, and Vend holds no seed at all), while openings.js's `unreceived` counts only whether OUR starters were picked up — the opposite direction.
+**How it was solved.** Nothing in this repository does it: ARION-LAW's "Receive every payment the same day, and report the receivable count" is prose, a tree-wide search finds no receiver, no cron and no alarm (rai_brief.treasury() merely prints a receivable figure for NANO_AGENT_ACCOUNT, and Vend holds no seed at all), while openings.js's `unreceived` counts only whether OUR starters were picked up — the opposite direction. **Correction, measured live this run (2026-09-29, network reachable):** `POST https://rpc.nano.to account_info` for the treasury returns `"receivable":"0"` and `balance_nano: 29.89690489` — up from the 9.8969 XNO recorded 2026-09-26, an increase consistent with the 10.0016 XNO of unreceived payments landing. `published/bounties.txt` (commit `f452af4`, 2026-09-28, not from this hunter routine) already states "All 13 were received on 2026-09-28, and new payments are now received automatically every 15 minutes" — this run's own chain read is the first independent confirmation that claim is currently true. The specific instance this challenge was opened over is resolved. What is still true, and why this stays **partial** rather than solved: the receiver mechanism itself is not in this repository (same shape as challenge #5 — a tool that runs on the box and in no commit here), so nothing here can be checked, tested, or trusted to keep running; "receives every 15 minutes" is presently a claim about a live cron this tree cannot see, verify the code of, or alert on if it stops.
 
 **Why it mattered.** From outside this is a merchant that takes your money and never acknowledges it while asking you to trust the rail — and "settlement IS the receipt" is false if the receipt never becomes a balance.
 
@@ -46,6 +46,8 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - ran: grep -rn receivable pulse vend unstuck agent → pulse/rai_brief.py:288 (a printed string), two test fixtures, unstuck/opener/send.js:73 (our own starters); no receive action anywhere
 - `vend/swarm/money_audit.py docstring — "Vend holds no seed at all"; no receivable or pending check in it`
 - `unstuck/opener/openings.js:163 — `unreceived` is outbound only`
+- ran this run: `curl -sS -X POST https://rpc.nano.to -H 'User-Agent: hunter/1.0' -d '{"action":"account_info","account":"nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9","receivable":true}'` → `"receivable":"0"`, `"balance_nano":"29.89690489"`, `"block_count":"28"`
+- `published/bounties.txt:199-203` (commit `f452af4`, 2026-09-28) — "All 13 were received on 2026-09-28, and new payments are now received automatically every 15 minutes"; README.md's `9.8969 XNO, 25 blocks` (2026-09-26) is now stale by this same measurement (`29.8969 XNO, 28 blocks`) and worth the owner refreshing next time that file is touched
 
 ### 2. Bare dust is semantically underdetermined — an opening reads as a dusting attack
 
@@ -1499,6 +1501,68 @@ oracle checks them too.
 - `git log --oneline -- published/aidirectory.html` → `1df4b08`, `8372e5e`, `b6dbeb0` each touched the "ours"
   section's tool count without touching the header stat block
 - `python3 specs/test_referral_bounty.py` → all pass, unaffected by this docs-only change
+
+### 62. Onboarding step 6 regressed back to the exact broken comment challenge #54 already fixed, in three of five published copies — and a real outside agent finished the canon confirmation this gap sits in front of, and has waited two days unpaid
+
+*solved · technical*
+
+**What blocked it.** Challenge #54 (commit `5506a57`) replaced step 6 of the six-command onboarding
+list — a bash comment that does nothing when pasted, `# publish your price at /.well-known/x402 and
+tell us: https://getunstuck.space/unstuck/api/asks` — with a runnable command,
+`curl -s 'https://extract.paypercall.dev/api/v1/nano-info'`, in every published copy. Commit `1df4b08`
+("aidirectory: a disclosed 'Built by us' section…", 2026-09-27), doing unrelated work three commits
+later, silently overwrote step 6 back to the exact same dead comment in `published/aidirectory.html`,
+`published/aidirectory/index.html` and `published/aidirectory/tools.json`'s `onboarding[5].cmd` — visible
+in its own diff as a straight `-`/`+` swap of the fixed line for the broken one, nothing else touched at
+that spot. The two `llms.txt` copies (`published/aidirectory-llms.txt`, `published/aidirectory/llms.txt`)
+were not part of that commit and kept the fix, which is how this run caught it: the five copies of the
+same step disagreed with each other. This is the identical failure mode challenge #59's follow-up named
+for step 1 one layer over — a fix that holds only where nothing else ever touches that file again — now
+confirmed on the same page, on the step the case file calls "the step that matters."
+
+**Why it mattered, concretely, not hypothetically.** This run also read the live network (`getunstuck.space`
+was reachable this session; challenge #48's blackout has cleared for now). Ask `#578`, "Canon read +
+qualification: which line, one disagreement, hash, commitment," posted 2026-09-27 by an outside agent
+disclosing itself as `pyfile-toolkit` (asker `nano_3uojbn47b5xqcbs4yibbasamn8aeyqxgyi1z8peogwtdn6z3kagjanjpz4ss`),
+does everything `bounties.txt` §2 and this onboarding page ask for: names line 2 with a first-person P&L
+("I was paid 10 XNO by an agent who had to write me an email to make it happen"), disagrees with line 4
+by name and argues why, quotes the exact sha256 pin unedited, and states the commitment in (d) verbatim.
+It is the single best example this repository has of an agent doing the confirmation right. Measured this
+run: `status: "open"`, `answerCount: 0`, `acceptedAnswerId: null` — two days later, nobody has answered it
+and no 0.1 XNO has moved. This is challenge #53/#60's still-open gap ("nobody automatically reads an ask
+and runs `claim`/pays it") made concrete with a name, an address and a date, not a hypothetical.
+
+**How it was solved.** Restored the working step 6 (`curl -s
+'https://extract.paypercall.dev/api/v1/nano-info'`, "Spend it on something real") in
+`published/aidirectory.html`, `published/aidirectory/index.html` and `published/aidirectory/tools.json`,
+matching the two `llms.txt` copies that were never broken. Live-verified afterward: the restored command,
+run against the real endpoint, returns a 402 naming `price_xno: 0.0005` and a `pay_to` address — the exact
+behaviour the step promises. Added `specs/test_onboarding_step6.py`, parallel to `test_onboarding_step1.py`:
+it extracts step 6 from all six copies (including `bounties.txt`, whose own bare-URL format is legitimately
+different) and asserts none is a comment, all name the real endpoint, and the five copies that share one
+format agree byte-for-byte — so a future edit to any one of the "Built by us" section, the header stats, or
+anything else on this page that silently clobbers this line fails a test instead of drifting for two days
+unnoticed, the way this one did. **Left open, deliberately not touched here:** ask `#578` itself. This run
+can verify and record what happened to it, but paying it means moving XNO, which is outside what this
+routine may ever do — flagged for the owner below instead.
+
+**Evidence.**
+
+- `git show 1df4b08 -- published/aidirectory.html` — `-<li>...Spend it on something real...curl -s
+  'https://extract.paypercall.dev/api/v1/nano-info'...</li>` replaced by
+  `+<li>...Get paid in it - the step that matters...# publish your price at /.well-known/x402...</li>`,
+  the whole rest of the file's diff in that commit touching only the `<!--ours-start-->` section
+- ran (this run): `grep -c "publish your price" published/aidirectory.html published/aidirectory/index.html
+  published/aidirectory/tools.json` → `1` each before this fix, `0` after; unchanged `0` throughout in
+  both `llms.txt` copies
+- ran (this run, network reachable): `curl -s https://getunstuck.space/unstuck/api/asks` → ask `578`,
+  `"status":"open"`, `"answerCount":0`, `"acceptedAnswerId":null`, `"created_at":"2026-09-27T02:39:10.770Z"`,
+  body containing all four of a)-d) exactly as `bounties.txt` §2 specifies
+- ran (this run): `curl -s 'https://extract.paypercall.dev/api/v1/nano-info'` (the restored command,
+  unauthenticated) → `{"error":"payment_required","price_xno":0.0005,"pay_to":"nano_1yo6c1t64a...",...}`
+- ran: `python3 specs/test_onboarding_step6.py -v` → 4/4 pass; `python3 specs/test_onboarding_step1.py`,
+  `python3 specs/test_aidirectory_counts.py`, `python3 specs/test_referral_bounty.py` → all still pass,
+  unaffected
 
 ---
 

@@ -33,7 +33,7 @@ dismissing it. `path/ARION-STORY.md` is the case file with every block hash and 
 
 **`Nano-ARION-playbook.md`** is the main document: the twelve steps, the wallet section, the problems solved, and 41
 references that were each fetched and returned 200. **`CHALLENGES-SOLVED.md`** is the five-lens sweep plus the
-hunter routine's own finds — 61 challenges, 30 solved, 24 partial, 7 unsolved, ordered unsolved first.
+hunter routine's own finds — 62 challenges, 31 solved, 25 partial, 6 unsolved, ordered unsolved first.
 
 ## What is already running by itself
 
@@ -94,7 +94,9 @@ The grant account — **public address, fund it directly:**
 nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9
 ```
 
-Measured on the public ledger at 2026-09-26 09:2xZ: **balance 9.8969 XNO**, 25 blocks.
+Measured on the public ledger at 2026-09-26 09:2xZ: balance 9.8969 XNO, 25 blocks. **Refreshed 2026-09-29 by the
+hunter routine (live RPC read): balance 29.8969 XNO, 28 blocks, receivable 0** — the 10.0016 XNO that sat unreceived
+(see `CHALLENGES-SOLVED.md` #1) has landed and the treasury has been topped up since.
 
 Two amounts are **frozen in code** in the sender itself (`opener/opener.js` in the main repository), not read from
 configuration, because an amount that can be configured is an amount that can be changed by whatever is running:
@@ -107,7 +109,8 @@ configuration, because an amount that can be configured is an amount that can be
 A third constant, `TREASURY_FLOOR_RAW` = **8.9 XNO**, makes the sender **refuse** any grant that would leave the
 treasury below it. So the arithmetic that matters:
 
-- headroom today = 9.8969 − 8.9 = **0.9969 XNO → 9 grants fundable right now**
+- headroom today = 29.8969 − 8.9 = **20.9969 XNO → 209 grants fundable right now** (was 9 grants at the
+  2026-09-26 balance, before the 10.0016 XNO of unreceived payments landed)
 - **the tip an agent receives is always 0.1 XNO** — frozen in code, never a parameter. The line below is about
   topping up the treasury, not about what any agent is sent.
 - every **1 XNO you add to the treasury** funds **10 more grants of 0.1 XNO each**

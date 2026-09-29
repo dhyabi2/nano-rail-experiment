@@ -347,6 +347,73 @@ class ReferralBountyTests(unittest.TestCase):
         con = rb.db()
         self.assertEqual(con.execute("SELECT state FROM paid").fetchone()[0], "already_granted")
 
+    def test_hourly_prize_falls_through_to_the_runner_up_when_the_top_referrer_already_has_its_grant(self):
+        """bounties.txt's ONCE paragraph promises two things: a winner can take this bounty only once in its life,
+        AND 'the hourly prize spreads across agents rather than accumulating to whoever is best at referring...
+        if you have already had your 0.1 XNO you can still top the hourly table, you just will not be paid twice
+        for it.' Before this fix pay('hour') only ever tried ranking[0]: once the single most effective referrer
+        (who tends to keep topping the table precisely because it is effective) had used its lifetime grant, every
+        later hour it still won the ranking paid NOBODY, silently, forever - contradicting 'spreads across agents'
+        and wasting the hour the spec says must never happen for free. Two referrers here: the top one (2
+        qualifying referrals) already has its grant; the runner-up (1) does not and must be paid instead."""
+        top_a, top_b = self._real_stranger("h1"), self._real_stranger("h2")
+        runner = self._real_stranger("h3")
+        self.claim("nano_1topreferrer", top_a)
+        self.claim("nano_1topreferrer", top_b)
+        self.claim("nano_1runnerupreferrer", runner)
+        out = rb.score("hour", verbose=False)
+        self.assertEqual([r["referrer"] for r in out["ranking"]],
+                          [rb.norm("nano_1topreferrer"), rb.norm("nano_1runnerupreferrer")])
+
+        rb.info = lambda a: {"balance": str(29 * rb.XNO)} if rb.norm(a) == rb.norm(rb.TREASURY) else self.chain.i(a)
+        rb._info.clear()
+        calls = []
+
+        class AlreadyGranted:
+            returncode, stdout, stderr = 1, "", "refused: already has its grant"
+
+        class Paid:
+            returncode, stdout, stderr = 0, '{"block": "' + "C" * 64 + '"}', ""
+
+        def fake_run(argv, **kw):
+            calls.append(argv)
+            grantee = argv[argv.index("--grant") + 1]
+            return AlreadyGranted() if grantee == rb.norm("nano_1topreferrer") else Paid()
+
+        orig_run = rb.subprocess.run
+        rb.subprocess.run = fake_run
+        try:
+            rc = rb.pay("hour", live=True)
+        finally:
+            rb.subprocess.run = orig_run
+
+        self.assertEqual(rc, 0)
+        self.assertEqual(len(calls), 2, "must try the runner-up after the top referrer turns out already granted")
+        con = rb.db()
+        rows = dict(con.execute("SELECT winner, state FROM paid").fetchall())
+        self.assertEqual(rows[rb.norm("nano_1topreferrer")], "already_granted")
+        self.assertEqual(rows[rb.norm("nano_1runnerupreferrer")], "confirmed")
+
+    def test_hourly_dry_run_previews_only_the_current_top_candidate(self):
+        """A dry run never calls the sender, so it has no way to learn whether the top referrer already has its
+        grant - it must keep previewing just the top of the ranking rather than guessing at a fallback."""
+        top_a, top_b = self._real_stranger("i1"), self._real_stranger("i2")
+        runner = self._real_stranger("i3")
+        self.claim("nano_1toppreview", top_a)
+        self.claim("nano_1toppreview", top_b)
+        self.claim("nano_1runnerpreview", runner)
+        rb.info = lambda a: {"balance": str(29 * rb.XNO)} if rb.norm(a) == rb.norm(rb.TREASURY) else self.chain.i(a)
+        rb._info.clear()
+        orig_run = rb.subprocess.run
+        rb.subprocess.run = lambda *a, **kw: (_ for _ in ()).throw(AssertionError("dry run must not call the sender"))
+        try:
+            rc = rb.pay("hour", live=False)
+        finally:
+            rb.subprocess.run = orig_run
+        self.assertEqual(rc, 0)
+        con = rb.db()
+        self.assertEqual(con.execute("SELECT COUNT(*) FROM paid").fetchone()[0], 0, "dry run must reserve nothing")
+
     def test_claim_cli_refuses_without_a_block_hash(self):
         self.assertEqual(rb.claim("nano_1r", "nano_1x", ""), 1)
         self.assertEqual(rb.claim("nano_1r", "nano_1x", "not-a-hash"), 1)

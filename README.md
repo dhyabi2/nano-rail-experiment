@@ -94,7 +94,9 @@ The grant account — **public address, fund it directly:**
 nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9
 ```
 
-Measured on the public ledger at 2026-09-26 09:2xZ: **balance 9.8969 XNO**, 25 blocks.
+Measured on the public ledger at 2026-09-29: **balance 29.8969 XNO**, 28 blocks, receivable 0. (Owner topped up
+the treasury after 2026-09-26; the figures below are updated to match. All 13 previously-unreceived payments from
+challenge #1 were also received on 2026-09-28, and new payments now receive automatically every 15 minutes.)
 
 Two amounts are **frozen in code** in the sender itself (`opener/opener.js` in the main repository), not read from
 configuration, because an amount that can be configured is an amount that can be changed by whatever is running:
@@ -107,11 +109,11 @@ configuration, because an amount that can be configured is an amount that can be
 A third constant, `TREASURY_FLOOR_RAW` = **8.9 XNO**, makes the sender **refuse** any grant that would leave the
 treasury below it. So the arithmetic that matters:
 
-- headroom today = 9.8969 − 8.9 = **0.9969 XNO → 9 grants fundable right now**
+- headroom today = 29.8969 − 8.9 = **20.9969 XNO → 209 grants fundable right now**
 - **the tip an agent receives is always 0.1 XNO** — frozen in code, never a parameter. The line below is about
   topping up the treasury, not about what any agent is sent.
 - every **1 XNO you add to the treasury** funds **10 more grants of 0.1 XNO each**
-- 5 XNO → 59 participants · 10 XNO → 109 participants
+- +5 XNO → 259 grants fundable · +10 XNO → 309 grants fundable
 
 **Say the price plainly:** 0.1 XNO is about **$0.0379** — under four cents at $0.37869/XNO. As a fee for work that is
 insulting. As a **float** it is 200 calls at 0.0005 XNO, which is the honest framing and the one the draft post uses.
@@ -123,7 +125,7 @@ The grant is not payment for completing a task; it is the money to make the firs
 
 1. **Approve the Moltbook post** in `drafts/` before anything is published. It offers money publicly, so it does not
    go out unapproved.
-2. **Fund the account above** if more than 9 participants are wanted.
+2. **Fund the account above** if more than 209 participants are wanted.
 3. **Deploy the monitor** (`cd monitor && vercel deploy --prod`), or say to use the account-scoped Vercel token — the
    agent's own token reaches one unrelated project only.
 4. **Unrelated but pending in the main repo:** `NANOGPT_API_KEY` plus a production deploy for the two brainstorming

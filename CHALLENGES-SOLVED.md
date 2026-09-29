@@ -2,7 +2,9 @@
 
 *Sixty-one challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and fifteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**30 solved · 24 partial · 7 unsolved.** By kind: 19 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**31 solved · 24 partial · 7 unsolved** (plus challenges #62-64, recorded in three pull requests still open at the time
+of writing and not yet merged into this count). By kind: 19 technical, 25 economic, 18 epistemic — and the balance is
+itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -1499,6 +1501,65 @@ oracle checks them too.
 - `git log --oneline -- published/aidirectory.html` → `1df4b08`, `8372e5e`, `b6dbeb0` each touched the "ours"
   section's tool count without touching the header stat block
 - `python3 specs/test_referral_bounty.py` → all pass, unaffected by this docs-only change
+
+### 65. A fix this document itself recorded as solved was silently reverted six commits later, and stayed broken through five more PRs because nothing compared the copies to each other
+
+*solved · epistemic*
+
+**What blocked it.** Challenge #54 (above) found and fixed exactly one bug: `published/aidirectory.html`'s
+onboarding step 6 was a bash **comment** (`# publish your price at /.well-known/x402 and tell us: ...`) rather
+than a runnable command, and it disagreed with `published/bounties.txt`'s own step 6. Commit `5506a57` fixed
+it to `curl -s 'https://extract.paypercall.dev/api/v1/nano-info'`. Commit `1df4b08`, six commits later
+("aidirectory: a disclosed 'Built by us' section..."), **silently reverted that exact fix** back to the bash
+comment while adding an unrelated section in the same diff — and this repository's own record of challenge
+#59 already documents that the *same commit* deleted a sibling onboarding block from
+`aidirectory-llms.txt` in the same pass. Challenge #59's hunt caught and restored the `llms.txt` damage but
+did not re-check `aidirectory.html` for the twin regression from the same commit, so the HTML copy — and
+`published/aidirectory/tools.json`'s `onboarding[5]`, which was never fixed to begin with — stayed broken
+through five further merged PRs (`#13` `b6dbeb0`/`8372e5e`, `#14`..`#21`) with nothing to notice, because no
+check in the repository ever compared the "six commands" across its five published copies to each other.
+Measured before this run's fix: `published/aidirectory.html` and its byte-identical mirror
+`published/aidirectory/index.html` both carried the bash-comment step 6, and so did
+`published/aidirectory/tools.json`; only `published/aidirectory-llms.txt` and `published/aidirectory/llms.txt`
+(both restored by #59) had the real command. The page's own footer tells an agent "Do not parse this page.
+Two feeds carry the same data" and names `/tools.json` first — which was false: the JSON feed it names first
+was one of the three still broken, and would have handed a machine reader the exact non-command challenge
+#54 already found once.
+
+**How it was solved.** Reapplied `5506a57`'s fix to `published/aidirectory.html`, copied it byte-for-byte to
+`published/aidirectory/index.html` to keep the documented invariant that the two are identical, and fixed the
+matching `onboarding[5]` object in `published/aidirectory/tools.json` (`t`, `cmd`, `gets`, `note`) to match
+the already-correct `llms.txt` wording. Then, so this cannot silently happen a third time,
+`specs/test_onboarding_commands_agree.py` extracts each of the five published surfaces' own six onboarding
+commands and asserts every surface agrees with every other on every step, and that no command starts with a
+bash comment marker. Run against the pre-fix tree (the exact files this run started with, copied aside before
+editing) it fails with 9 problems, naming the three broken surfaces and the disagreement at step 6 precisely;
+run against the fixed tree it passes. `specs/test_aidirectory_counts.py` (counts, a different property of
+the same files) still passes unaffected, and both HTML copies still parse clean.
+
+**Why it mattered.** This is the same funnel step challenge #54 already named as "the last visible step
+before conversion either landing or silently going nowhere," and it was broken again, in three of five
+copies, for at least eleven commits, without a single one of the many hunts of this exact file noticing —
+including the hunt that fixed the *other* half of the same regressive commit. A "solved" entry in this
+document is only as durable as the next edit to the same file, and nothing before this checked that a fix
+recorded once was still there.
+
+**Evidence.**
+
+- `git log --all -p -- published/aidirectory.html` — hunk in `5506a57` shows the fix (comment → `nano-info`
+  curl); hunk in `1df4b08`, six commits later, shows the exact reverse edit (`nano-info` curl → the same
+  comment) landing in the same diff as the "Built by us" section
+- ran (this run, before editing): `grep -c "publish your price" published/aidirectory.html
+  published/aidirectory/index.html published/aidirectory/tools.json` → `1` each; `grep -c "publish your
+  price" published/aidirectory-llms.txt published/aidirectory/llms.txt` → `0` each
+- `specs/test_onboarding_commands_agree.py` run against the pre-fix files (copied aside from this run's
+  starting tree before any edit) → `FAIL: 9 problem(s)`, naming all three broken surfaces; run against the
+  fixed tree → `PASS: all six onboarding commands agree across every published surface, none is a comment`
+- `git diff published/aidirectory.html published/aidirectory/index.html published/aidirectory/tools.json`
+  this run — step 6 restored to the `nano-info` curl command in all three, matching
+  `published/aidirectory-llms.txt` and `published/aidirectory/llms.txt`, which needed no change
+- ran: `python3 specs/test_aidirectory_counts.py` → still `PASS` (unaffected, a different property of the
+  same files); `python3 specs/test_referral_bounty.py` → 24/24 pass, unaffected
 
 ---
 

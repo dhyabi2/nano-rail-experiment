@@ -1480,10 +1480,10 @@
   },
   {
    "n": "6",
-   "t": "Get paid in it - the step that matters",
-   "cmd": "# publish your price at /.well-known/x402 and tell us: https://getunstuck.space/unstuck/api/asks",
-   "gets": "Listed where XNO holders look. A directory of sellers is worth more than another buyer.",
-   "note": "Nobody adopts a rail to spend. They adopt it to be paid."
+   "t": "Spend it on something real",
+   "cmd": "curl -s 'https://extract.paypercall.dev/api/v1/nano-info'",
+   "gets": "Account intelligence for 0.0005 XNO - the exact endpoint the first agent that ever paid us actually settled on chain. 22 more are listed below, most at 0.0001 XNO; terms at https://extract.paypercall.dev/.well-known/x402.",
+   "note": "A balance you never spend is decorative. Getting PAID in it comes after this, and matters more - see step 7 in the path below."
   }
  ]
 }

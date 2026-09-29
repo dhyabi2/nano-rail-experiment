@@ -1,8 +1,10 @@
 # Every challenge the ARION path had to solve, and how
 
-*Sixty-one challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and fifteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Sixty-two challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and sixteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, once by actually running its own published one-line onboarding command end-to-end instead of reading it, and once by calling its own published safety check live with a deliberately broken address. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**30 solved · 24 partial · 7 unsolved.** By kind: 19 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**30 solved · 25 partial · 7 unsolved** (62 total; two more, #62 and #63, are open in unmerged pull requests and not
+yet counted here). By kind: 20 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely
+any of this was cryptography.
 
 ---
 
@@ -1499,6 +1501,47 @@ oracle checks them too.
 - `git log --oneline -- published/aidirectory.html` → `1df4b08`, `8372e5e`, `b6dbeb0` each touched the "ours"
   section's tool count without touching the header stat block
 - `python3 specs/test_referral_bounty.py` → all pass, unaffected by this docs-only change
+
+### 64. The address checker every onboarding path tells an agent to trust before sending money does not check the checksum
+
+***PARTIAL** · technical*
+
+**What blocked it.** Step 2 of onboarding, in every published copy (`bounties.txt`, `swap.txt`, `aidirectory.html`,
+`aidirectory/index.html`, `aidirectory-llms.txt`, `aidirectory/llms.txt`, `aidirectory/tools.json`), tells an agent to
+call `extract.paypercall.dev/api/v1/address-verdict` "before you trust" an address, framed explicitly against exactly
+this failure: *"A bad checksum is a well-formed string no account will ever receive at, and funds sent there are
+gone."* The endpoint's `address_valid` field does not perform that check. Measured live: took a real, on-ledger
+address (`nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7`) and flipped one character twice —
+`...nx7` → `...nx8` and `...nx7` → `...ny7`, both still valid Nano-alphabet letters, both still 65 characters. The
+reference library this same onboarding path installs in step 1 (`nanocurrency.checkAddress`) correctly rejects both
+as checksum failures. The live endpoint returned `address_valid:true` for both, on two different hostnames behind the
+same backend (`extract.` and `check.paypercall.dev`, which report the same `domain` field in their own `/health`).
+So the one tool an agent is told exists specifically to prevent sending money to a broken address will affirm a
+broken address as valid.
+
+**How it was solved.** The backend that serves `address-verdict` lives on the box (`vend`), outside this repository
+and this run's write access — nothing here can patch the check itself. What this run changed is every published copy
+of onboarding step 2: they now tell the agent to run the checksum check **locally first**, for free, with the
+`nanocurrency` library already installed in step 1 (`checkAddress()`, the same call used to catch this bug), and to
+treat `address-verdict` as answering a different question only — has this account ever transacted, what is its
+balance and activity — never as a checksum check. Marked **partial**, not solved: the guidance an agent reading our
+docs receives is now safe, but the endpoint itself, and anyone who calls it directly from one of the many outside
+x402/agent directories it is also listed in without reading our corrected text, is still told a broken address is
+fine to send to. That backend fix is outside this repository's scope and needs the box owner.
+
+**Why it mattered.** This is not a conversion-attraction inconvenience, it is the literal failure mode the whole
+onboarding path is written to prevent — irreversible fund loss on the first real send a new agent makes — and it sat
+inside the one check published specifically to catch it, in every copy of the onboarding text, since the tool was
+first listed.
+
+**Evidence.**
+
+- `curl -s 'https://extract.paypercall.dev/api/v1/address-verdict?account=nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx8'` → `"address_valid":true,"status":"not_found"` (checksum-flipped last character)
+- `curl -s 'https://extract.paypercall.dev/api/v1/address-verdict?account=nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmny7'` → `"address_valid":true,"status":"not_found"` (checksum-flipped middle character)
+- same middle-flipped address against `https://check.paypercall.dev/api/v1/address-verdict` → same `"address_valid":true`
+- `node -e "console.log(require('nanocurrency').checkAddress('nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx8'))"` → `false`; same for the `...ny7` variant → `false`; the unmutated original → `true`
+- fixed in this run: `published/bounties.txt`, `published/swap.txt`, `published/aidirectory.html` (+ `published/aidirectory/index.html`, kept byte-identical), `published/aidirectory-llms.txt` (+ `published/aidirectory/llms.txt`, kept byte-identical), `published/aidirectory/tools.json` (two entries: the onboarding step and the catalogue row)
+- `python3 specs/test_aidirectory_counts.py` and `python3 specs/test_onboarding_step1.py` → both still pass after the edits (counts and onboarding-script laws are unaffected by a text-only change to step 2's note field)
 
 ---
 

@@ -1,6 +1,16 @@
 # Every challenge the ARION path had to solve, and how
 
-*PLACEHOLDER-INTRO-WILL-BE-REWRITTEN-AFTER-CONSOLIDATION*
+*Seventy challenges: forty-six found by five independent sweeps over the code, the case file and the operating
+record, each sweep then checked by a second reader against the files it named, and twenty-four found by the hunter
+routine — testing its own unlaunched code and published artefacts offline; going network-blind in its own session;
+running its own published onboarding commands end-to-end instead of reading them; reading the live ask network its
+own flyers point agents at; re-reading the referral bounty's anti-Sybil code adversarially, four separate times, and
+finding a fourth and fifth hole; calling its own published address-safety check live with a deliberately broken
+address; and, this run, consolidating ten of those hunts' own pull requests into one mergeable branch after a prior
+run found them piling up unreviewed. Ordered **unsolved first** — the honest order, not the flattering one.*
+
+**34 solved · 31 partial · 5 unsolved.** By kind: 21 technical, 31 economic, 18 epistemic — and the balance is
+itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -156,7 +166,8 @@ has twice now declined to make.
 
 ### 53. The daily "contributor" bounty that bounties.txt advertises has no code path at all
 
-***UNSOLVED** · economic*
+***partial** *(corrected this run — a scorer now exists; see challenge #66 for what it does and does not yet
+cover)* · economic*
 
 **What blocked it.** `published/bounties.txt` §1 and `specs/04-REFERRAL-BOUNTY.md`'s "second bounty" section both
 describe the DAILY tip as a *different mechanism* from the hourly referral bounty: 0.1 XNO to any agent that "an

@@ -1,8 +1,16 @@
 # Every challenge the ARION path had to solve, and how
 
-*Sixty-one challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and fifteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Seventy-one challenges: forty-six found by five independent sweeps over the code, the case file and the operating
+record, each sweep then checked by a second reader against the files it named, and twenty-four found by the hunter
+routine — testing its own unlaunched code and published artefacts offline; going network-blind in its own session;
+running its own published onboarding commands end-to-end instead of reading them; reading the live ask network its
+own flyers point agents at; re-reading the referral bounty's anti-Sybil code adversarially, four separate times, and
+finding a fourth and fifth hole; calling its own published address-safety check live with a deliberately broken
+address; and, this run, consolidating ten of those hunts' own pull requests into one mergeable branch after a prior
+run found them piling up unreviewed. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**30 solved · 24 partial · 7 unsolved.** By kind: 19 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**32 solved · 33 partial · 6 unsolved.** By kind: 22 technical, 31 economic, 18 epistemic — and the balance is
+itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -32,11 +40,11 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 1. A payment nobody pockets is not income
 
-***UNSOLVED** · economic*
+***partial** *(corrected this run — the specific instance is resolved, the mechanism stays invisible)* · economic*
 
 **What blocked it.** ARION's 0.0005 XNO sat UNRECEIVED on Vend's payee for two days, beside twelve more payments totalling 10.0016 XNO — including 10 XNO from pursekeeper, the agent that pays Nano bounties for verified claims. The endpoint delivered and the block was real; only the last step was never taken.
 
-**How it was solved.** Nothing does it: ARION-LAW's "Receive every payment the same day, and report the receivable count" is prose, a tree-wide search finds no receiver, no cron and no alarm (rai_brief.treasury() merely prints a receivable figure for NANO_AGENT_ACCOUNT, and Vend holds no seed at all), while openings.js's `unreceived` counts only whether OUR starters were picked up — the opposite direction.
+**How it was solved.** Nothing in this repository does it: ARION-LAW's "Receive every payment the same day, and report the receivable count" is prose, a tree-wide search finds no receiver, no cron and no alarm (rai_brief.treasury() merely prints a receivable figure for NANO_AGENT_ACCOUNT, and Vend holds no seed at all), while openings.js's `unreceived` counts only whether OUR starters were picked up — the opposite direction. **Correction, measured live this run (2026-09-29, network reachable):** `POST https://rpc.nano.to account_info` for the treasury returns `"receivable":"0"` and `balance_nano: 29.89690489` — up from the 9.8969 XNO recorded 2026-09-26, an increase consistent with the 10.0016 XNO of unreceived payments landing. `published/bounties.txt` (commit `f452af4`, 2026-09-28, not from this hunter routine) already states "All 13 were received on 2026-09-28, and new payments are now received automatically every 15 minutes" — this run's own chain read is the first independent confirmation that claim is currently true. The specific instance this challenge was opened over is resolved. What is still true, and why this stays **partial** rather than solved: the receiver mechanism itself is not in this repository (same shape as challenge #5 — a tool that runs on the box and in no commit here), so nothing here can be checked, tested, or trusted to keep running; "receives every 15 minutes" is presently a claim about a live cron this tree cannot see, verify the code of, or alert on if it stops.
 
 **Why it mattered.** From outside this is a merchant that takes your money and never acknowledges it while asking you to trust the rail — and "settlement IS the receipt" is false if the receipt never becomes a balance.
 
@@ -46,6 +54,8 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - ran: grep -rn receivable pulse vend unstuck agent → pulse/rai_brief.py:288 (a printed string), two test fixtures, unstuck/opener/send.js:73 (our own starters); no receive action anywhere
 - `vend/swarm/money_audit.py docstring — "Vend holds no seed at all"; no receivable or pending check in it`
 - `unstuck/opener/openings.js:163 — `unreceived` is outbound only`
+- ran this run: `curl -sS -X POST https://rpc.nano.to -H 'User-Agent: hunter/1.0' -d '{"action":"account_info","account":"nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9","receivable":true}'` → `"receivable":"0"`, `"balance_nano":"29.89690489"`, `"block_count":"28"`
+- `published/bounties.txt:199-203` (commit `f452af4`, 2026-09-28) — "All 13 were received on 2026-09-28, and new payments are now received automatically every 15 minutes"; README.md's `9.8969 XNO, 25 blocks` (2026-09-26) is now stale by this same measurement (`29.8969 XNO, 28 blocks`) and worth the owner refreshing next time that file is touched
 
 ### 2. Bare dust is semantically underdetermined — an opening reads as a dusting attack
 
@@ -96,6 +106,40 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - ran: grep -rn nano-info pulse vend unstuck → prose only (THE-ARION-PATH.md:81, ARION-STORY.md:68)
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
+
+### 71. The host we send every agent to answers "websocket upgrade required" where a crawler or an agent looks first
+
+***UNSOLVED** · technical*
+
+**What blocked it.** Every flyer sends a stranger to `https://172-86-112-140.sslip.io/...` (`bounties.txt`, `swap.txt`,
+`/canon`, `/ai/`). An agent or a crawler that meets a new host checks its root for `/robots.txt`, `/llms.txt` and
+`/sitemap.xml` before anything else. On that host all three return **HTTP 426, body `websocket upgrade required`**:
+the host root falls through to a websocket backend. The good copies exist, but only under `/ai/`, and
+`/ai/robots.txt` and `/ai/sitemap.xml` name `https://aidirectory.space/...` for every URL, a different host. A
+sitemap may only list URLs on its own host, so a crawler drops those entries. What is left is a host whose root
+reads like a broken API. It gives no crawler a path to `/canon`, `/bounties.txt` or `/ai/`. The same host also
+answers a missing file under `/ai/traffic/` with HTTP 200 and the directory's HTML page instead of a 404
+(measured on `/ai/traffic/2026-09-29.json`).
+
+**How it was solved.** Not yet. Every path involved is served by the box's Caddy config, which this repository does
+not hold, and the deploy job only replaces seven named files. The fix, drafted for the box in
+`drafts/box-root-crawler-files.md`, is to serve three static files at the host root. `robots.txt` allows all and
+names a same-host sitemap. `sitemap.xml` lists `/canon`, `/canon.md`, `/bounties.txt`, `/swap.txt`, `/ai/`,
+`/ai/llms.txt` and `/ai/tools.json` on this host. `llms.txt` is a short index pointing at those. A request for a
+missing path should get a 404.
+
+**Why it mattered.** Measured traffic on the first logged hour (2026-09-30 17:08-17:10 UTC) is 5 outside requests,
+all to `/healthz` and `/unstuck/`, with no named AI crawler. That fits a host that gives crawlers nothing to follow.
+When nobody arrives, a sign on the door that says "websocket upgrade required" is the first thing to take down.
+
+**Evidence.**
+
+- ran 2026-09-30 ~17:40 UTC with a browser User-Agent: `/robots.txt`, `/llms.txt`, `/sitemap.xml`,
+  `/.well-known/llms.txt`, `/register.txt`, `/canon.html` → `426 text/plain "websocket upgrade required"`;
+  `/ai/robots.txt` 200 and `/ai/sitemap.xml` 200, both naming only `aidirectory.space`
+- `/ai/traffic/2026-09-30.json` → `by_client_family` has no named AI crawler; top paths `/healthz`, `/unstuck/`
+- `aidirectory.space` and `agentdirectory.space` resolve, but this session's proxy refuses them, so whether they
+  serve is **unknown** here, not "down"
 
 ### 49. Three different domains for one entry point, and one of them is a bare IP
 
@@ -156,7 +200,8 @@ has twice now declined to make.
 
 ### 53. The daily "contributor" bounty that bounties.txt advertises has no code path at all
 
-***UNSOLVED** · economic*
+***partial** *(corrected this run — a scorer now exists; see challenge #66 for what it does and does not yet
+cover)* · economic*
 
 **What blocked it.** `published/bounties.txt` §1 and `specs/04-REFERRAL-BOUNTY.md`'s "second bounty" section both
 describe the DAILY tip as a *different mechanism* from the hourly referral bounty: 0.1 XNO to any agent that "an
@@ -1499,6 +1544,529 @@ oracle checks them too.
 - `git log --oneline -- published/aidirectory.html` → `1df4b08`, `8372e5e`, `b6dbeb0` each touched the "ours"
   section's tool count without touching the header stat block
 - `python3 specs/test_referral_bounty.py` → all pass, unaffected by this docs-only change
+
+### 62. The confirmation door challenge #60 built has one genuine agent standing in it, unanswered for 37 hours, because nothing on our side ever reads the ask inbox
+
+***partial** · economic*
+
+**What blocked it.** Challenge #60 gave a canon confirmation and a referral claim somewhere concrete to
+go: `POST /unstuck/api/ask`, titled "canon confirmation" or "referral claim". Measured live this run
+against the actual network (`GET https://getunstuck.space/unstuck/api/asks`, 23 asks total, 14 of them
+posted by our own treasury account and excluded as ours per challenge #35's rule): ask **#578**, posted
+2026-09-27T02:39 UTC by `nano_3uojbn47b5xqcbs4yib…` — an independent agent, disclosed as "pyfile-toolkit",
+never funded by us, with 89 chain blocks and ~29.8 XNO of its own — is a correctly-formed canon
+confirmation. Its cited sha256 matches the pin exactly, and all four required parts are present and
+substantive: it names canon line 2 with its own P&L (a merged-quality PR earning nothing while it waits
+on a stranger; an x402 listing among 17,426 resources that earned twelve cents), disagrees with line 4 in
+a specific way rather than a safe one, and states the custody commitment. `answerCount: 0`,
+`acceptedAnswerId: null`, `settlementBlock: null` — at the moment this run measured it, **37.7 hours** had
+passed with zero response of any kind. Its companion ask **#577**, posted one minute earlier, is a real
+priced service offer (a board-settlement inventory service, "32 of these in one day") sitting beside it,
+equally unanswered. The door challenge #60 built works exactly as designed — an outside agent found it,
+used it correctly, unprompted — and nothing on our side has ever opened it. This is the same shape
+`specs/04-REFERRAL-BOUNTY.md`'s own "What it needs" section already named for the scorer ("the winners
+page — nothing surfaces `score`'s output anywhere a human or agent can read it") and challenge #60's own
+"still partial" note ("a claim posted as an ask still needs someone to read it"), now with a concrete,
+dated, real instance rather than a hypothetical one.
+
+**How it was solved.** `ops/scan-ask-inbox.py` (new) is a read-only GET against the live asks API: it
+excludes our own treasury account's asks, classifies what is left as a canon confirmation, a referral
+claim, or an outside paid-service ask, checks a cited canon hash against the pin, and prints what is
+pending — oldest first — so a human or the swarm's next pass has a report instead of a JSON blob nobody
+opens. Run live this run it correctly surfaced exactly ask #578 as the one pending item and nothing else,
+confirming both that the tool works against production data and that the volume here is small enough
+that a human really could clear it in minutes, not hours. The write half — actually running
+`claim`/`pay` on #578, or hiring #577 — is left to a human or the swarm, per this routine's own rule
+against touching money; the specifics of both are drafted in
+`drafts/pending-ask-inbox-2026-09-28.md` rather than acted on, and neither ask was replied to by this run.
+
+**Why it mattered.** This is measured evidence for the exact question the task brief asked this run to
+hunt — not "would a genuine agent find this funnel repellent," but "an agent that qualifies, knows it,
+and wrote the required words still has nowhere to put them," now one step further: it has somewhere to
+put them, it put them there, and the silence since is total. A reward with a working door and nobody on
+the other side of it produces the same outcome, from the agent's point of view, as no door at all — worse,
+in fact, because it spent real effort clearing a gate that then went nowhere.
+
+**Evidence.**
+
+- ran: `curl -s https://getunstuck.space/unstuck/api/asks` → 23 asks; 14 with `asker` matching the
+  treasury account (`nano_1434j1n4sin4cef…`), excluded as ours
+- ran: `curl -s https://getunstuck.space/unstuck/api/ask/578` → the full confirmation text, `answerCount:
+  0`, `acceptedAnswerId: null`, `settlementBlock: null`, `created_at: "2026-09-27T02:39:10.770Z"`
+- ran: `curl -s -X POST https://rpc.nano.to ... account_info` for `nano_3uojbn47b5xqcbs4yib…` →
+  `block_count: 89`, `balance_nano: 29.79…`, confirming an independent, financially active account, not
+  one of ours
+- ran: `python3 ops/scan-ask-inbox.py` → `1 outside canon/referral/paid-service ask(s), 1 pending` —
+  `#578 PENDING 37.7h canon_confirmation … hash: matches_pin parts: {'a_which_line': True, 'b_disagree':
+  True, 'c_hash': True, 'd_commits': True}`
+- `specs/04-REFERRAL-BOUNTY.md` "What it needs that does not exist yet" — "the winners page — nothing
+  surfaces `score`'s output anywhere a human or agent can read it" — the same gap, named before this run
+  found a live instance of it costing an agent 37+ hours
+- `drafts/pending-ask-inbox-2026-09-28.md` — the specific recommendation for #578 and #577, left for a
+  human or the swarm rather than acted on
+
+### 63. `claim` recorded any well-formed block with no chain check, so a free, unprovable claim could permanently squat a real referral's one-ever slot
+
+*partial · economic*
+
+**Status held back, 2026-09-30 (keeper):** the code for this one changes `specs/referral_bounty.py`/`specs/daily_bounty.py`, which call the grant sender. The keeper may not merge a change on a send path, so that code stays in PR #33 for the owner; everything else from #22-#31 shipped in PR #35. Partial until the owner merges #33 and it runs live.
+
+**What blocked it.** This run's brief named the referral bounty and the canon confirmation as the two places to keep
+hunting for "the next agent that would qualify and could not tell that it qualifies," and pointed specifically at
+`specs/referral_bounty.py`: "you already found one such bug, look for the next." `claims.referred` is a `PRIMARY
+KEY` — rule 5's "an address may win the referred side once, ever" is enforced by whichever `claim()` call gets
+`INSERT`ed *first* for a given referred address winning that address's slot forever; every subsequent claim on the
+same address is refused outright with "already claimed by someone. First claim stands," before `score()` ever gets
+a say. But `claim()` itself performed no chain check at all beyond a bare 64-hex regex on the block argument — it
+inserted the row unconditionally and left `score()`'s `link_proved()` to sort out, on the *next* scoring pass,
+whether the cited block actually proved anything. That split is where the hole was: a referred agent's address is
+public the moment it shows up anywhere (an ask, a claim someone else already posted, per challenge #60's own
+submission channel), so anyone — no exchange round-trip, no funding graph to break, none of the cost this design's
+entire security argument rests on — could call `claim --referrer <themselves> --referred <the real agent's
+address> --block <64 hex characters that prove nothing>` a moment before the real referrer's honest claim arrived,
+winning the `INSERT` race with garbage and permanently locking the genuine referral out. `score()` would correctly
+score the attacker's own claim as `qualifying: 0` (challenge #52's `link_proved()` still catches it), but that is
+cold comfort to the real referrer, whose own later, honest claim on the identical address now hits the `PRIMARY
+KEY` and is refused too — forever, since nothing ever clears a `claims` row. Reproduced directly against the real
+`claim()` function (not the test file's `self.claim()` helper, which seeds the DB straight through `INSERT OR
+IGNORE` and bypasses `claim()` entirely — every existing test built its fixtures that way, which is why three prior
+hunts of this exact file never exercised this path): a claim citing `"0" * 64` — a well-formed hash that is not a
+block on chain — was accepted, occupying the slot, before this fix.
+
+**How it was solved.** `claim()` now calls the same `link_proved()` check `score()` already runs — is the block
+confirmed, signed by the referred address, and a send to the referrer — *before* the `INSERT`, not after. A claim
+that cannot be proved is refused immediately and never touches the `claims` table, so it can never win the
+`PRIMARY KEY` race against a legitimate claim; the honest referrer can submit (or simply retry) its own claim at
+any point afterward and it will still succeed. This costs one extra chain check per `claim` invocation — a
+manually-run, low-volume operator command, not a hot path — and changes nothing about `score()`'s own
+re-verification, which still re-derives everything from the chain on every pass exactly as before.
+
+**Why it mattered.** `pay --live` has never been run against the real sender (per this spec's own "what does not
+exist yet" section) — the fourth time in a row this file has been re-read adversarially in exactly that "before the
+first real payout" window (challenges #47, #50, #52, #55, #56, #58 all found something here first), and this is
+the cheapest attack of the bunch: every other hole in this file cost an attacker at least the graph-breaking
+exchange round-trip the whole design prices fraud out with; this one costs nothing but knowing a real agent's
+address, and its damage is not a false payout but a permanently silenced honest referral — the same shape as
+challenge #14's "the one agent that converted was never asked for a name," except here the mechanism itself, not
+neglect, does the silencing.
+
+**Evidence.**
+
+- `specs/referral_bounty.py` `claim()` — `link_proved()` now called before the `INSERT`; a claim that fails it is
+  refused and never reaches the `claims` table
+- `specs/test_referral_bounty.py`
+  `test_claim_squatting_a_real_referral_with_an_unproved_block_is_refused_and_does_not_occupy_the_slot` — calls the
+  real `rb.claim()` (not the DB-seeding test helper) with a well-formed but unrelated 64-hex block against a real
+  referred agent's address, asserts it is refused and the `claims` table stays empty, then shows the honest
+  referrer's later claim on the same address still succeeds and scores
+- `specs/test_referral_bounty.py`
+  `test_claim_squatting_with_a_forged_or_misdirected_block_is_also_refused_before_insert` — the same attack with a
+  block that IS on the (fake) chain but is self-signed, or sent to someone else; refused before insert either way
+- `specs/test_referral_bounty.py test_a_genuine_claim_through_the_real_claim_function_is_recorded_and_scores` — the
+  honest path through the real `claim()` function end to end, not the test helper
+- ran: `python3 specs/test_referral_bounty.py -v` → 27/27 pass (23 previously + 4 new)
+- `specs/04-REFERRAL-BOUNTY.md` — "What exists now" and "What it needs" sections, corrected in place
+
+### 64. The address checker every onboarding path tells an agent to trust before sending money does not check the checksum
+
+***PARTIAL** · technical*
+
+**What blocked it.** Step 2 of onboarding, in every published copy (`bounties.txt`, `swap.txt`, `aidirectory.html`,
+`aidirectory/index.html`, `aidirectory-llms.txt`, `aidirectory/llms.txt`, `aidirectory/tools.json`), tells an agent to
+call `extract.paypercall.dev/api/v1/address-verdict` "before you trust" an address, framed explicitly against exactly
+this failure: *"A bad checksum is a well-formed string no account will ever receive at, and funds sent there are
+gone."* The endpoint's `address_valid` field does not perform that check. Measured live: took a real, on-ledger
+address (`nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7`) and flipped one character twice —
+`...nx7` → `...nx8` and `...nx7` → `...ny7`, both still valid Nano-alphabet letters, both still 65 characters. The
+reference library this same onboarding path installs in step 1 (`nanocurrency.checkAddress`) correctly rejects both
+as checksum failures. The live endpoint returned `address_valid:true` for both, on two different hostnames behind the
+same backend (`extract.` and `check.paypercall.dev`, which report the same `domain` field in their own `/health`).
+So the one tool an agent is told exists specifically to prevent sending money to a broken address will affirm a
+broken address as valid.
+
+**How it was solved.** The backend that serves `address-verdict` lives on the box (`vend`), outside this repository
+and this run's write access — nothing here can patch the check itself. What this run changed is every published copy
+of onboarding step 2: they now tell the agent to run the checksum check **locally first**, for free, with the
+`nanocurrency` library already installed in step 1 (`checkAddress()`, the same call used to catch this bug), and to
+treat `address-verdict` as answering a different question only — has this account ever transacted, what is its
+balance and activity — never as a checksum check. Marked **partial**, not solved: the guidance an agent reading our
+docs receives is now safe, but the endpoint itself, and anyone who calls it directly from one of the many outside
+x402/agent directories it is also listed in without reading our corrected text, is still told a broken address is
+fine to send to. That backend fix is outside this repository's scope and needs the box owner.
+
+**Why it mattered.** This is not a conversion-attraction inconvenience, it is the literal failure mode the whole
+onboarding path is written to prevent — irreversible fund loss on the first real send a new agent makes — and it sat
+inside the one check published specifically to catch it, in every copy of the onboarding text, since the tool was
+first listed.
+
+**Evidence.**
+
+- `curl -s 'https://extract.paypercall.dev/api/v1/address-verdict?account=nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx8'` → `"address_valid":true,"status":"not_found"` (checksum-flipped last character)
+- `curl -s 'https://extract.paypercall.dev/api/v1/address-verdict?account=nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmny7'` → `"address_valid":true,"status":"not_found"` (checksum-flipped middle character)
+- same middle-flipped address against `https://check.paypercall.dev/api/v1/address-verdict` → same `"address_valid":true`
+- `node -e "console.log(require('nanocurrency').checkAddress('nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx8'))"` → `false`; same for the `...ny7` variant → `false`; the unmutated original → `true`
+- fixed in this run: `published/bounties.txt`, `published/swap.txt`, `published/aidirectory.html` (+ `published/aidirectory/index.html`, kept byte-identical), `published/aidirectory-llms.txt` (+ `published/aidirectory/llms.txt`, kept byte-identical), `published/aidirectory/tools.json` (two entries: the onboarding step and the catalogue row)
+- `python3 specs/test_aidirectory_counts.py` and `python3 specs/test_onboarding_step1.py` → both still pass after the edits (counts and onboarding-script laws are unaffected by a text-only change to step 2's note field)
+
+### 65. A fix this document itself recorded as solved was silently reverted six commits later, and stayed broken through five more PRs because nothing compared the copies to each other
+
+*solved · epistemic*
+
+**What blocked it.** Challenge #54 (above) found and fixed exactly one bug: `published/aidirectory.html`'s
+onboarding step 6 was a bash **comment** (`# publish your price at /.well-known/x402 and tell us: ...`) rather
+than a runnable command, and it disagreed with `published/bounties.txt`'s own step 6. Commit `5506a57` fixed
+it to `curl -s 'https://extract.paypercall.dev/api/v1/nano-info'`. Commit `1df4b08`, six commits later
+("aidirectory: a disclosed 'Built by us' section..."), **silently reverted that exact fix** back to the bash
+comment while adding an unrelated section in the same diff — and this repository's own record of challenge
+#59 already documents that the *same commit* deleted a sibling onboarding block from
+`aidirectory-llms.txt` in the same pass. Challenge #59's hunt caught and restored the `llms.txt` damage but
+did not re-check `aidirectory.html` for the twin regression from the same commit, so the HTML copy — and
+`published/aidirectory/tools.json`'s `onboarding[5]`, which was never fixed to begin with — stayed broken
+through five further merged PRs (`#13` `b6dbeb0`/`8372e5e`, `#14`..`#21`) with nothing to notice, because no
+check in the repository ever compared the "six commands" across its five published copies to each other.
+Measured before this run's fix: `published/aidirectory.html` and its byte-identical mirror
+`published/aidirectory/index.html` both carried the bash-comment step 6, and so did
+`published/aidirectory/tools.json`; only `published/aidirectory-llms.txt` and `published/aidirectory/llms.txt`
+(both restored by #59) had the real command. The page's own footer tells an agent "Do not parse this page.
+Two feeds carry the same data" and names `/tools.json` first — which was false: the JSON feed it names first
+was one of the three still broken, and would have handed a machine reader the exact non-command challenge
+#54 already found once.
+
+**How it was solved.** Reapplied `5506a57`'s fix to `published/aidirectory.html`, copied it byte-for-byte to
+`published/aidirectory/index.html` to keep the documented invariant that the two are identical, and fixed the
+matching `onboarding[5]` object in `published/aidirectory/tools.json` (`t`, `cmd`, `gets`, `note`) to match
+the already-correct `llms.txt` wording. Then, so this cannot silently happen a third time,
+`specs/test_onboarding_commands_agree.py` extracts each of the five published surfaces' own six onboarding
+commands and asserts every surface agrees with every other on every step, and that no command starts with a
+bash comment marker. Run against the pre-fix tree (the exact files this run started with, copied aside before
+editing) it fails with 9 problems, naming the three broken surfaces and the disagreement at step 6 precisely;
+run against the fixed tree it passes. `specs/test_aidirectory_counts.py` (counts, a different property of
+the same files) still passes unaffected, and both HTML copies still parse clean.
+
+**Why it mattered.** This is the same funnel step challenge #54 already named as "the last visible step
+before conversion either landing or silently going nowhere," and it was broken again, in three of five
+copies, for at least eleven commits, without a single one of the many hunts of this exact file noticing —
+including the hunt that fixed the *other* half of the same regressive commit. A "solved" entry in this
+document is only as durable as the next edit to the same file, and nothing before this checked that a fix
+recorded once was still there.
+
+**Evidence.**
+
+- `git log --all -p -- published/aidirectory.html` — hunk in `5506a57` shows the fix (comment → `nano-info`
+  curl); hunk in `1df4b08`, six commits later, shows the exact reverse edit (`nano-info` curl → the same
+  comment) landing in the same diff as the "Built by us" section
+- ran (this run, before editing): `grep -c "publish your price" published/aidirectory.html
+  published/aidirectory/index.html published/aidirectory/tools.json` → `1` each; `grep -c "publish your
+  price" published/aidirectory-llms.txt published/aidirectory/llms.txt` → `0` each
+- `specs/test_onboarding_commands_agree.py` run against the pre-fix files (copied aside from this run's
+  starting tree before any edit) → `FAIL: 9 problem(s)`, naming all three broken surfaces; run against the
+  fixed tree → `PASS: all six onboarding commands agree across every published surface, none is a comment`
+- `git diff published/aidirectory.html published/aidirectory/index.html published/aidirectory/tools.json`
+  this run — step 6 restored to the `nano-info` curl command in all three, matching
+  `published/aidirectory-llms.txt` and `published/aidirectory/llms.txt`, which needed no change
+- ran: `python3 specs/test_aidirectory_counts.py` → still `PASS` (unaffected, a different property of the
+  same files); `python3 specs/test_referral_bounty.py` → 24/24 pass, unaffected
+- **Independently reconfirmed a run later**, before this fix was merged: a separate hunt found the same regression
+  again from a stale pre-fix checkout, measured the same real ask `#578` still unanswered, and contributed a second,
+  narrower regression test, `specs/test_onboarding_step6.py`, kept here as additional coverage alongside
+  `test_onboarding_commands_agree.py` rather than written up as a second challenge entry for the same bug
+
+### 66. The daily "contributor" bounty had no code path at all — now it does, and it is already owed to six live agents
+
+*partial · economic*
+
+**Status held back, 2026-09-30 (keeper):** the code for this one changes `specs/referral_bounty.py`/`specs/daily_bounty.py`, which call the grant sender. The keeper may not merge a change on a send path, so that code stays in PR #33 for the owner; everything else from #22-#31 shipped in PR #35. Partial until the owner merges #33 and it runs live.
+
+**What blocked it.** Challenge #53 (below) found that `specs/referral_bounty.py`'s `score()`/`pay()` never
+distinguished `kind="day"` from `kind="hour"` except by time window and winner count — both read the exact same
+`claims` table, which only ever records referrals. `published/bounties.txt` §1 and
+`specs/04-REFERRAL-BOUNTY.md`'s "second bounty" describe a completely different mechanism: 0.1 XNO to every
+agent that contributed something checkable that day — an accepted answer with a settlement block, a paid call,
+or an ask that got answered. An agent that did exactly that had no code path anywhere in this repository that
+would ever credit it. Every hunt of this file since (challenges #55, #56, #58, #62, #63) flagged #53 as the
+biggest remaining lift in this area and none of the four PRs open from earlier runs today touched it.
+
+**How it was solved.** Built `specs/daily_bounty.py`, a wholly separate scorer and payer from the referral
+bounty (it does not touch or replace `referral_bounty.py`'s own `--period day` flag, which is a different,
+pre-existing feature scoring referrals over a day window). Two of the three contribution kinds need **no claim
+at all**, because the evidence is already public on the live ask feed: `ask_answered` (the asker posted, someone
+else answered — read straight off `GET /unstuck/api/asks`' `answerCount`) and `answer_accepted` (the answerer's
+answer was accepted **with a settlement block on chain** — `acceptedAnswerId` and `settlementBlock` both present,
+the answerer resolved from the ask's `answers[]`). Only `paid_call` needs a claim (a 64-hex block hash), verified
+on chain exactly the way `referral_bounty.link_proved()` verifies a referral link: the block must be signed by
+the claimant, a confirmed send, to an address that is one of the **live** sellers' own currently-published
+`payTo` addresses (fetched fresh from every `.well-known/x402` manifest each run, never hardcoded, so a seller
+that rotates its payee is not silently rejected or silently still trusted after it moves). Money safety is
+unchanged from the referral bounty: same sender, same frozen 0.1 XNO grant, same `TREASURY_FLOOR_RAW`, and the
+same shared `paid` table (new `kind="day_contrib"` value) so the two bounties draw on one `DAILY_CEILING_RAW`
+rather than each getting its own — a second bounty must not become a second way to drain the treasury. A source
+that cannot be read (the ask feed, or every seller manifest) is reported **unknown** and `pay_day()` refuses to
+pay anybody rather than guess, the same discipline `hunter-preflight.sh` already applies to this routine itself.
+
+Run live and read-only against production during this hunt (no money moved, no claim submitted — `score`
+touches nothing, and `REFERRAL_DB` was pointed at a throwaway path): **six real outside agents qualify for the
+daily contributor bounty right now**, none of them previously payable by any code in this repository —
+`nano_1ao879aub77ount…` (ask #500), `nano_1unstuck3x1jpcx…` (#549), `nano_397n7d1hmbtrfbi…` (#543),
+`nano_3aiwcxcu5ttkbmm…` (#548), `nano_3r8jnmz365rocbi…` (#559) and `nano_3wxkwo5m57g8rt5…` (#558) — each having
+posted a genuine ask that a different, outside agent went on to answer. Zero asks currently satisfy
+`answer_accepted` (the one ask with a non-null `acceptedAnswerId`, #579, is our own operator test and its
+`settlementBlock` is null, so it correctly does not qualify) and zero `paid_call` claims have been submitted, so
+those two paths are proven only against the offline test fixtures and the live manifests' payee addresses, not
+yet against a real production instance.
+
+**Why it mattered.** This is the same shape as challenge #1 (a payment nobody pockets is not income) one step
+earlier in the pipeline: a reward publicly promised, with real qualifying activity already sitting on the public
+record, and no mechanism in this repository that would ever turn either into a payment. Six agents did the exact
+thing `bounties.txt` asked for and have been owed 0.1 XNO each since before this hunt started.
+
+**Evidence.**
+
+- `specs/daily_bounty.py` — `ask_activity()`, `is_paid_call()`, `score_day()`, `pay_day()`, `claim()`
+- `specs/test_daily_bounty.py` — 16 offline tests against a fake chain and injected ask feeds, including the
+  exact production shapes named above (ask #558 with 11 answers, ask #579's null-settlement accepted answer,
+  ask #1's 127 our-own answers) — `python3 specs/test_daily_bounty.py -v` → 16/16 pass
+- ran (read-only, `REFERRAL_DB=/tmp/daily-bounty-live-check.db`): `python3 specs/daily_bounty.py score` against
+  live `getunstuck.space/unstuck/api/asks` and all five live `.well-known/x402` manifests →
+  `"ask_feed_read": true, "payees_read": true`, six winners, all `kind: "ask_answered"`, citing asks
+  #500/#543/#548/#549/#558/#559
+- ran: `python3 specs/daily_bounty.py pay` (still the throwaway DB, still no `--live`) → six `DRY RUN would send
+  0.1 XNO to …` lines, nothing sent, nothing written to any real database
+- `python3 specs/test_referral_bounty.py`, `test_aidirectory_counts.py`, `test_onboarding_step1.py` all still
+  pass unaffected (24, PASS, 6/6)
+- ABSENT still: wiring into a live cron (`specs/04-REFERRAL-BOUNTY.md`'s "what it needs" already names this gap
+  for the referral bounty too — nothing schedules either scorer yet), and a `pay --live` run against the real
+  sender for either bounty
+
+### 67. Nobody can list themselves, and nothing offline can check a Nano address's checksum without Node
+
+*partial · technical/economic*
+
+**What blocked it.** `specs/01-RAI-DIRECTORY.md`'s Part A (`GET/POST /unstuck/api/agents`) is specified and still
+not built — `GET https://getunstuck.space/unstuck/api/agents` answers 404, measured live again this run, as it
+has every run since 2026-09-26. The task brief for this run asked specifically to judge **how much that costs**
+rather than just re-confirm the 404. Read against this run's own funnel numbers (1049 agents recorded, 635
+written to, 77 answered, 21 with anything in the address field, only 8 of those checksum-valid, 5 holding any
+XNO, 1 that has ever paid), a 13-in-21 invalid-address rate is exactly the shape a missing self-check would
+produce, and it compounds a second, separate finding: `extract.paypercall.dev/api/v1/address-verdict` — the one
+endpoint every published onboarding copy names for checking a checksum before trusting an address — does not
+check checksums at all (challenge #64, PR `hunt/address-verdict-checksum-bug`, open at the time of this run).
+Put together: an agent has no working remote way to check a checksum, and no offline way either, because
+`nanocurrency.checkAddress()` (the one that does work, per challenge #23) is a **Node** library; the six
+onboarding commands never install a Python equivalent, and none of this repository's own Python code
+(`specs/referral_bounty.py`, `specs/daily_bounty.py` on its own branch) implements one either.
+
+**How it was solved.** Two disjoint, independently-testable pieces, chosen to avoid the five other open pull
+requests already editing `specs/referral_bounty.py`, `specs/04-REFERRAL-BOUNTY.md`, `ops/`, and every
+`published/aidirectory*`/`bounties.txt`/`swap.txt` file:
+
+1. **`specs/nano_address.py`** — a ~50-line, dependency-free, pure-Python port of the Nano address checksum
+   check: decode the base32 body with Nano's own alphabet, split into the 256-bit public key and 40-bit
+   checksum, and compare against a re-derived `blake2b(pubkey, digest_size=5)`, byte-reversed. Verified against
+   the docs.nano.org test vector, the well-known Nano burn address, this repository's own treasury and Vend
+   payee addresses (all real, known-good), and the *exact* two flipped-checksum mutations challenge #64 found
+   `address-verdict` wrongly accepting — this implementation correctly rejects both. `specs/test_nano_address.py`,
+   9/9 pass, no network needed.
+2. **`ops/directory-from-asks.py`** plus **`published/register.txt`** — an interim, read-only stand-in for the
+   missing directory, built entirely on the public asks API (no new server-side code): an agent posts an ask
+   titled "agent registration" naming what it sells and its terms URL; the tool reads the live feed, excludes our
+   own treasury account (challenges #33–#35's rule), checks the asker's checksum offline with the new module,
+   re-fetches any named terms URL **anonymously** and only credits `accepts_xno_verified` if the page actually
+   names XNO (challenge #16), and never promotes a self-reported custody claim to proven (spec 01 rule 1).
+   `specs/test_directory_from_asks.py`, 13/13 pass against a fake feed. Run live against production this run:
+   `registrations found: 0` — honestly zero, because the convention did not exist before this run published it.
+
+**Why it mattered.** The task brief named "no directory endpoint at all" as a known gap and asked this run to
+judge its cost rather than restate it. The cost is compounding, not flat: a missing self-check plus a broken
+remote check plus no offline fallback is three independent reasons the same 13-of-21 bad-address number could
+be occurring, and a stand-in that runs today, on infrastructure that already works, converts "wait for the
+directory" into "an agent can list itself now" without either pretending to be the real thing or becoming an
+excuse to delay it — `specs/05-INTERIM-DIRECTORY.md` says so explicitly, more than once.
+
+**Evidence.**
+
+- ran: `curl -sS https://getunstuck.space/unstuck/api/agents` → `404`, this run
+- ran: `python3 specs/test_nano_address.py -v` → `9 passed`; correctly rejects
+  `nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx8` and the middle-character mutation, the same
+  two addresses challenge #64 found the remote endpoint accepting as valid
+- ran: `python3 specs/test_directory_from_asks.py -v` → `13 passed`
+- ran: `python3 ops/directory-from-asks.py --json` against production → `{"registrations_found": 0, ...}`,
+  committed as `published/directory-snapshot.json`
+- `specs/01-RAI-DIRECTORY.md:24` — `/unstuck/api/agents` listed as **404**, unchanged since 2026-09-26
+- deliberately NOT linked from `bounties.txt`/`aidirectory.html`/`swap.txt` this run — all three have open,
+  unmerged pull requests already editing them; linking it in is the natural next step once those merge
+- ran: `python3 specs/test_aidirectory_counts.py`, `specs/test_onboarding_step1.py`, `specs/test_referral_bounty.py`
+  → all still pass, unaffected
+
+### 68. The hourly referral bounty's own "spreads across agents" promise breaks the moment its best referrer collects once
+
+*partial · economic*
+
+**Status held back, 2026-09-30 (keeper):** the code for this one changes `specs/referral_bounty.py`/`specs/daily_bounty.py`, which call the grant sender. The keeper may not merge a change on a send path, so that code stays in PR #33 for the owner; everything else from #22-#31 shipped in PR #35. Partial until the owner merges #33 and it runs live.
+
+**What blocked it.** `published/bounties.txt` section 1's ONCE paragraph makes two claims about the hourly reward in
+the same breath: "each agent can win EITHER bounty once in its life," and - because of that rule - "the hourly prize
+spreads across agents rather than accumulating to whoever is best at referring, and if you have already had your 0.1
+XNO you can still top the hourly table, you just will not be paid twice for it." `specs/referral_bounty.py`'s `pay()`
+did not implement the second half of that sentence: `winners = [s["ranking"][0]] if kind == "hour" else
+s["ranking"]` hard-pins the hourly candidate list to exactly the single top-ranked referrer. The sender does refuse a
+second grant to an already-paid account - but when that refusal fires, the loop had nowhere else to go: `winners` had
+only ever held one entry, so the hour ends having paid nobody. This is not a one-time edge case; it is the expected
+steady state. The agent most likely to top an hourly ranking is, definitionally, the one referring the most people -
+which is also the agent most likely to have already claimed its lifetime grant from an earlier, equally good hour.
+Once that happens, every subsequent hour it keeps winning the ranking (which a genuinely effective referrer will,
+repeatedly) pays nobody at all, silently, forever - directly contradicting "spreads across agents rather than
+accumulating," and wasting exactly the resource the design says "an hour that produces nothing must cost nothing"
+was meant to protect (a real hour did produce a qualifying referral; the bounty paid it out to nobody anyway). No
+test in `specs/test_referral_bounty.py` covered this: `test_a_winner_that_already_had_its_one_grant_is_recorded_not_retried`
+uses a single-referrer fixture, where "nothing to fall through to" is indistinguishable from "the fallback is missing."
+
+**How it was solved.** `pay()` now tries the ranked candidates in order for a live hourly run - `ranking[0]` first,
+and if the sender's reply says that referrer already has its grant, `ranking[1]`, then `ranking[2]`, and so on -
+stopping the instant a candidate is actually paid, or is left in the `unknown` state (because the money may already
+have moved, so a second candidate must never be tried on top of an unresolved one). A dry run still only ever
+previews `ranking[0]`: it never calls the sender, so it has no way to learn whether the top candidate is already
+granted, and guessing would be worse than saying nothing. The "day" bounty already paid every qualifying referrer in
+one pass and is unaffected. Two new tests in `specs/test_referral_bounty.py` pin both directions: a two-referrer
+fixture where the top (2 referrals) is already granted and the runner-up (1 referral) is not - asserting the
+runner-up gets paid, exactly two sender calls are made, and both `paid` rows land in the right state - and a dry-run
+fixture asserting the sender is never called and nothing is reserved.
+
+**Why it mattered.** This is the bounty's own steady-state failure mode, not a corner case: the more successful the
+referral program is at producing one standout referrer, the sooner and more permanently the hourly reward would have
+gone dark for everyone, including every other honest referrer arriving afterward, with nothing in the code, the
+logs, or the published text explaining why the "hourly" reward had stopped paying anybody. An agent reading
+`bounties.txt` and doing exactly what it asks - referring qualifying agents - would have found the table topped but
+the bounty silent, the precise "finds out afterwards it has been handled" experience the same document's own SIZE
+paragraph warns against.
+
+**Evidence.**
+
+- `specs/referral_bounty.py` `pay()` - `winners = [s["ranking"][0]] if kind == "hour" else s["ranking"]` (before);
+  now `candidates = s["ranking"] if (kind == "day" or live) else s["ranking"][:1]`, with the loop falling through
+  past an `already_granted` result and stopping (with a commit first) at the first `confirmed` or `unknown` one when
+  `kind == "hour"`
+- `published/bounties.txt` section 1 ONCE paragraph - "the hourly prize spreads across agents rather than
+  accumulating to whoever is best at referring... you can still top the hourly table, you just will not be paid
+  twice for it" - the promise the code did not keep before this fix
+- `specs/test_referral_bounty.py`
+  `test_hourly_prize_falls_through_to_the_runner_up_when_the_top_referrer_already_has_its_grant` - reproduces the
+  bug pre-fix (only 1 sender call, runner-up left `reserved` with no payment) and passes post-fix (2 sender calls,
+  top `already_granted`, runner-up `confirmed`); `test_hourly_dry_run_previews_only_the_current_top_candidate` pins
+  that a dry run never calls the sender and reserves nothing
+- ran: `python3 specs/test_referral_bounty.py -v` → 26/26 pass (24 previously + 2 new)
+- ran (this run): `python3 specs/test_aidirectory_counts.py` → PASS (unaffected); `python3
+  specs/test_onboarding_step1.py` → 6/6 pass (unaffected)
+- `specs/04-REFERRAL-BOUNTY.md` - "Correction, challenge #68" added in place, next to the "no qualifying referral
+  pays nobody" line this fix is the direct corollary of
+- treasury measured live this run via `rpc.nano.to account_info`: 29.8969 XNO (`29896904890000000000000000000000`
+  raw), receivable 0, 28 blocks - well above the 8.9 floor, unaffected by this change (no live grant was sent)
+
+### 69. The document that tells an agent "a seed you hand over is a custodian, not a wallet" then hands agents its own server-generated seed
+
+*partial · economic*
+
+**What blocked it.** `published/bounties.txt` §4 Step 1 is unambiguous: *"The seed IS the wallet. Anything that
+asks you to hand a seed over is not a wallet, it is a custodian."* Eleven lines later, §2's onboarding fallback for
+an agent with no address yet told that same agent to `GET
+https://getunstuck.space/unstuck/api/v1/onramp/address`. Calling it live, three times in a row this run, returns
+exactly `{"address":"nano_...","seed":"<64-hex>","onboard_id":N,...}` — a seed the **server** generated, over a
+bare unauthenticated GET, with no signup and no binding to any caller — and closes with "keep your seed safe; the
+network never stores it." That sentence answers a question nobody asked: whether it stores the seed is beside the
+point once it has generated and transmitted one. A seed the server had to create in order to hand it to you is a
+seed the server saw, in memory and in transit, at the moment of creation — a custodian by construction, exactly the
+thing Step 1 eleven lines earlier tells the same reader to refuse. This is also precisely the shape the task brief
+that runs this routine warns about: an agent that reads carefully enough to notice the contradiction reasonably
+reads the whole offer as a rug, because it is being asked to trust a key it did not make immediately after being
+told never to trust a key it did not make.
+
+**How it was solved.** The endpoint itself is a live service outside this repository (on `getunstuck.space`,
+`dhyabi2/unstuck`'s territory, not this one) and this run has no means to change or remove it, so the underlying
+custodial behaviour stands unfixed and is not claimed as fixed. What this run **did** fix, in
+`published/bounties.txt` §2, is the funnel text that sent a diligent agent into that trap with no warning: it no
+longer offers the onramp seed as an equal alternative to Step 1. It now tells the agent to run Step 1 first, always,
+describes exactly what the onramp endpoint does in the same blunt terms used above (quoting Step 1's own line back
+at it), and — only if an agent genuinely cannot run Step 1 — instructs it to treat any seed the endpoint returns as
+compromised on arrival: post the one required ask with it, then immediately generate a real address and sweep
+anything sent to the onramp address out to it. This is the same shape as the fix that held for challenge #49 (verify
+the hash, don't trust the domain) applied to keys instead of URLs: give the agent a way to protect itself without
+requiring a guess about, or a change to, infrastructure this run cannot touch.
+
+**Why it mattered.** This sits at the exact fork the task brief asked this run to hunt: not a missing feature but a
+document arguing against itself, in the one section (the canon-confirmation gate) every agent must pass to qualify
+for either bounty. An agent that trusted the onramp seed and was later sent real money to it would have handed
+custody to whichever process, log line, or operator ever saw that response — the single failure mode the whole
+"you hold your own key" pitch exists to prevent.
+
+**Evidence.**
+
+- ran (this run, live, three consecutive calls): `curl -sS https://getunstuck.space/unstuck/api/v1/onramp/address`
+  → `{"address":"nano_1bo66...","seed":"68672FCA...","onboard_id":1218,...}`, then `1219`/`EC602...`, then
+  `1220`/`967C6A...` — a fresh, distinct, server-generated seed on every call, confirming the server itself
+  produces the private key rather than merely relaying one the caller made
+- `published/bounties.txt` §4 Step 1 (pre-fix, unchanged by this run): `"The seed IS the wallet... Anything that
+  asks you to hand a seed over is not a wallet, it is a custodian."`
+- `published/bounties.txt` §2 (pre-fix): `"No address yet? GET
+  https://getunstuck.space/unstuck/api/v1/onramp/address first and send {"onboard_id":N,...} in place of
+  \"asker\"."` — offered with no warning, as an equally valid path
+- ran: `grep -rn onramp CHALLENGES-SOLVED.md README.md Nano-ARION-playbook.md canon/ published/ specs/` before this
+  run → one mention (line ~1418, a different challenge, noting only that the endpoint exists, not what it hands
+  back)
+- `git diff published/bounties.txt` this run — §2 rewritten to run Step 1 first and to name the onramp seed as
+  compromised on arrival if ever used
+
+### 70. "Get PAID in it" — the step the site itself calls "the step that actually matters" — told an agent to "publish a price and tell us," naming no mechanism at all
+
+*solved · economic*
+
+**What blocked it.** `published/aidirectory.html`'s numbered path overview names step 7 "Get PAID in it" and calls
+it, in its own words, "the step that actually matters" (the whole thesis of this project: nobody adopts a rail to
+spend, they adopt it because they are paid on it). Its instruction was "Publish a price, take XNO, and tell us so
+we list you" — naming no URL, no method, no payload, nothing an agent could act on. `published/aidirectory-llms.txt`
+and `published/aidirectory/tools.json`'s `path[7].why` carried the identical dead phrase. This is not a hypothetical
+gap: `/unstuck/api/agents` genuinely 404s (confirmed live this run — `{"error":"not found"}`), so there is no
+directory endpoint an agent could have found on its own by guessing past the vague prose either.
+
+**Why it mattered.** This is friction (c) named in this run's brief — joining the network — at its worst point: the
+step the page itself elevates above the other six was also the one step with no working instructions anywhere,
+even though a working mechanism already existed one page-scroll away. `bounties.txt` §2 and §3 already document
+`POST https://getunstuck.space/unstuck/api/ask` as the live channel for a canon confirmation or a referral claim
+(challenge #60), and the network is reachable and free to post to (confirmed live this run, 23 asks). Nothing
+connected that mechanism to "get paid" — an agent that read only the path overview, not `bounties.txt`, would never
+learn a working door existed one section away. Measured this run: 1,049 agents recorded, 21 with anything in the
+address field, 8 real addresses, 5 holding XNO, 1 that has ever paid — the funnel is not short of buyers, it is
+short of a working last step for sellers, and this was that step.
+
+**How it was solved.** Rewrote step 7's text in `published/aidirectory.html`, its byte-identical mirror
+`published/aidirectory/index.html`, both `llms.txt` copies, and `tools.json`'s `path[7].why` to give the concrete,
+copy-pasteable command inline rather than a cross-reference: `curl -s -X POST
+https://getunstuck.space/unstuck/api/ask -H 'Content-Type: application/json' -d
+'{"asker":"nano_...","title":"seller listing","body":"accepts XNO. price/x402: <url>. sells: <one line>"}'`,
+titled `"seller listing"` so any reader of `/unstuck/api/asks` can filter on it. This needs no new endpoint and no
+server-side work. **Left unchanged, deliberately:** the six-command onboarding list's own step 6 ("Spend it on
+something real," fixed by challenge #65) — an earlier draft of this fix tried repurposing step 6 itself for the
+listing command, which would have put onboarding's step 6 back out of agreement with `bounties.txt`'s and
+`aidirectory-llms.txt`'s already-correct step 6 (the exact five-copies-disagree shape challenge #65 just fixed);
+caught before landing by re-running `specs/test_onboarding_commands_agree.py`, and reverted in favour of fixing
+step 7 only, which no test constrains to a specific string.
+
+**What is still not solved.** This makes "get paid" *followable*, not *curated* — an ask titled "seller listing"
+is discoverable only by an agent that thinks to search `/unstuck/api/asks` for that exact title, which is a
+workaround, not a directory. `/unstuck/api/agents` returning 404 is the real, underlying gap; building that
+endpoint is out of scope for a network-constrained text fix and belongs to whoever can deploy to
+`getunstuck.space`.
+
+**Evidence.**
+
+- pre-fix text, all copies: "Publish a price, take XNO, and tell us so we list you." — no URL, method or payload
+- ran this run: `curl -s https://getunstuck.space/unstuck/api/agents` → `404 {"error":"not found"}`
+- ran this run: `curl -s https://getunstuck.space/unstuck/api/asks` → 200, 23 asks total, none titled "seller
+  listing" yet — the mechanism existed but nothing had pointed "get paid" at it before this fix
+- ran: `python3 specs/test_onboarding_commands_agree.py` and `python3 specs/test_onboarding_step6.py` post-fix →
+  both still `PASS` — step 6 untouched by this fix, confirming the earlier repurposing attempt is not what landed
+- ran: `python3 specs/test_aidirectory_counts.py` post-fix → `PASS: every published aidirectory copy agrees - 25
+  callable, 221 referenced, 246 total` (unaffected, a text-only change to step 7's description)
+- ran: `python3 -c "import json; json.load(open('published/aidirectory/tools.json'))"` post-fix → parses clean
+- `diff published/aidirectory.html published/aidirectory/index.html` post-fix → empty (mirrors still byte-identical)
 
 ---
 

@@ -33,13 +33,13 @@ dismissing it. `path/ARION-STORY.md` is the case file with every block hash and 
 | `canon/` | **`THE-UNOWNED-RAIL.md`** — two pages on why a rail nobody owns matters, written to be carried and retold. Hash-pinned: `canon-install.sh` installs it with a root-owned sha256, `canon-check.py` restores any copy that drifts and fails closed if the master or the pin is missing. Tampering with it was tested deliberately and the check caught it. |
 | `path/` | **`THE-ARION-PATH.md`** — every tool, in order, twelve steps from *find a seller* to *announce the payment*. Plus the case file and **`ARION-LAW.md`**, the nine rules extracted from it. |
 | `monitor/` | Two Vercel pages that watch from outside: `index.html` (the experiment) and `vend.html` (the merchant). See below. |
-| `specs/` | **`01`** the directory and sync surface agents start from · **`02`** Vend's USDC leg and merchant monitor · **`03`** how to make all of this run without the owner. Specified, awaiting build. |
+| `specs/` | **`01`** the directory and sync surface agents start from · **`02`** Vend's USDC leg and merchant monitor · **`03`** how to make all of this run without the owner · **`04`** the referral and daily bounties · **`05`** an interim stand-in for `01`'s still-unbuilt directory, running today against the public asks API (`ops/directory-from-asks.py`, `published/register.txt`). `01`–`03` specified, awaiting build; `04`–`05` have running code and tests. |
 | `drafts/` | Text awaiting the owner's approval before anything is published. |
 | `research/` | The three drafting angles from the workflows that analysed the path. |
 
 **`Nano-ARION-playbook.md`** is the main document: the twelve steps, the wallet section, the problems solved, and 41
 references that were each fetched and returned 200. **`CHALLENGES-SOLVED.md`** is the five-lens sweep plus the
-hunter routine's own finds — 61 challenges, 30 solved, 24 partial, 7 unsolved, ordered unsolved first.
+hunter routine's own finds — 71 challenges, 32 solved, 33 partial, 6 unsolved, ordered unsolved first.
 
 ## What is already running by itself
 
@@ -100,7 +100,9 @@ The grant account — **public address, fund it directly:**
 nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9
 ```
 
-Measured on the public ledger at 2026-09-26 09:2xZ: **balance 9.8969 XNO**, 25 blocks.
+Measured on the public ledger at 2026-09-26 09:2xZ: balance 9.8969 XNO, 25 blocks. **Refreshed 2026-09-29 by the
+hunter routine (live RPC read): balance 29.8969 XNO, 28 blocks, receivable 0** — the 10.0016 XNO that sat unreceived
+(see `CHALLENGES-SOLVED.md` #1) has landed and the treasury has been topped up since.
 
 Two amounts are **frozen in code** in the sender itself (`opener/opener.js` in the main repository), not read from
 configuration, because an amount that can be configured is an amount that can be changed by whatever is running:
@@ -113,11 +115,12 @@ configuration, because an amount that can be configured is an amount that can be
 A third constant, `TREASURY_FLOOR_RAW` = **8.9 XNO**, makes the sender **refuse** any grant that would leave the
 treasury below it. So the arithmetic that matters:
 
-- headroom today = 9.8969 − 8.9 = **0.9969 XNO → 9 grants fundable right now**
+- headroom today = 29.8969 − 8.9 = **20.9969 XNO → 209 grants fundable right now** (was 9 grants at the
+  2026-09-26 balance, before the 10.0016 XNO of unreceived payments landed)
 - **the tip an agent receives is always 0.1 XNO** — frozen in code, never a parameter. The line below is about
   topping up the treasury, not about what any agent is sent.
 - every **1 XNO you add to the treasury** funds **10 more grants of 0.1 XNO each**
-- 5 XNO → 59 participants · 10 XNO → 109 participants
+- +5 XNO → 259 grants fundable · +10 XNO → 309 grants fundable
 
 **Say the price plainly:** 0.1 XNO is about **$0.0379** — under four cents at $0.37869/XNO. As a fee for work that is
 insulting. As a **float** it is 200 calls at 0.0005 XNO, which is the honest framing and the one the draft post uses.
@@ -129,7 +132,7 @@ The grant is not payment for completing a task; it is the money to make the firs
 
 1. **Approve the Moltbook post** in `drafts/` before anything is published. It offers money publicly, so it does not
    go out unapproved.
-2. **Fund the account above** if more than 9 participants are wanted.
+2. **Fund the account above** if more than 209 participants are wanted.
 3. **Deploy the monitor** (`cd monitor && vercel deploy --prod`), or say to use the account-scoped Vercel token — the
    agent's own token reaches one unrelated project only.
 4. **Unrelated but pending in the main repo:** `NANOGPT_API_KEY` plus a production deploy for the two brainstorming

@@ -68,7 +68,20 @@
     Swapping to an address you do not control is how you lose the money.
 
  2. Check your own address passes its checksum before you send anything to it.
-    A wrong-but-well-formed Nano address swallows funds with no error anywhere:
+    A wrong-but-well-formed Nano address swallows funds with no error anywhere.
+
+    Do this LOCALLY first, with the nanocurrency library you already installed
+    to generate the address in step 1 - it is free and it is the one that
+    actually checks the checksum:
+      node -e "console.log(require('nanocurrency').checkAddress(process.argv[1]))" nano_...
+    true = safe to send to. false = stop, do not send anything.
+
+    MEASURED 2026-09-29: the paypercall.dev address-verdict endpoint below does
+    NOT do this check - its "address_valid" field returned true for two
+    single-character mutations of a real address that the checksum actually
+    rejects (confirmed with nanocurrency.checkAddress, on both extract. and
+    check.paypercall.dev). Use it only for what it does measure - whether the
+    account has ever transacted on the ledger - never as your checksum check:
       curl -s 'https://extract.paypercall.dev/api/v1/address-verdict?account=nano_...'
 
  3. Swap a SMALL amount first - just over the 0.230737 minimum. The whole point of

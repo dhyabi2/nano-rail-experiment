@@ -1963,6 +1963,60 @@ custody to whichever process, log line, or operator ever saw that response — t
 - `git diff published/bounties.txt` this run — §2 rewritten to run Step 1 first and to name the onramp seed as
   compromised on arrival if ever used
 
+### 70. "Get PAID in it" — the step the site itself calls "the step that actually matters" — told an agent to "publish a price and tell us," naming no mechanism at all
+
+*solved · economic*
+
+**What blocked it.** `published/aidirectory.html`'s numbered path overview names step 7 "Get PAID in it" and calls
+it, in its own words, "the step that actually matters" (the whole thesis of this project: nobody adopts a rail to
+spend, they adopt it because they are paid on it). Its instruction was "Publish a price, take XNO, and tell us so
+we list you" — naming no URL, no method, no payload, nothing an agent could act on. `published/aidirectory-llms.txt`
+and `published/aidirectory/tools.json`'s `path[7].why` carried the identical dead phrase. This is not a hypothetical
+gap: `/unstuck/api/agents` genuinely 404s (confirmed live this run — `{"error":"not found"}`), so there is no
+directory endpoint an agent could have found on its own by guessing past the vague prose either.
+
+**Why it mattered.** This is friction (c) named in this run's brief — joining the network — at its worst point: the
+step the page itself elevates above the other six was also the one step with no working instructions anywhere,
+even though a working mechanism already existed one page-scroll away. `bounties.txt` §2 and §3 already document
+`POST https://getunstuck.space/unstuck/api/ask` as the live channel for a canon confirmation or a referral claim
+(challenge #60), and the network is reachable and free to post to (confirmed live this run, 23 asks). Nothing
+connected that mechanism to "get paid" — an agent that read only the path overview, not `bounties.txt`, would never
+learn a working door existed one section away. Measured this run: 1,049 agents recorded, 21 with anything in the
+address field, 8 real addresses, 5 holding XNO, 1 that has ever paid — the funnel is not short of buyers, it is
+short of a working last step for sellers, and this was that step.
+
+**How it was solved.** Rewrote step 7's text in `published/aidirectory.html`, its byte-identical mirror
+`published/aidirectory/index.html`, both `llms.txt` copies, and `tools.json`'s `path[7].why` to give the concrete,
+copy-pasteable command inline rather than a cross-reference: `curl -s -X POST
+https://getunstuck.space/unstuck/api/ask -H 'Content-Type: application/json' -d
+'{"asker":"nano_...","title":"seller listing","body":"accepts XNO. price/x402: <url>. sells: <one line>"}'`,
+titled `"seller listing"` so any reader of `/unstuck/api/asks` can filter on it. This needs no new endpoint and no
+server-side work. **Left unchanged, deliberately:** the six-command onboarding list's own step 6 ("Spend it on
+something real," fixed by challenge #65) — an earlier draft of this fix tried repurposing step 6 itself for the
+listing command, which would have put onboarding's step 6 back out of agreement with `bounties.txt`'s and
+`aidirectory-llms.txt`'s already-correct step 6 (the exact five-copies-disagree shape challenge #65 just fixed);
+caught before landing by re-running `specs/test_onboarding_commands_agree.py`, and reverted in favour of fixing
+step 7 only, which no test constrains to a specific string.
+
+**What is still not solved.** This makes "get paid" *followable*, not *curated* — an ask titled "seller listing"
+is discoverable only by an agent that thinks to search `/unstuck/api/asks` for that exact title, which is a
+workaround, not a directory. `/unstuck/api/agents` returning 404 is the real, underlying gap; building that
+endpoint is out of scope for a network-constrained text fix and belongs to whoever can deploy to
+`getunstuck.space`.
+
+**Evidence.**
+
+- pre-fix text, all copies: "Publish a price, take XNO, and tell us so we list you." — no URL, method or payload
+- ran this run: `curl -s https://getunstuck.space/unstuck/api/agents` → `404 {"error":"not found"}`
+- ran this run: `curl -s https://getunstuck.space/unstuck/api/asks` → 200, 23 asks total, none titled "seller
+  listing" yet — the mechanism existed but nothing had pointed "get paid" at it before this fix
+- ran: `python3 specs/test_onboarding_commands_agree.py` and `python3 specs/test_onboarding_step6.py` post-fix →
+  both still `PASS` — step 6 untouched by this fix, confirming the earlier repurposing attempt is not what landed
+- ran: `python3 specs/test_aidirectory_counts.py` post-fix → `PASS: every published aidirectory copy agrees - 25
+  callable, 221 referenced, 246 total` (unaffected, a text-only change to step 7's description)
+- ran: `python3 -c "import json; json.load(open('published/aidirectory/tools.json'))"` post-fix → parses clean
+- `diff published/aidirectory.html published/aidirectory/index.html` post-fix → empty (mirrors still byte-identical)
+
 ---
 
 ## What the monitor in this repository now watches

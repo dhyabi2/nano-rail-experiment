@@ -3,7 +3,7 @@
 This is a draft. The keeper cannot change the box's Caddy config, and the deploy job only replaces seven named files.
 The swarm lead or the owner can apply it.
 
-**Measured 2026-09-30 ~17:40 UTC:** `/robots.txt`, `/llms.txt`, `/sitemap.xml` at the host root → `426 websocket
+**Measured 2026-09-30 ~17:20 UTC:** `/robots.txt`, `/llms.txt`, `/sitemap.xml` at the host root → `426 websocket
 upgrade required`. A missing file under `/ai/traffic/` → 200 with the directory HTML. It should be a 404.
 
 ## Caddy (inside the existing site block, before the websocket fallthrough)

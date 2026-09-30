@@ -134,7 +134,7 @@ When nobody arrives, a sign on the door that says "websocket upgrade required" i
 
 **Evidence.**
 
-- ran 2026-09-30 ~17:40 UTC with a browser User-Agent: `/robots.txt`, `/llms.txt`, `/sitemap.xml`,
+- ran 2026-09-30 ~17:20 UTC with a browser User-Agent: `/robots.txt`, `/llms.txt`, `/sitemap.xml`,
   `/.well-known/llms.txt`, `/register.txt`, `/canon.html` → `426 text/plain "websocket upgrade required"`;
   `/ai/robots.txt` 200 and `/ai/sitemap.xml` 200, both naming only `aidirectory.space`
 - `/ai/traffic/2026-09-30.json` → `by_client_family` has no named AI crawler; top paths `/healthz`, `/unstuck/`

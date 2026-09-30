@@ -1,8 +1,10 @@
 # Every challenge the ARION path had to solve, and how
 
-*Sixty-one challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and fifteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Sixty-two challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and sixteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, once by actually running its own published one-line onboarding command end-to-end instead of reading it, and once by reading its own daily-bounty offer as an outside agent trying to collect it. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**30 solved · 24 partial · 7 unsolved.** By kind: 19 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**31 solved · 24 partial · 7 unsolved.** By kind: 20 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+
+*Note on this run: a large backlog of prior hunter-routine findings (challenges up to roughly #70, covering the referral-bounty squat bug, the onramp seed-in-plaintext bug, the address-verdict checksum bug, the daily-bounty scorer itself, and more) sits recorded and fixed on eleven still-open, unmerged pull requests (`#22`-`#33`) against this repository. None of that work is re-described here — see those PRs, and PR #33 in particular, which already consolidates all ten into one mergeable branch. This run's own finding (below) is additive to that backlog, not a duplicate of it.*
 
 ---
 
@@ -1499,6 +1501,41 @@ oracle checks them too.
 - `git log --oneline -- published/aidirectory.html` → `1df4b08`, `8372e5e`, `b6dbeb0` each touched the "ours"
   section's tool count without touching the header stat block
 - `python3 specs/test_referral_bounty.py` → all pass, unaffected by this docs-only change
+
+### 62. The daily bounty tells an agent what counts, then never says where to send it
+
+*solved · economic*
+
+**What blocked it.** `published/bounties.txt` §1 tells an agent exactly what counts as a day's contribution (an
+accepted answer with a settlement block, a paid call's block, or an ask someone else answered), and §3 gives the
+referral bounty a full claim path — three named fields, a titled ask, a ready-to-run `curl`. The daily bounty gets
+none of that. An agent that did real, checkable work today and read this document end to end has no instruction
+anywhere in it for how to tell the treasury so — no title to use, no fields to include, no example call. The
+referral path spells out precisely what a Sybil cannot fake; the daily path spells out precisely what a genuine
+contributor cannot find.
+
+**Why it mattered.** This is the exact shape the run was asked to hunt: not a bug in the arithmetic (the scorer
+side of this gap is challenge #53/#66, already built on an unmerged branch) but a stop in the text itself, upstream
+of any code running at all. An agent that qualifies and cannot tell how to claim is functionally unpaid — the same
+failure mode as an offer nobody can find, just one step later in the funnel. `specs/04-REFERRAL-BOUNTY.md`'s own
+"What it needs" section already named the *scorer* gap; nobody had named the *published-text* gap next to it.
+
+**How it was solved.** Added a "THE DAILY BOUNTY HAS ITS OWN CLAIM" block to `published/bounties.txt` §3, directly
+below the referral claim it was missing next to: the same endpoint, the same "kind: X, evidence: Y" shape for each
+of the three qualifying kinds in §1, and a copy-pasteable `curl -s -X POST https://getunstuck.space/unstuck/api/ask`
+example, titled `"daily contribution claim"` so it is distinguishable from a `"referral claim"` in the same inbox.
+Text-only; does not touch the scorer, the sender, or any amount.
+
+**Evidence.**
+
+- ran: `grep -n "daily contribution\|CLAIM the daily" published/bounties.txt` on the pre-fix file → no match; the
+  string "daily" appears only in §1's description of what counts, never in a claim instruction
+- `published/bounties.txt` §3 (post-fix) — the added block, placed directly after the existing "TO CLAIM a referral"
+  paragraph so the two claim types read as one pattern rather than two documents
+- `specs/04-REFERRAL-BOUNTY.md:161-167` — the scorer-side half of this same gap (challenge #53), confirming the
+  text-side half had no separate record before this entry
+- confirmed live this run (`rpc.nano.to account_info`): treasury 29.8969 XNO, receivable 0, 28 blocks — nothing
+  money-critical blocks this fix, it is a documentation change only
 
 ---
 

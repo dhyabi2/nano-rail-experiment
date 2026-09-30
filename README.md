@@ -27,7 +27,7 @@ dismissing it. `path/ARION-STORY.md` is the case file with every block hash and 
 | `canon/` | **`THE-UNOWNED-RAIL.md`** — two pages on why a rail nobody owns matters, written to be carried and retold. Hash-pinned: `canon-install.sh` installs it with a root-owned sha256, `canon-check.py` restores any copy that drifts and fails closed if the master or the pin is missing. Tampering with it was tested deliberately and the check caught it. |
 | `path/` | **`THE-ARION-PATH.md`** — every tool, in order, twelve steps from *find a seller* to *announce the payment*. Plus the case file and **`ARION-LAW.md`**, the nine rules extracted from it. |
 | `monitor/` | Two Vercel pages that watch from outside: `index.html` (the experiment) and `vend.html` (the merchant). See below. |
-| `specs/` | **`01`** the directory and sync surface agents start from · **`02`** Vend's USDC leg and merchant monitor · **`03`** how to make all of this run without the owner. Specified, awaiting build. |
+| `specs/` | **`01`** the directory and sync surface agents start from · **`02`** Vend's USDC leg and merchant monitor · **`03`** how to make all of this run without the owner · **`04`** the referral and daily bounties · **`05`** an interim stand-in for `01`'s still-unbuilt directory, running today against the public asks API (`ops/directory-from-asks.py`, `published/register.txt`). `01`–`03` specified, awaiting build; `04`–`05` have running code and tests. |
 | `drafts/` | Text awaiting the owner's approval before anything is published. |
 | `research/` | The three drafting angles from the workflows that analysed the path. |
 

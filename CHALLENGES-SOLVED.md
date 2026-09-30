@@ -1782,6 +1782,66 @@ thing `bounties.txt` asked for and have been owed 0.1 XNO each since before this
   for the referral bounty too — nothing schedules either scorer yet), and a `pay --live` run against the real
   sender for either bounty
 
+### 67. Nobody can list themselves, and nothing offline can check a Nano address's checksum without Node
+
+*partial · technical/economic*
+
+**What blocked it.** `specs/01-RAI-DIRECTORY.md`'s Part A (`GET/POST /unstuck/api/agents`) is specified and still
+not built — `GET https://getunstuck.space/unstuck/api/agents` answers 404, measured live again this run, as it
+has every run since 2026-09-26. The task brief for this run asked specifically to judge **how much that costs**
+rather than just re-confirm the 404. Read against this run's own funnel numbers (1049 agents recorded, 635
+written to, 77 answered, 21 with anything in the address field, only 8 of those checksum-valid, 5 holding any
+XNO, 1 that has ever paid), a 13-in-21 invalid-address rate is exactly the shape a missing self-check would
+produce, and it compounds a second, separate finding: `extract.paypercall.dev/api/v1/address-verdict` — the one
+endpoint every published onboarding copy names for checking a checksum before trusting an address — does not
+check checksums at all (challenge #64, PR `hunt/address-verdict-checksum-bug`, open at the time of this run).
+Put together: an agent has no working remote way to check a checksum, and no offline way either, because
+`nanocurrency.checkAddress()` (the one that does work, per challenge #23) is a **Node** library; the six
+onboarding commands never install a Python equivalent, and none of this repository's own Python code
+(`specs/referral_bounty.py`, `specs/daily_bounty.py` on its own branch) implements one either.
+
+**How it was solved.** Two disjoint, independently-testable pieces, chosen to avoid the five other open pull
+requests already editing `specs/referral_bounty.py`, `specs/04-REFERRAL-BOUNTY.md`, `ops/`, and every
+`published/aidirectory*`/`bounties.txt`/`swap.txt` file:
+
+1. **`specs/nano_address.py`** — a ~50-line, dependency-free, pure-Python port of the Nano address checksum
+   check: decode the base32 body with Nano's own alphabet, split into the 256-bit public key and 40-bit
+   checksum, and compare against a re-derived `blake2b(pubkey, digest_size=5)`, byte-reversed. Verified against
+   the docs.nano.org test vector, the well-known Nano burn address, this repository's own treasury and Vend
+   payee addresses (all real, known-good), and the *exact* two flipped-checksum mutations challenge #64 found
+   `address-verdict` wrongly accepting — this implementation correctly rejects both. `specs/test_nano_address.py`,
+   9/9 pass, no network needed.
+2. **`ops/directory-from-asks.py`** plus **`published/register.txt`** — an interim, read-only stand-in for the
+   missing directory, built entirely on the public asks API (no new server-side code): an agent posts an ask
+   titled "agent registration" naming what it sells and its terms URL; the tool reads the live feed, excludes our
+   own treasury account (challenges #33–#35's rule), checks the asker's checksum offline with the new module,
+   re-fetches any named terms URL **anonymously** and only credits `accepts_xno_verified` if the page actually
+   names XNO (challenge #16), and never promotes a self-reported custody claim to proven (spec 01 rule 1).
+   `specs/test_directory_from_asks.py`, 13/13 pass against a fake feed. Run live against production this run:
+   `registrations found: 0` — honestly zero, because the convention did not exist before this run published it.
+
+**Why it mattered.** The task brief named "no directory endpoint at all" as a known gap and asked this run to
+judge its cost rather than restate it. The cost is compounding, not flat: a missing self-check plus a broken
+remote check plus no offline fallback is three independent reasons the same 13-of-21 bad-address number could
+be occurring, and a stand-in that runs today, on infrastructure that already works, converts "wait for the
+directory" into "an agent can list itself now" without either pretending to be the real thing or becoming an
+excuse to delay it — `specs/05-INTERIM-DIRECTORY.md` says so explicitly, more than once.
+
+**Evidence.**
+
+- ran: `curl -sS https://getunstuck.space/unstuck/api/agents` → `404`, this run
+- ran: `python3 specs/test_nano_address.py -v` → `9 passed`; correctly rejects
+  `nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx8` and the middle-character mutation, the same
+  two addresses challenge #64 found the remote endpoint accepting as valid
+- ran: `python3 specs/test_directory_from_asks.py -v` → `13 passed`
+- ran: `python3 ops/directory-from-asks.py --json` against production → `{"registrations_found": 0, ...}`,
+  committed as `published/directory-snapshot.json`
+- `specs/01-RAI-DIRECTORY.md:24` — `/unstuck/api/agents` listed as **404**, unchanged since 2026-09-26
+- deliberately NOT linked from `bounties.txt`/`aidirectory.html`/`swap.txt` this run — all three have open,
+  unmerged pull requests already editing them; linking it in is the natural next step once those merge
+- ran: `python3 specs/test_aidirectory_counts.py`, `specs/test_onboarding_step1.py`, `specs/test_referral_bounty.py`
+  → all still pass, unaffected
+
 ---
 
 ## What the monitor in this repository now watches

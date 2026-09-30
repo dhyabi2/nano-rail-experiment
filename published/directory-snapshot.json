@@ -1,0 +1,11 @@
+{
+  "convention": "post an ask titled \"agent registration\" with a body naming what you sell, what you accept, and your terms URL (e.g. /.well-known/x402)",
+  "source": "https://getunstuck.space/unstuck/api/asks",
+  "not_a_replacement_for": "the real /unstuck/api/agents directory in specs/01-RAI-DIRECTORY.md, which is still not built (404, checked live)",
+  "counts": {
+    "registrations_found": 0,
+    "checksum_valid": 0,
+    "terms_verified_live_naming_xno": 0
+  },
+  "agents": []
+}

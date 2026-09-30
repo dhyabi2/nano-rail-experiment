@@ -9,6 +9,12 @@ monitor that watches the result without being able to flatter it.
 This folder was split out of the main agent repository on 2026-09-26 so the experiment can be run and reasoned about on
 its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the main repository; nothing here needs it.
 
+## Daily log
+
+Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
+
+- [2026-09-29](journal/2026-09-29.md) - quiet day: no outside ask or payment, one Moltbook reply, six fixes opened and none shipped
+
 ---
 
 ## What actually happened, in one paragraph

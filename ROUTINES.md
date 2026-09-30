@@ -11,33 +11,39 @@ deleted; the API can disable but not remove.
 
 ## Cloud routines (Claude, running in Anthropic's cloud)
 
-### 1. Conversion-blocker hunter — `trig_01KzZuSB66ooSpKmu7fc8aTM`
+### 1. Experiment keeper (was: conversion-blocker hunter) — `trig_01KzZuSB66ooSpKmu7fc8aTM`
 
-**`15 */4 * * *`** (every 4 hours at :15) · model `claude-sonnet-5` · source: **this repository**
+**`15 */4 * * *`** (every 4 hours at :15) · model `claude-opus-5-5` · sources: **this repository** + `swarm-decisions/data` (read only)
 
-The one routine dedicated to the experiment. Its job is to find what stops AI agents adopting Nano, **move one
-blocker**, and record how.
+**The owner gave the cloud agents full control of this experiment (2026-09-30).** Four duties, every run:
 
-- **Runs `ops/hunter-preflight.sh` first, every time.** Found 2026-09-26: this routine's own cloud session can have
-  every measurement host denied by its environment's network egress policy while the services themselves are fine —
-  ten `curl` calls came back `exit 56` and every `WebFetch` came back `EGRESS_BLOCKED` in the same run. That is not a
-  quiet day, it is a blind one, and the two must never be reported the same way (challenge #48). If the preflight
-  exits 2, the run reports the whole measurement phase as **unknown**, says the session was network-blind, and asks
-  the owner to broaden this environment's Network access — it does not write "nothing new to report".
-- **Measures every run:** the Unstuck network (`/unstuck/api/asks`, `/ledger.json`), the five paid endpoints'
-  `/health` and `/.well-known/x402`, the treasury (received and receivable kept apart), directories and listings, and
-  the swarm's forge and board.
-- **Then does work, not reporting:** picks the blocker with the most conversion leverage and writes the tool, page,
-  manifest fix, listing submission or spec. Commits to `hunt/<slug>` and opens a pull request.
-- **Records it** in `CHALLENGES-SOLVED.md` in the existing format, with evidence that is a file, command or URL.
-- **Escalates** only something genuinely critical, at the top of the PR body under `URGENT FOR THE OWNER`: treasury
-  under 9.0 XNO, an endpoint that stopped accepting XNO, a manifest payee that is not the treasury, a site or API down,
-  or receivable growing with nothing claimed.
-- **May not:** touch money, seeds or keys; push to `main`; create or delete a repository; contact any outside agent or
-  maintainer (it drafts into `drafts/` and a human or the swarm sends); claim a number it did not measure. A source it
-  could not read must report **unknown**, never zero.
+1. **Daily journal.** `journal/<date>.md` for every UTC day — outside interaction (visits, AI crawlers, outside asks,
+   Moltbook comments addressed to us, outside payments, GitHub activity by others), what we did, issues fixed, what was
+   checked when nobody came, and tomorrow's one thing — plus a newest-first `## Daily log` in README.md. Committed
+   straight to `main`.
+2. **Hunt and fix** the one blocker with the most conversion leverage, on a `hunt/<slug>` branch with a pull request,
+   recorded in `CHALLENGES-SOLVED.md`.
+3. **When no outside agent interacted, investigate and act:** reachability of every published file, whether crawlers
+   and HTTP clients reach us at all, whether listings still resolve, whether the swarm invited anyone, whether the offer
+   itself repels.
+4. **Ship.** It may squash-merge its own `hunt/*` pull requests when every test passes and nothing touches money, keys,
+   a send path or the hash-pinned canon; it works the open backlog down oldest first and closes what is superseded.
 
-**So the first place to look in a new session is the open pull requests on this repository.**
+**Measurements it reads** (all public, counts only): `/ai/traffic/<date>.json` (daily visit counts from the site's
+access log — no IP address is ever published; logging began 2026-09-30 17:08 UTC), `/ai/traffic/deploy-status.json`,
+the Unstuck asks and ledger, the treasury and Unstuck accounts on a public node, the five paid endpoints'
+manifests, `/ai/numbers.json`, and this repository's own GitHub activity. A source it could not read is **unknown**,
+never zero.
+
+**How a merge goes live:** `experiment-deploy` on the Unstuck box (every 15 minutes) pulls `main` and replaces the
+live copies of `published/bounties.txt`, `swap.txt`, `canon.txt`, `canon.html` and the three AiDirectory files — only
+if the newest push to `main` came from the owner's account, only if a JSON file parses, with a backup of each file it
+replaces, and never over a file the box itself changed since the last deploy (that is reported as a CONFLICT, and the
+keeper reconciles `main` with the live file first). The hash-pinned canon is never deployed this way.
+
+**May not:** touch money, seeds or keys; change the hash-pinned canon; create or delete a repository; force-push or
+rewrite `main`; contact any outside agent or maintainer (it drafts into `drafts/`); count our own probes, boxes or asks
+as outside activity; claim a number it did not measure.
 
 ### 2. Code auditor and fixer — `trig_01Rxu14f8EH94KM621LEVKpE`
 

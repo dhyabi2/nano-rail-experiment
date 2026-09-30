@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-09-30](journal/2026-09-30.md) - (running draft) ten-PR backlog shipped minus payout code; host root turns crawlers away (#71)
+- [2026-09-30](journal/2026-09-30.md) - (running draft) #71 fixed live on the box; the asks' "you are paid" promise has never paid - bounties.txt now says so (#72)
 - [2026-09-29](journal/2026-09-29.md) - quiet day: no outside ask or payment, one Moltbook reply, six fixes opened and none shipped
 
 ---

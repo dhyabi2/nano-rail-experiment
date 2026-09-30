@@ -1,7 +1,7 @@
 # Every challenge the ARION path had to solve, and how
 
-*Seventy-one challenges: forty-six found by five independent sweeps over the code, the case file and the operating
-record, each sweep then checked by a second reader against the files it named, and twenty-four found by the hunter
+*Seventy-two challenges: forty-six found by five independent sweeps over the code, the case file and the operating
+record, each sweep then checked by a second reader against the files it named, and twenty-six found by the hunter
 routine — testing its own unlaunched code and published artefacts offline; going network-blind in its own session;
 running its own published onboarding commands end-to-end instead of reading them; reading the live ask network its
 own flyers point agents at; re-reading the referral bounty's anti-Sybil code adversarially, four separate times, and
@@ -9,7 +9,7 @@ finding a fourth and fifth hole; calling its own published address-safety check 
 address; and, this run, consolidating ten of those hunts' own pull requests into one mergeable branch after a prior
 run found them piling up unreviewed. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**32 solved · 33 partial · 6 unsolved.** By kind: 22 technical, 31 economic, 18 epistemic — and the balance is
+**33 solved · 34 partial · 5 unsolved.** By kind: 22 technical, 32 economic, 18 epistemic — and the balance is
 itself the finding. Barely any of this was cryptography.
 
 ---
@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 71. The host we send every agent to answers "websocket upgrade required" where a crawler or an agent looks first
 
-***UNSOLVED** · technical*
+*solved · technical*
 
 **What blocked it.** Every flyer sends a stranger to `https://172-86-112-140.sslip.io/...` (`bounties.txt`, `swap.txt`,
 `/canon`, `/ai/`). An agent or a crawler that meets a new host checks its root for `/robots.txt`, `/llms.txt` and
@@ -121,8 +121,11 @@ reads like a broken API. It gives no crawler a path to `/canon`, `/bounties.txt`
 answers a missing file under `/ai/traffic/` with HTTP 200 and the directory's HTML page instead of a 404
 (measured on `/ai/traffic/2026-09-29.json`).
 
-**How it was solved.** Not yet. Every path involved is served by the box's Caddy config, which this repository does
-not hold, and the deploy job only replaces seven named files. The fix, drafted for the box in
+**How it was solved.** Applied on the box at 17:31 UTC on 2026-09-30 from the draft, and checked live by the keeper at
+20:18 UTC: `/robots.txt`, `/sitemap.xml` and `/llms.txt` at the host root now answer 200 with the drafted text, and a
+missing file under `/ai/traffic/` answers 404 with an empty body. Before that: every path involved is served by the
+box's Caddy config, which this repository does not hold, and the deploy job only replaces seven named files. The fix,
+drafted for the box in
 `drafts/box-root-crawler-files.md`, is to serve three static files at the host root. `robots.txt` allows all and
 names a same-host sitemap. `sitemap.xml` lists `/canon`, `/canon.md`, `/bounties.txt`, `/swap.txt`, `/ai/`,
 `/ai/llms.txt` and `/ai/tools.json` on this host. `llms.txt` is a short index pointing at those. A request for a
@@ -140,6 +143,45 @@ When nobody arrives, a sign on the door that says "websocket upgrade required" i
 - `/ai/traffic/2026-09-30.json` → `by_client_family` has no named AI crawler; top paths `/healthz`, `/unstuck/`
 - `aidirectory.space` and `agentdirectory.space` resolve, but this session's proxy refuses them, so whether they
   serve is **unknown** here, not "down"
+- ran 2026-09-30 20:18 UTC: `/robots.txt` 200 `text/plain` (last-modified 17:31:42), `/sitemap.xml` 200 `text/xml`
+  listing the seven same-host URLs, `/llms.txt` 200 `text/plain`, `/ai/traffic/1999-01-01.json` 404. Not yet done:
+  the root `robots.txt` carries no `access-control-allow-origin` header (the `/ai/` copies do); harmless for crawlers
+- `/ai/traffic/2026-09-30.json` (20:07) counts `robots_sitemap` 6 requests from 3 clients in the day so far. Whether
+  those are crawlers or our own cloud sessions checking this fix is not separable from counts: no named AI crawler
+
+### 72. "Answer an ask and you are paid in XNO" - the one earning path we name has never paid anyone
+
+*partial · economic*
+
+**What blocked it.** `bounties.txt` section 5 tells an agent: "Open asks, with bounties settled on chain" and
+"Answer an ask and you are paid in XNO by the agent that asked. That is the whole point." The daily bounty's first
+contribution kind is "an answer accepted on an ask, with a settlement block on chain." A sceptical earning agent
+checks that before spending an hour, and the live API says it has never happened: of 23 asks, **0** carry a
+`settlementBlock` and **0** an `acceptedAnswerId`. The asks that carry a bounty are 12, every one posted by the
+network's own account (`nano_1434j1n4...`): 11 at 0.001 XNO and one at 0.000001 XNO, with 212 answers between them,
+open since 2026-09-17 and 2026-09-18. The outside asks (#500, #543, #548, #558, #559, #560) carry no bounty.
+
+**Why it mattered.** The canon's thesis is that an agent adopts a rail because it is PAID on it. The page that makes
+the offer pointed at a payment path that, measured, pays no one - and anyone can find that out with one GET. An
+agent that finds it out afterwards reads everything else in the file as the same kind of promise. That is the
+"is the offer itself the problem" check from the keeper's quiet-day list, and it was the first real finding of
+this run once challenge #71 turned out to be live.
+
+**How it was solved (partly).** The text now says what is true. Section 5 states the measured numbers, says that
+today an answer earns a public record and not money, and gives a one-line command that lists every open ask that
+pays, in XNO (not raw), with whether it was ever settled, so an agent can see the day it changes. The daily bounty's
+"answer accepted" line points at that paragraph. `specs/test_bounties_asks_command.py` runs the published one-liner
+offline against a fixture shaped like the live API. **Still not solved:** nobody has accepted and settled an
+answer. That needs the asking account to spend 0.001 XNO, which the keeper may not do. It is drafted for the owner in
+`drafts/settle-first-ask.md`.
+
+**Evidence.**
+
+- ran 2026-09-30 20:17 UTC: `GET https://getunstuck.space/unstuck/api/asks` -> 23 asks (22 open, 1 closed);
+  `settlementBlock` null on all 23, `acceptedAnswerId` null on all 23; 12 with `bountyRaw` > 0, all from
+  `nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9` (Unstuck); `answerCount` sums to 212
+- ran: the published one-liner against the live API -> 12 lines, every one `NOT settled`
+- ran: `python3 specs/test_bounties_asks_command.py` -> 3/3 pass; all 8 test files under `specs/` pass
 
 ### 49. Three different domains for one entry point, and one of them is a bare IP
 

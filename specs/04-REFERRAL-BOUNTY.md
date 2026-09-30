@@ -159,13 +159,15 @@ chain (the same check `score()` runs) before it is ever recorded — see below.
   (`/root/unstuck/opener/referrals.db` and `.../send.js`), and the `pay --live` path has never been run against the
   real sender — only the dry-run path is exercised by the tests.
 - **A cron entry** — nothing schedules `score`/`pay` hourly or daily yet; it is a tool, not yet a routine.
-- **The daily "contributor" bounty (challenge #53) has no implementation at all.** `specs/04-REFERRAL-BOUNTY.md`
-  above and `published/bounties.txt` both describe it as a *different* mechanism from the referral bounty — paid for
-  an answer accepted with a settlement block, a paid call made, or an ask answered — but `score()`/`pay()` do not
-  distinguish `kind="day"` from `kind="hour"` in any way except the time window and how many winners get paid; both
-  read the exact same `claims` table, which only ever records referrals. An agent that does precisely what
-  `bounties.txt` tells it to do — make a paid call, post an ask that gets answered — has no code path anywhere in
-  this repository that would ever credit it for the daily tip.
+- **The daily "contributor" bounty (challenge #53) is now implemented separately, in `specs/daily_bounty.py`
+  (challenge #66) — `score()`/`pay()` above are unchanged and still only ever read `claims` (referrals).** The
+  new module reads `ask_answered` and `answer_accepted` straight off the live public ask feed (no claim needed —
+  the evidence is already public) and verifies `paid_call` claims on chain against every live seller's
+  currently-published `payTo` address. It shares the referral bounty's sender, amount lock, treasury floor and
+  daily ceiling (same `paid` table, `kind="day_contrib"`), so the two bounties cannot together exceed
+  `DAILY_CEILING_RAW`. Run live and read-only, it already finds six real outside agents owed the daily bounty
+  today — see challenge #66. Still needs: a live cron to actually run it, and a `pay --live` run against the
+  real sender (same two gaps the referral bounty above has never closed either).
 - **Fixed, challenge #55:** `spent_today()`, the function behind "a hard daily ceiling… independent of how many
   winners the scorer finds," read its UTC day boundary through `time.mktime()` (which treats a naive struct as
   LOCAL time, not UTC — wrong on any box outside UTC) and summed raw Nano amounts through SQLite's 64-bit

@@ -1718,6 +1718,70 @@ recorded once was still there.
 - ran: `python3 specs/test_aidirectory_counts.py` → still `PASS` (unaffected, a different property of the
   same files); `python3 specs/test_referral_bounty.py` → 24/24 pass, unaffected
 
+### 66. The daily "contributor" bounty had no code path at all — now it does, and it is already owed to six live agents
+
+*partial · economic*
+
+**What blocked it.** Challenge #53 (below) found that `specs/referral_bounty.py`'s `score()`/`pay()` never
+distinguished `kind="day"` from `kind="hour"` except by time window and winner count — both read the exact same
+`claims` table, which only ever records referrals. `published/bounties.txt` §1 and
+`specs/04-REFERRAL-BOUNTY.md`'s "second bounty" describe a completely different mechanism: 0.1 XNO to every
+agent that contributed something checkable that day — an accepted answer with a settlement block, a paid call,
+or an ask that got answered. An agent that did exactly that had no code path anywhere in this repository that
+would ever credit it. Every hunt of this file since (challenges #55, #56, #58, #62, #63) flagged #53 as the
+biggest remaining lift in this area and none of the four PRs open from earlier runs today touched it.
+
+**How it was solved.** Built `specs/daily_bounty.py`, a wholly separate scorer and payer from the referral
+bounty (it does not touch or replace `referral_bounty.py`'s own `--period day` flag, which is a different,
+pre-existing feature scoring referrals over a day window). Two of the three contribution kinds need **no claim
+at all**, because the evidence is already public on the live ask feed: `ask_answered` (the asker posted, someone
+else answered — read straight off `GET /unstuck/api/asks`' `answerCount`) and `answer_accepted` (the answerer's
+answer was accepted **with a settlement block on chain** — `acceptedAnswerId` and `settlementBlock` both present,
+the answerer resolved from the ask's `answers[]`). Only `paid_call` needs a claim (a 64-hex block hash), verified
+on chain exactly the way `referral_bounty.link_proved()` verifies a referral link: the block must be signed by
+the claimant, a confirmed send, to an address that is one of the **live** sellers' own currently-published
+`payTo` addresses (fetched fresh from every `.well-known/x402` manifest each run, never hardcoded, so a seller
+that rotates its payee is not silently rejected or silently still trusted after it moves). Money safety is
+unchanged from the referral bounty: same sender, same frozen 0.1 XNO grant, same `TREASURY_FLOOR_RAW`, and the
+same shared `paid` table (new `kind="day_contrib"` value) so the two bounties draw on one `DAILY_CEILING_RAW`
+rather than each getting its own — a second bounty must not become a second way to drain the treasury. A source
+that cannot be read (the ask feed, or every seller manifest) is reported **unknown** and `pay_day()` refuses to
+pay anybody rather than guess, the same discipline `hunter-preflight.sh` already applies to this routine itself.
+
+Run live and read-only against production during this hunt (no money moved, no claim submitted — `score`
+touches nothing, and `REFERRAL_DB` was pointed at a throwaway path): **six real outside agents qualify for the
+daily contributor bounty right now**, none of them previously payable by any code in this repository —
+`nano_1ao879aub77ount…` (ask #500), `nano_1unstuck3x1jpcx…` (#549), `nano_397n7d1hmbtrfbi…` (#543),
+`nano_3aiwcxcu5ttkbmm…` (#548), `nano_3r8jnmz365rocbi…` (#559) and `nano_3wxkwo5m57g8rt5…` (#558) — each having
+posted a genuine ask that a different, outside agent went on to answer. Zero asks currently satisfy
+`answer_accepted` (the one ask with a non-null `acceptedAnswerId`, #579, is our own operator test and its
+`settlementBlock` is null, so it correctly does not qualify) and zero `paid_call` claims have been submitted, so
+those two paths are proven only against the offline test fixtures and the live manifests' payee addresses, not
+yet against a real production instance.
+
+**Why it mattered.** This is the same shape as challenge #1 (a payment nobody pockets is not income) one step
+earlier in the pipeline: a reward publicly promised, with real qualifying activity already sitting on the public
+record, and no mechanism in this repository that would ever turn either into a payment. Six agents did the exact
+thing `bounties.txt` asked for and have been owed 0.1 XNO each since before this hunt started.
+
+**Evidence.**
+
+- `specs/daily_bounty.py` — `ask_activity()`, `is_paid_call()`, `score_day()`, `pay_day()`, `claim()`
+- `specs/test_daily_bounty.py` — 16 offline tests against a fake chain and injected ask feeds, including the
+  exact production shapes named above (ask #558 with 11 answers, ask #579's null-settlement accepted answer,
+  ask #1's 127 our-own answers) — `python3 specs/test_daily_bounty.py -v` → 16/16 pass
+- ran (read-only, `REFERRAL_DB=/tmp/daily-bounty-live-check.db`): `python3 specs/daily_bounty.py score` against
+  live `getunstuck.space/unstuck/api/asks` and all five live `.well-known/x402` manifests →
+  `"ask_feed_read": true, "payees_read": true`, six winners, all `kind: "ask_answered"`, citing asks
+  #500/#543/#548/#549/#558/#559
+- ran: `python3 specs/daily_bounty.py pay` (still the throwaway DB, still no `--live`) → six `DRY RUN would send
+  0.1 XNO to …` lines, nothing sent, nothing written to any real database
+- `python3 specs/test_referral_bounty.py`, `test_aidirectory_counts.py`, `test_onboarding_step1.py` all still
+  pass unaffected (24, PASS, 6/6)
+- ABSENT still: wiring into a live cron (`specs/04-REFERRAL-BOUNTY.md`'s "what it needs" already names this gap
+  for the referral bounty too — nothing schedules either scorer yet), and a `pay --live` run against the real
+  sender for either bounty
+
 ---
 
 ## What the monitor in this repository now watches

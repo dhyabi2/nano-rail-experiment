@@ -1,6 +1,6 @@
 # Every challenge the ARION path had to solve, and how
 
-*Seventy challenges: forty-six found by five independent sweeps over the code, the case file and the operating
+*Seventy-one challenges: forty-six found by five independent sweeps over the code, the case file and the operating
 record, each sweep then checked by a second reader against the files it named, and twenty-four found by the hunter
 routine — testing its own unlaunched code and published artefacts offline; going network-blind in its own session;
 running its own published onboarding commands end-to-end instead of reading them; reading the live ask network its
@@ -9,7 +9,7 @@ finding a fourth and fifth hole; calling its own published address-safety check 
 address; and, this run, consolidating ten of those hunts' own pull requests into one mergeable branch after a prior
 run found them piling up unreviewed. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**34 solved · 31 partial · 5 unsolved.** By kind: 21 technical, 31 economic, 18 epistemic — and the balance is
+**32 solved · 33 partial · 6 unsolved.** By kind: 22 technical, 31 economic, 18 epistemic — and the balance is
 itself the finding. Barely any of this was cryptography.
 
 ---
@@ -106,6 +106,40 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - ran: grep -rn nano-info pulse vend unstuck → prose only (THE-ARION-PATH.md:81, ARION-STORY.md:68)
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
+
+### 71. The host we send every agent to answers "websocket upgrade required" where a crawler or an agent looks first
+
+***UNSOLVED** · technical*
+
+**What blocked it.** Every flyer sends a stranger to `https://172-86-112-140.sslip.io/...` (`bounties.txt`, `swap.txt`,
+`/canon`, `/ai/`). An agent or a crawler that meets a new host checks its root for `/robots.txt`, `/llms.txt` and
+`/sitemap.xml` before anything else. On that host all three return **HTTP 426, body `websocket upgrade required`**:
+the host root falls through to a websocket backend. The good copies exist, but only under `/ai/`, and
+`/ai/robots.txt` and `/ai/sitemap.xml` name `https://aidirectory.space/...` for every URL, a different host. A
+sitemap may only list URLs on its own host, so a crawler drops those entries. What is left is a host whose root
+reads like a broken API. It gives no crawler a path to `/canon`, `/bounties.txt` or `/ai/`. The same host also
+answers a missing file under `/ai/traffic/` with HTTP 200 and the directory's HTML page instead of a 404
+(measured on `/ai/traffic/2026-09-29.json`).
+
+**How it was solved.** Not yet. Every path involved is served by the box's Caddy config, which this repository does
+not hold, and the deploy job only replaces seven named files. The fix, drafted for the box in
+`drafts/box-root-crawler-files.md`, is to serve three static files at the host root. `robots.txt` allows all and
+names a same-host sitemap. `sitemap.xml` lists `/canon`, `/canon.md`, `/bounties.txt`, `/swap.txt`, `/ai/`,
+`/ai/llms.txt` and `/ai/tools.json` on this host. `llms.txt` is a short index pointing at those. A request for a
+missing path should get a 404.
+
+**Why it mattered.** Measured traffic on the first logged hour (2026-09-30 17:08-17:10 UTC) is 5 outside requests,
+all to `/healthz` and `/unstuck/`, with no named AI crawler. That fits a host that gives crawlers nothing to follow.
+When nobody arrives, a sign on the door that says "websocket upgrade required" is the first thing to take down.
+
+**Evidence.**
+
+- ran 2026-09-30 ~17:40 UTC with a browser User-Agent: `/robots.txt`, `/llms.txt`, `/sitemap.xml`,
+  `/.well-known/llms.txt`, `/register.txt`, `/canon.html` → `426 text/plain "websocket upgrade required"`;
+  `/ai/robots.txt` 200 and `/ai/sitemap.xml` 200, both naming only `aidirectory.space`
+- `/ai/traffic/2026-09-30.json` → `by_client_family` has no named AI crawler; top paths `/healthz`, `/unstuck/`
+- `aidirectory.space` and `agentdirectory.space` resolve, but this session's proxy refuses them, so whether they
+  serve is **unknown** here, not "down"
 
 ### 49. Three different domains for one entry point, and one of them is a bare IP
 
@@ -1573,7 +1607,9 @@ in fact, because it spent real effort clearing a gate that then went nowhere.
 
 ### 63. `claim` recorded any well-formed block with no chain check, so a free, unprovable claim could permanently squat a real referral's one-ever slot
 
-*solved · economic*
+*partial · economic*
+
+**Status held back, 2026-09-30 (keeper):** the code for this one changes `specs/referral_bounty.py`/`specs/daily_bounty.py`, which call the grant sender. The keeper may not merge a change on a send path, so that code stays in PR #33 for the owner; everything else from #22-#31 shipped in PR #35. Partial until the owner merges #33 and it runs live.
 
 **What blocked it.** This run's brief named the referral bounty and the canon confirmation as the two places to keep
 hunting for "the next agent that would qualify and could not tell that it qualifies," and pointed specifically at
@@ -1739,6 +1775,8 @@ recorded once was still there.
 
 *partial · economic*
 
+**Status held back, 2026-09-30 (keeper):** the code for this one changes `specs/referral_bounty.py`/`specs/daily_bounty.py`, which call the grant sender. The keeper may not merge a change on a send path, so that code stays in PR #33 for the owner; everything else from #22-#31 shipped in PR #35. Partial until the owner merges #33 and it runs live.
+
 **What blocked it.** Challenge #53 (below) found that `specs/referral_bounty.py`'s `score()`/`pay()` never
 distinguished `kind="day"` from `kind="hour"` except by time window and winner count — both read the exact same
 `claims` table, which only ever records referrals. `published/bounties.txt` §1 and
@@ -1861,7 +1899,9 @@ excuse to delay it — `specs/05-INTERIM-DIRECTORY.md` says so explicitly, more 
 
 ### 68. The hourly referral bounty's own "spreads across agents" promise breaks the moment its best referrer collects once
 
-*solved · economic*
+*partial · economic*
+
+**Status held back, 2026-09-30 (keeper):** the code for this one changes `specs/referral_bounty.py`/`specs/daily_bounty.py`, which call the grant sender. The keeper may not merge a change on a send path, so that code stays in PR #33 for the owner; everything else from #22-#31 shipped in PR #35. Partial until the owner merges #33 and it runs live.
 
 **What blocked it.** `published/bounties.txt` section 1's ONCE paragraph makes two claims about the hourly reward in
 the same breath: "each agent can win EITHER bounty once in its life," and - because of that rule - "the hourly prize

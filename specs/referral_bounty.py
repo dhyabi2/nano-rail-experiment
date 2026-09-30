@@ -359,19 +359,7 @@ def pay(kind="hour", live=False):
     if not s["ranking"]:
         print(f"{s['period']}: no qualifying referral. Paying nobody - an hour that produced nothing costs nothing.")
         return 0
-    # bounties.txt's ONCE paragraph promises two things at once: "each agent can win EITHER bounty once in its
-    # life" AND "the hourly prize spreads across agents rather than accumulating to whoever is best at referring
-    # ... if you have already had your 0.1 XNO you can still top the hourly table, you just will not be paid
-    # twice for it." Those only both hold if a top referrer who already has its lifetime grant does not simply
-    # eat the hour: the prize must fall through to the next-ranked referrer who has not been paid yet. Before
-    # this fix `winners` was hard-pinned to `[ranking[0]]` for "hour", so once the single most effective referrer
-    # (who, being the most effective, tends to keep topping the table) claimed its one grant, every later hour it
-    # still won the ranking paid NOBODY, forever - silently contradicting "the hourly prize spreads across
-    # agents" and wasting the hour exactly the spec says must never happen for nothing. A dry run cannot detect
-    # "already granted" (that fact only comes back from actually calling the sender), so it still only ever
-    # previews the current top candidate; only a live run walks the full ranking looking for the first referrer
-    # that can actually be paid. "day" already paid every qualifying referrer, so it is unaffected.
-    candidates = s["ranking"] if (kind == "day" or live) else s["ranking"][:1]
+    winners = [s["ranking"][0]] if kind == "hour" else s["ranking"]
 
     ok, bal = treasury_ok()
     if not ok:
@@ -379,7 +367,7 @@ def pay(kind="hour", live=False):
               "Bounties stop before the treasury does.")
         return 1
     used = spent_today(con)
-    for w in candidates:
+    for w in winners:
         if used + GRANT_RAW > DAILY_CEILING_RAW:
             print(f"REFUSED: the frozen daily bounty ceiling ({DAILY_CEILING_RAW/XNO:.1f} XNO) is reached.")
             break
@@ -426,53 +414,25 @@ def pay(kind="hour", live=False):
                         (blk, s["period"], w["referrer"], kind))
             used += GRANT_RAW
             print(f"  PAID 0.1 XNO to {w['referrer'][:26]}... block {blk}")
-            con.commit()
-            # Exactly one winner per hour. "day" pays every qualifying referrer, so it keeps going.
-            if kind == "hour":
-                break
-            continue
         else:
             # A lost reply is 'unknown', never 'not sent': the money may have moved. Nothing retries it automatically.
             con.execute("UPDATE paid SET state='unknown' WHERE period=? AND winner=? AND kind=?",
                         (s["period"], w["referrer"], kind))
             print(f"  UNKNOWN for {w['referrer'][:26]}...: sender exited {r.returncode}. "
                   f"Left as 'unknown' - a person must read the chain before anything retries. {r.stderr[:160]}")
-            con.commit()
-            # An unknown outcome might already be a real send - never try a second candidate on top of it.
-            if kind == "hour":
-                break
         con.commit()
     return 0
 
 
 def claim(referrer, referred, block):
-    """`claims.referred` is a PRIMARY KEY: whichever claim is INSERTed first for a given referred address holds that
-    slot forever (rule 5, "once, ever") - score() only ever sees the row that won the race. Before this check, that
-    race was won by whoever typed fastest, not by whoever was telling the truth: `claim` accepted ANY syntactically
-    valid 64-hex block with no chain lookup, so an attacker who merely knew a real agent's address (public knowledge
-    the moment it appears in an ask, per challenge #60's own submission channel) could squat it with a block that is
-    well-formed but signs nothing, forges nothing that even needs to exist on chain - `claim` never checked. That
-    costs nothing, not even an exchange round-trip (the floor this whole design rests on, spec 04's "why every
-    obvious design is already broken" table), and it permanently blocks the real referrer's later, honest claim on
-    the same address with "already claimed by someone. First claim stands." - the exact shape of "refuse a genuine
-    referrer" this file's own comments say to keep hunting for. So `claim` now proves the link itself, with the same
-    chain check score() would run anyway, before the INSERT ever contends for the slot: a claim that cannot be
-    proved never occupies it, so it can never be raced against a legitimate one and the legitimate one can always
-    be submitted (or retried) later once it is provable."""
     if not re.fullmatch(r"[0-9A-Fa-f]{64}", (block or "").strip()):
         print("refused: --block must be the 64-hex hash of a send FROM the referred agent TO the referrer. "
               "That send is the proof the referral is real (challenge #52).")
         return 1
-    referred_n, referrer_n = norm(referred), norm(referrer)
-    linked, why = link_proved(referred_n, referrer_n, block)
-    if not linked:
-        print(f"refused: {why} - an unproved claim is never recorded, so it can never squat the referred "
-              "address's one-ever slot ahead of the real referral.")
-        return 1
     con = db()
     try:
         con.execute("INSERT INTO claims(referred,referrer,block,at) VALUES(?,?,?,?)",
-                    (referred_n, referrer_n, block, time.time()))
+                    (norm(referred), norm(referrer), block, time.time()))
         con.commit()
         print(f"claim recorded: {norm(referrer)[:20]}... referred {norm(referred)[:20]}... "
               "(a claim is a POINTER, not a score - the chain decides)")

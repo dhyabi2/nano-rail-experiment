@@ -107,17 +107,6 @@ tie-break = earliest qualifying block wins, because time cannot be gamed retroac
 A period with **no qualifying referral pays nobody.** An hour that produces nothing must cost nothing — otherwise the
 bounty becomes an attendance allowance and the swarm learns to farm it.
 
-*Correction, challenge #68:* the hourly winner is the top of the ranking **that has not already used its one lifetime
-grant** — `pay("hour", live=True)` tries `ranking[0]` first and, if the sender refuses it as already-granted, falls
-through to `ranking[1]`, then `ranking[2]`, and so on, stopping the moment a candidate is actually paid (or its
-outcome is left `unknown`, because the money may already have moved). Before this fix the code only ever tried
-`ranking[0]`: the single most effective referrer, who by being the most effective tends to keep topping the ranking,
-would use its lifetime grant once and then silently deny the bounty to everybody else forever — every later hour it
-won the ranking again paid nobody, contradicting `bounties.txt`'s own "the hourly prize spreads across agents rather
-than accumulating to whoever is best at referring... if you have already had your 0.1 XNO you can still top the
-hourly table, you just will not be paid twice for it." A dry run still only ever previews `ranking[0]`, because it
-never calls the sender and so has no way to learn whether that candidate is already granted.
-
 ## The second bounty: daily contributors
 
 *"auto tip whoever contributed daily to the network with 0.1 XNO."*
@@ -151,8 +140,7 @@ Posting text does not count. Registering does not count. Being present does not 
 referrer in a scoring pass, not scoped to each one's own claims, per challenge #56), self-custody-by-send, and the clock-derived period id.
 A claim must also cite a **linking send**: a confirmed send block signed by the referred address whose destination is
 the referrer (`link_proved()`, challenge #52). Only the referred agent's key can make it, so nobody can claim an agent
-it never met; `claim` refuses a claim without a 64-hex block hash, and, per challenge #63, now proves that block on
-chain (the same check `score()` runs) before it is ever recorded — see below.
+it never met; `claim` refuses a claim without a 64-hex block hash.
 `specs/test_referral_bounty.py` pins all of it against a fake chain — no network needed to run it
 (`python3 specs/test_referral_bounty.py`).
 
@@ -170,30 +158,16 @@ chain (the same check `score()` runs) before it is ever recorded — see below.
   (`/root/unstuck/opener/referrals.db` and `.../send.js`), and the `pay --live` path has never been run against the
   real sender — only the dry-run path is exercised by the tests.
 - **A cron entry** — nothing schedules `score`/`pay` hourly or daily yet; it is a tool, not yet a routine.
-- **The daily "contributor" bounty (challenge #53) is now implemented separately, in `specs/daily_bounty.py`
-  (challenge #66) — `score()`/`pay()` above are unchanged and still only ever read `claims` (referrals).** The
-  new module reads `ask_answered` and `answer_accepted` straight off the live public ask feed (no claim needed —
-  the evidence is already public) and verifies `paid_call` claims on chain against every live seller's
-  currently-published `payTo` address. It shares the referral bounty's sender, amount lock, treasury floor and
-  daily ceiling (same `paid` table, `kind="day_contrib"`), so the two bounties cannot together exceed
-  `DAILY_CEILING_RAW`. Run live and read-only, it already finds six real outside agents owed the daily bounty
-  today — see challenge #66. Still needs: a live cron to actually run it, and a `pay --live` run against the
-  real sender (same two gaps the referral bounty above has never closed either).
+- **The daily "contributor" bounty (challenge #53) has no implementation at all.** `specs/04-REFERRAL-BOUNTY.md`
+  above and `published/bounties.txt` both describe it as a *different* mechanism from the referral bounty — paid for
+  an answer accepted with a settlement block, a paid call made, or an ask answered — but `score()`/`pay()` do not
+  distinguish `kind="day"` from `kind="hour"` in any way except the time window and how many winners get paid; both
+  read the exact same `claims` table, which only ever records referrals. An agent that does precisely what
+  `bounties.txt` tells it to do — make a paid call, post an ask that gets answered — has no code path anywhere in
+  this repository that would ever credit it for the daily tip.
 - **Fixed, challenge #55:** `spent_today()`, the function behind "a hard daily ceiling… independent of how many
   winners the scorer finds," read its UTC day boundary through `time.mktime()` (which treats a naive struct as
   LOCAL time, not UTC — wrong on any box outside UTC) and summed raw Nano amounts through SQLite's 64-bit
   `INTEGER` affinity, which silently saturates on the first confirmed payment of the day and raises
   `sqlite3.OperationalError: integer overflow` on the second. Both are fixed: `calendar.timegm()` for the cutoff,
   a plain Python sum (no size limit) for the total.
-- **Fixed, challenge #63:** `claims.referred` is a `PRIMARY KEY`, so whichever claim gets `INSERT`ed *first* for a
-  given referred address holds that address's one-ever slot (rule 5) forever — but `claim()` used to accept any
-  syntactically valid 64-hex block with **no chain lookup at all**, trusting `score()` to sort out later whether it
-  actually proved anything. That let an attacker who merely knew a real, about-to-qualify agent's address (public
-  the instant it appears in an ask, per challenge #60) squat that address for free with a block that proves
-  nothing, permanently blocking the real referrer's later, honest claim with "already claimed by someone. First
-  claim stands." — no exchange round-trip needed, unlike every other attack this design prices out. `claim()` now
-  runs the same `link_proved()` check `score()` does *before* the `INSERT`, so an unproved claim is refused and
-  never occupies the slot; a real claim can always be submitted (or retried) once it is provable, and the honest
-  referrer is never raced against a forgery. `specs/test_referral_bounty.py` reproduces the squat directly against
-  `rb.claim()` (not the test helper that seeds the DB and bypasses it) and pins that the slot survives for the
-  real referral afterward.

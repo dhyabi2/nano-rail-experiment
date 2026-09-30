@@ -353,6 +353,50 @@ class ReferralBountyTests(unittest.TestCase):
         con = rb.db()
         self.assertEqual(con.execute("SELECT COUNT(*) FROM claims").fetchone()[0], 0)
 
+    # ---- the next bug the brief asked to keep hunting for: griefing a genuine referrer -------------------
+    def test_claim_squatting_a_real_referral_with_an_unproved_block_is_refused_and_does_not_occupy_the_slot(self):
+        """Before this fix, rb.claim() inserted ANY syntactically-valid 64-hex block with no chain check at all -
+        only score() later caught that it did not prove anything. But `claims.referred` is a PRIMARY KEY, so
+        whichever claim got INSERTed FIRST permanently held that address's one-ever slot (rule 5), even if it was
+        garbage. An attacker who merely knows a real agent's address - public the moment it appears in an ask -
+        could submit a well-formed but unrelated 64-hex block as its own claim before the honest referrer's claim
+        arrives, for free, and permanently lock the real referral out with "already claimed by someone." This
+        reproduces the attack directly against rb.claim(), the real entry point (not the test's DB-seeding helper,
+        which bypasses it)."""
+        stranger = self._real_stranger("griefed")
+        # well-formed hex, but proves nothing: not a block on the (fake) chain at all
+        fake_block = "0" * 64
+        self.assertEqual(rb.claim("nano_1attackerwhoneverpaidanything", stranger, fake_block), 1)
+        con = rb.db()
+        self.assertEqual(con.execute("SELECT COUNT(*) FROM claims").fetchone()[0], 0,
+                          "an unproved claim must never occupy the referred address's slot")
+        # the real referrer can still claim the same address afterwards - the slot was never taken
+        real_block = self.link(stranger, "nano_1honestreferrerafterall")
+        self.assertEqual(rb.claim("nano_1honestreferrerafterall", stranger, real_block), 0)
+        out = rb.score("hour", verbose=False)
+        self.assertEqual(out["qualifying"], 1)
+        self.assertEqual(out["ranking"][0]["referrer"], rb.norm("nano_1honestreferrerafterall"))
+
+    def test_claim_squatting_with_a_forged_or_misdirected_block_is_also_refused_before_insert(self):
+        """Same attack, but the attacker cites a real block on chain rather than a made-up hash - one it signed
+        itself, or one the stranger really sent to somebody else. Either way it is not a send from the stranger to
+        the attacker, so it must be refused at claim time too, not merely at score time."""
+        stranger = self._real_stranger("griefed2")
+        forged = self.link("nano_1attacker4", "nano_1attacker4")
+        self.assertEqual(rb.claim("nano_1attacker4", stranger, forged), 1)
+        misdirected = self.link(stranger, "nano_1someoneelseentirely")
+        self.assertEqual(rb.claim("nano_1attacker5", stranger, misdirected), 1)
+        con = rb.db()
+        self.assertEqual(con.execute("SELECT COUNT(*) FROM claims").fetchone()[0], 0)
+
+    def test_a_genuine_claim_through_the_real_claim_function_is_recorded_and_scores(self):
+        """The honest path through rb.claim() itself (not the test helper), end to end."""
+        stranger = self._real_stranger("honestpath")
+        block = self.link(stranger, "nano_1arealreferrer")
+        self.assertEqual(rb.claim("nano_1arealreferrer", stranger, block), 0)
+        out = rb.score("hour", verbose=False)
+        self.assertEqual(out["qualifying"], 1)
+
     def test_daily_ceiling_is_the_owners_one_xno(self):
         self.assertEqual(rb.DAILY_CEILING_RAW, rb.XNO)
 

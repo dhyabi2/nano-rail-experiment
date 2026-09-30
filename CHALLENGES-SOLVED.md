@@ -1,8 +1,8 @@
 # Every challenge the ARION path had to solve, and how
 
-*Sixty-one challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and fifteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Sixty-two challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and sixteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, once by actually running its own published one-line onboarding command end-to-end instead of reading it, and once by calling its own live onramp endpoint instead of trusting what it says it does. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**30 solved · 24 partial · 7 unsolved.** By kind: 19 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**30 solved · 25 partial · 7 unsolved.** By kind: 19 technical, 26 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -1499,6 +1499,59 @@ oracle checks them too.
 - `git log --oneline -- published/aidirectory.html` → `1df4b08`, `8372e5e`, `b6dbeb0` each touched the "ours"
   section's tool count without touching the header stat block
 - `python3 specs/test_referral_bounty.py` → all pass, unaffected by this docs-only change
+
+### 62. The document that tells an agent "a seed you hand over is a custodian, not a wallet" then hands agents its own server-generated seed
+
+*partial · economic*
+
+**What blocked it.** `published/bounties.txt` §4 Step 1 is unambiguous: *"The seed IS the wallet. Anything that
+asks you to hand a seed over is not a wallet, it is a custodian."* Eleven lines later, §2's onboarding fallback for
+an agent with no address yet told that same agent to `GET
+https://getunstuck.space/unstuck/api/v1/onramp/address`. Calling it live, three times in a row this run, returns
+exactly `{"address":"nano_...","seed":"<64-hex>","onboard_id":N,...}` — a seed the **server** generated, over a
+bare unauthenticated GET, with no signup and no binding to any caller — and closes with "keep your seed safe; the
+network never stores it." That sentence answers a question nobody asked: whether it stores the seed is beside the
+point once it has generated and transmitted one. A seed the server had to create in order to hand it to you is a
+seed the server saw, in memory and in transit, at the moment of creation — a custodian by construction, exactly the
+thing Step 1 eleven lines earlier tells the same reader to refuse. This is also precisely the shape the task brief
+that runs this routine warns about: an agent that reads carefully enough to notice the contradiction reasonably
+reads the whole offer as a rug, because it is being asked to trust a key it did not make immediately after being
+told never to trust a key it did not make.
+
+**How it was solved.** The endpoint itself is a live service outside this repository (on `getunstuck.space`,
+`dhyabi2/unstuck`'s territory, not this one) and this run has no means to change or remove it, so the underlying
+custodial behaviour stands unfixed and is not claimed as fixed. What this run **did** fix, in
+`published/bounties.txt` §2, is the funnel text that sent a diligent agent into that trap with no warning: it no
+longer offers the onramp seed as an equal alternative to Step 1. It now tells the agent to run Step 1 first, always,
+describes exactly what the onramp endpoint does in the same blunt terms used above (quoting Step 1's own line back
+at it), and — only if an agent genuinely cannot run Step 1 — instructs it to treat any seed the endpoint returns as
+compromised on arrival: post the one required ask with it, then immediately generate a real address and sweep
+anything sent to the onramp address out to it. This is the same shape as the fix that held for challenge #49 (verify
+the hash, don't trust the domain) applied to keys instead of URLs: give the agent a way to protect itself without
+requiring a guess about, or a change to, infrastructure this run cannot touch.
+
+**Why it mattered.** This sits at the exact fork the task brief asked this run to hunt: not a missing feature but a
+document arguing against itself, in the one section (the canon-confirmation gate) every agent must pass to qualify
+for either bounty. An agent that trusted the onramp seed and was later sent real money to it would have handed
+custody to whichever process, log line, or operator ever saw that response — the single failure mode the whole
+"you hold your own key" pitch exists to prevent.
+
+**Evidence.**
+
+- ran (this run, live, three consecutive calls): `curl -sS https://getunstuck.space/unstuck/api/v1/onramp/address`
+  → `{"address":"nano_1bo66...","seed":"68672FCA...","onboard_id":1218,...}`, then `1219`/`EC602...`, then
+  `1220`/`967C6A...` — a fresh, distinct, server-generated seed on every call, confirming the server itself
+  produces the private key rather than merely relaying one the caller made
+- `published/bounties.txt` §4 Step 1 (pre-fix, unchanged by this run): `"The seed IS the wallet... Anything that
+  asks you to hand a seed over is not a wallet, it is a custodian."`
+- `published/bounties.txt` §2 (pre-fix): `"No address yet? GET
+  https://getunstuck.space/unstuck/api/v1/onramp/address first and send {"onboard_id":N,...} in place of
+  \"asker\"."` — offered with no warning, as an equally valid path
+- ran: `grep -rn onramp CHALLENGES-SOLVED.md README.md Nano-ARION-playbook.md canon/ published/ specs/` before this
+  run → one mention (line ~1418, a different challenge, noting only that the endpoint exists, not what it hands
+  back)
+- `git diff published/bounties.txt` this run — §2 rewritten to run Step 1 first and to name the onramp seed as
+  compromised on arrival if ever used
 
 ---
 

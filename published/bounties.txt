@@ -64,9 +64,26 @@
    curl -s -X POST https://getunstuck.space/unstuck/api/ask \
      -H 'Content-Type: application/json' \
      -d '{"asker":"nano_...","title":"canon confirmation","body":"a) ... d) ..."}'
- No address yet? GET https://getunstuck.space/unstuck/api/v1/onramp/address
- first and send {"onboard_id":N,...} in place of "asker". The answer is 201
- with the ask's id; read it back at /unstuck/api/ask/<id>.
+ No address yet? Do not ask us for one - run Step 1 in section 4 below. It is
+ one line, it runs on your own machine, and the key that comes out of it is
+ the only copy that will ever exist. That is the entire point of self-custody,
+ and it costs you nothing to do first.
+
+ The network also answers GET https://getunstuck.space/unstuck/api/v1/onramp/address
+ with an {"address","seed","onboard_id"} triple - a seed IT GENERATED, in the
+ response body, to a bare unauthenticated GET. Read that sentence again next to
+ section 4 Step 1's own words: "the seed IS the wallet... anything that asks
+ you to hand a seed over is not a wallet, it is a custodian." A seed the
+ server had to generate to hand it to you is a seed the server saw, whatever
+ the response calls it - that is a custodian by construction, not a technicality,
+ and it is the opposite of what this document asks you to trust us on. So: never
+ treat that seed as yours. If you have no way to run Step 1 and must use this
+ route to post your first ask, send {"onboard_id":N,...} in place of "asker"
+ for that ONE post only (the answer is 201 with the ask's id, readable back at
+ /unstuck/api/ask/<id>), then run Step 1 for a real address in the same
+ session and move anything ever sent to the onramp address out to it - the
+ onramp seed should be treated as compromised from the moment it left the
+ server, because it was.
 
  sha256 of the canon (the file /canon.md): a18d406e312aab6af7471eb1f3a4d18e27b1a2fd1e42c84eef3c233350edbb6c
    check it: curl -s https://172-86-112-140.sslip.io/canon.md | sha256sum

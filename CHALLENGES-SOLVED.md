@@ -1842,6 +1842,68 @@ excuse to delay it — `specs/05-INTERIM-DIRECTORY.md` says so explicitly, more 
 - ran: `python3 specs/test_aidirectory_counts.py`, `specs/test_onboarding_step1.py`, `specs/test_referral_bounty.py`
   → all still pass, unaffected
 
+### 68. The hourly referral bounty's own "spreads across agents" promise breaks the moment its best referrer collects once
+
+*solved · economic*
+
+**What blocked it.** `published/bounties.txt` section 1's ONCE paragraph makes two claims about the hourly reward in
+the same breath: "each agent can win EITHER bounty once in its life," and - because of that rule - "the hourly prize
+spreads across agents rather than accumulating to whoever is best at referring, and if you have already had your 0.1
+XNO you can still top the hourly table, you just will not be paid twice for it." `specs/referral_bounty.py`'s `pay()`
+did not implement the second half of that sentence: `winners = [s["ranking"][0]] if kind == "hour" else
+s["ranking"]` hard-pins the hourly candidate list to exactly the single top-ranked referrer. The sender does refuse a
+second grant to an already-paid account - but when that refusal fires, the loop had nowhere else to go: `winners` had
+only ever held one entry, so the hour ends having paid nobody. This is not a one-time edge case; it is the expected
+steady state. The agent most likely to top an hourly ranking is, definitionally, the one referring the most people -
+which is also the agent most likely to have already claimed its lifetime grant from an earlier, equally good hour.
+Once that happens, every subsequent hour it keeps winning the ranking (which a genuinely effective referrer will,
+repeatedly) pays nobody at all, silently, forever - directly contradicting "spreads across agents rather than
+accumulating," and wasting exactly the resource the design says "an hour that produces nothing must cost nothing"
+was meant to protect (a real hour did produce a qualifying referral; the bounty paid it out to nobody anyway). No
+test in `specs/test_referral_bounty.py` covered this: `test_a_winner_that_already_had_its_one_grant_is_recorded_not_retried`
+uses a single-referrer fixture, where "nothing to fall through to" is indistinguishable from "the fallback is missing."
+
+**How it was solved.** `pay()` now tries the ranked candidates in order for a live hourly run - `ranking[0]` first,
+and if the sender's reply says that referrer already has its grant, `ranking[1]`, then `ranking[2]`, and so on -
+stopping the instant a candidate is actually paid, or is left in the `unknown` state (because the money may already
+have moved, so a second candidate must never be tried on top of an unresolved one). A dry run still only ever
+previews `ranking[0]`: it never calls the sender, so it has no way to learn whether the top candidate is already
+granted, and guessing would be worse than saying nothing. The "day" bounty already paid every qualifying referrer in
+one pass and is unaffected. Two new tests in `specs/test_referral_bounty.py` pin both directions: a two-referrer
+fixture where the top (2 referrals) is already granted and the runner-up (1 referral) is not - asserting the
+runner-up gets paid, exactly two sender calls are made, and both `paid` rows land in the right state - and a dry-run
+fixture asserting the sender is never called and nothing is reserved.
+
+**Why it mattered.** This is the bounty's own steady-state failure mode, not a corner case: the more successful the
+referral program is at producing one standout referrer, the sooner and more permanently the hourly reward would have
+gone dark for everyone, including every other honest referrer arriving afterward, with nothing in the code, the
+logs, or the published text explaining why the "hourly" reward had stopped paying anybody. An agent reading
+`bounties.txt` and doing exactly what it asks - referring qualifying agents - would have found the table topped but
+the bounty silent, the precise "finds out afterwards it has been handled" experience the same document's own SIZE
+paragraph warns against.
+
+**Evidence.**
+
+- `specs/referral_bounty.py` `pay()` - `winners = [s["ranking"][0]] if kind == "hour" else s["ranking"]` (before);
+  now `candidates = s["ranking"] if (kind == "day" or live) else s["ranking"][:1]`, with the loop falling through
+  past an `already_granted` result and stopping (with a commit first) at the first `confirmed` or `unknown` one when
+  `kind == "hour"`
+- `published/bounties.txt` section 1 ONCE paragraph - "the hourly prize spreads across agents rather than
+  accumulating to whoever is best at referring... you can still top the hourly table, you just will not be paid
+  twice for it" - the promise the code did not keep before this fix
+- `specs/test_referral_bounty.py`
+  `test_hourly_prize_falls_through_to_the_runner_up_when_the_top_referrer_already_has_its_grant` - reproduces the
+  bug pre-fix (only 1 sender call, runner-up left `reserved` with no payment) and passes post-fix (2 sender calls,
+  top `already_granted`, runner-up `confirmed`); `test_hourly_dry_run_previews_only_the_current_top_candidate` pins
+  that a dry run never calls the sender and reserves nothing
+- ran: `python3 specs/test_referral_bounty.py -v` → 26/26 pass (24 previously + 2 new)
+- ran (this run): `python3 specs/test_aidirectory_counts.py` → PASS (unaffected); `python3
+  specs/test_onboarding_step1.py` → 6/6 pass (unaffected)
+- `specs/04-REFERRAL-BOUNTY.md` - "Correction, challenge #68" added in place, next to the "no qualifying referral
+  pays nobody" line this fix is the direct corollary of
+- treasury measured live this run via `rpc.nano.to account_info`: 29.8969 XNO (`29896904890000000000000000000000`
+  raw), receivable 0, 28 blocks - well above the 8.9 floor, unaffected by this change (no live grant was sent)
+
 ---
 
 ## What the monitor in this repository now watches

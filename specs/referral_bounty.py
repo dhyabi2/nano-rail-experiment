@@ -359,7 +359,19 @@ def pay(kind="hour", live=False):
     if not s["ranking"]:
         print(f"{s['period']}: no qualifying referral. Paying nobody - an hour that produced nothing costs nothing.")
         return 0
-    winners = [s["ranking"][0]] if kind == "hour" else s["ranking"]
+    # bounties.txt's ONCE paragraph promises two things at once: "each agent can win EITHER bounty once in its
+    # life" AND "the hourly prize spreads across agents rather than accumulating to whoever is best at referring
+    # ... if you have already had your 0.1 XNO you can still top the hourly table, you just will not be paid
+    # twice for it." Those only both hold if a top referrer who already has its lifetime grant does not simply
+    # eat the hour: the prize must fall through to the next-ranked referrer who has not been paid yet. Before
+    # this fix `winners` was hard-pinned to `[ranking[0]]` for "hour", so once the single most effective referrer
+    # (who, being the most effective, tends to keep topping the table) claimed its one grant, every later hour it
+    # still won the ranking paid NOBODY, forever - silently contradicting "the hourly prize spreads across
+    # agents" and wasting the hour exactly the spec says must never happen for nothing. A dry run cannot detect
+    # "already granted" (that fact only comes back from actually calling the sender), so it still only ever
+    # previews the current top candidate; only a live run walks the full ranking looking for the first referrer
+    # that can actually be paid. "day" already paid every qualifying referrer, so it is unaffected.
+    candidates = s["ranking"] if (kind == "day" or live) else s["ranking"][:1]
 
     ok, bal = treasury_ok()
     if not ok:
@@ -367,7 +379,7 @@ def pay(kind="hour", live=False):
               "Bounties stop before the treasury does.")
         return 1
     used = spent_today(con)
-    for w in winners:
+    for w in candidates:
         if used + GRANT_RAW > DAILY_CEILING_RAW:
             print(f"REFUSED: the frozen daily bounty ceiling ({DAILY_CEILING_RAW/XNO:.1f} XNO) is reached.")
             break
@@ -414,12 +426,21 @@ def pay(kind="hour", live=False):
                         (blk, s["period"], w["referrer"], kind))
             used += GRANT_RAW
             print(f"  PAID 0.1 XNO to {w['referrer'][:26]}... block {blk}")
+            con.commit()
+            # Exactly one winner per hour. "day" pays every qualifying referrer, so it keeps going.
+            if kind == "hour":
+                break
+            continue
         else:
             # A lost reply is 'unknown', never 'not sent': the money may have moved. Nothing retries it automatically.
             con.execute("UPDATE paid SET state='unknown' WHERE period=? AND winner=? AND kind=?",
                         (s["period"], w["referrer"], kind))
             print(f"  UNKNOWN for {w['referrer'][:26]}...: sender exited {r.returncode}. "
                   f"Left as 'unknown' - a person must read the chain before anything retries. {r.stderr[:160]}")
+            con.commit()
+            # An unknown outcome might already be a real send - never try a second candidate on top of it.
+            if kind == "hour":
+                break
         con.commit()
     return 0
 

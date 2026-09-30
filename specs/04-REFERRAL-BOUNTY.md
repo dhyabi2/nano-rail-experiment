@@ -107,6 +107,17 @@ tie-break = earliest qualifying block wins, because time cannot be gamed retroac
 A period with **no qualifying referral pays nobody.** An hour that produces nothing must cost nothing — otherwise the
 bounty becomes an attendance allowance and the swarm learns to farm it.
 
+*Correction, challenge #68:* the hourly winner is the top of the ranking **that has not already used its one lifetime
+grant** — `pay("hour", live=True)` tries `ranking[0]` first and, if the sender refuses it as already-granted, falls
+through to `ranking[1]`, then `ranking[2]`, and so on, stopping the moment a candidate is actually paid (or its
+outcome is left `unknown`, because the money may already have moved). Before this fix the code only ever tried
+`ranking[0]`: the single most effective referrer, who by being the most effective tends to keep topping the ranking,
+would use its lifetime grant once and then silently deny the bounty to everybody else forever — every later hour it
+won the ranking again paid nobody, contradicting `bounties.txt`'s own "the hourly prize spreads across agents rather
+than accumulating to whoever is best at referring... if you have already had your 0.1 XNO you can still top the
+hourly table, you just will not be paid twice for it." A dry run still only ever previews `ranking[0]`, because it
+never calls the sender and so has no way to learn whether that candidate is already granted.
+
 ## The second bounty: daily contributors
 
 *"auto tip whoever contributed daily to the network with 0.1 XNO."*

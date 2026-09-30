@@ -30,11 +30,11 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 1. A payment nobody pockets is not income
 
-***UNSOLVED** · economic*
+***partial** *(corrected this run — the specific instance is resolved, the mechanism stays invisible)* · economic*
 
 **What blocked it.** ARION's 0.0005 XNO sat UNRECEIVED on Vend's payee for two days, beside twelve more payments totalling 10.0016 XNO — including 10 XNO from pursekeeper, the agent that pays Nano bounties for verified claims. The endpoint delivered and the block was real; only the last step was never taken.
 
-**How it was solved.** Nothing does it: ARION-LAW's "Receive every payment the same day, and report the receivable count" is prose, a tree-wide search finds no receiver, no cron and no alarm (rai_brief.treasury() merely prints a receivable figure for NANO_AGENT_ACCOUNT, and Vend holds no seed at all), while openings.js's `unreceived` counts only whether OUR starters were picked up — the opposite direction.
+**How it was solved.** Nothing in this repository does it: ARION-LAW's "Receive every payment the same day, and report the receivable count" is prose, a tree-wide search finds no receiver, no cron and no alarm (rai_brief.treasury() merely prints a receivable figure for NANO_AGENT_ACCOUNT, and Vend holds no seed at all), while openings.js's `unreceived` counts only whether OUR starters were picked up — the opposite direction. **Correction, measured live this run (2026-09-29, network reachable):** `POST https://rpc.nano.to account_info` for the treasury returns `"receivable":"0"` and `balance_nano: 29.89690489` — up from the 9.8969 XNO recorded 2026-09-26, an increase consistent with the 10.0016 XNO of unreceived payments landing. `published/bounties.txt` (commit `f452af4`, 2026-09-28, not from this hunter routine) already states "All 13 were received on 2026-09-28, and new payments are now received automatically every 15 minutes" — this run's own chain read is the first independent confirmation that claim is currently true. The specific instance this challenge was opened over is resolved. What is still true, and why this stays **partial** rather than solved: the receiver mechanism itself is not in this repository (same shape as challenge #5 — a tool that runs on the box and in no commit here), so nothing here can be checked, tested, or trusted to keep running; "receives every 15 minutes" is presently a claim about a live cron this tree cannot see, verify the code of, or alert on if it stops.
 
 **Why it mattered.** From outside this is a merchant that takes your money and never acknowledges it while asking you to trust the rail — and "settlement IS the receipt" is false if the receipt never becomes a balance.
 
@@ -44,6 +44,8 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - ran: grep -rn receivable pulse vend unstuck agent → pulse/rai_brief.py:288 (a printed string), two test fixtures, unstuck/opener/send.js:73 (our own starters); no receive action anywhere
 - `vend/swarm/money_audit.py docstring — "Vend holds no seed at all"; no receivable or pending check in it`
 - `unstuck/opener/openings.js:163 — `unreceived` is outbound only`
+- ran this run: `curl -sS -X POST https://rpc.nano.to -H 'User-Agent: hunter/1.0' -d '{"action":"account_info","account":"nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9","receivable":true}'` → `"receivable":"0"`, `"balance_nano":"29.89690489"`, `"block_count":"28"`
+- `published/bounties.txt:199-203` (commit `f452af4`, 2026-09-28) — "All 13 were received on 2026-09-28, and new payments are now received automatically every 15 minutes"; README.md's `9.8969 XNO, 25 blocks` (2026-09-26) is now stale by this same measurement (`29.8969 XNO, 28 blocks`) and worth the owner refreshing next time that file is touched
 
 ### 2. Bare dust is semantically underdetermined — an opening reads as a dusting attack
 
@@ -1717,6 +1719,10 @@ recorded once was still there.
   `published/aidirectory-llms.txt` and `published/aidirectory/llms.txt`, which needed no change
 - ran: `python3 specs/test_aidirectory_counts.py` → still `PASS` (unaffected, a different property of the
   same files); `python3 specs/test_referral_bounty.py` → 24/24 pass, unaffected
+- **Independently reconfirmed a run later**, before this fix was merged: a separate hunt found the same regression
+  again from a stale pre-fix checkout, measured the same real ask `#578` still unanswered, and contributed a second,
+  narrower regression test, `specs/test_onboarding_step6.py`, kept here as additional coverage alongside
+  `test_onboarding_commands_agree.py` rather than written up as a second challenge entry for the same bug
 
 ### 66. The daily "contributor" bounty had no code path at all — now it does, and it is already owed to six live agents
 

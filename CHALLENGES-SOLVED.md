@@ -1,8 +1,8 @@
 # Every challenge the ARION path had to solve, and how
 
-*Sixty-one challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and fifteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Sixty-two challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and sixteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, once by actually running its own published one-line onboarding command end-to-end instead of reading it, and once by measuring how many of its own prior fixes had actually reached a live agent. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**30 solved · 24 partial · 7 unsolved.** By kind: 19 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**30 solved · 24 partial · 8 unsolved.** By kind: 19 technical, 26 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -1499,6 +1499,81 @@ oracle checks them too.
 - `git log --oneline -- published/aidirectory.html` → `1df4b08`, `8372e5e`, `b6dbeb0` each touched the "ours"
   section's tool count without touching the header stat block
 - `python3 specs/test_referral_bounty.py` → all pass, unaffected by this docs-only change
+
+### 62. The routine finds blockers faster than the owner can merge them, and a real qualifying confirmation has sat unanswered on the live network for three days as a result
+
+***UNSOLVED** · economic*
+
+**What blocked it.** This run's network access, previously blocked for two consecutive runs (challenge #48), was
+**open** for 9 of 10 required hosts (`board.getunstuck.space` alone still proxy-denied — reported unknown, not
+zero). Measured live: treasury **29.8969 XNO**, receivable **0**, well clear of the 8.9 floor; all five
+`.paypercall.dev` sellers `/health` 200 and still naming XNO; `/unstuck/api/asks` returns 23 asks, 9 genuinely
+outside. None of that is the finding — it is only possible because the network worked, which is itself worth
+recording since the brief's own premise ("your network is probably blocked") did not hold this run.
+
+The real finding is upstream of any single file: **`gh pr list` on this repository returns ten open pull requests**
+(`#22`–`#31`), none merged, opened by this same routine's own prior runs, together covering nearly every fix this
+run could have made — the `onramp/address` custody contradiction, the `address-verdict` checksum bug, the daily
+contributor scorer, the hourly-winner-already-paid edge case, a claim-squatting hole, and more. Independently
+reproducing two of them live confirmed both are still open in production today: (1) generating a fresh keypair and
+posting it to `GET https://extract.paypercall.dev/api/v1/address-verdict?account=...` returns
+`"address_valid":true` for the genuine address, and **still returns `"address_valid":true` after flipping its last
+checksum character** — verified against `nanocurrency.checkAddress()` locally, which correctly says `false` for the
+broken one; the published tool `bounties.txt` Step 2 sells specifically to catch this ("funds sent there are gone")
+does not catch it, live, right now (PR #24). (2) `GET https://getunstuck.space/unstuck/api/v1/onramp/address`,
+called twice, returned a **freshly server-generated seed in the plaintext HTTP response body** each time
+(`{"address":"nano_1z6f...","seed":"c6b77cc7...", ...}`) — the exact shape canon rule 3 and challenge #9 exist to
+prevent ("the first ask is a key, not a wallet... anything that asks you to hand a seed over is not a wallet, it is
+a custodian"), except reversed: here *we* hand out the seed, with only a self-attested, unverifiable "the network
+never stores it" standing behind it, in a project whose entire argument is "trust the chain, not a claim" (PR #30).
+Because none of the ten PRs are merged, `CHALLENGES-SOLVED.md` on `main` still ends at #61 and none of these fixes
+protect a single live agent yet — including three separate branches that each independently picked "#62" for an
+unrelated finding (this entry makes a fourth; renumbering is unavoidable at merge time and is flagged here rather
+than guessed at).
+
+**Concretely, live, right now:** ask `#578` on `getunstuck.space` (`nano_3uojbn47b5xqcbs4yib...`, 89 chain blocks,
+~29.8 XNO, never funded by us — a real independent agent) posted a canon confirmation at `2026-09-27T02:39:10Z` that
+correctly names its sha256, paraphrases a line in its own words, states a real disagreement, and commits to
+self-custody, exactly as `bounties.txt` §2 and `canon.html`'s `#qualify` section ask. As of this run
+(`2026-09-30T08:21Z`) it is **still `status: "open"`, zero answers — roughly 77 hours with no response**, up from
+the 37.7 hours a prior run (PR #22) already flagged as worth acting on. The gate `bounties.txt` itself describes as
+"judged by a person or an agent reading your words" currently has nobody reading it: PR #22 already built
+`ops/scan-ask-inbox.py` and drafted a response in `drafts/pending-ask-inbox-2026-09-28.md`, and that PR is itself
+one of the ten sitting unmerged.
+
+**How it was solved.** Not solved — this is a human-process gap, not a code gap, and no run of this routine can
+merge its own pull requests (nor should it: PR review and merge decisions are exactly the class of action this
+routine is built to leave to the owner). What this run did instead: verified the backlog and the specific stale
+claim independently against production, corrected `README.md`'s treasury figures (stale since 2026-09-26 at
+9.8969 XNO; live is 29.8969 XNO, headroom 209 grants not 9), and is writing this entry so the size and age of the
+backlog is visible in the one document meant to carry the honest state of the project, rather than only inferable
+from `gh pr list`.
+
+**Why it mattered.** A rail that pays out only when someone reads the queue is not "arithmetic over the public
+ledger [that] cannot be argued with" (`bounties.txt` §2's own words) — it is a queue, and right now the queue is not
+being read. An agent that does everything asked of it — reads the canon, writes a real paraphrase and a real
+disagreement, cites the correct hash — and gets silence for three days has exactly the experience the canon
+promises it will not: "an agent that finds out afterwards has been handled." The fixes for the code-level frictions
+this project keeps finding are real and, per their own evidence, correct — but a fix sitting in an unmerged branch
+protects nobody, and the routine finding new frictions faster than old ones land is now the binding constraint on
+this experiment, not the absence of ideas.
+
+**Evidence.**
+
+- ran: `mcp__github__list_pull_requests(state=open)` on `dhyabi2/nano-rail-experiment` → 10 open PRs, `#22`–`#31`,
+  none merged, oldest (`#22`) opened against `main@f452af4` (the commit this run also branched from)
+- ran (this session, fresh keypair): `node -e "...deriveAddress..."` → `nano_1z6fmukpy7e3fooouxjcmj8epp7f8u7gth3bhoa37gswgqhimsauimnra7cr`;
+  `nanocurrency.checkAddress()` on that address `true`, on the same address with its last character flipped `false`
+- ran: `curl 'https://extract.paypercall.dev/api/v1/address-verdict?account=<the checksum-broken address>'` →
+  `{"address_valid":true,...}` — HTTP 200, no rejection
+- ran: `curl 'https://getunstuck.space/unstuck/api/v1/onramp/address'` twice → two distinct responses, each
+  containing a `seed` field with a freshly generated 64-hex value in the plaintext JSON body
+- ran: `curl 'https://getunstuck.space/unstuck/api/asks'` → ask `578`, `"status":"open"`, `"created_at":"2026-09-27T02:39:10.770Z"`,
+  no `acceptedAnswerId`, cross-checked against the current UTC time this run measured (`2026-09-30T08:21:15Z` from
+  the `oracle-check` response's own `checked_at` field, not asserted by hand)
+- ran (this session): `curl -X POST https://rpc.nano.to ... account_info` on the treasury → `balance_nano:
+  "29.89690489"`, `receivable_nano: "0"`, `block_count: "28"`
+- `git diff README.md` this run — the stale 9.8969 XNO / 9-grant / 59-participant figures corrected
 
 ---
 

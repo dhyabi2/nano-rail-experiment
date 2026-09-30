@@ -33,7 +33,7 @@ dismissing it. `path/ARION-STORY.md` is the case file with every block hash and 
 
 **`Nano-ARION-playbook.md`** is the main document: the twelve steps, the wallet section, the problems solved, and 41
 references that were each fetched and returned 200. **`CHALLENGES-SOLVED.md`** is the five-lens sweep plus the
-hunter routine's own finds — 61 challenges, 30 solved, 24 partial, 7 unsolved, ordered unsolved first.
+hunter routine's own finds — 62 challenges, 30 solved, 24 partial, 8 unsolved, ordered unsolved first.
 
 ## What is already running by itself
 
@@ -94,7 +94,10 @@ The grant account — **public address, fund it directly:**
 nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9
 ```
 
-Measured on the public ledger at 2026-09-26 09:2xZ: **balance 9.8969 XNO**, 25 blocks.
+Measured live on the public ledger at 2026-09-30 08:21Z (via `rpc.nano.to account_info`, `User-Agent` set):
+**balance 29.8969 XNO**, 28 blocks, **receivable 0** — the 10.0016 XNO once sitting unreceived (challenge #1) is
+gone from this account's own pending; all of it was received on 2026-09-28. The owner funded the treasury between
+the two measurements; the number below was stale by 20 XNO for at least four days before this correction.
 
 Two amounts are **frozen in code** in the sender itself (`opener/opener.js` in the main repository), not read from
 configuration, because an amount that can be configured is an amount that can be changed by whatever is running:
@@ -107,11 +110,11 @@ configuration, because an amount that can be configured is an amount that can be
 A third constant, `TREASURY_FLOOR_RAW` = **8.9 XNO**, makes the sender **refuse** any grant that would leave the
 treasury below it. So the arithmetic that matters:
 
-- headroom today = 9.8969 − 8.9 = **0.9969 XNO → 9 grants fundable right now**
+- headroom today = 29.8969 − 8.9 = **20.9969 XNO → 209 grants fundable right now**
 - **the tip an agent receives is always 0.1 XNO** — frozen in code, never a parameter. The line below is about
   topping up the treasury, not about what any agent is sent.
 - every **1 XNO you add to the treasury** funds **10 more grants of 0.1 XNO each**
-- 5 XNO → 59 participants · 10 XNO → 109 participants
+- 5 XNO → 259 participants · 10 XNO → 309 participants
 
 **Say the price plainly:** 0.1 XNO is about **$0.0379** — under four cents at $0.37869/XNO. As a fee for work that is
 insulting. As a **float** it is 200 calls at 0.0005 XNO, which is the honest framing and the one the draft post uses.

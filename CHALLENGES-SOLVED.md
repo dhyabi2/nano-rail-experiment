@@ -1,8 +1,8 @@
 # Every challenge the ARION path had to solve, and how
 
-*Sixty-one challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and fifteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, and once by actually running its own published one-line onboarding command end-to-end instead of reading it. Ordered **unsolved first** — the honest order, not the flattering one.*
+*Sixty-two challenges: forty-six found by five independent sweeps over the code, the case file and the operating record, each sweep then checked by a second reader against the files it named, and sixteen found by the hunter routine — testing its own unlaunched code and published artefacts offline, once by going network-blind in its own session, once by actually running its own published one-line onboarding command end-to-end instead of reading it, and once by trying to follow its own "get paid" step as a stranger would. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**30 solved · 24 partial · 7 unsolved.** By kind: 19 technical, 25 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
+**31 solved · 24 partial · 7 unsolved.** By kind: 19 technical, 26 economic, 17 epistemic — and the balance is itself the finding. Barely any of this was cryptography.
 
 ---
 
@@ -1499,6 +1499,74 @@ oracle checks them too.
 - `git log --oneline -- published/aidirectory.html` → `1df4b08`, `8372e5e`, `b6dbeb0` each touched the "ours"
   section's tool count without touching the header stat block
 - `python3 specs/test_referral_bounty.py` → all pass, unaffected by this docs-only change
+
+### 62. The one onboarding step that actually matters — "get paid in it" — was never a command, and there was nothing to tell an agent that could get it listed
+
+*solved · economic*
+
+**What blocked it.** `published/aidirectory.html`'s six-command onboarding list promises, in its own header, "every
+command below was run before it was published; copy them as they are." Steps 1-5 are real, tested `curl`/`node`
+commands. Step 6 — labelled by the page itself "**the step that matters**" — was not a command at all:
+`# publish your price at /.well-known/x402 and tell us: https://getunstuck.space/unstuck/api/asks`. A leading `#`
+is a shell comment; pasted verbatim it does nothing. Even read as prose rather than executed, "tell us" named only
+a **GET** endpoint for browsing existing asks, with no instruction for how an agent would actually submit anything.
+This is not a hypothetical gap: `/unstuck/api/agents` genuinely 404s (confirmed live this run — `{"error":"not
+found"}`), so there is no directory an agent can register itself in, and step 6 pointed at that absence without
+saying so. `published/aidirectory/tools.json`, the machine-readable twin the page itself tells an agent to prefer
+("Do not parse this page… two feeds carry the same data"), carried the identical broken `cmd` string, so parsing
+the JSON instead of the HTML did not help. Worse, the *third* representation of the same content —
+`published/aidirectory-llms.txt` (and its byte-identical copy `published/aidirectory/llms.txt`) — silently
+disagreed: its own step 6 was "Spend it on something real" (matching `bounties.txt`), pushing "get paid" out to a
+separate, unlinked "Step 7" in a different section ("The path") that used the exact same unusable "tell us so we
+list you" phrasing with no mechanism at all. Three supposedly-identical descriptions of "the six onboarding
+commands", each generated (per the page's own claim) "from the same source", disagreed on what the final,
+most-important step even was.
+
+**Why it mattered.** This is friction (c) from this run's brief — joining the network — at its single worst
+point: the step the page itself calls "the step that actually matters" (getting *paid*, the whole thesis of this
+project: "nobody adopts a rail to spend, they adopt it because they are PAID on it") was the one step with no
+working instructions anywhere. An agent that got through steps 1-5 exactly as told would hit a wall doing nothing
+that looks like it should be doing something — a `#`-prefixed no-op — right at the finish line, with no error and
+no correction, which is precisely the "a quantity or an instruction that is wrong and produces no error at all"
+shape this document's own pattern section names first. Measured this run: 1,049 agents recorded, 21 with anything
+in the address field, 8 real addresses, 5 holding XNO, 1 that has ever paid — the funnel is not short of buyers,
+it is short of a working last step for sellers, and this was that step.
+
+**How it was solved.** Rewrote onboarding step 6 in both HTML copies
+(`published/aidirectory.html`, `published/aidirectory/index.html`) and in `published/aidirectory/tools.json`'s
+`onboarding[5].cmd` to a real, copy-pasteable command that uses a mechanism this repository already documents and
+already relies on elsewhere — `POST /unstuck/api/ask` (the exact call `bounties.txt` §2 and §3 use for a canon
+confirmation and a referral claim) — with a `title` of `"seller listing"`:
+`curl -s -X POST https://getunstuck.space/unstuck/api/ask -H 'Content-Type: application/json' -d
+'{"asker":"nano_...","title":"seller listing","body":"accepts XNO. price/x402: <url>. sells: <one line>"}'`. This
+requires no new endpoint and no server-side work: `/unstuck/api/asks` is already free and public
+(confirmed live this run, 23 asks readable), so a title every reader can filter on is an honest, if informal,
+stand-in for the directory endpoint that does not exist yet, rather than a broken pointer to one. Made the same
+fix to the "Get PAID in it" step-7 text in both `llms.txt` copies and in `tools.json`'s `path[7].why`, and aligned
+that step's wording with onboarding step 6 instead of leaving a second, differently-broken "tell us" phrase
+standing. `specs/test_aidirectory_counts.py` still passes unchanged (this was a text-only, non-count-affecting
+fix); all five published surfaces remain byte-identical to their mirrors.
+
+**What is still not solved.** This makes "get paid" *followable*, not *curated* — an ask titled "seller listing"
+is discoverable only by an agent that thinks to search `/unstuck/api/asks` for that exact title, which is a
+workaround, not a directory. `/unstuck/api/agents` returning 404 is the real, underlying gap (challenge noted but
+not newly re-litigated here — see this run's PR body); building that endpoint is out of scope for a
+network-constrained text/flow fix and belongs to whoever can deploy to `getunstuck.space`.
+
+**Evidence.**
+
+- `published/aidirectory/tools.json` pre-fix, `onboarding[5].cmd`: `"# publish your price at /.well-known/x402 and
+  tell us: https://getunstuck.space/unstuck/api/asks"` — a `#`-prefixed string, not a runnable command
+- ran this run: `curl -s https://getunstuck.space/unstuck/api/agents` → `404 {"error":"not found"}`
+- ran this run: `curl -s https://getunstuck.space/unstuck/api/asks` → 200, 23 asks total, none titled "seller
+  listing" or "referral claim" yet — the mechanism existed but nothing had used it this way before this fix
+- `diff published/aidirectory-llms.txt published/aidirectory/llms.txt` pre- and post-fix → empty both times
+  (mirrors stay identical); pre-fix step 6 of `llms.txt`'s onboarding list read "Spend it on something real" while
+  `aidirectory.html`'s step 6 read "Get paid in it" — the same numbered step, two different contents, in files
+  the page claims are "generated from the same source"
+- ran: `python3 specs/test_aidirectory_counts.py` post-fix → `PASS: every published aidirectory copy agrees - 25
+  callable, 221 referenced, 246 total` (unaffected, as expected for a text-only change)
+- ran: `python3 -c "import json; json.load(open('published/aidirectory/tools.json'))"` post-fix → parses clean
 
 ---
 

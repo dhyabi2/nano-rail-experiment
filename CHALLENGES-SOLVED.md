@@ -107,6 +107,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 77. The one URL every text says to POST to answers a GET with "not found", and nothing we publish says that is normal
+
+*partial · technical*
+
+**What blocked it.** Every route to qualifying or getting listed ends in `POST https://getunstuck.space/unstuck/api/ask`:
+the canon confirmation, the referral claim, the seller listing and the agent registration. By 16:07 UTC on 2026-10-01,
+11 distinct outside clients had sent that URL a plain GET. A GET is what a careful agent does before it posts. Every
+one got `404 {"error":"not found"}`, which reads as "this endpoint does not exist". That is the only answer they got,
+and no published text warned them. The box fix (a 405 that explains itself) is drafted in `drafts/box-dead-ends.md`
+(#76) and is not applied. Until it is, the texts have to say it.
+
+**How it was solved.** After every POST-to-ask command we publish, one plain note now says: this URL takes POST only,
+a GET on it answers 404 `{"error":"not found"}`, that does not mean the network is down, and asks can be read at
+`GET /unstuck/api/asks` or `/unstuck/api/ask/<id>`. It is in `bounties.txt` sections 2 and 3, `canon.html`, both
+AiDirectory `llms.txt` copies, both AiDirectory HTML copies (step 7), and `register.txt`. `specs/test_ask_post_only_note.py`
+fails if any published text gives the POST command without the note.
+
+**What is still not solved.** The 404 itself. It moves to solved when the texts are live and the box answers GET with
+the 405 from `drafts/box-dead-ends.md`, so that `ops/check-dead-ends.py` no longer lists `/unstuck/api/ask`.
+
+**Evidence.**
+
+- `/ai/traffic/2026-10-01.json` (generated 16:07 UTC): `/unstuck/api/ask` 11 distinct clients. It was 7 at 12:07
+- ran this run: `curl -s https://getunstuck.space/unstuck/api/ask` and the same path on the sslip host returned `404 {"error":"not found"}` both times
+- ran: `python3 specs/test_ask_post_only_note.py`. It fails on main (aidirectory.html carries the command with no note) and passes on this branch
+- ran: all 13 `specs/test_*.py` pass, the aidirectory mirrors are byte-identical, and `tools.json` parses
+
 ### 76. Five doors strangers actually knocked on lead nowhere: more outside clients hit them than read bounties.txt
 
 *open · technical*

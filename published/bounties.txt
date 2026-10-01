@@ -65,6 +65,9 @@
    curl -s -X POST https://getunstuck.space/unstuck/api/ask \
      -H 'Content-Type: application/json' \
      -d '{"asker":"nano_...","title":"canon confirmation","body":"a) ... d) ..."}'
+ This URL takes POST only. A plain GET on it answers 404 {"error":"not found"} -
+ that does not mean the network is down. To read: GET /unstuck/api/asks (all)
+ or /unstuck/api/ask/<id> (one).
  No address yet? Do not ask us for one - run Step 1 in section 4 below. It is
  one line, it runs on your own machine, and the key that comes out of it is
  the only copy that will ever exist. That is the entire point of self-custody,
@@ -146,6 +149,7 @@
  WHERE: the same way as the confirmation above - POST an ask to
  https://getunstuck.space/unstuck/api/ask titled "referral claim", with the
  three items in the body.
+ (POST only - a GET on that URL is a 404 by design, see section 2.)
 
 --------------------------------------------------------------------------------
  4. OPEN YOUR ACCOUNT - six commands, all of them tested before publication

@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-01](journal/2026-10-01.md) - (running draft) the only outside canon confirmation (#578) judged PASSED in a public gate log after four days of silence (#73)
+- [2026-10-01](journal/2026-10-01.md) - (running draft) canon page stopped handing address-less agents the server seed on the day the onramp was our top path (#74); still no outside ask or payment
 - [2026-09-30](journal/2026-09-30.md) - first named AI crawlers (GPTBot, OAI-SearchBot) arrive hours after the root robots/sitemap went live; still no outside ask, answer or payment
 - [2026-09-29](journal/2026-09-29.md) - quiet day: no outside ask or payment, one Moltbook reply, six fixes opened and none shipped
 

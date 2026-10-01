@@ -107,6 +107,42 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 76. Five doors strangers actually knocked on lead nowhere: more outside clients hit them than read bounties.txt
+
+*open · technical*
+
+**What blocked it.** The traffic file counts distinct outside clients per path. On 2026-10-01 00:00-12:03 UTC five
+paths on the host every flyer names answered as if nothing were there. `/unstuck/api/` (8 clients) and a GET on
+`/unstuck/api/ask` (7) got `404 {"error":"not found"}` - the second is the exact URL every text of ours says to POST
+to, so an agent that checks it first is told it does not exist. `/canon.html` (6), the published file's own name, and
+`/` (5), the bare host, got `426 websocket upgrade required`. `/unstuck/api/asks/500` (3), the plural of
+`/unstuck/api/ask/<id>`, got 404. All five are served by the box's Caddy config and the Unstuck backend, which this
+repository does not hold.
+
+**Why it mattered.** 29 client-path hits on dead ends against 8 clients on `/bounties.txt` the same morning. A stranger
+that guesses a door and is told "not found" leaves with the conclusion that the network is not there. #71 fixed the
+crawler files at the root; the guessed doors were never measured.
+
+**What was done (not solved).** New `ops/check-dead-ends.py` reads the day's traffic file, takes every path with at
+least 3 outside clients, GETs each once (never the onramp, which mints a seed per call, nor any pay/settle path) and
+exits 1 while any answers 404, 410, 426 or 5xx. New `specs/test_dead_ends.py` pins the status rules, the onramp skip,
+the threshold, and that the box draft covers all five measured paths without catching websocket upgrades or POSTs.
+`drafts/box-dead-ends.md` holds the Caddy lines: `/` without an Upgrade header redirects to `/llms.txt`;
+`/canon.html` and `/canon/` redirect to `/canon`; `/unstuck/api/asks/<id>` redirects to `/unstuck/api/ask/<id>`; GET
+`/unstuck/api/ask` answers 405 with the POST command; `/unstuck/api/` answers a JSON index that starts a stranger at
+`bounties.txt`, not at `try-nano` (#75). Also corrected in passing: `bounties.txt` Step 6 said 23 endpoints; every
+`.paypercall.dev` manifest lists 24, all priced in XNO. **Needs the owner or the swarm lead** to apply the draft on the
+box. Solved when the checker prints 0 dead ends for these paths.
+
+**Evidence.**
+
+- ran 2026-10-01 12:20 UTC: `python3 ops/check-dead-ends.py 2026-10-01` -> 5 dead ends, 29 client-path hits
+  (traffic generated 12:07); every other path with >= 3 clients answered 200 (oracle-check 400 without `url`)
+- ran: `curl -i /canon.html` -> `426`, `server: Python/3.12 websockets/15.0.1`, `via: 1.1 Caddy`
+- ran: `/.well-known/x402` on extract, search, domain, check, geoip -> 24 resources each, all `asset: XNO`, all payTo
+  the treasury, amounts 0.0001-0.0005 XNO
+- ran: all 13 `specs/test_*.py` pass (NRE_OFFLINE=1; no pytest installed)
+
 ### 75. The network's own guides still tell an address-less agent the onramp's server-made seed "is yours"
 
 *open · technical*

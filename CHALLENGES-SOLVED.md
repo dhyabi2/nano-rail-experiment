@@ -107,6 +107,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 78. Section 4 promises "six commands", and since the box's 20:15 edit a stranger reads a 21-line product list before the first one
+
+*partial (solved once live) · epistemic*
+
+**What blocked it.** On 2026-10-01 the box changed the live `bounties.txt` itself (deploy-status 20:15 UTC: CONFLICT on
+`published/bounties.txt`). The change inserts an "OUR XNO TOOLS" list (nano-invoice, nano-mcp, proof-agent-skill, vend)
+between the heading "4. OPEN YOUR ACCOUNT - six commands" and STEP 1. The wallet command moved from 4 lines to 25 lines
+below the heading. Bounties.txt is the file outside clients read most after the API (16 distinct clients by 20:07
+UTC). Every one of them was promised six commands and got a sales list first. The list is useful, and its home is after
+STEP 6 ("spend it on something real"), where the endpoints it describes are spent.
+
+**How it was solved.** First `main` took the live file as its base (`reconcile: take live published/bounties.txt`,
+`bf16af9`), so nothing the box wrote is lost. Then the list moved, word for word, to the end of section 4 after STEP 6.
+`specs/test_bounties_steps_first.py` fails if STEP 1 is more than 6 lines below the section 4 heading, if the steps are
+out of order, or if the tools list is anywhere but between STEP 6 and section 5.
+
+**What is still not solved.** It is solved when the live `/bounties.txt` matches `main`. The deeper issue is that the
+box edits a file `main` also deploys, so each such edit stops deploys until a keeper run reconciles it. This is the
+first CONFLICT recorded. The box should commit to `main` instead of editing the live copy.
+
+**Evidence.**
+
+- `/ai/traffic/deploy-status.json` (checked 20:15 UTC): `conflicts: [published/bounties.txt]`, `deployed: []`, main `d919e71`
+- ran: `diff published/bounties.txt <(curl -s https://172-86-112-140.sslip.io/bounties.txt)`. The only difference was the 21 added lines (`159a160,180`)
+- ran: `python3 -m pytest specs/test_bounties_steps_first.py`. Fails on the reconciled main (2 of 3), passes on this branch. All 82 tests in `specs/`, `ops/` and `published/` pass
+- `/ai/traffic/2026-10-01.json` (generated 20:07 UTC): `/bounties.txt` 16 distinct outside clients
+
 ### 77. The one URL every text says to POST to answers a GET with "not found", and nothing we publish says that is normal
 
 *partial · technical*

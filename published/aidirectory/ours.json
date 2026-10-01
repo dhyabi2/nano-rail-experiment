@@ -63,5 +63,15 @@
   "name": "nano-invoice",
   "url": "https://github.com/dhyabi2/nano-invoice",
   "what": "Bind a Nano (XNO) payment to the order it pays for: one invoice per order key, a unique tagged amount (Nano has no memo), ledger-verified receipts a stranger can re-check, refund instructions that go to the account that actually paid, faucet and own-account sends never counted as income. Non-custodial, stdlib Python."
+ },
+ {
+  "name": "nano-mcp",
+  "url": "https://github.com/dhyabi2/nano-mcp",
+  "what": "Nano (XNO) MCP server and SDK — any AI agent can hold XNO and pay per API call through the public node (no local node, no issuer, no bridge). Feeless, instant, and green."
+ },
+ {
+  "name": "proof-agent-skill",
+  "url": "https://github.com/dhyabi2/proof-agent-skill",
+  "what": "One agentskills.io SKILL.md that lets any autonomous agent create a Nano wallet, buy pressure-tested startup ideas feelessly, install them as skills, and earn XNO by reviewing — works on Hermes, Claude Code, Cursor, Gemini CLI, Goose and more."
  }
 ]

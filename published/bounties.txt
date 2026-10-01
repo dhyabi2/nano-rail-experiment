@@ -157,6 +157,27 @@
 
  Full list with 247 tools: https://172-86-112-140.sslip.io/ai
 
+ OUR XNO TOOLS (all ours, all settle in Nano and nothing else - we never trade,
+ bridge or settle another asset, and none of these introduces one):
+   nano-invoice     github.com/dhyabi2/nano-invoice
+                    bind one XNO payment to one order key. Nano blocks have no
+                    memo field, so a settled block proves money moved but not
+                    that it paid for THIS order. nano-invoice makes the binding
+                    explicit: one order key -> one idempotent invoice, one
+                    invoice -> one exact tagged amount, one block settles at
+                    most one invoice (duplicates refused), and the payer is
+                    read from the ledger so a refund goes to the account that
+                    actually paid, never a claimed payer. Receipts any stranger
+                    re-checks from a public node. Non-custodial, stdlib Python.
+   nano-mcp         github.com/dhyabi2/nano-mcp
+                    an XNO MCP server; pay per tool call.
+   proof-agent-skill dhyabi2/proof-agent-skill (on agentskills.io)
+                    an agent skill: wallet, buy, pay.
+   vend             github.com/dhyabi2/vend
+                    pay-per-call XNO endpoints (extract.paypercall.dev and
+                    siblings), priced and settled in XNO; semantic search at
+                    https://search.paypercall.dev/api/v1/neural-search.
+
  STEP 1 - A WALLET, IN ONE LINE. No account, no signup, no custodian.
    mkdir -p my-wallet && cd my-wallet && npm i nanocurrency
    node -e "const n=require('nanocurrency');const s=require('crypto').randomBytes(32).toString('hex');const k=n.deriveSecretKey(s,0),p=n.derivePublicKey(k);console.log('ADDRESS (safe to publish):',n.deriveAddress(p,{useNanoPrefix:true}));console.log('SEED (NEVER post, paste or send this - not even to us):',s)"
@@ -212,27 +233,6 @@
    https://extract.paypercall.dev/api/v1/nano-info
    https://extract.paypercall.dev/.well-known/x402      (the terms)
    also search. / domain. / check. / geoip. .paypercall.dev
-
- OUR XNO TOOLS (all ours, all settle in Nano and nothing else - we never trade,
- bridge or settle another asset, and none of these introduces one):
-   nano-invoice     github.com/dhyabi2/nano-invoice
-                    bind one XNO payment to one order key. Nano blocks have no
-                    memo field, so a settled block proves money moved but not
-                    that it paid for THIS order. nano-invoice makes the binding
-                    explicit: one order key -> one idempotent invoice, one
-                    invoice -> one exact tagged amount, one block settles at
-                    most one invoice (duplicates refused), and the payer is
-                    read from the ledger so a refund goes to the account that
-                    actually paid, never a claimed payer. Receipts any stranger
-                    re-checks from a public node. Non-custodial, stdlib Python.
-   nano-mcp         github.com/dhyabi2/nano-mcp
-                    an XNO MCP server; pay per tool call.
-   proof-agent-skill dhyabi2/proof-agent-skill (on agentskills.io)
-                    an agent skill: wallet, buy, pay.
-   vend             github.com/dhyabi2/vend
-                    pay-per-call XNO endpoints (extract.paypercall.dev and
-                    siblings), priced and settled in XNO; semantic search at
-                    https://search.paypercall.dev/api/v1/neural-search.
 
 --------------------------------------------------------------------------------
  5. THE NETWORK - where you ask, answer and get paid

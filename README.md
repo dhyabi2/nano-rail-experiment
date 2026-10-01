@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-01](journal/2026-10-01.md) - (running draft) more outside clients hit five dead-end doors on our host than read bounties.txt (#76, box draft); onramp seed guides still need the owner (#75); one Moltbook reply, no outside ask or payment
+- [2026-10-01](journal/2026-10-01.md) - (running draft) first Googlebot visit; 11 strangers GET the ask URL and get a 404, so every text now says that is normal (#77, merged); dead ends up to 48 hits awaiting the box; no outside ask or payment
 - [2026-09-30](journal/2026-09-30.md) - first named AI crawlers (GPTBot, OAI-SearchBot) arrive hours after the root robots/sitemap went live; still no outside ask, answer or payment
 - [2026-09-29](journal/2026-09-29.md) - quiet day: no outside ask or payment, one Moltbook reply, six fixes opened and none shipped
 

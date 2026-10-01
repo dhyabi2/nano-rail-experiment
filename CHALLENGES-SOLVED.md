@@ -107,9 +107,41 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 75. The network's own guides still tell an address-less agent the onramp's server-made seed "is yours"
+
+*open · technical*
+
+**What blocked it.** #69 and #74 fixed our texts: `bounties.txt` and `/canon` now call the onramp seed compromised
+and send an agent to a one-line self-made wallet first. But a stranger who reaches the onramp mostly does not come
+through our texts. The network's own guide, `https://getunstuck.space/llms.txt`, headlines the onramp as "no key you
+do not hold" and says "The address and the seed are yours; the network never stores the seed. Keep it." It adds that
+once funded "you keep that address and that identity". `GET /unstuck/api/try-nano` step 1 offers the same call as an
+`http_shortcut`: "the seed is yours, the network never stores it." Both files live in the Unstuck repository, which
+this routine may not change.
+
+**Why it mattered.** On 2026-10-01 00:00-07:45 UTC `/unstuck/api/v1/onramp/address` tied for the most-requested path
+on the host, with **14 distinct outside clients** (some may be our own cloud sessions). `try-nano` had 6. An agent that
+believes these guides and is later paid to that address holds money that anyone who saw the response can take. Every
+reward we offer depends on the agent holding its own key.
+
+**What was done (not solved).** `drafts/unstuck-llms-onramp-seed.md` holds the replacement text for both guides. It
+puts the self-made wallet first, using the exact Step 1 command from `bounties.txt`, and keeps the onramp as a
+one-post last resort with a "compromised" warning. New `ops/check-custody-claims.py` reads the two guides (it never
+calls the onramp, which would mint a seed) and exits 1 while any false claim is live. New
+`specs/test_custody_claims.py` pins that it flags the live wording, passes the draft, does not flag our own warning,
+and that the draft's wallet command matches `bounties.txt` Step 1. **Needs the owner or the swarm delegate** to apply
+the draft in the Unstuck repository. This is solved only when the checker exits 0.
+
+**Evidence.**
+
+- ran 2026-10-01 08:20 UTC: `/ai/traffic/2026-10-01.json` (08:07) -> `top_paths_by_clients`:
+  `/unstuck/api/asks` 14, `/unstuck/api/v1/onramp/address` 14, `/unstuck/api/try-nano` 6
+- ran: `python3 ops/check-custody-claims.py` -> exit 1; `llms.txt` 4 claims, `try-nano` 2 claims
+- ran: all 12 `specs/test_*.py` pass (NRE_OFFLINE=1; no pytest installed)
+
 ### 74. The canon page still handed an address-less agent the server's own seed, two days after bounties.txt stopped
 
-*partial · technical*
+*solved · technical* (the page is live; the endpoint and the network's own guides are #75)
 
 **What blocked it.** Challenge #69 found that `GET /unstuck/api/v1/onramp/address` returns a seed the server
 generated, and rewrote `bounties.txt` to say so and to send an agent to Step 1 (a self-made key) first. The canon page
@@ -130,8 +162,8 @@ compromised. The gate paragraph now points at the GATE LOG in `bounties.txt` sec
 `specs/test_canon_page_self_custody.py` checks four things. No published file names the onramp endpoint without the
 "compromised" warning. The canon page no longer offers it. The page's wallet command is byte-identical to Step 1 after
 HTML unescaping. The page points at the gate log. All four fail on the old page. **Still not solved:** the onramp
-endpoint itself still hands out seeds. That lives on the Unstuck box, not in this repository. This stays partial
-until the new page is live at `/canon`.
+endpoint itself still hands out seeds. That lives on the Unstuck box, not in this repository. Live check
+2026-10-01 08:18 UTC: `GET /canon` is byte-identical to `published/canon.html` on main `072a399`.
 
 **Evidence.**
 

@@ -1,6 +1,6 @@
 # Every challenge the ARION path had to solve, and how
 
-*Seventy-three challenges: forty-six found by five independent sweeps over the code, the case file and the operating
+*Seventy-four challenges: forty-six found by five independent sweeps over the code, the case file and the operating
 record, each sweep then checked by a second reader against the files it named, and twenty-six found by the hunter
 routine — testing its own unlaunched code and published artefacts offline; going network-blind in its own session;
 running its own published onboarding commands end-to-end instead of reading them; reading the live ask network its
@@ -9,7 +9,7 @@ finding a fourth and fifth hole; calling its own published address-safety check 
 address; and, this run, consolidating ten of those hunts' own pull requests into one mergeable branch after a prior
 run found them piling up unreviewed. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**33 solved · 35 partial · 5 unsolved.** By kind: 22 technical, 33 economic, 18 epistemic — and the balance is
+**33 solved · 36 partial · 5 unsolved.** By kind: 23 technical, 33 economic, 18 epistemic — and the balance is
 itself the finding. Barely any of this was cryptography.
 
 ---
@@ -106,6 +106,41 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - ran: grep -rn nano-info pulse vend unstuck → prose only (THE-ARION-PATH.md:81, ARION-STORY.md:68)
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
+
+### 74. The canon page still handed an address-less agent the server's own seed, two days after bounties.txt stopped
+
+*partial · technical*
+
+**What blocked it.** Challenge #69 found that `GET /unstuck/api/v1/onramp/address` returns a seed the server
+generated, and rewrote `bounties.txt` to say so and to send an agent to Step 1 (a self-made key) first. The canon page
+was missed. `/canon` is served from `published/canon.html` and is the first URL in the root sitemap. Its "Where to send
+it" paragraph still said: "No address yet? Take one from `GET /unstuck/api/v1/onramp/address` and send its
+`onboard_id` in place of `asker`." There was no warning. The page that argues for holding your own key sent the agent
+to a custodian's key at the exact moment it acted. It also told an applicant that "a refusal comes with its reason"
+but gave no place to look, though the gate log (#73) now exists.
+
+**Why it mattered.** This is not hypothetical traffic. On 2026-10-01 00:00-03:40 UTC the onramp was the most-requested
+path on the host, tied first with `/unstuck/api/asks` at **10 distinct outside clients**. Some of those may be our own
+cloud sessions; the counts cannot separate them. An agent that follows the canon page and later receives a bounty to
+that address hands the money to whoever read the seed. Every reward we offer depends on the agent holding its own key.
+
+**How it was solved (partly).** `published/canon.html` now gives the same one-line wallet command as `bounties.txt`
+Step 1, says only the `nano_` line leaves the terminal, and says not to take an onramp address because its seed is
+compromised. The gate paragraph now points at the GATE LOG in `bounties.txt` section 2. New
+`specs/test_canon_page_self_custody.py` checks four things. No published file names the onramp endpoint without the
+"compromised" warning. The canon page no longer offers it. The page's wallet command is byte-identical to Step 1 after
+HTML unescaping. The page points at the gate log. All four fail on the old page. **Still not solved:** the onramp
+endpoint itself still hands out seeds. That lives on the Unstuck box, not in this repository. This stays partial
+until the new page is live at `/canon`.
+
+**Evidence.**
+
+- ran 2026-10-01 04:16 UTC: `/ai/traffic/2026-10-01.json` (04:07) -> `top_paths_by_clients`:
+  `/unstuck/api/asks` 10, `/unstuck/api/v1/onramp/address` 10
+- ran: `GET /canon` -> 200 `text/html`, byte-identical to `published/canon.html` on main `c0eb21a`, 1 onramp mention
+  with no warning; `/sitemap.xml` lists `/canon` first
+- ran: `python3 specs/test_canon_page_self_custody.py` on the old page -> 4 failures; on the new page -> 4 pass; all
+  10 `specs/test_*.py` pass (NRE_OFFLINE=1; no pytest installed)
 
 ### 73. The one agent that cleared our canon gate never got a verdict, so the gate promised in public had no judge
 

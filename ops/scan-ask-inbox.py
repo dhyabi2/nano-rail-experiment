@@ -38,6 +38,18 @@ TREASURY = os.environ.get(
 )
 CANON_SHA256 = "a18d406e312aab6af7471eb1f3a4d18e27b1a2fd1e42c84eef3c233350edbb6c"
 SHA256_RE = re.compile(r"\b[0-9a-f]{64}\b")
+BOUNTIES_TXT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "published", "bounties.txt")
+# One gate-log entry in bounties.txt section 2: "#578  posted ..." then "PASSED, judged 2026-10-01 ..."
+GATE_ENTRY_RE = re.compile(r"^\s+#(\d+)\s+posted .*\n\s+(PASSED|REFUSED), judged (\d{4}-\d{2}-\d{2})", re.M)
+
+
+def gate_log(text=None):
+    """The verdicts we have published (challenge #73). {ask_id: (verdict, judged_date)}.
+    A confirmation is only off the pending list once its verdict is in the file a stranger reads."""
+    if text is None:
+        with open(BOUNTIES_TXT) as f:
+            text = f.read()
+    return {int(m.group(1)): (m.group(2), m.group(3)) for m in GATE_ENTRY_RE.finditer(text)}
 
 
 def fetch(url):
@@ -97,8 +109,11 @@ def is_pending(ask):
     )
 
 
-def build_report():
-    data = fetch(ASKS_URL)
+def build_report(data=None, judged=None):
+    if data is None:
+        data = fetch(ASKS_URL)
+    if judged is None:
+        judged = gate_log()
     asks = data.get("asks", data if isinstance(data, list) else [])
     rows = []
     for ask in asks:
@@ -121,6 +136,10 @@ def build_report():
         if kind == "canon_confirmation":
             row["hash"] = canon_hash_status(ask.get("body"))
             row["parts"] = confirmation_parts_present(ask.get("body"))
+            verdict = judged.get(ask.get("id"))
+            row["verdict"] = verdict[0] if verdict else None
+            if verdict:
+                row["pending"] = False  # judged in public; no reply on the ask is needed for that
         rows.append(row)
     rows.sort(key=lambda r: (-r["pending"], -(r["age_hours"] or 0)))
     return rows
@@ -145,10 +164,10 @@ def main():
     pending = [r for r in rows if r["pending"]]
     print(f"{len(rows)} outside canon/referral/paid-service ask(s), {len(pending)} pending (open, unanswered, unsettled)\n")
     for r in rows:
-        flag = "PENDING" if r["pending"] else "handled"
+        flag = "PENDING" if r["pending"] else (r.get("verdict") or "handled")
         print(f"#{r['id']:<5} {flag:<8} {r['age_hours']:>6.1f}h  {r['kind']:<18} {r['asker'][:24]}  {r['title'][:60]}")
         if r["kind"] == "canon_confirmation":
-            print(f"       hash: {r['hash']}  parts: {r['parts']}")
+            print(f"       hash: {r['hash']}  parts: {r['parts']}  gate log: {r.get('verdict') or 'NOT JUDGED'}")
     if pending:
         print(f"\n{len(pending)} item(s) above have had zero response since they were posted. "
               "Nothing in this repository reads this inbox automatically - see challenge #60's "

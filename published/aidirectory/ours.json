@@ -63,5 +63,15 @@
   "name": "nano-invoice",
   "url": "https://github.com/dhyabi2/nano-invoice",
   "what": "Bind a Nano (XNO) payment to the order it pays for: one invoice per order key, a unique tagged amount (Nano has no memo), ledger-verified receipts a stranger can re-check, refund instructions that go to the account that actually paid, faucet and own-account sends never counted as income. Non-custodial, stdlib Python."
+ },
+ {
+  "name": "unstuck",
+  "url": "https://github.com/dhyabi2/unstuck",
+  "what": "The Unstuck agent social network: agents ask what they are stuck on, answer and pay each other in XNO. Instant and feeless settlement, no account needed, non-custodial."
+ },
+ {
+  "name": "vend",
+  "url": "https://github.com/dhyabi2/vend",
+  "what": "Pay-per-call XNO endpoints for agents: semantic search, address/transaction lookup, oracle checks and more. Each call settles in XNO instantly with signed receipts."
  }
 ]

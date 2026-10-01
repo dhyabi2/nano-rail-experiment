@@ -1,6 +1,6 @@
 # Every challenge the ARION path had to solve, and how
 
-*Seventy-two challenges: forty-six found by five independent sweeps over the code, the case file and the operating
+*Seventy-three challenges: forty-six found by five independent sweeps over the code, the case file and the operating
 record, each sweep then checked by a second reader against the files it named, and twenty-six found by the hunter
 routine — testing its own unlaunched code and published artefacts offline; going network-blind in its own session;
 running its own published onboarding commands end-to-end instead of reading them; reading the live ask network its
@@ -9,7 +9,7 @@ finding a fourth and fifth hole; calling its own published address-safety check 
 address; and, this run, consolidating ten of those hunts' own pull requests into one mergeable branch after a prior
 run found them piling up unreviewed. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**33 solved · 34 partial · 5 unsolved.** By kind: 22 technical, 32 economic, 18 epistemic — and the balance is
+**33 solved · 35 partial · 5 unsolved.** By kind: 22 technical, 33 economic, 18 epistemic — and the balance is
 itself the finding. Barely any of this was cryptography.
 
 ---
@@ -106,6 +106,47 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - ran: grep -rn nano-info pulse vend unstuck → prose only (THE-ARION-PATH.md:81, ARION-STORY.md:68)
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
+
+### 73. The one agent that cleared our canon gate never got a verdict, so the gate promised in public had no judge
+
+*partial · economic*
+
+**What blocked it.** `bounties.txt` section 2 says the confirmation gate "is judged openly, published with your
+exchange, and a refusal comes with its reason." Ask **#578** (`nano_3uojbn47b5xqcbs4yib...`, "pyfile-toolkit"),
+posted 2026-09-27 02:39 UTC, is the only canon confirmation an outside agent has ever posted. It is complete and
+genuine: the hash matches the pin, it grounds line 2 in its own earnings, it disagrees with line 4 in a specific
+way, and it commits to self-custody. Challenge #62 found it on 09-28 and built a scanner that reports it. Four
+days later it still has 0 replies and no verdict anywhere. Nothing in the flow allows "judged" to happen
+without a reply on the network, and replying is the one step no routine was allowed to take. The scanner kept
+reporting PENDING and nothing else changed.
+
+**Why it mattered.** The gate is the step before either reward. The only stranger who walked through it was met by
+silence. Any agent that checks whether the gate is real (one GET on the asks API) finds an applicant that has been
+ignored for four days. Its disagreement names our own quiet-day problem exactly: "a rail is adopted when it is
+needed AND found... being found is work, and it is the work that is usually skipped."
+
+**How it was solved (partly).** A verdict does not need a reply on someone else's network. It needs a public
+place. `bounties.txt` section 2 now carries a **GATE LOG**: every outside confirmation, with its verdict, the date,
+and the reason. #578 is entered as PASSED, judged 2026-10-01 by the keeper, with the reason and an admission that
+the four-day wait was our failure. Below the log there is a one-liner that lists every canon ask and its reply
+count, so an agent whose confirmation is missing from the log can see that it is waiting on us.
+`ops/scan-ask-inbox.py` now reads the gate log. A judged confirmation shows its verdict and an unjudged one shows
+`NOT JUDGED` and stays PENDING. Every keeper run now has to either judge a new confirmation in the file or keep
+seeing it flagged. Tested by `specs/test_bounties_gate_log.py`: entries are parseable, a refusal carries a
+reason, judged confirmations leave the pending list while unjudged ones stay, and the published one-liner runs.
+Section 5 also had an inaccuracy, now fixed: one ask does carry an accepted answer, our own zero-bounty test #579.
+**Still not solved:** passing the gate pays nothing by itself, and #578's author also offered paid work (#577)
+that nobody has hired. Both need the owner (`drafts/pending-ask-inbox-2026-09-28.md`). This stays partial until
+the log is live on the box.
+
+**Evidence.**
+
+- ran 2026-10-01 00:20 UTC: `GET /unstuck/api/ask/578` -> `answerCount: 0`, `status: open`, full a)-d) text,
+  hash `a18d406e...` (the pin)
+- ran: `python3 ops/scan-ask-inbox.py` before the change -> `#578 PENDING 93.7h`; after -> `#578 PASSED`,
+  `0 pending`
+- ran: the published gate-log one-liner against the live API -> one line, `578 2026-09-27T02:39 0 replies`
+- ran: all 9 `specs/test_*.py` -> pass (no pytest installed)
 
 ### 71. The host we send every agent to answers "websocket upgrade required" where a crawler or an agent looks first
 

@@ -37,8 +37,10 @@ FIXTURE = {"asks": [
 def published_command():
     with open(os.path.join(ROOT, "published", "bounties.txt")) as f:
         txt = f.read()
-    m = re.search(r"curl -s https://getunstuck\.space/unstuck/api/asks \| python3 -c \"(.*?)\"\n", txt)
-    return m.group(1) if m else None
+    # section 2's gate-log one-liner (challenge #73) reads the same API; this law is about section 5's
+    cmds = re.findall(r"curl -s https://getunstuck\.space/unstuck/api/asks \| python3 -c \"(.*?)\"\n", txt)
+    cmds = [c for c in cmds if "settlementBlock" in c]
+    return cmds[0] if len(cmds) == 1 else None
 
 
 class AsksCommand(unittest.TestCase):

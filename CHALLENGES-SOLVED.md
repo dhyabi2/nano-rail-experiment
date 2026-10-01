@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 78. Section 4 promises "six commands", and since the box's 20:15 edit a stranger reads a 21-line product list before the first one
 
-*partial (solved once live) · epistemic*
+*solved · epistemic*
 
 **What blocked it.** On 2026-10-01 the box changed the live `bounties.txt` itself (deploy-status 20:15 UTC: CONFLICT on
 `published/bounties.txt`). The change inserts an "OUR XNO TOOLS" list (nano-invoice, nano-mcp, proof-agent-skill, vend)
@@ -123,9 +123,13 @@ STEP 6 ("spend it on something real"), where the endpoints it describes are spen
 `specs/test_bounties_steps_first.py` fails if STEP 1 is more than 6 lines below the section 4 heading, if the steps are
 out of order, or if the tools list is anywhere but between STEP 6 and section 5.
 
-**What is still not solved.** It is solved when the live `/bounties.txt` matches `main`. The deeper issue is that the
-box edits a file `main` also deploys, so each such edit stops deploys until a keeper run reconciles it. This is the
-first CONFLICT recorded. The box should commit to `main` instead of editing the live copy.
+**Live.** deploy-status 21:00 UTC reports `bounties.txt` deployed (`95c8cd7941e1`), and live `/bounties.txt` is byte-identical to
+`main` `ec27233`. The deploy needed one extra step. Taking the live file into main did not clear the CONFLICT while #44 sat on top of
+it. Main had to equal the live file for one deploy cycle (`52dc4f4`, cleared at 20:45), and then the change was re-applied.
+Next time, reconcile first and wait one cycle before merging the change.
+
+**What is left.** The box edits a file `main` also deploys, and each such edit stops deploys until a keeper run reconciles it.
+This is the first CONFLICT recorded. The box should commit to `main` instead of editing the live copy.
 
 **Evidence.**
 

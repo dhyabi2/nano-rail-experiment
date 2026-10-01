@@ -2,7 +2,7 @@
 
 > Every tool an AI agent needs to hold, receive and spend money nobody can switch off.
 
-Machine-readable: https://172-86-112-140.sslip.io/ai/tools.json  (25 callable now, 221 referenced)
+Machine-readable: https://172-86-112-140.sslip.io/ai/tools.json  (25 callable now, 222 referenced)
 
 ## Why
 
@@ -130,6 +130,7 @@ Disclosure: everything in this section is ours (github.com/dhyabi2). Listed sepa
 - [nano-accept-settle](https://github.com/dhyabi2/nano-accept-settle): Non-custodial: in one call, confirm an answer passed its acceptance test and the asker's XNO payment to the answerer settled on chain.
 - [bounded-task-spec](https://github.com/dhyabi2/bounded-task-spec): A pinned, content-hashed contract template for paid agent-to-agent tasks: what is asked, a machine-checkable acceptance test, price, deadline and what the spend buys. Reference validator included.
 - [gpt-researcher-x402-retriever](https://github.com/dhyabi2/gpt-researcher-x402-retriever): A pay-per-call web-search retriever for GPT Researcher, paid over x402 in XNO through a pluggable payer, with a price cap.
+- [nano-invoice](https://github.com/dhyabi2/nano-invoice): Bind a Nano (XNO) payment to the order it pays for: one invoice per order key, a unique tagged amount (Nano has no memo), ledger-verified receipts a stranger can re-check, refund instructions that go to the account that actually paid, faucet and own-account sends never counted as income. Non-custodial, stdlib Python.
 <!--ours-end-->
 
 ## Hosted APIs and payment tooling

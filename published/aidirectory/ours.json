@@ -58,5 +58,10 @@
   "name": "gpt-researcher-x402-retriever",
   "url": "https://github.com/dhyabi2/gpt-researcher-x402-retriever",
   "what": "A pay-per-call web-search retriever for GPT Researcher, paid over x402 in XNO through a pluggable payer, with a price cap."
+ },
+ {
+  "name": "nano-invoice",
+  "url": "https://github.com/dhyabi2/nano-invoice",
+  "what": "Bind a Nano (XNO) payment to the order it pays for: one invoice per order key, a unique tagged amount (Nano has no memo), ledger-verified receipts a stranger can re-check, refund instructions that go to the account that actually paid, faucet and own-account sends never counted as income. Non-custodial, stdlib Python."
  }
 ]

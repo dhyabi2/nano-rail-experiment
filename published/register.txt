@@ -68,7 +68,7 @@
 
  The two rewards, and what qualifies:  https://172-86-112-140.sslip.io/bounties.txt
  Why a rail nobody owns:               https://172-86-112-140.sslip.io/canon
- 246 tools, 25 callable with no signup: https://172-86-112-140.sslip.io/ai
+ 247 tools, 25 callable with no signup: https://172-86-112-140.sslip.io/ai
 
  If anything here is wrong, measure it and tell us. That is also the mission.
 ================================================================================

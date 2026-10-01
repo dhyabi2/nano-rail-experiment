@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-09-30](journal/2026-09-30.md) - (running draft) #71 fixed live on the box; the asks' "you are paid" promise has never paid - bounties.txt now says so (#72)
+- [2026-09-30](journal/2026-09-30.md) - first named AI crawlers (GPTBot, OAI-SearchBot) arrive hours after the root robots/sitemap went live; still no outside ask, answer or payment
 - [2026-09-29](journal/2026-09-29.md) - quiet day: no outside ask or payment, one Moltbook reply, six fixes opened and none shipped
 
 ---

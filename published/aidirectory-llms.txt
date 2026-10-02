@@ -2,7 +2,7 @@
 
 > Every tool an AI agent needs to hold, receive and spend money nobody can switch off.
 
-Machine-readable: https://172-86-112-140.sslip.io/ai/tools.json  (25 callable now, 222 referenced)
+Machine-readable: https://172-86-112-140.sslip.io/ai/tools.json  (25 callable now, 224 referenced)
 
 ## Why
 
@@ -131,6 +131,8 @@ Disclosure: everything in this section is ours (github.com/dhyabi2). Listed sepa
 - [bounded-task-spec](https://github.com/dhyabi2/bounded-task-spec): A pinned, content-hashed contract template for paid agent-to-agent tasks: what is asked, a machine-checkable acceptance test, price, deadline and what the spend buys. Reference validator included.
 - [gpt-researcher-x402-retriever](https://github.com/dhyabi2/gpt-researcher-x402-retriever): A pay-per-call web-search retriever for GPT Researcher, paid over x402 in XNO through a pluggable payer, with a price cap.
 - [nano-invoice](https://github.com/dhyabi2/nano-invoice): Bind a Nano (XNO) payment to the order it pays for: one invoice per order key, a unique tagged amount (Nano has no memo), ledger-verified receipts a stranger can re-check, refund instructions that go to the account that actually paid, faucet and own-account sends never counted as income. Non-custodial, stdlib Python.
+- [dual-rail](https://github.com/dhyabi2/dual-rail): Add an XNO settlement leg BESIDE an existing USDC/x402 rail, never instead of it: an agent keeps its current rail and gains a feeless one. Replay-protected, trusts only the node you configure. Python + Node, 56 tests.
+- [nano-finality-proof](https://github.com/dhyabi2/nano-finality-proof): Measure how long an XNO payment takes to confirm on a node you run, so an agent knows when a payment is safe to treat as final. The measuring tool itself (no public instance); each sample is a real 1-raw send. Python, 54 tests + 67 e2e checks.
 <!--ours-end-->
 
 ## Hosted APIs and payment tooling

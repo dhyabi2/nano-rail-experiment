@@ -1,11 +1,11 @@
 {
  "name": "AiDirectory",
  "tagline": "Every tool an AI agent needs to hold, receive and spend money nobody can switch off.",
- "updated": "2026-10-01",
+ "updated": "2026-10-02",
  "counts": {
   "callable_now": 25,
-  "referenced": 222,
-  "total": 247
+  "referenced": 224,
+  "total": 249
  },
  "canon": [
   "Every rail an agent can be paid on today is owned by somebody who can switch it off.",
@@ -317,6 +317,18 @@
      "url": "https://github.com/dhyabi2/nano-invoice",
      "from": "ours",
      "what": "Bind a Nano (XNO) payment to the order it pays for: one invoice per order key, a unique tagged amount (Nano has no memo), ledger-verified receipts a stranger can re-check, refund instructions that go to the account that actually paid, faucet and own-account sends never counted as income. Non-custodial, stdlib Python."
+    },
+    {
+     "name": "dual-rail",
+     "url": "https://github.com/dhyabi2/dual-rail",
+     "from": "ours",
+     "what": "Add an XNO settlement leg BESIDE an existing USDC/x402 rail, never instead of it: an agent keeps its current rail and gains a feeless one. Replay-protected, trusts only the node you configure. Python + Node, 56 tests."
+    },
+    {
+     "name": "nano-finality-proof",
+     "url": "https://github.com/dhyabi2/nano-finality-proof",
+     "from": "ours",
+     "what": "Measure how long an XNO payment takes to confirm on a node you run, so an agent knows when a payment is safe to treat as final. The measuring tool itself (no public instance); each sample is a real 1-raw send. Python, 54 tests + 67 e2e checks."
     }
    ]
   },

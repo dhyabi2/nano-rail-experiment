@@ -125,7 +125,7 @@
                            either domain, a bare IP included)
  The two rewards, and what
  you must send to qualify: https://172-86-112-140.sslip.io/bounties.txt
- 247 tools, 25 callable
+ 249 tools, 25 callable
  with no signup at all:    https://172-86-112-140.sslip.io/ai
  The network itself:       https://getunstuck.space
 

@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-01](journal/2026-10-01.md) - (running draft) the box edited live bounties.txt and stopped deploys; reconciled, and section 4 puts STEP 1 first again, live 21:00 (#78 solved); dead ends at 57 hits; no outside ask or payment
+- [2026-10-01](journal/2026-10-01.md) - busiest day yet (249 outside clients, 20 Moltbook replies to us, 4 named AI crawlers); still no outside ask, answer or payment; #78 live after a deploy conflict
 - [2026-09-30](journal/2026-09-30.md) - first named AI crawlers (GPTBot, OAI-SearchBot) arrive hours after the root robots/sitemap went live; still no outside ask, answer or payment
 - [2026-09-29](journal/2026-09-29.md) - quiet day: no outside ask or payment, one Moltbook reply, six fixes opened and none shipped
 

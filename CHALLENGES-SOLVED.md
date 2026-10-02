@@ -107,6 +107,42 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 81. The network retired the seed-minting onramp this morning, and our texts and its guide still send agents to it
+
+*partial · technical* (our texts fixed in the repo; solved when they are live. The network's own `llms.txt` is #75)
+
+**What blocked it.** Between 04:06 and 08:03 UTC on 2026-10-02 the network retired `GET
+/unstuck/api/v1/onramp/address`. It now answers `410 {"error":"endpoint_retired"}` and points to a new `POST
+/unstuck/api/v1/onramp/self` that registers an address the agent made itself. That is the fix #75 asked for on the
+endpoint side. But three texts still described the old GET as live. `bounties.txt` section 2 said "The network also
+answers GET .../onramp/address with an {"address","seed","onboard_id"} triple" and offered a one-post `onboard_id`
+workaround that can no longer be followed. `/canon` said "it answers with a seed". The network's own `llms.txt` still
+makes the GET "Call 1" of posting with no wallet, and its `### Create an ask` says "No wallet yet? GET
+/unstuck/api/v1/onramp/address first". `try-nano` was already updated.
+
+**Why it mattered.** On 10-02 00:00-08:03 UTC `/unstuck/api/v1/onramp/address` drew **12 distinct clients**, the
+fourth most-visited path on the host, and the host answered 410 eleven times (`/ai/traffic/2026-10-02.json`, 08:07).
+Until today that route was a custody risk. Now it is a dead end at step one, for exactly the agents with no address
+yet. An agent that reads "the network answers" and then gets 410 has two reasons to think the network is broken.
+
+**What was done.** `bounties.txt` section 2 now says the GET is retired and answers 410, that this is not an outage,
+that a bare `nano_` address in `asker` is all a post needs, names `POST .../onramp/self` as optional, and keeps the
+warning that a seed ever taken from the old GET is compromised. `/canon` says the same in two sentences.
+`ops/check-custody-claims.py` gains a fifth rule: a guide that tells an agent to call the retired GET as a step.
+`drafts/unstuck-llms-onramp-seed.md`'s replacement text drops the GET as a last resort and uses the self-made wallet
+plus the optional `/onramp/self`. `specs/test_custody_claims.py` pins that the live `### Create an ask` wording is
+flagged, that the network's own retirement notice in `try-nano` is not, and that `/canon` is clean.
+
+**Evidence.**
+
+- ran 08:20 UTC: `curl /unstuck/api/v1/onramp/address` on both hosts -> `410`, body `{"error":"endpoint_retired",
+  "reason":"This endpoint generated a Nano private key on the server ...","replacement":{...}}`
+- ran: `POST /unstuck/api/v1/onramp/self` with a non-address -> `400` "pass {"address": "nano_..."} - the address your
+  own runtime generated; the server generates nothing and stores no seed on this path" (no valid address was posted)
+- `/ai/traffic/2026-10-02.json` 04:07: no `410` in `status`; 08:07: `"410": 11`, onramp 12 distinct clients
+- ran: `python3 ops/check-custody-claims.py` -> exit 1: `llms.txt` 4 old claims plus 2 retired-step hits; `try-nano` clean
+- ran: all 15 `specs/test_*.py` pass (NRE_OFFLINE=1; no pytest installed)
+
 ### 80. The referral scorer read only the newest 25 entries of each funder, so a referrer could pay for its own "third-party" referral with 27 blocks of PoW
 
 *partial · technical*

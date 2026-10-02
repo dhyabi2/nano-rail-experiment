@@ -51,6 +51,7 @@ class ReferralBountyTests(unittest.TestCase):
         self._orig_block = rb.block
         rb.history, rb.info, rb.block = self.chain.h, self.chain.i, self.chain.b
         rb._hist.clear()
+        rb._hist_failed.clear()
         rb._info.clear()
         rb._blk.clear()
         fd, self.db_path = tempfile.mkstemp(suffix=".db")
@@ -166,6 +167,41 @@ class ReferralBountyTests(unittest.TestCase):
         self.claim("nano_1referrerY", "nano_1referredsplitC")
         out2 = rb.score("hour", verbose=False)
         self.assertEqual(out2["qualifying"], 2)
+
+    def test_referrer_funding_hidden_behind_25_dust_sends_is_still_found(self):
+        """Challenge #80. funders() used to read only the newest 25 history entries of every account it walked, and
+        history entries include SENDS. So a referrer could fund an intermediate X, have X publish 25 feeless dust
+        sends, then fund the referred agent from X: the walk read X's 25 sends, saw no receive, treated X as a
+        leaf, and scored a referral the referrer paid for itself as "funded by a third party". No exchange
+        round-trip, only 27 blocks of PoW - the one cost the spec's whole security argument rests on, skipped.
+        A non-service account's history must be read whole."""
+        referrer, x, referred = "nano_1sybilreferrer", "nano_1sybilmiddleman", "nano_1sybilreferred"
+        now = int(time.time())
+        x_hist = [{"type": "send", "account": "nano_1dustsink", "local_timestamp": str(now - 100 - i), "amount": "1"}
+                  for i in range(26)]
+        x_hist.append({"type": "receive", "account": referrer, "local_timestamp": str(now - 5000),
+                       "amount": str(XNO_HALF)})
+        self.chain.history[x] = x_hist
+        self.chain.info[x] = {"block_count": str(len(x_hist))}
+        self.agent(referred, funded_by=x)
+        self.claim(referrer, referred)
+        truncating = self.chain.h
+        rb.history = lambda acct, count=50: truncating(acct)[:int(count)]  # the node honours `count`, as rpc.nano.to does
+        out = rb.score("hour", verbose=False)
+        self.assertEqual(out["qualifying"], 0, out["detail"])
+        self.assertIn("funded by the referrer itself", out["detail"][0]["why"])
+
+    def test_a_funder_whose_history_cannot_be_read_is_not_a_clean_third_party(self):
+        """Challenge #80, the fail-open half: an account in the funding walk whose history the node would not return
+        used to look exactly like an account nobody ever funded - a leaf, so a clean "third party". A check that
+        cannot run must never report a clean result."""
+        x = "nano_1unreadablemiddleman"
+        self.chain.info[x] = {}          # account_info failed: no block count
+        self.agent("nano_1referredU", funded_by=x)
+        self.claim("nano_1referrerU", "nano_1referredU")
+        out = rb.score("hour", verbose=False)
+        self.assertEqual(out["qualifying"], 0)
+        self.assertIn("could not be read", out["detail"][0]["why"])
 
     # ---- the rules that already existed, still enforced --------------------
     def test_self_referral_rejected(self):

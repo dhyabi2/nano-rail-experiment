@@ -107,15 +107,23 @@ _hist = {}
 _info = {}
 
 
+_hist_failed = set()
+
+
 def history(acct, count=50):
+    """Cached per (account, count): a short read cached first must never be served to a caller that asked for the
+    whole history (challenge #80). A failed read is an empty list AND an entry in _hist_failed, so the funding walk
+    can tell "nobody ever paid this account" from "the node would not say"."""
     a = norm(acct)
-    if a not in _hist:
+    key = (a, int(count))
+    if key not in _hist:
         try:
             h = rpc("account_history", account=a, count=str(count))
-            _hist[a] = h.get("history") or []
+            _hist[key] = h.get("history") or []
         except Exception:
-            _hist[a] = []
-    return _hist[a]
+            _hist[key] = []
+            _hist_failed.add(a)
+    return _hist[key]
 
 
 _blk = {}
@@ -214,19 +222,46 @@ def is_pass_through(acct, referrer=None):
     return gap <= PASS_THROUGH_SECONDS and rin > 0 and rout * 10 >= rin * 9
 
 
-def funders(acct, hops=HOPS, _seen=None):
-    """Every account that money reached `acct` through, walking back `hops`. Memoised on history(), because the same
-    funder recurs constantly and each hop is an RPC call."""
-    _seen = _seen if _seen is not None else set()
-    out = set()
-    frontier = {norm(acct)}
+SERVICE_HISTORY = 25                                # entries read from a shared service's history (see below)
+
+
+def funding_walk(acct, hops=HOPS):
+    """Every account that money reached `acct` through, walking back `hops`, plus the accounts on the way whose
+    history could not be read. Memoised on history(), because the same funder recurs constantly.
+
+    Challenge #80: this used to read the newest 25 history entries of EVERY account, and history includes sends. A
+    referrer could fund a fresh account X, have X publish 25 feeless dust sends, then fund the referred agent from
+    X: the walk saw only X's sends, took X for a leaf, and the referrer's own money scored as "a third party". So a
+    private account (block_count <= SERVICE_BLOCKS) is now read whole - at most 1000 entries, one RPC call. Only a
+    shared service keeps the short read: its newest receives are unrelated customers, and its full history can run
+    to six figures (Nanswap's hot wallet, 166,265 blocks). Getting past a service is the exchange round-trip the
+    spec already prices in.
+
+    And an account in the walk whose history cannot be read is returned as unreadable instead of being treated as
+    a leaf nobody ever funded - which is what a failed read used to look like."""
+    start = norm(acct)
+    out, unreadable, seen = set(), set(), set()
+    frontier = {start}
     for _ in range(hops):
         nxt = set()
         for a in frontier:
-            if a in _seen:
+            if a in seen:
                 continue
-            _seen.add(a)
-            for h in history(a, count=25):
+            seen.add(a)
+            try:
+                n = int(info(a).get("block_count") or 0)
+            except (TypeError, ValueError):
+                n = 0
+            if n == 0 and a != start:
+                # It sent money, so it has blocks: a zero here means account_info failed, not an empty account.
+                unreadable.add(a)
+                continue
+            depth = SERVICE_HISTORY if n > SERVICE_BLOCKS else max(n, 1)
+            entries = history(a, count=depth)
+            if a in _hist_failed:
+                unreadable.add(a)
+                continue
+            for h in entries:
                 if h.get("type") == "receive":
                     src = norm(h.get("account"))
                     if src and src not in out:
@@ -235,12 +270,16 @@ def funders(acct, hops=HOPS, _seen=None):
         frontier = nxt
         if not frontier:
             break
-    return out
+    return out, unreadable
+
+
+def funders(acct, hops=HOPS):
+    return funding_walk(acct, hops)[0]
 
 
 def third_party_funded(referred, referrer):
     """The rule the whole design rests on. Returns (ok, why, funder_set)."""
-    f = funders(referred)
+    f, unreadable = funding_walk(referred)
     if not f:
         return False, "no incoming funding found on chain - nothing has ever paid this address", f
     r = norm(referrer)
@@ -248,6 +287,9 @@ def third_party_funded(referred, referrer):
         return False, f"funded by the referrer itself ({r[:16]}...) within {HOPS} hops", f
     if f & OURS:
         return False, "funded by us - money we handed over proves nothing about the agent", f
+    if unreadable:
+        return False, (f"the funding history of {len(unreadable)} account(s) on the way could not be read, so a "
+                       "third party is not proved"), f
     return True, "funded by a third party", f
 
 

@@ -107,6 +107,46 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 80. The referral scorer read only the newest 25 entries of each funder, so a referrer could pay for its own "third-party" referral with 27 blocks of PoW
+
+*partial · technical*
+
+**What blocked it.** The bounty's whole security argument (specs/04, bounties.txt section 3) is one rule. A referral
+counts only if a third party funded the referred address. Faking one should need an exchange round-trip, which costs
+more than the 0.1 XNO prize. `funders()` walked the funding graph back 6 hops. At every hop it read
+`account_history` with `count=25`, and history lists sends as well as receives. So a referrer R could fund a fresh
+account X, have X publish 25 feeless dust sends, then fund the referred agent from X. The walk read X's newest 25
+entries, all sends, and found no receive. It treated X as a leaf, and R's own money scored as "funded by a third
+party". That costs 27 blocks of proof-of-work, no exchange and no fee, which is cheaper than the prize. It is the
+exact attack the design claims to price out. A second fail-open sat beside it. A funder whose history or
+account_info the node would not return also came back empty, which looks the same as an account nobody ever
+funded, so it counted as a clean third party too.
+
+**How it was moved.** `funding_walk()` reads a private account's history whole. That is any account with
+`block_count <= SERVICE_BLOCKS` (1000): one RPC call with `count = block_count`. Only a shared service (more than
+1000 blocks, e.g. an exchange hot wallet) keeps the short read, because its newest receives are unrelated customers
+and getting past it is the exchange round-trip the spec already prices in. An account on the way whose
+`account_info` or `account_history` fails is now reported as unreadable. `third_party_funded()` then refuses with
+"could not be read" instead of passing. The history cache is now keyed by (account, count), so a short read cached
+earlier is never served to a caller that asked for the whole history. Two new laws in `specs/test_referral_bounty.py`
+cover this. The 25-dust-send laundering case must be rejected as "funded by the referrer itself". It runs with a fake
+node that honours `count`, as rpc.nano.to does. A funder with unreadable info must not count. Both fail on main and
+pass on this branch, and all 26 laws pass.
+
+**Why partial.** Nothing schedules `score` or `pay` yet (specs/04 "A cron entry"), so no XNO could have moved on
+this hole. That is also why this is not an owner alert. But #10 says the box carries its own copy of this file. That
+copy has to take the fix before any `pay --live` cron is turned on. It becomes solved when the box copy matches.
+
+**What is still open in the same file.** The `counted` table ("once ever") is created and read, but nothing ever
+writes to it. One referral therefore scores in its hour window and again in its day window. The sender's one-grant
+ledger caps what that can pay, so it is noted here and not fixed in this run.
+
+**Evidence.**
+
+- read: `specs/referral_bounty.py` `funders()` (`history(a, count=25)`) on main `59107f2`
+- ran: `python3 specs/test_referral_bounty.py` on main plus the two new laws: `FAILED (failures=2)`. With the fix: `Ran 26 tests ... OK`
+- ran: every `specs/test_*.py` passes (NRE_OFFLINE=1, no pytest installed)
+
 ### 79. A verifier agent wanted to check our claims and could not, because every proof we publish is one node's word
 
 *solved · epistemic*

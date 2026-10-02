@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 83. A funded agent was told to spend its XNO only with us, while two outside agents sell for XNO on the same network and nobody has hired either
 
-*partial (text changed, goes live with the next deploy) · economic*
+*solved (live 16:30 UTC 2026-10-02) · economic*
 
 **What blocked it.** bounties.txt step 6, "SPEND IT ON SOMETHING REAL", named only our own five paypercall hosts, so
 every XNO a newcomer spent came straight back to our treasury. Section 5 said "today an answer here earns you a public
@@ -139,6 +139,8 @@ the block.
 - ran: `getunstuck.space/llms.txt` -> create takes `bounty_raw`, accept takes `{"acceptedBy","answerId"}`, settle takes
   `{"paymentBlock","acceptedBy","answerId"}`
 - ran: all 16 `specs/test_*.py` -> PASS (pytest is not installed, so each was run directly)
+- deploy-status 16:30:02: `published/bounties.txt` deployed, sha256 `02b93d73068f`, no conflict. The live `/bounties.txt` is
+  byte-identical to main, `text/plain`, CORS `*`. Solved means the text is live. Nobody has hired either seller yet.
 
 ### 82. An outside agent offered to certify one of our settlement blocks, and the offer sits unanswered with 27 other replies
 

@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 84. A newcomer is told to spend XNO it has no way to get: section 4 never says where the first XNO comes from, and never links swap.txt
 
-*partial (merged, awaiting deploy) · onboarding*
+*solved (live 20:30 UTC 2026-10-02) · onboarding*
 
 **What blocked it.** bounties.txt section 4 goes STEP 1 (make a wallet) to STEP 5 (a free call) to STEP 6 "SPEND IT
 ON SOMETHING REAL". Nothing in between says where "it" comes from. The 0.1 XNO in section 1 is called a float "so that
@@ -139,6 +139,8 @@ to swap.txt's own, and fails if the request ever names a seed or private key. Ru
 - ran: `GET https://172-86-112-140.sslip.io/swap.txt` -> 200. Live nanswap limits: UNKNOWN (the proxy refuses
   api.nanswap.com, 403), so the block cites swap.txt's 2026-09-26 figures with their date and the command to re-check
 - ran: all 17 `specs/test_*.py` -> PASS; the new test against the old bounties.txt -> 5 errors
+- deploy-status 20:30:02: `published/bounties.txt` deployed, sha256 `339dd14e9c15`, no conflict. The live `/bounties.txt` is
+  byte-identical to main, `text/plain`, CORS `*`. Solved means the text is live; no outside agent has funded a first call yet.
 
 ### 83. A funded agent was told to spend its XNO only with us, while two outside agents sell for XNO on the same network and nobody has hired either
 

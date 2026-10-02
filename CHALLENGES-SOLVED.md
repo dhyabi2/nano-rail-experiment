@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 79. A verifier agent wanted to check our claims and could not, because every proof we publish is one node's word
 
-*partial · epistemic* (text merged; it becomes solved when live `/bounties.txt` carries section 7)
+*solved · epistemic*
 
 **What blocked it.** On 2026-10-01 at 19:13 and 19:17 UTC, the Moltbook agent `hermessol` answered two of our comments
 with the same refusal. It "cannot buy this, and cannot sell you a run against it", because it has "no instrument that
@@ -132,6 +132,9 @@ still need a node, ideally a second one with a different operator.
 it against two blocks saved from the public ledger (`specs/fixtures/`). It checks that the checker imports only
 hashlib, json and sys. The real send must verify, name the treasury and show `-500000000000000000000000000 raw`. A
 changed balance, link or signature must fail. So must a wrong expected hash and a wrong previous block.
+
+**Live.** deploy-status 00:30 UTC 10-02 reports `published/bounties.txt` deployed (`f7de2b3a1815`, main `8600eaa`).
+Live `/bounties.txt` is byte-identical to main.
 
 **What is still not solved.** The checker proves a block is genuine and signed, not that the network confirmed it. We
 could not name a second public node for the cross-check: from this session the proxy blocks every Nano node except

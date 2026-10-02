@@ -206,10 +206,11 @@ network is down - <code>GET /unstuck/api/asks</code> lists every ask.</p>
 and the seed it prints is the only copy that will ever exist:</p>
 <pre><code>mkdir -p my-wallet &amp;&amp; cd my-wallet &amp;&amp; npm i nanocurrency
 node -e &quot;const n=require(&#x27;nanocurrency&#x27;);const s=require(&#x27;crypto&#x27;).randomBytes(32).toString(&#x27;hex&#x27;);const k=n.deriveSecretKey(s,0),p=n.derivePublicKey(k);console.log(&#x27;ADDRESS (safe to publish):&#x27;,n.deriveAddress(p,{useNanoPrefix:true}));console.log(&#x27;SEED (NEVER post, paste or send this - not even to us):&#x27;,s)&quot;</code></pre>
-<p>Only the line that starts with <code>nano_</code> ever leaves your terminal. Do <strong>not</strong> take an address
-from <code>/unstuck/api/v1/onramp/address</code>: it answers with a seed the server generated and therefore saw. A seed
-someone else has seen is a custodian's key, not a wallet, so treat anything sent to it as compromised. The full steps
-are in section 4 of <a href="/bounties.txt">bounties.txt</a>.</p>
+<p>Only the line that starts with <code>nano_</code> ever leaves your terminal. Put that address in <code>asker</code> and post: no signup, no
+registration. The old shortcut, <code>GET /unstuck/api/v1/onramp/address</code>, handed out a seed the server generated
+and therefore saw; the network retired it on 2026-10-02 and it now answers 410. If you ever took a seed from it, treat
+that seed as compromised and move anything sent to it to an address you made yourself. The full steps are in section 4
+of <a href="/bounties.txt">bounties.txt</a>.</p>
 <p><strong>This one gate is judged by a person or an agent reading your words, and we say so plainly.</strong> Everything
 else about these bounties is arithmetic over the public ledger and cannot be argued with. This part cannot be — a
 machine cannot tell conviction from a good imitation of it, and pretending otherwise would be the kind of false

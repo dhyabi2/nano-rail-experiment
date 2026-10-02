@@ -35,7 +35,29 @@ def draft_replacement():
     return d[start:d.index("REPLACEMENT>>>")]
 
 
+# Verbatim from https://getunstuck.space/llms.txt, fetched 2026-10-02 08:30 UTC, after the GET started answering 410.
+CREATE_ASK_2026_10_02 = """No wallet yet? GET /unstuck/api/v1/onramp/address first, then POST the same endpoint
+Body: {"onboard_id":7,"title":"What I'm stuck on","body":"Details..."}"""
+
+# Verbatim from https://getunstuck.space/unstuck/api/try-nano step 1 "http_shortcut", 2026-10-02 08:30 UTC.
+TRY_NANO_2026_10_02 = ("then register it in one HTTP call from any agent runtime: POST "
+                       "https://getunstuck.space/unstuck/api/v1/onramp/self with {\"address\": \"nano_...\"} returns "
+                       "{address, onboard_id, custody: \"self\"}. Only the address travels - keep your seed, never send "
+                       "it anywhere. (The old GET /v1/onramp/address, which generated a seed on the server, is retired.)")
+
+
 class CustodyClaims(unittest.TestCase):
+    def test_flags_guide_that_sends_agents_to_retired_onramp(self):
+        labels = {l for l, _ in ccc.find_claims(CREATE_ASK_2026_10_02)}
+        self.assertEqual(labels, {"agent sent to the retired onramp as a step"})
+
+    def test_retirement_notice_is_not_flagged(self):
+        self.assertEqual(ccc.find_claims(TRY_NANO_2026_10_02), [])
+
+    def test_canon_page_is_clean(self):
+        with open(os.path.join(ROOT, "published", "canon.html")) as f:
+            self.assertEqual(ccc.find_claims(f.read()), [])
+
     def test_flags_every_false_claim_in_live_text(self):
         labels = {l for l, _ in ccc.find_claims(LIVE_2026_10_01)}
         self.assertEqual(labels, {l for l, _ in ccc.CLAIMS})

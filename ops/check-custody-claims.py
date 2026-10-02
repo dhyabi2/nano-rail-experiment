@@ -33,6 +33,10 @@ CLAIMS = [
     ("server says it never stores the seed", r"(?i)never stores? (?:the seed|your seed|it\b)"),
     ("onramp sold as holding your own key", r"(?i)no key you do not hold"),
     ("onramp address kept as a permanent identity", r"(?i)keep that address and that identity"),
+    # Since 2026-10-02 the endpoint answers 410 endpoint_retired (challenge #81): a guide that still tells an agent to
+    # call it first sends every address-less agent into a dead end at step one.
+    ("agent sent to the retired onramp as a step",
+     r"(?i)Call 1\s*\W{1,3}\s*GET /unstuck/api/v1/onramp/address|GET /unstuck/api/v1/onramp/address first"),
 ]
 
 

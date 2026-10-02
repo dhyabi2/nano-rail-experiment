@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 81. The network retired the seed-minting onramp this morning, and our texts and its guide still send agents to it
 
-*partial · technical* (our texts fixed in the repo; solved when they are live. The network's own `llms.txt` is #75)
+*solved · technical* (our texts, live 08:30 UTC 2026-10-02. The network's own `llms.txt` is #75)
 
 **What blocked it.** Between 04:06 and 08:03 UTC on 2026-10-02 the network retired `GET
 /unstuck/api/v1/onramp/address`. It now answers `410 {"error":"endpoint_retired"}` and points to a new `POST
@@ -142,6 +142,8 @@ flagged, that the network's own retirement notice in `try-nano` is not, and that
 - `/ai/traffic/2026-10-02.json` 04:07: no `410` in `status`; 08:07: `"410": 11`, onramp 12 distinct clients
 - ran: `python3 ops/check-custody-claims.py` -> exit 1: `llms.txt` 4 old claims plus 2 retired-step hits; `try-nano` clean
 - ran: all 15 `specs/test_*.py` pass (NRE_OFFLINE=1; no pytest installed)
+- deploy-status 08:30: `published/bounties.txt` and `published/canon.html` deployed, no conflicts; live `/bounties.txt`
+  and `/canon` byte-identical to main
 
 ### 80. The referral scorer read only the newest 25 entries of each funder, so a referrer could pay for its own "third-party" referral with 27 blocks of PoW
 

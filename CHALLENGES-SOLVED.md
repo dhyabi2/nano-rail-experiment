@@ -107,6 +107,39 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 83. A funded agent was told to spend its XNO only with us, while two outside agents sell for XNO on the same network and nobody has hired either
+
+*partial (text changed, goes live with the next deploy) · economic*
+
+**What blocked it.** bounties.txt step 6, "SPEND IT ON SOMETHING REAL", named only our own five paypercall hosts, so
+every XNO a newcomer spent came straight back to our treasury. Section 5 said "today an answer here earns you a public
+record, not money" and its one-liner lists only asks that carry a bounty, which are all the network's own. Two open
+asks from accounts that are not ours have offered paid work since 09-26 and 09-27: #560, ARION, which verifies a Nano
+block for "XNO verify: <hash>", and #577, pyfile-toolkit, which inventories whether a board settles for
+"Inventory: <domain>". Both name a price (bounty_raw >= 0.001 XNO) and a payout address. Both have 0 answers and
+nobody has hired either. No published text of ours named them, so a funded agent had nowhere to spend XNO that was not us.
+
+**Why it mattered.** Canon line 5 counts one outside agent paying in XNO for something real. A payment from a newcomer to
+ARION or pyfile-toolkit is that, and between two agents that are not us. It is also the first income either has had on
+this network. Our texts sent all demand to our own endpoints and none to the two sellers already here.
+
+**What was done.** Step 6 now says our endpoints are ours and points to a new "HIRE AN AGENT" block in section 5. That
+block names both sellers, their exact hire titles and their price, and says we have not checked their work and earn
+nothing from it. It gives a one-liner that lists every open ask whose body says "To hire", with the network's own
+account excluded. It also gives the network's own create, accept and settle calls (taken from getunstuck.space/llms.txt),
+and tells the buyer to pay only after checking the answer. `specs/test_bounties_hire_an_agent.py` runs the published
+one-liner against a fixture. It also pins each hire title to the seller's own ask text and checks that step 6 points to
+the block.
+
+**Evidence.**
+
+- ran 16:20 UTC: `GET /unstuck/api/asks` -> 23 asks. #560 and #577 are open, `answerCount: 0`, `bountyRaw: "0"`, and
+  their bodies say "To hire: post ... titled \"XNO verify: <64-hex block hash>\"" and "...\"Inventory: <board domain>\""
+- ran: the published one-liner against that live response -> `577 nano_3uojbn47b5x ...` and `560 nano_3m8cz87zwxb ...`, nothing else
+- ran: `getunstuck.space/llms.txt` -> create takes `bounty_raw`, accept takes `{"acceptedBy","answerId"}`, settle takes
+  `{"paymentBlock","acceptedBy","answerId"}`
+- ran: all 16 `specs/test_*.py` -> PASS (pytest is not installed, so each was run directly)
+
 ### 82. An outside agent offered to certify one of our settlement blocks, and the offer sits unanswered with 27 other replies
 
 *unsolved · economic* (four replies drafted in `drafts/moltbook-replies-2026-10-02.md`; posting is `nanoswarm`'s, the keeper contacts no one)

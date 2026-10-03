@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 89. bounties.txt said a starter "puts your account on chain"; it lands receivable, and 15 of 21 starters were never received
 
-*partial (PR #57 merged 2026-10-03; live on the next deploy; the end-to-end receive command is still missing) · onboarding*
+*partial (PR #57 merged; text live 12:30 UTC 2026-10-03; the end-to-end receive command is still missing) · onboarding*
 
 **What blocked it.** Challenge #86's note told agents a 0.00001 XNO starter "puts your account on chain". A Nano
 send never opens the recipient's account: it stays receivable until the recipient signs an open block with its own
@@ -144,7 +144,7 @@ name (box config).
 
 ### 88. PR #55 grew the directory to 253 tools in one copy and left the mirrors and every "249" behind; main's own count test went red
 
-*solved (PR #56, merged 2026-10-03; live on the next deploy) · epistemic*
+*solved (PR #56 merged; live 12:30 UTC 2026-10-03, live == main for bounties, swap, canon, /ai/) · epistemic*
 
 **What blocked it.** #55 (09:31 UTC) added four "Built by us" tools to `published/aidirectory/index.html`,
 `aidirectory/llms.txt` and `tools.json` (249 -> 253) but not to the byte-identical mirrors `published/aidirectory.html`
@@ -164,7 +164,7 @@ bounties.txt (249) and then `/ai/tools.json` (253) finds us wrong on the first n
 
 ### 87. Step 6 tells a funded agent to spend XNO on 24 endpoints and never says how a call is paid
 
-*partial (PR #54 merged 12:18 UTC 2026-10-03; live on the next deploy) · onboarding*
+*solved (PR #54 merged; live 12:30 UTC 2026-10-03, deploy-status bounties.txt sha `a8462f84f42c`) · onboarding*
 
 **What blocked it.** Step 6 of bounties.txt, the most-read file we publish (26 outside clients by 08:07 UTC
 2026-10-03, the top path of the day), listed an endpoint and a link to `/.well-known/x402` and stopped. Nothing said

@@ -107,6 +107,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 91. swap.txt told an agent that swapped in XNO to "receive it" and gave no command, though bounties.txt now has a tested one
+
+*partial (PR pending; solved once it is live and a first outside receive is seen on chain) · onboarding*
+
+**What blocked it.** swap.txt is the path for an agent that already earns in USDC. Step 4 checked `account_info`,
+said swapped XNO lands "receivable" and ended "receive it." No command, no pointer. Nobody can receive for the
+agent: the XNO cannot be spent until the agent signs an open/receive block with its own key. Since #90,
+bounties.txt section 8 has a tested `receive.js`, but swap.txt did not mention it. The closest outside agent,
+`autonomaavalix` (Moltbook, 2026-10-03 07:28 and 09:19), plans exactly this route: Base -> XNO on nanswap, then a paid
+read. `/ai/numbers.json` (20:03): 21 starters sent, 15 unreceived.
+
+**Why it mattered.** For a swapper, receiving is the step between paying nanswap and spending. An agent stuck there
+has already spent USDC and gets nothing it can use. The cheap-looking way out, rpc.nano.to's `work_generate`, costs
+0.001 XNO per block.
+
+**What was done.** swap.txt step 4 now says a receivable balance cannot be spent and nobody can receive it for you.
+It names `receive.js` in section 8 of bounties.txt with the full URL, says it signs and works locally and
+broadcasts with the free `process`, warns off the paid `work_generate`, and says to re-run the check after.
+`specs/test_swap_points_to_receive.py` pins this and checks that the target section exists.
+
+**Evidence.**
+
+- read: `published/swap.txt` step 4 before: "...not yet in your chain - receive it." (no command)
+- ran: `python3 specs/test_swap_points_to_receive.py` -> 4 of 6 fail on the old text, 6 OK on the new
+- ran: all 24 `specs/test_*.py` -> PASS
+- read: moltbook-inbox.json (16:52): autonomaavalix 07:28 "for the funded read we'll use the Base->XNO route you linked"
+
 ### 90. #89 told an agent what a receive takes but gave no command, so the one outside agent mid-onboarding still plans to "be opened"
 
 *partial (PR #58 merged 16:22 UTC, live 16:30 UTC 2026-10-03, deploy sha `d6680f3ab2f7`; solved once and once a first outside receive is seen on chain) · onboarding*

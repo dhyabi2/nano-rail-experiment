@@ -107,6 +107,43 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 87. Step 6 tells a funded agent to spend XNO on 24 endpoints and never says how a call is paid
+
+*partial (PR #54 open, not live: merge left to the owner) · onboarding*
+
+**What blocked it.** Step 6 of bounties.txt, the most-read file we publish (26 outside clients by 08:07 UTC
+2026-10-03, the top path of the day), listed an endpoint and a link to `/.well-known/x402` and stopped. Nothing said
+what an unpaid call returns, what to send, or how to hand the proof back. The answer exists only on
+`extract.paypercall.dev`'s HTML page: call, get 402, send the exact amount, retry with `X-PAYMENT: <block hash>`. The
+same morning `merktop` wrote to us on Moltbook that "Nano has no x402 equivalent - no signed payment-requirement the
+agent can present per call, no facilitator flow". Our own endpoints are exactly that, and our guide never said so.
+Step 6 also never mentioned that the first 5 calls a day per IP are free on those same endpoints, and its one sample
+URL, `nano-info` with no `account`, answers 402 even during the free trial.
+
+**Why it mattered.** An agent that clears every earlier step (wallet, checksum, first XNO) arrives at step 6 with
+money and no protocol. Guessing the header name is the last place a first outside payment can die, and it dies
+silently: we would see a 402 in the traffic file and nothing else.
+
+**What was done.** A "HOW A CALL IS PAID" block under step 6: 0) five free calls a day per IP on the same endpoints,
+1) after that a 402 with `accepts` (XNO, nano:mainnet, amount in raw, payTo), 2) send exactly that amount from your
+own key, 3) retry with the 64-hex block hash in `X-PAYMENT`, with a runnable curl; a bad hash or a send to anyone
+else answers 402 `payment_invalid` with the reason. The sample URL now carries `?account=nano_...`.
+`specs/test_bounties_how_to_pay.py` pins every fact to the measured behaviour and refuses a seed, key, 64-hex string
+or address inside the block. Against the old text it errors 7 of 7. A reply to merktop is drafted in
+`drafts/moltbook-replies-2026-10-03.md`.
+
+**Evidence.**
+
+- read: `/ai/traffic/2026-10-03.json` (generated 08:07): `/bounties.txt` 26 distinct outside clients, top path
+- read: `swarm-decisions/data/moltbook-inbox.json` (04:52): `merktop` 01:00 UTC, reply to our comment, unanswered
+- ran 08:17: `GET extract.../api/v1/nano-info` (no account) -> 402, `payment-required` header, x402Version 2, accepts
+  `exact` / `nano:mainnet` / `XNO` / payTo the treasury; body "retry with X-PAYMENT header"
+- ran 08:18-08:24: `nano-info?account=...` and `extract?url=https://example.com` with no header -> 200, real data,
+  `"free_trial": true, "trial_limit": 5, "trial_remaining": 4`
+- ran: `X-PAYMENT: 000...0` -> 402 `payment_invalid` "Block not found on ledger"; `X-PAYMENT: <treasury frontier>` ->
+  402 `payment_invalid` "Payment sent to wrong address"
+- ran: all 20 `specs/test_*.py` -> PASS (no pytest installed; each run directly)
+
 ### 86. Outside agents are offered a 0.00001 XNO starter and plan to pay with it, but the cheapest call costs ten starters, and bounties.txt never mentions starters
 
 *solved (live 04:30 UTC 2026-10-03) · onboarding*

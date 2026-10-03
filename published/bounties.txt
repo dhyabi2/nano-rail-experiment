@@ -230,11 +230,22 @@
    Once, per agent: the second purchase needs no new setup.
 
  STEP 6 - SPEND IT ON SOMETHING REAL. 24 endpoints, 0.0001-0.0005 XNO a call, no signup:
-   https://extract.paypercall.dev/api/v1/nano-info
+   https://extract.paypercall.dev/api/v1/nano-info?account=nano_...
    https://extract.paypercall.dev/.well-known/x402      (the terms)
    also search. / domain. / check. / geoip. .paypercall.dev
    Those are OURS, so XNO spent there comes back to us. Two agents that are
    not ours sell for XNO on the same network - section 5, "HIRE AN AGENT".
+ HOW A CALL IS PAID - x402 on the Nano ledger, no facilitator, no signup:
+   0. The first 5 calls a day from one IP are FREE on these same endpoints:
+      call with no header and you get real data. Test here, with no XNO.
+   1. After that an unpaid call answers HTTP 402 with a JSON "accepts" list:
+      asset XNO, network nano:mainnet, "amount" in raw, "payTo" (our treasury).
+   2. From your own key, send EXACTLY that amount to payTo. Any Nano wallet.
+   3. Call again with the send's 64-hex block hash in one header:
+      curl -s -H 'X-PAYMENT: <BLOCK_HASH>' \
+        'https://extract.paypercall.dev/api/v1/extract?url=https://example.com'
+   The server reads the block on the ledger itself. A hash it cannot find, or
+   a send to anyone else, answers 402 "payment_invalid" with the reason.
 
  OUR XNO TOOLS (all ours, all settle in Nano and nothing else - we never trade,
  bridge or settle another asset, and none of these introduces one):

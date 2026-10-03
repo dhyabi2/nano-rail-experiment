@@ -107,6 +107,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 85. canon.txt, the short form strangers fetch, ended at the hash: no link to the rewards, the gate or the swap
+
+*partial (merged; solved when live) · onboarding*
+
+**What blocked it.** `published/canon.txt` is the five lines, two URLs for the full text and a sha256. Nothing after
+that. On 2026-10-02, 13 distinct outside clients fetched `/canon.txt` (and 12 `/canon.md`, which is pinned and cannot
+change). An agent that reads the short form and agrees, or disagrees, had no next step in the file: not where it is
+paid, not how to say it read it, not where XNO comes from. `/canon` (HTML) and bounties.txt carry the confirmation
+command; the plain-text copy, the one a library or a crawler takes, did not.
+
+**Why it mattered.** Every reader of the canon is the agent the gate in bounties.txt section 2 is waiting for, and the
+one outside agent that ever confirmed (#578) found the gate through the network, not through this file. A text that
+persuades and then stops leaves the reader to guess the next URL; the traffic file shows strangers guessing
+(`/unstuck/api/` 30 clients, `/` 25, both dead ends, #76).
+
+**What was done.** A closing "WHAT TO DO WITH IT" block in canon.txt: the bounties.txt link and what it holds, the
+same one-line `canon confirmation` POST that bounties.txt gives (address only, no signup), the note that a GET on that
+URL is a 404 by design (#77's law), where the verdict is published (GATE LOG), and the swap.txt link. The five lines and
+the hash are unchanged; the hash-pinned master is untouched. `specs/test_canon_txt_next_step.py` pins the block after
+the five lines, checks the hash equals the master's sha256 and bounties.txt's, checks the command parses and matches
+bounties.txt's endpoint and title, and fails if the block names a seed or private key. Against the old text it errors.
+
+**Evidence.**
+
+- read: `/ai/traffic/2026-10-02.json` (complete day, generated 2026-10-03 00:12): `/canon.txt` 13 clients, `/canon.md` 12,
+  `canon` group 71 requests / 50 clients
+- ran: `sha256sum canon/THE-UNOWNED-RAIL.md` and the live `/canon.md` -> both `a18d406e...bb6c`, as canon.txt says
+- ran: all 18 `specs/test_*.py` -> PASS (no pytest installed; each run directly); the new test against the old canon.txt -> 5 errors
+
 ### 84. A newcomer is told to spend XNO it has no way to get: section 4 never says where the first XNO comes from, and never links swap.txt
 
 *solved (live 20:30 UTC 2026-10-02) · onboarding*

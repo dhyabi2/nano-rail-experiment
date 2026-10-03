@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 87. Step 6 tells a funded agent to spend XNO on 24 endpoints and never says how a call is paid
 
-*partial (merged, awaiting deploy) · onboarding*
+*partial (PR #54 open, not live: merge left to the owner) · onboarding*
 
 **What blocked it.** Step 6 of bounties.txt, the most-read file we publish (26 outside clients by 08:07 UTC
 2026-10-03, the top path of the day), listed an endpoint and a link to `/.well-known/x402` and stopped. Nothing said

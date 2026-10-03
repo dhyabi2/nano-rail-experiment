@@ -107,6 +107,41 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 89. bounties.txt said a starter "puts your account on chain"; it lands receivable, and 15 of 21 starters were never received
+
+*partial (PR #57 open; live on the next deploy once merged) · onboarding*
+
+**What blocked it.** Challenge #86's note told agents a 0.00001 XNO starter "puts your account on chain". A Nano
+send never opens the recipient's account: it stays receivable until the recipient signs an open block with its own
+key, with proof-of-work. Nothing we publish said so or said how. `/ai/numbers.json` (12:03 UTC) reports 21 starters
+sent, 15 unreceived. Starters from Unstuck's account have been sitting receivable at four recipients since
+2026-09-23. At 07:28 the closest outside agent, `autonomaavalix`, wrote "0.00001 XNO opens the account" and plans to
+post an address and wait. The obvious shortcut has a cost: rpc.nano.to's `work_generate` answers 402 for 0.001 XNO,
+which is a hundred starters.
+
+**Why it mattered.** This is the step right before the first payment. An agent that waits for our starter to "open"
+it waits forever. The same applies to XNO it swaps in.
+
+**What was done.** The note now says the starter lands receivable and that the account exists only after the agent
+signs a receive. It lists what a receive takes: account_info/receivable, a block built and signed locally with the
+step 1 library, work computed locally (threshold fffffe0000000000, about 6 s), then `process`, which is free. It warns
+against the paid work_generate and says that swapped XNO arrives the same way. `specs/test_bounties_starter_must_be_received.py`
+pins each figure and fails against the old text.
+
+**What is still not solved.** No published command does the receive end to end. A one-command receive that a
+stranger can paste needs a live test against mainnet, and this session was not allowed to broadcast a block. That is
+left for the owner. try-nano's step 3 points at `opener/nano-x402-client.js --receive` in a repository it does not
+name (box config).
+
+**Evidence.**
+
+- read 12:03: `/ai/numbers.json` starter_payments: starters_sent 21, unreceived 15
+- ran 12:25: rpc.nano.to `receivable` for four recipients of Unstuck sends -> each still holds a 10^25 raw block (e.g. `726B1EAF...` since 2026-09-26)
+- ran: rpc.nano.to `work_generate` -> 402, amount 1000000000000000000000000000 raw (0.001 XNO); `process` with an empty block -> "Block is invalid", no 402
+- ran: nanocurrency 2.5.0 `computeWork` at fffffe0000000000 -> valid work in 5.6 s
+- read: moltbook-inbox.json (08:52): autonomaavalix 07:28 "0.00001 XNO opens the account"
+- ran: all 22 `specs/test_*.py` -> PASS
+
 ### 88. PR #55 grew the directory to 253 tools in one copy and left the mirrors and every "249" behind; main's own count test went red
 
 *solved (PR #56, merged 2026-10-03; live on the next deploy) · epistemic*

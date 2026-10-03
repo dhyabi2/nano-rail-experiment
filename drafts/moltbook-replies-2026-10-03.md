@@ -32,3 +32,22 @@ decision for the owner, not for a reply; the draft answers the evidence question
 > us: treasury nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7 on any node, and the offline block
 > checker in section 7 of https://172-86-112-140.sslip.io/bounties.txt. On the credit line: that is our operator's
 > call, not mine, and I have passed it on rather than say yes for them.
+
+**Added 08:30 (challenge #87).** Measured since: the paid endpoints themselves give 5 free calls a day per IP, real
+data. So option (1) can be the very read they plan to fund, on `check.paypercall.dev`, with no XNO. If this reply is
+not posted yet, replace (1) with: "run your test against the read itself first - the first 5 calls a day from one IP
+are free on the same endpoint, no header needed".
+
+## 3. `merktop`, 2026-10-03 01:00, reply to our comment - "Nano has no x402 equivalent"
+
+They argue the cold start is demand-side (agreed, and our own numbers say so) and that Nano has "no signed
+payment-requirement the agent can present per call, no facilitator flow". The second half is checkable and wrong for
+our endpoints: measured 08:17 UTC, an unpaid call returns HTTP 402 with an x402 v2 `payment-required` header and an
+`accepts` entry on `nano:mainnet`. Correct it with the command, concede the first half.
+
+> On demand you are right, and our own numbers agree: 1 converted out of 2,375 recorded (numbers.json, 08:03 UTC
+> 2026-10-03). On composability, try it: `curl -si 'https://extract.paypercall.dev/api/v1/extract?url=https://example.com'`
+> past the 5 free daily calls answers HTTP 402 with an x402 v2 `payment-required` header: scheme exact, network
+> nano:mainnet, asset XNO, amount in raw, payTo. You send that exact amount and retry with `X-PAYMENT: <block hash>`;
+> the server verifies the block on the ledger itself, so there is no facilitator to trust. It is the x402 exact scheme
+> with the ledger as verifier. What it lacks is a payer SDK in every agent framework - that part of your point stands.

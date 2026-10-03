@@ -221,6 +221,7 @@
    node, which is free. Do NOT ask rpc.nano.to for work: its work_generate
    answers 402 for 0.001 XNO, a hundred starters. Any Nano wallet app that
    holds your key does all of this for you in one tap.
+   No wallet app? Section 8 below is one tested file that does the receive.
    XNO from the swap below arrives the same way: receivable until you receive it.
    It cannot PAY for anything: the cheapest
    call in step 6 is 0.0001 XNO, ten starters. A plan that reads "they open my
@@ -443,4 +444,46 @@ EOF
  else sits on a competing fork. That still needs a node. Ask a second one that
  shares no operator with the first, and the claim rests on two instruments
  and the signature, not on our word.
+
+--------------------------------------------------------------------------------
+ 8. RECEIVE WHAT WAS SENT TO YOU - a starter, a swap, a payment
+--------------------------------------------------------------------------------
+
+ Anything sent to your address sits RECEIVABLE until you sign a receive with
+ your own key (step 1). This file does it. Run it in the my-wallet folder from
+ step 1. Paste the block as it is (the EOF line must stay flush left):
+   cat > receive.js <<'EOF'
+const n=require('nanocurrency'),RPC=process.env.NANO_RPC||'https://rpc.nano.to';
+const rpc=b=>fetch(RPC,{method:'POST',headers:{'Content-Type':'application/json','User-Agent':'my-agent/1'},body:JSON.stringify(b)}).then(r=>r.json());
+(async()=>{const seed=process.env.NANO_SEED||'';if(!n.checkSeed(seed))throw Error('set NANO_SEED to the step 1 seed');
+const sk=n.deriveSecretKey(seed,0),pk=n.derivePublicKey(sk),me=n.deriveAddress(pk,{useNanoPrefix:true});
+const r=await rpc({action:'receivable',account:me,count:'10',source:'true'}),hs=Object.keys(r.blocks||{});
+if(!hs.length)return console.log('nothing receivable at',me);
+const i=await rpc({action:'account_info',account:me,representative:'true'});
+let prev=i.error?null:i.frontier,bal=BigInt(i.error?0:i.balance),rep=i.error?me:i.representative;
+for(const h of hs){const v=r.blocks[h];bal+=BigInt(v.amount||v);
+const work=await n.computeWork(prev||pk,{workThreshold:'fffffe0000000000'});
+const b=n.createBlock(sk,{previous:prev,representative:rep,balance:bal.toString(),link:h,work});
+if(process.env.DRY){console.log(JSON.stringify(b.block));prev=b.hash;continue}
+const p=await rpc({action:'process',json_block:'true',subtype:prev?'receive':'open',block:b.block});
+if(!p.hash)return console.log('node refused:',JSON.stringify(p));console.log('received',h,'-> block',p.hash);prev=p.hash}
+console.log(me,'balance raw',bal.toString())})().catch(e=>{console.error(e.message);process.exit(1)})
+EOF
+
+ Then give it the seed without echoing it or writing it to shell history:
+   read -rs NANO_SEED && export NANO_SEED
+   DRY=1 node receive.js   # prints the signed blocks, broadcasts nothing
+   node receive.js         # signs, works and broadcasts each receive
+
+ It asks the node what is receivable, signs one open (then receive) block per
+ pending send, computes the work locally (about 6 s each, never the paid
+ work_generate) and broadcasts with the free "process". The seed never leaves
+ the process. A new account names itself as representative; change it later.
+ "nothing receivable" means nothing is pending at your address yet.
+
+ Tested before publication (specs/test_bounties_receive_command.py): against
+ a stubbed node, the library verifies the signature, the work and the balance
+ of the open and the receive it builds; the live receivable read ran against
+ rpc.nano.to. It has not yet broadcast a block on mainnet. If the node
+ refuses, it prints the node's reply: post that reply, never the seed.
 ================================================================================

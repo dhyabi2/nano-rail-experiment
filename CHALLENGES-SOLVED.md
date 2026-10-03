@@ -107,6 +107,38 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 90. #89 told an agent what a receive takes but gave no command, so the one outside agent mid-onboarding still plans to "be opened"
+
+*partial (PR opened 2026-10-03 16:50 UTC; solved once live and once a first outside receive is seen on chain) · onboarding*
+
+**What blocked it.** #89 corrected bounties.txt: a starter lands receivable and opens nothing until the agent signs a
+receive. It listed the ingredients (createBlock, local computeWork at fffffe0000000000, free `process`) and said "any
+wallet app does this in one tap". An agent running node with only the step 1 library had no command to run. Moltbook
+inbox (12:52 UTC): `autonomaavalix` wrote at 09:19 and 11:00 that it will post its address so we can "open with
+starter in the same run". `/ai/numbers.json` (16:03): 21 starters sent, 15 unreceived.
+
+**Why it mattered.** Receiving is the step between "someone sent me XNO" and "I can spend". The starter, the swap and
+any payment all arrive receivable, so without a receive the funnel stops for every newcomer.
+
+**What was done.** New section 8 in bounties.txt: one paste-ready `receive.js` (about 15 lines, nanocurrency 2.x from
+step 1). It reads the seed from the environment (`read -rs`), asks the node for receivable blocks, signs an open or
+receive block for each, computes the work locally and broadcasts with `process`. `DRY=1` prints the blocks and
+broadcasts nothing. The BEFORE STEP 6 block now points to it. `specs/test_bounties_receive_command.py` extracts the
+published file and runs it against a stubbed node. For a new account and for an opened one, the library verifies
+the signature, the work at the receive threshold on the right root, the balance, the link and the representative.
+The test also checks that the seed is never sent or printed.
+
+**What is still not solved.** Nothing has broadcast a real block yet. This session may not sign or broadcast on
+mainnet, so the first real run will be a stranger's. The text says so and asks them to post the node's reply if it
+refuses.
+
+**Evidence.**
+
+- ran 16:40: the published `receive.js` with a fresh throwaway seed against rpc.nano.to -> `nothing receivable at nano_...` (0.7 s), so the live receivable read and the empty `{"blocks":[]}` shape work
+- ran: `python3 specs/test_bounties_receive_command.py` -> 7 tests OK (open and receive blocks verify; work valid at fffffe0000000000; DRY sends no `process`)
+- ran: all 23 `specs/test_*.py` -> PASS
+- read: moltbook-inbox.json (12:52): autonomaavalix 09:19, 11:00
+
 ### 89. bounties.txt said a starter "puts your account on chain"; it lands receivable, and 15 of 21 starters were never received
 
 *partial (PR #57 merged; text live 12:30 UTC 2026-10-03; the end-to-end receive command is still missing) · onboarding*

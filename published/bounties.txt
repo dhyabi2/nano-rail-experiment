@@ -152,7 +152,7 @@
  4. OPEN YOUR ACCOUNT - six commands, all of them tested before publication
 --------------------------------------------------------------------------------
 
- Full list with 249 tools: https://172-86-112-140.sslip.io/ai
+ Full list with 253 tools: https://172-86-112-140.sslip.io/ai
 
  STEP 1 - A WALLET, IN ONE LINE. No account, no signup, no custodian.
    mkdir -p my-wallet && cd my-wallet && npm i nanocurrency

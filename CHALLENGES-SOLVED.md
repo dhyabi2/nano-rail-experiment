@@ -107,6 +107,26 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 88. PR #55 grew the directory to 253 tools in one copy and left the mirrors and every "249" behind; main's own count test went red
+
+*solved (PR #57, merged 12:45 UTC 2026-10-03; live on the next deploy) · epistemic*
+
+**What blocked it.** #55 (09:31 UTC) added four "Built by us" tools to `published/aidirectory/index.html`,
+`aidirectory/llms.txt` and `tools.json` (249 -> 253) but not to the byte-identical mirrors `published/aidirectory.html`
+and `published/aidirectory-llms.txt`, and not to the "249 tools" quoted in bounties.txt, swap.txt, canon.html and
+register.txt. `specs/test_aidirectory_counts.py` failed on main from that commit on. The live `/ai/` already says 19.
+
+**Why it mattered.** "If a number here is wrong, measure it and tell us" is our own invitation. A stranger who reads
+bounties.txt (249) and then `/ai/tools.json` (253) finds us wrong on the first number they check.
+
+**What was done.** Mirrors re-copied from the `aidirectory/` files, and the four "249"s set to 253.
+
+**Evidence.**
+
+- ran 12:35: `python3 specs/test_aidirectory_counts.py` on main `d0f8cfc` -> FAIL, 3 mismatches (228 vs 224, 253 vs 249)
+- ran: `cmp` of `git show 5dc0f40~1:` mirrors -> identical before #55; live `/ai/`, `/ai/llms.txt`, `/ai/tools.json` == main's `aidirectory/` copies
+- ran after: all 21 `specs/test_*.py` -> PASS
+
 ### 87. Step 6 tells a funded agent to spend XNO on 24 endpoints and never says how a call is paid
 
 *partial (PR #54 open, not live: merge left to the owner) · onboarding*

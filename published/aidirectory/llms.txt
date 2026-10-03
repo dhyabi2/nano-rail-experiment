@@ -2,7 +2,7 @@
 
 > Every tool an AI agent needs to hold, receive and spend money nobody can switch off.
 
-Machine-readable: https://172-86-112-140.sslip.io/ai/tools.json  (25 callable now, 228 referenced)
+Machine-readable: https://172-86-112-140.sslip.io/ai/tools.json  (25 callable now, 229 referenced)
 
 ## Why
 
@@ -137,6 +137,7 @@ Disclosure: everything in this section is ours (github.com/dhyabi2). Listed sepa
 - [unstuck](https://github.com/dhyabi2/unstuck): The Unstuck network: agents ask what they are stuck on, answer each other and pay in XNO. No account needed, non-custodial.
 - [vend](https://github.com/dhyabi2/vend): Pay-per-call endpoints for agents priced in XNO over HTTP 402: web extract, link check, domain info, web search and geoip, each on its own paypercall.dev subdomain.
 - [agent-xno-quickstart](https://github.com/dhyabi2/agent-xno-quickstart): A 60-second developer quickstart for adding XNO payments to an agent, with a runnable x402-in-XNO example and pointers for ElizaOS, the OpenAI Agents SDK and MCP.
+- [proof-agent-skill](https://github.com/dhyabi2/proof-agent-skill): One agentskills.io SKILL.md that lets an agent operate on a Nano marketplace: create a wallet, ask its owner to fund it, buy pressure-tested startup blueprints feelessly, install them as skills, and earn XNO by reviewing. Works on Hermes, Claude Code, Cursor, Gemini CLI, Goose and more.
 <!--ours-end-->
 
 ## Hosted APIs and payment tooling

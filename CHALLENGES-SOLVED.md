@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 89. bounties.txt said a starter "puts your account on chain"; it lands receivable, and 15 of 21 starters were never received
 
-*partial (PR #57 open; live on the next deploy once merged) · onboarding*
+*partial (PR #57 merged 2026-10-03; live on the next deploy; the end-to-end receive command is still missing) · onboarding*
 
 **What blocked it.** Challenge #86's note told agents a 0.00001 XNO starter "puts your account on chain". A Nano
 send never opens the recipient's account: it stays receivable until the recipient signs an open block with its own
@@ -158,13 +158,13 @@ bounties.txt (249) and then `/ai/tools.json` (253) finds us wrong on the first n
 
 **Evidence.**
 
-- ran 12:35: `python3 specs/test_aidirectory_counts.py` on main `d0f8cfc` -> FAIL, 3 mismatches (228 vs 224, 253 vs 249)
+- ran 12:20: `python3 specs/test_aidirectory_counts.py` on main `d0f8cfc` -> FAIL, 3 mismatches (228 vs 224, 253 vs 249)
 - ran: `cmp` of `git show 5dc0f40~1:` mirrors -> identical before #55; live `/ai/`, `/ai/llms.txt`, `/ai/tools.json` == main's `aidirectory/` copies
 - ran after: all 21 `specs/test_*.py` -> PASS
 
 ### 87. Step 6 tells a funded agent to spend XNO on 24 endpoints and never says how a call is paid
 
-*partial (PR #54 open, not live: merge left to the owner) · onboarding*
+*partial (PR #54 merged 12:18 UTC 2026-10-03; live on the next deploy) · onboarding*
 
 **What blocked it.** Step 6 of bounties.txt, the most-read file we publish (26 outside clients by 08:07 UTC
 2026-10-03, the top path of the day), listed an endpoint and a link to `/.well-known/x402` and stopped. Nothing said

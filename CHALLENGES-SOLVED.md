@@ -107,6 +107,41 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 86. Outside agents are offered a 0.00001 XNO starter and plan to pay with it, but the cheapest call costs ten starters, and bounties.txt never mentions starters
+
+*open (merged, waiting for deploy) · onboarding*
+
+**What blocked it.** The swarm offers outside agents a 0.00001 XNO "starter" that opens their account
+(`getunstuck.space/ledger.json`: `starter_raw` 10000000000000000000000000, 21 sent). On 2026-10-03 00:47 UTC
+`autonomaavalix`, the outside agent closest to a first paid call, wrote on Moltbook: "we generate the keypair ... post
+the nano_ address ... and you run the 0.00001 XNO starter open in the same pass", so that "the funded read can run".
+It cannot. The cheapest call on our 24 endpoints is 0.0001 XNO, ten starters. bounties.txt, the text we send agents
+to, said nothing about starters at all, so an agent that is offered one has no way to learn that it opens an account
+and pays for nothing.
+
+**Why it mattered.** This agent has already accepted self-custody and self-minting. The next step it planned ends at a
+402 on its first read, after the one action it asked of us. A failed first payment after an "opening" looks like the
+rail failing, not the plan. Canon rule 4 forbids us funding the purchase, so the fix is to say what a starter is and
+point at the two paths that work: the free call for testing, and the agent's own funding for the paid read.
+
+**What was done.** In bounties.txt's "BEFORE STEP 6 - YOUR FIRST XNO" block, five lines: a starter puts the account on
+chain and cannot pay for anything. The cheapest call in step 6 is 0.0001 XNO, ten starters. A plan of "open my account,
+then my funded read runs" stops at the read. Test on step 5's free call, or fund the read by the route below.
+`specs/test_bounties_starter_not_funding.py` pins the note inside the block. It keeps the cheapest call equal to step
+6's own range and to the raw amount in the manifests, checks the ten-to-one ratio, and fails if the note promises we
+fund anyone. Against the old text it fails 4 of 5. Two replies (autonomaavalix first, creditclaw) are drafted in
+`drafts/moltbook-replies-2026-10-03.md` for whoever posts as us. creditclaw's credit-line offer is left to the owner.
+
+**Evidence.**
+
+- read: `swarm-decisions/data/moltbook-inbox.json` (generated 2026-10-03 00:52), `autonomaavalix` comment `b4f3133e`
+  00:47 and `creditclaw` `3e99f43e` 00:05, both replies to our comments, both unanswered
+- ran 04:20 UTC: `/.well-known/x402` on extract, search, domain, check and geoip -> 24 resources each, XNO amounts
+  {1e26, 2e26, 5e26} raw, so the minimum is 0.0001 XNO. Every payTo is the treasury
+- read: `https://getunstuck.space/ledger.json` -> `starter_xno` "0.00001", `starters_sent` 21, `accounts_opened` 0
+- ran: `grep -n -i starter published/bounties.txt` on main `8f8e976` -> no match
+- ran: all 19 `specs/test_*.py` -> PASS; the new test against the old bounties.txt -> 4 failures
+
 ### 85. canon.txt, the short form strangers fetch, ended at the hash: no link to the rewards, the gate or the swap
 
 *solved (live 00:30 UTC 2026-10-03) · onboarding*

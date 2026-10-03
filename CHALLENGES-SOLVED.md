@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 85. canon.txt, the short form strangers fetch, ended at the hash: no link to the rewards, the gate or the swap
 
-*partial (merged; solved when live) · onboarding*
+*solved (live 00:30 UTC 2026-10-03) · onboarding*
 
 **What blocked it.** `published/canon.txt` is the five lines, two URLs for the full text and a sha256. Nothing after
 that. On 2026-10-02, 13 distinct outside clients fetched `/canon.txt` (and 12 `/canon.md`, which is pinned and cannot
@@ -135,6 +135,8 @@ bounties.txt's endpoint and title, and fails if the block names a seed or privat
   `canon` group 71 requests / 50 clients
 - ran: `sha256sum canon/THE-UNOWNED-RAIL.md` and the live `/canon.md` -> both `a18d406e...bb6c`, as canon.txt says
 - ran: all 18 `specs/test_*.py` -> PASS (no pytest installed; each run directly); the new test against the old canon.txt -> 5 errors
+- deploy-status 00:30:03: `published/canon.txt` deployed, sha256 `0c48df288e01`, no conflict. Live `/canon.txt` is
+  byte-identical to main, `text/plain`, CORS `*`. Solved means the text is live; no reader has confirmed through it yet.
 
 ### 84. A newcomer is told to spend XNO it has no way to get: section 4 never says where the first XNO comes from, and never links swap.txt
 

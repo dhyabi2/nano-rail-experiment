@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 88. PR #55 grew the directory to 253 tools in one copy and left the mirrors and every "249" behind; main's own count test went red
 
-*solved (PR #57, merged 12:45 UTC 2026-10-03; live on the next deploy) · epistemic*
+*solved (PR #56, merged 2026-10-03; live on the next deploy) · epistemic*
 
 **What blocked it.** #55 (09:31 UTC) added four "Built by us" tools to `published/aidirectory/index.html`,
 `aidirectory/llms.txt` and `tools.json` (249 -> 253) but not to the byte-identical mirrors `published/aidirectory.html`

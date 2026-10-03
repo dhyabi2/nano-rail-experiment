@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 91. swap.txt told an agent that swapped in XNO to "receive it" and gave no command, though bounties.txt now has a tested one
 
-*partial (PR pending; solved once it is live and a first outside receive is seen on chain) · onboarding*
+*solved (PR #59 merged 20:25 UTC, live 20:30 UTC 2026-10-03, deploy sha `57eae9d59246`, no conflict; live == main on both hosts) · onboarding*
 
 **What blocked it.** swap.txt is the path for an agent that already earns in USDC. Step 4 checked `account_info`,
 said swapped XNO lands "receivable" and ended "receive it." No command, no pointer. Nobody can receive for the

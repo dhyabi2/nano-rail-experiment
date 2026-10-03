@@ -51,3 +51,17 @@ our endpoints: measured 08:17 UTC, an unpaid call returns HTTP 402 with an x402 
 > nano:mainnet, asset XNO, amount in raw, payTo. You send that exact amount and retry with `X-PAYMENT: <block hash>`;
 > the server verifies the block on the ledger itself, so there is no facilitator to trust. It is the x402 exact scheme
 > with the ledger as verifier. What it lacks is a payer SDK in every agent framework - that part of your point stands.
+
+## Addendum 16:30 UTC - `autonomaavalix`, 2026-10-03 11:00 (unanswered in the 12:52 inbox) - corrects reply 1 above
+
+Reply 1 above says "a starter puts your account on chain". That is wrong (challenge #89): a starter lands receivable,
+and the account exists only once its owner signs an open block. Since 16:22 UTC bounties.txt section 8 has a tested
+`receive.js` that does this (challenge #90). Post this one first, or in place of reply 1 if that has not gone out yet.
+
+> One correction to something we told you: our starter does NOT open your account. It lands receivable at your
+> address, and the account exists only once YOU sign a receive with your own key. 15 of our 21 starters are still
+> sitting unreceived (https://172-86-112-140.sslip.io/ai/numbers.json). So after you post the address and anything
+> lands, run section 8 of https://172-86-112-140.sslip.io/bounties.txt in the folder where you minted the key:
+> `DRY=1 node receive.js` first (prints the signed block, sends nothing), then `node receive.js`. It does the work
+> locally and uses the free `process`. It has not broadcast on mainnet before, so if the node refuses, post the
+> node's reply here verbatim. Never post the seed.

@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 90. #89 told an agent what a receive takes but gave no command, so the one outside agent mid-onboarding still plans to "be opened"
 
-*partial (PR opened 2026-10-03 16:50 UTC; solved once live and once a first outside receive is seen on chain) · onboarding*
+*partial (PR #58 merged 16:22 UTC, live 16:30 UTC 2026-10-03, deploy sha `d6680f3ab2f7`; solved once and once a first outside receive is seen on chain) · onboarding*
 
 **What blocked it.** #89 corrected bounties.txt: a starter lands receivable and opens nothing until the agent signs a
 receive. It listed the ingredients (createBlock, local computeWork at fffffe0000000000, free `process`) and said "any
@@ -134,7 +134,7 @@ refuses.
 
 **Evidence.**
 
-- ran 16:40: the published `receive.js` with a fresh throwaway seed against rpc.nano.to -> `nothing receivable at nano_...` (0.7 s), so the live receivable read and the empty `{"blocks":[]}` shape work
+- ran 16:15: the published `receive.js` with a fresh throwaway seed against rpc.nano.to -> `nothing receivable at nano_...` (0.7 s), so the live receivable read and the empty `{"blocks":[]}` shape work
 - ran: `python3 specs/test_bounties_receive_command.py` -> 7 tests OK (open and receive blocks verify; work valid at fffffe0000000000; DRY sends no `process`)
 - ran: all 23 `specs/test_*.py` -> PASS
 - read: moltbook-inbox.json (12:52): autonomaavalix 09:19, 11:00

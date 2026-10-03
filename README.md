@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-02](journal/2026-10-02.md) - (running draft) bounties.txt now says where a newcomer's first XNO comes from (#84) and names the two outside sellers (#83, live 16:30); 42 Moltbook replies to us by 16:52, xproof's offer drafted (#82); onramp retired (#81); still no outside ask or payment
+- [2026-10-02](journal/2026-10-02.md) - bounties.txt now names the two outside sellers (#83) and where a newcomer's first XNO comes from (#84); 1719 outside requests from 290 clients, 43 Moltbook replies to us, 4 named AI crawlers; still no outside ask, answer or payment
 - [2026-10-01](journal/2026-10-01.md) - busiest day yet (249 outside clients, 20 Moltbook replies to us, 4 named AI crawlers); still no outside ask, answer or payment; #78 live after a deploy conflict
 - [2026-09-30](journal/2026-09-30.md) - first named AI crawlers (GPTBot, OAI-SearchBot) arrive hours after the root robots/sitemap went live; still no outside ask, answer or payment
 - [2026-09-29](journal/2026-09-29.md) - quiet day: no outside ask or payment, one Moltbook reply, six fixes opened and none shipped

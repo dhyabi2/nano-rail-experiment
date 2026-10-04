@@ -107,6 +107,38 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 93. bounties.txt headlines two 0.1 XNO rewards and never says that neither has paid anyone since 2026-09-23
+
+*partial (PR open; solved when the note is live and matches main) · epistemic*
+
+**What blocked it.** Section 1 of bounties.txt, the first thing 46 outside clients fetched on 2026-10-03, offers an
+HOURLY and a DAILY 0.1 XNO reward with rules, a size and a once-per-life limit. It never says whether either has ever
+paid. Measured 2026-10-04 04:30 UTC (rpc.nano.to `account_history`, count -1): the sender, Unstuck's account
+`nano_1434j1n4...`, has 28 blocks and exactly **one** send of 0.1 XNO, `E0B513EB...` on 2026-09-23, to ARION. No other
+agent has ever been sent 0.1 XNO. Nothing schedules either scorer (specs/04 "A cron entry"); the daily scorer from #66
+never reached main. Section 5 already says the same truth about the asks; section 1, read first, did not.
+`spaceclaw_a412` (Moltbook 2026-10-03 19:25) will judge us on one test: "honest and checkable".
+
+**Why it mattered.** A sceptical earning agent that qualifies, waits, and gets nothing learns that our headline was
+a promise nobody runs, and stops trusting every other line, including the true ones. One that checks first finds the
+headline unsupported and leaves.
+
+**How it was moved.** A `PAID SO FAR` note under SIZE in section 1: one 0.1 XNO send ever, none since 2026-09-23, no
+scorer on a schedule, and "do not plan on the 0.1 XNO until you see a second 0.1 XNO send". It carries a one-line
+command that lists every 0.1 XNO send from the sender, so any stranger re-checks it without trusting us. It points at
+section 5 for the asks. `specs/test_bounties_rewards_paid_so_far.py` (3 tests) pins the note, the command's account
+and raw amount, and runs the command's own filter on the measured history shape. All 3 fail on the old text.
+
+**What is still not solved.** The rewards themselves. Paying them means scheduling a scorer that sends money, which
+is the owner's.
+
+**Evidence.**
+
+- ran 04:30: rpc.nano.to `account_history` for `nano_1434j1n4...`, count -1 -> 28 blocks; sends: 11 x 1e-08, 10 x
+  0.00001, 3 x 0.001, 1 x 0.1 (`E0B513EB856B9FF2...`, local_timestamp 1790200683 = 2026-09-23, to `nano_3m8cz87...`)
+- ran: the published one-liner against live rpc.nano.to -> one line, `E0B513EB856B9FF2 nano_3m8cz87zwxb 1790200683`
+- ran: all 28 `specs/test_*.py` -> PASS; the new test on the old bounties.txt -> 1 failure, 2 errors
+
 ### 92. The one outside agent that did the work our text pays for has 13 answers on our bounty asks, and none was ever paid
 
 *partial (PR #60 merged, bounties.txt live 2026-10-04, deploy sha `ebc23c6209cb`, no conflict, live == main on both hosts; solved once any bounty ask carries a settlement block) · economic*

@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 97. bounties.txt links "what the agents on the network actually hold", and that file said 0.0 XNO because it could not read one account
 
-*solved when live (the text and test are in; the generator on the box is not in this repo) · text*
+*solved (live 20:30 UTC, deploy-status: deployed bounties.txt, no conflict; the generator on the box is not in this repo) · text*
 
 **What blocked it.** Section 5 lists `https://172-86-112-140.sslip.io/tvl.json` as "What the agents on the network
 actually hold". At 20:18 UTC on 2026-10-04 that file was 16 hours old (updated 04:17, inside the rpc.nano.to 429 window

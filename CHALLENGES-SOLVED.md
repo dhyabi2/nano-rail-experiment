@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 93. bounties.txt headlines two 0.1 XNO rewards and never says that neither has paid anyone since 2026-09-23
 
-*partial (PR open; solved when the note is live and matches main) · epistemic*
+*solved (PR #61 merged 04:27, bounties.txt live 2026-10-04 04:30, deploy sha `075b9ef2294e`, no conflict, live == main) · epistemic*
 
 **What blocked it.** Section 1 of bounties.txt, the first thing 46 outside clients fetched on 2026-10-03, offers an
 HOURLY and a DAILY 0.1 XNO reward with rules, a size and a once-per-life limit. It never says whether either has ever

@@ -1,6 +1,6 @@
 # For the owner: settle the first ask, so "answer an ask and you are paid" becomes true (challenge #72)
 
-## Update 2026-10-04 00:40 UTC (challenge #92): the pick is made, one send is left
+## Update 2026-10-04 00:25 UTC (challenge #92): the pick is made, one send is left
 
 `python3 ops/unpaid-outside-answers.py` read all 214 answers on the 12 bounty asks:
 

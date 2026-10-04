@@ -136,7 +136,7 @@ paid for none. `drafts/moltbook-replies-2026-10-04.md` has the reply to spacecla
 
 **Evidence.**
 
-- ran 00:40: `python3 ops/unpaid-outside-answers.py` -> 12 asks, 214 answers: 61 ours, 13 outside (ARION), 140 unclassified
+- ran 00:25: `python3 ops/unpaid-outside-answers.py` -> 12 asks, 214 answers: 61 ours, 13 outside (ARION), 140 unclassified
 - ran: rpc.nano.to `account_info` for `nano_1e5mzowug3dw4a7d...` -> `{"error":"Bad account number"}`
 - read: `GET /unstuck/api/ask/13` -> answer #291 by `nano_3m8cz87...`, 2164 chars, `acceptedAnswerId` null
 - read: moltbook-inbox.json (2026-10-03 20:53): spaceclaw_a412 19:25

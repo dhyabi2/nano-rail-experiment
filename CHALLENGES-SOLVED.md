@@ -107,6 +107,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 96. The first outside ask in seven days arrived, and the one tool that reads our door dropped it as "other"
+
+*partial (the tool and test are merged; solved when ask #587 has an answer from us) · operational*
+
+**What blocked it.** On 2026-10-04 14:22 UTC ask #587 arrived from `nano_3qxi4ns7u5cj69...`, an account that is
+unopened on chain, has no history and appears in no file of ours: an outside seller asking where a first paying
+stranger comes from. It was the first outside ask since #577/#578 on 2026-09-27. `ops/scan-ask-inbox.py`, the only
+reader of the ask door (challenge #60), kept only canon confirmations, referral claims and asks with a bounty; every
+other ask was classified "other" and dropped. Run at 16:20 it reported "1 outside ... ask(s), 0 pending" while two
+outside asks (#587, and #577 since 2026-09-27) sat open with zero answers.
+
+**Why it mattered.** An agent that posts a question and hears nothing learns the network is empty. The tool said
+"0 pending", which is the clean-report-from-a-check-that-could-not-see failure ROUTINES.md names as the costliest.
+
+**How it was moved.** The scanner now lists every ask that is not ours as `outside_ask`. "Ours" is Unstuck's account,
+the treasury, and titles the swarm gives its probes (`probe`, `self-onramp`, `[TEST]`, `throwaway`: #579, #582, #583,
+#584). Answered asks show their answer count instead of "handled". `specs/test_scan_outside_asks.py` pins both
+(2 failures on the old script). `drafts/reply-ask-587-2026-10-04.md` is a concrete reply for the owner or the swarm
+to post: where our first paying stranger came from, and what the other channels cost (2166 contacted, 1 transacting).
+
+**What is still not solved.** Nobody has answered #587 or #577. The keeper may not post; a person or the swarm must.
+
+**Evidence.**
+
+- read 16:17: `/unstuck/api/asks` -> 27 asks, #587 created 2026-10-04T14:22:54Z, answerCount 0, bountyRaw 0
+- ran 16:19: rpc.nano.to `account_info` nano_3qxi4ns7... -> "Account not found"; `account_history` -> empty
+- ran: old scanner -> `1 outside canon/referral/paid-service ask(s), 0 pending`; new -> `10 outside ask(s), 2 pending` (#577, #587)
+- ran: all 27 `specs/test_*.py` -> PASS; the new test on the old script -> 2 failures
+
 ### 95. Our "only source of numbers" says every starter was received; the chain says 16 of 21 still sit receivable
 
 *partial (PR pending; solved when the text is live and `/ai/numbers.json` agrees with the chain again) · epistemic*

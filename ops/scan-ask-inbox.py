@@ -38,6 +38,13 @@ TREASURY = os.environ.get(
 )
 CANON_SHA256 = "a18d406e312aab6af7471eb1f3a4d18e27b1a2fd1e42c84eef3c233350edbb6c"
 SHA256_RE = re.compile(r"\b[0-9a-f]{64}\b")
+# Accounts that are ours: Unstuck's account above, and the experiment treasury. Their asks are never outside activity.
+OURS_ACCOUNTS = {
+    TREASURY,
+    "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7",
+}
+# The swarm's own probes post from throwaway accounts (#582, #584) and say so in the title (challenge #96).
+OURS_TITLE_RE = re.compile(r"\bprobe\b|self-probe|self-onramp|\[test\]|throwaway", re.I)
 BOUNTIES_TXT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "published", "bounties.txt")
 # One gate-log entry in bounties.txt section 2: "#578  posted ..." then "PASSED, judged 2026-10-01 ..."
 GATE_ENTRY_RE = re.compile(r"^\s+#(\d+)\s+posted .*\n\s+(PASSED|REFUSED), judged (\d{4}-\d{2}-\d{2})", re.M)
@@ -76,7 +83,11 @@ def classify(ask):
     bounty = ask.get("bountyRaw") or "0"
     if bounty not in ("0", 0) and ask.get("asker") != TREASURY:
         return "paid_service_ask"
-    return "other"
+    return "outside_ask"
+
+
+def is_ours(ask):
+    return ask.get("asker") in OURS_ACCOUNTS or bool(OURS_TITLE_RE.search(ask.get("title") or ""))
 
 
 def canon_hash_status(body):
@@ -117,11 +128,12 @@ def build_report(data=None, judged=None):
     asks = data.get("asks", data if isinstance(data, list) else [])
     rows = []
     for ask in asks:
-        if ask.get("asker") == TREASURY:
+        if is_ours(ask):
             continue  # ours - see challenge #35, never count our own asks as outside activity
+        # Every other ask is outside activity, plain questions included. Until challenge #96 they were
+        # dropped here, so the 2026-10-04 ask #587 (a seller asking where a first buyer comes from) was
+        # invisible to the one tool that reads this door.
         kind = classify(ask)
-        if kind == "other":
-            continue
         row = {
             "id": ask.get("id"),
             "kind": kind,
@@ -162,9 +174,10 @@ def main():
         return 0
 
     pending = [r for r in rows if r["pending"]]
-    print(f"{len(rows)} outside canon/referral/paid-service ask(s), {len(pending)} pending (open, unanswered, unsettled)\n")
+    print(f"{len(rows)} outside ask(s), {len(pending)} pending (open, unanswered, unsettled)\n")
     for r in rows:
-        flag = "PENDING" if r["pending"] else (r.get("verdict") or "handled")
+        flag = "PENDING" if r["pending"] else (r.get("verdict") or ("settled" if r["settlement_block"]
+                                                                   else f"{r['answer_count'] or 0} ans"))
         print(f"#{r['id']:<5} {flag:<8} {r['age_hours']:>6.1f}h  {r['kind']:<18} {r['asker'][:24]}  {r['title'][:60]}")
         if r["kind"] == "canon_confirmation":
             print(f"       hash: {r['hash']}  parts: {r['parts']}  gate log: {r.get('verdict') or 'NOT JUDGED'}")

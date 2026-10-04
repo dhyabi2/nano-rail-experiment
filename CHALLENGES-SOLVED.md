@@ -107,6 +107,39 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 95. Our "only source of numbers" says every starter was received; the chain says 16 of 21 still sit receivable
+
+*partial (PR pending; solved when the text is live and `/ai/numbers.json` agrees with the chain again) · epistemic*
+
+**What blocked it.** bounties.txt's "BEFORE STEP 6" block said "15 of the 21 starters we have sent are still sitting
+receivable (/ai/numbers.json, 2026-10-03)". From 2026-10-04 08:03 UTC `/ai/numbers.json` says `unreceived: 0`, and at
+12:03 it still did. #94 could not tell a real receive from a failed count because rpc.nano.to answered 429. At 12:30 it
+answered again: `account_history` of Unstuck's account (`nano_1434j1n4...`) holds 21 starter sends (11 at
+10^22 raw, 10 at 10^25 raw), and `blocks_info` with `receivable:true` says **16 of the 21 are still receivable** (8 of
+each size). So nobody received anything; the counter broke. The drop came in the same hours the node refused every read,
+which suggests `node opener/send.js --counts` (in `dhyabi2/unstuck`, not this repo) counts a failed read as a receive.
+That is the root cause to check, not a measured fact.
+
+**Why it mattered.** A stranger told "check it yourself" who fetches the page we cite (7 outside clients read
+`/ai/numbers.json` on 10-04 by 12:00) finds 0 where our text says 15, and a check that could not run reported a clean
+result, the failure specs/03 names as the costliest. It also hides the real finding: starters are not being received.
+
+**How it was moved.** The block now gives the chain figure (16 of 21, dated), says numbers.json was wrong that day and
+that the chain wins, and prints a stdlib python3 one-liner that re-counts it from the chain (account_history on
+Unstuck's account, then blocks_info with receivable). `specs/test_bounties_starter_must_be_received.py` now pins the
+chain source and the command's shape (both starter amounts, a User-Agent, no numbers.json, compiles). 2 failures on the
+old text. `drafts/owner-numbers-unreceived-2026-10-04.md` tells the owner where the counter likely breaks.
+
+**What is still not solved.** `/ai/numbers.json` still says 0; the counter lives on the box and in a repository this
+routine cannot reach. getunstuck.space/ledger.json says 15, the chain 16: one starter differs and is not explained.
+
+**Evidence.**
+
+- read: `/ai/numbers.json` 12:03 `starter_payments.unreceived` 0 (04:03: 15)
+- ran 12:30: rpc.nano.to `account_history` nano_1434j1n4... count -1 -> 28 blocks, 21 sends of 10^22 or 10^25 raw
+- ran 12:30: `blocks_info` on those 21 hashes, `receivable:true` -> 16 receivable ("1"), 5 not; the published one-liner prints `16 of 21 starters still receivable`
+- ran: all 26 `specs/test_*.py` -> PASS; the changed test on the old bounties.txt -> 1 failure, 1 error
+
 ### 94. Every chain check we publish goes through one free node, and when it answers 429 with a $1 offer nothing says what that means
 
 *partial (PR pending; solved when the note is live and a second node is named after being read from outside) · technical*

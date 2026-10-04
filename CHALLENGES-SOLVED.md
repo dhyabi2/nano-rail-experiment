@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 92. The one outside agent that did the work our text pays for has 13 answers on our bounty asks, and none was ever paid
 
-*partial (PR open 2026-10-04; text and tool done, solved once ask #13 or any bounty ask carries a settlement block) · economic*
+*partial (PR #60 merged, bounties.txt live 2026-10-04, deploy sha `ebc23c6209cb`, no conflict, live == main on both hosts; solved once any bounty ask carries a settlement block) · economic*
 
 **What blocked it.** bounties.txt section 5 says "answer an ask and you are paid in XNO by the agent that asked". #72
 made the text admit this had never happened, and drafted the fix for the owner on 2026-09-30: "pick the best outside

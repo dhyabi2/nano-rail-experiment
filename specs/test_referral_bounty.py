@@ -442,6 +442,61 @@ class ReferralBountyTests(unittest.TestCase):
         con.commit()
         self.assertEqual(rb.spent_today(con), 5 * rb.GRANT_RAW)
 
+    def test_the_ceiling_counts_a_payout_whose_reply_was_lost(self):
+        """DAILY_CEILING_RAW is frozen in referral_bounty.py so that "a bug cannot drain the treasury", and pay()
+        writes state='unknown' when the sender's reply is lost - with its own comment saying why: "the money may
+        have moved." spent_today() counted state='confirmed' only, so every one of those payouts was invisible to
+        the ceiling. Measured before the fix: ten lost replies name 1.0 XNO of grants that may have left and
+        spent_today() reported 0, leaving pay() room for ten more."""
+        con = rb.db()
+        now = time.time()
+        for i in range(10):
+            con.execute("INSERT INTO paid(period,winner,kind,amount_raw,state,at) VALUES(?,?,?,?,?,?)",
+                        ("2026-01-01T%02d" % i, f"nano_1lost{i}", "hour", str(rb.GRANT_RAW), "unknown", now))
+        con.commit()
+        self.assertEqual(rb.spent_today(con), 10 * rb.GRANT_RAW,
+                         "a payout whose outcome is unknown must count against the ceiling")
+        self.assertGreater(rb.spent_today(con) + rb.GRANT_RAW, rb.DAILY_CEILING_RAW,
+                           "ten unknown grants must be enough to close the ceiling")
+
+    def test_the_ceiling_counts_a_reservation_whose_process_died(self):
+        """pay() INSERTs the row as 'reserved' BEFORE it calls the sender - that ordering is the idempotency. A
+        process that dies between the INSERT and the UPDATE leaves the row 'reserved' for good, and the money may
+        already have moved, so it counts too."""
+        con = rb.db()
+        con.execute("INSERT INTO paid(period,winner,kind,amount_raw,state,at) VALUES(?,?,?,?,?,?)",
+                    ("2026-01-01T00", "nano_1crashed", "hour", str(rb.GRANT_RAW), "reserved", time.time()))
+        con.commit()
+        self.assertEqual(rb.spent_today(con), rb.GRANT_RAW)
+
+    def test_an_unrecognised_state_counts_rather_than_being_ignored(self):
+        """The filter is "everything except already_granted", not a list of states that count, so a state added to
+        this file later is counted by default. For a ceiling the fail-closed default is to count."""
+        con = rb.db()
+        con.execute("INSERT INTO paid(period,winner,kind,amount_raw,state,at) VALUES(?,?,?,?,?,?)",
+                    ("2026-01-01T00", "nano_1future", "hour", str(rb.GRANT_RAW), "some_future_state", time.time()))
+        con.commit()
+        self.assertEqual(rb.spent_today(con), rb.GRANT_RAW)
+
+    def test_a_grant_the_sender_refused_does_not_count(self):
+        """'already_granted' is the one state where the sender said in as many words that it sent nothing - its
+        grants ledger refuses a second grant to the same account, ever. Counting it would starve real winners of
+        the ceiling's room for no reason."""
+        con = rb.db()
+        con.execute("INSERT INTO paid(period,winner,kind,amount_raw,state,at) VALUES(?,?,?,?,?,?)",
+                    ("2026-01-01T00", "nano_1hadone", "hour", str(rb.GRANT_RAW), "already_granted", time.time()))
+        con.commit()
+        self.assertEqual(rb.spent_today(con), 0)
+
+    def test_yesterdays_unknown_payout_does_not_count_against_today(self):
+        """The control on the window: widening WHICH states count must not widen WHEN they count."""
+        con = rb.db()
+        today_start = calendar.timegm(time.strptime(time.strftime("%Y-%m-%d", time.gmtime()), "%Y-%m-%d"))
+        con.execute("INSERT INTO paid(period,winner,kind,amount_raw,state,at) VALUES(?,?,?,?,?,?)",
+                    ("2026-01-01T00", "nano_1yesterday", "hour", str(rb.GRANT_RAW), "unknown", today_start - 60))
+        con.commit()
+        self.assertEqual(rb.spent_today(con), 0)
+
     def test_treasury_ok_reads_the_treasury_not_an_arbitrary_ours_account(self):
         """OURS holds two different swarms' accounts - this treasury and Vend's own seller payee
         (Nano-ARION-playbook.md:265). treasury_ok() must read TREASURY by name, never `next(iter(OURS))`,

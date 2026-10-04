@@ -388,10 +388,24 @@ def spent_today(con):
        and SUM() of just TWO such rows raises `sqlite3.OperationalError: integer overflow`, an unhandled exception
        that crashes every subsequent score/pay call for the rest of that UTC day. See challenge #22, "raw is where
        the zero hides" - here it hid inside SQLite's own arithmetic rather than this file's. Fixed by reading the
-       raw text out and summing in Python, which has no integer size limit."""
+       raw text out and summing in Python, which has no integer size limit.
+
+    3. It counted `state='confirmed'` ONLY. pay() writes 'unknown' when the sender's reply is lost, and its own
+       comment on that line says why: "the money may have moved." It writes 'reserved' before the send and leaves
+       the row that way if the process dies mid-send. Both were invisible to the ceiling, so the one number that
+       is FROZEN in this file specifically so "a bug cannot drain the treasury" was blind to exactly the payouts
+       nobody can account for. Measured: ten lost replies plus one crashed reservation name 1.1 XNO of grants that
+       may have left, spent_today() reported 0.0, and pay() saw room for ten more. A ceiling has to count what
+       MIGHT have been spent; under-counting is how a cap gets overrun, which is the rule this file already states
+       on the 'unknown' line itself.
+
+       Only 'already_granted' is excluded, and only because the sender said in as many words that it sent nothing.
+       The filter is written as "everything except" rather than a list of states that count, so a state added here
+       later is counted by default: for a ceiling, the fail-closed default is to count."""
     day = time.strftime("%Y-%m-%d", time.gmtime())
     cutoff = calendar.timegm(time.strptime(day, "%Y-%m-%d"))
-    rows = con.execute("SELECT amount_raw FROM paid WHERE state='confirmed' AND at >= ?", (cutoff,)).fetchall()
+    rows = con.execute("SELECT amount_raw FROM paid WHERE state <> 'already_granted' AND at >= ?",
+                       (cutoff,)).fetchall()
     return sum(int(r[0]) for r in rows)
 
 
@@ -460,6 +474,10 @@ def pay(kind="hour", live=False):
             # A lost reply is 'unknown', never 'not sent': the money may have moved. Nothing retries it automatically.
             con.execute("UPDATE paid SET state='unknown' WHERE period=? AND winner=? AND kind=?",
                         (s["period"], w["referrer"], kind))
+            # It counts against the ceiling too, for the same reason it is not called "not sent". A `day` run pays
+            # the whole ranking, so a sender that times out on every winner used to leave `used` at zero and go on
+            # to the next one.
+            used += GRANT_RAW
             print(f"  UNKNOWN for {w['referrer'][:26]}...: sender exited {r.returncode}. "
                   f"Left as 'unknown' - a person must read the chain before anything retries. {r.stderr[:160]}")
         con.commit()

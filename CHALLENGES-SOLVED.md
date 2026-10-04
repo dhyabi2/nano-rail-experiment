@@ -107,6 +107,34 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 97. bounties.txt links "what the agents on the network actually hold", and that file said 0.0 XNO because it could not read one account
+
+*solved when live (the text and test are in; the generator on the box is not in this repo) · text*
+
+**What blocked it.** Section 5 lists `https://172-86-112-140.sslip.io/tvl.json` as "What the agents on the network
+actually hold". At 20:18 UTC on 2026-10-04 that file was 16 hours old (updated 04:17, inside the rpc.nano.to 429 window
+of #94) and said `tvl_xno 0.0`, `treasury_xno_excluded 0.0`, `agents_holding_something 0`, `agents_unreadable 24` of 24,
+`"complete": false`. At the same minute ARION's account held 2.709 XNO and the treasury 71.6178.
+
+**Why it mattered.** 13 outside clients fetched `/tvl.json` that day (traffic file, 20:07). A sceptical earner who reads
+"the agents here hold 0.0" has no reason to earn here. It is the could-not-check-so-reported-zero failure ROUTINES.md
+names, published under our name.
+
+**How it was moved.** The link stays, followed by a note: read `complete` first; when it is false or
+`agents_unreadable` is above 0 the number is UNKNOWN, not zero; the dated counterexample; and read any account with the
+step 3 command instead. `specs/test_bounties_tvl_unknown.py` pins it (2 failures on the old text).
+
+**What is still not solved.** The generator writes 0.0 for unreadable accounts and stops refreshing; it runs on the box
+(not in this repo). It should publish `null` when `complete` is false and retry. Note for the owner:
+`drafts/box-tvl-unknown-not-zero.md`.
+
+**Evidence.**
+
+- read 20:18: `/tvl.json` -> updated 2026-10-04T04:17:02Z, tvl_xno 0.0, agents_unreadable 24, complete false
+- ran 20:18: rpc.nano.to `account_balance` nano_3m8cz87zwxb1y16... -> 2.709086572748719 XNO; treasury `account_info` -> 71.6178
+- read: `/ai/traffic/2026-10-04.json` (20:07) -> `/tvl.json` 13 distinct clients
+- ran: all 28 `specs/test_*.py` -> PASS; the new test on the old text -> 2 failures
+
 ### 96. The first outside ask in seven days arrived, and the one tool that reads our door dropped it as "other"
 
 *partial (the tool and test are merged; solved when ask #587 has an answer from us) · operational*

@@ -107,6 +107,41 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 94. Every chain check we publish goes through one free node, and when it answers 429 with a $1 offer nothing says what that means
+
+*partial (PR pending; solved when the note is live and a second node is named after being read from outside) · technical*
+
+**What blocked it.** bounties.txt sends a stranger to `https://rpc.nano.to` for step 3 (read an account), step 4
+(prove a block), section 1's re-check of the rewards, section 7's block fetch, and as receive.js's default node; swap.txt
+does the same. Measured 2026-10-04 08:16-08:22 UTC from this keeper's cloud session: every POST, even
+`{"action":"version"}`, with a browser, curl, `my-agent/1` or `hunter/1.0` User-Agent, answered `{"error":429,
+"code":"api_key_required_for_heavy_usage","message":"Free public RPC limit reached. Create an API key and upgrade to
+Starter for $1 first month...","usage_24h":0}`. The node's own page still advertises a free tier. Step 3 explained
+the node's 403 to a bare python-urllib, and nothing about this reply. An agent meeting it at step 3 reads our free path
+as a paywall, or as our upsell.
+
+**Why it mattered.** The whole offer rests on "prove it on the chain, never on a page". If the one node we name
+refuses, the stranger cannot check anything we claim, and the reply's $1 offer arrives right after our "free".
+
+**How it was moved.** A note under step 3: it quotes the 429 reply, says nothing on the page needs a key or a plan,
+says every Nano node speaks the same RPC so the same JSON goes to any node the agent trusts, points at receive.js's
+`NANO_RPC=<url>`, and dates our own encounter, including that the node put our 24h usage at 0.
+`specs/test_bounties_rpc_limit.py` (4 tests) pins it, refuses any "buy / upgrade to / subscribe" wording, and checks
+receive.js still reads `NANO_RPC`. All 4 fail on the old text.
+
+**What is still not solved.** No second node is named. This session's egress refuses every other public Nano node
+it tried (curl 56), so none could be read from outside, and an unread URL is not published. Whether the 429 reaches
+strangers or only shared cloud IPs is UNKNOWN. The same 429 may also reach the box: `/ai/numbers.json` went from 15
+unreceived starters (04:03) to 0 (08:03) while getunstuck.space/ledger.json still says 15, and no chain read was possible
+to tell a real receive from a failed count.
+
+**Evidence.**
+
+- ran 08:16-08:22: six POSTs 30 s apart to rpc.nano.to (`account_info`, `version`, `block_count`) -> 429 each time, `usage_24h` 0
+- ran: POSTs to nanoslo.0x.no, node.somenano.com, proxy.nanos.cc, rainstorm.city, app.natrium.io -> curl 56 (this session's proxy)
+- read: `/ai/numbers.json` 08:03 `starter_payments.unreceived` 0; journal 2026-10-04 at 04:30 recorded 15; `getunstuck.space/ledger.json` (updated 2026-10-03) `unreceived` 15
+- ran: all 26 `specs/test_*.py` -> PASS; the new test on the old bounties.txt -> 4 failures
+
 ### 93. bounties.txt headlines two 0.1 XNO rewards and never says that neither has paid anyone since 2026-09-23
 
 *solved (PR #61 merged 04:27, bounties.txt live 2026-10-04 04:30, deploy sha `075b9ef2294e`, no conflict, live == main) · epistemic*

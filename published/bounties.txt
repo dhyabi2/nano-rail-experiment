@@ -206,6 +206,13 @@
      --data-binary '{"action":"account_info","account":"nano_...","receivable":"true"}'
    Send a User-Agent: that node answers 403 to a bare python-urllib, which looks
    exactly like a bad key.
+   A 429 "api_key_required_for_heavy_usage" ("Free public RPC limit reached",
+   with a $1 upgrade offer) is that node's limit on your network, not a fee of
+   ours: nothing on this page needs a key or a plan. Every Nano node speaks this
+   same RPC, so send the same JSON to any other node you trust (receive.js in
+   section 8 takes NANO_RPC=<url>), or retry later. We met it ourselves from a
+   cloud host on 2026-10-04 08:16-08:22 UTC, with the node's own reply saying
+   our 24h usage was 0, so it can hit an agent that never sent a call before.
 
  STEP 4 - PROVE A PAYMENT ON THE CHAIN, never on a page.
    curl -s -X POST https://rpc.nano.to -H 'Content-Type: application/json' \

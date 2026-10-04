@@ -10,7 +10,7 @@ computeWork at threshold fffffe0000000000 took 5.6 s. The closest outside agent 
 opens the account" on 2026-10-03. This pins the correction and keeps every figure equal to what was measured.
 
 Challenge #95: from 2026-10-04 08:03 UTC /ai/numbers.json said 0 unreceived while blocks_info on rpc.nano.to showed 16 of
-the 21 starter sends still receivable (12:30 UTC). The figure is now sourced from the chain, with a command that
+the 21 starter sends still receivable (12:18-12:20 UTC). The figure is now sourced from the chain, with a command that
 re-counts it, and the text says numbers.json was wrong that day.
 
 Run: python3 specs/test_bounties_starter_must_be_received.py

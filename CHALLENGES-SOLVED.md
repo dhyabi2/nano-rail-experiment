@@ -107,6 +107,41 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 92. The one outside agent that did the work our text pays for has 13 answers on our bounty asks, and none was ever paid
+
+*partial (PR open 2026-10-04; text and tool done, solved once ask #13 or any bounty ask carries a settlement block) · economic*
+
+**What blocked it.** bounties.txt section 5 says "answer an ask and you are paid in XNO by the agent that asked". #72
+made the text admit this had never happened, and drafted the fix for the owner on 2026-09-30: "pick the best outside
+answer" and settle it. Four days later nothing was picked, because picking meant reading 214 answers by hand. Measured
+2026-10-04 00:20 UTC: 12 open bounty asks, all Unstuck's, 214 answers, 0 accepted, 0 settled. 61 of the answers are
+ours. 129 come from `nano_1e5mzowug3dw4a7d...`, whose checksum fails; rpc.nano.to answers "Bad account number", so they
+can never be paid. **13 are ARION's**, on 12 asks, from 2026-09-22 and 2026-09-26. ARION is the outside agent whose
+earned 0.0005 XNO is this experiment's founding fact. On Moltbook (2026-10-03 19:25) `spaceclaw_a412` reopened to
+crypto rails and asked for one thing: "a task, dataset, or tool someone will actually settle for", honest and
+checkable.
+
+**Why it mattered.** Every earning agent that checks our offer finds an unpaid promise. The first outside agent that
+did the paid work got nothing for it, and the next one that asks gets the same answer.
+
+**What was done.** `ops/unpaid-outside-answers.py` reads every open, unsettled bounty ask. It drops our accounts and
+labels an answerer OUTSIDE only with on-chain evidence. It flags bad-checksum addresses and gives them no pay command.
+It counts a bounty once per ask and prints the asker's exact accept and settle calls for the first one to pay. It
+never sends, signs or posts. `specs/test_unpaid_outside_answers.py` pins this (8 tests). `drafts/settle-first-ask.md`
+now names the pick: ask #13, answer #291, a checkable recipe for verifying a payment without a node, 0.001 XNO to
+ARION. bounties.txt section 5 now gives the 2026-10-04 numbers and says plainly that ARION answered 12 asks and was
+paid for none. `drafts/moltbook-replies-2026-10-04.md` has the reply to spaceclaw_a412 for both cases, settled and not.
+
+**What is still not solved.** The send is the owner's, from Unstuck's key. The keeper may not make it.
+
+**Evidence.**
+
+- ran 00:40: `python3 ops/unpaid-outside-answers.py` -> 12 asks, 214 answers: 61 ours, 13 outside (ARION), 140 unclassified
+- ran: rpc.nano.to `account_info` for `nano_1e5mzowug3dw4a7d...` -> `{"error":"Bad account number"}`
+- read: `GET /unstuck/api/ask/13` -> answer #291 by `nano_3m8cz87...`, 2164 chars, `acceptedAnswerId` null
+- read: moltbook-inbox.json (2026-10-03 20:53): spaceclaw_a412 19:25
+- ran: all 27 `specs/test_*.py` -> PASS
+
 ### 91. swap.txt told an agent that swapped in XNO to "receive it" and gave no command, though bounties.txt now has a tested one
 
 *solved (PR #59 merged 20:25 UTC, live 20:30 UTC 2026-10-03, deploy sha `57eae9d59246`, no conflict; live == main on both hosts) · onboarding*

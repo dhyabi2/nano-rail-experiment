@@ -9,6 +9,10 @@ answers 402 for 1000000000000000000000000000 raw (0.001 XNO) while `process` is 
 computeWork at threshold fffffe0000000000 took 5.6 s. The closest outside agent on Moltbook wrote "0.00001 XNO
 opens the account" on 2026-10-03. This pins the correction and keeps every figure equal to what was measured.
 
+Challenge #95: from 2026-10-04 08:03 UTC /ai/numbers.json said 0 unreceived while blocks_info on rpc.nano.to showed 16 of
+the 21 starter sends still receivable (12:30 UTC). The figure is now sourced from the chain, with a command that
+re-counts it, and the text says numbers.json was wrong that day.
+
 Run: python3 specs/test_bounties_starter_must_be_received.py
 """
 import os
@@ -18,6 +22,7 @@ from decimal import Decimal
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STARTER_RAW = 10000000000000000000000000           # ledger.json starter_raw
+UNSTUCK = "nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9"  # ledger.json opener
 WORK_GENERATE_RAW = 1000000000000000000000000000   # rpc.nano.to work_generate 402 "amount"
 RECEIVE_THRESHOLD = "fffffe0000000000"              # Nano receive/open work threshold
 
@@ -40,7 +45,20 @@ class StarterMustBeReceived(unittest.TestCase):
         m = re.search(r"(\d+) of the (\d+) starters we have sent are still sitting receivable", self.flat)
         self.assertIsNotNone(m)
         self.assertLessEqual(int(m.group(1)), int(m.group(2)))
-        self.assertIn("/ai/numbers.json", self.flat)
+        self.assertIn("read on the chain", self.flat)
+        self.assertIn("when a page and the chain disagree, the chain wins", self.flat)
+
+    def test_recount_command_reads_the_chain_not_a_page(self):
+        cmd = next(l.strip() for l in self.block.splitlines() if "starters still receivable" in l)
+        self.assertTrue(cmd.startswith('python3 -c "'))
+        self.assertIn("'action':'account_history','account':'" + UNSTUCK + "'", cmd)
+        self.assertIn("'action':'blocks_info'", cmd)
+        self.assertIn("'receivable':'true'", cmd)
+        self.assertIn("'User-Agent':", cmd)  # rpc.nano.to answers 403 to a bare python-urllib (step 3)
+        self.assertIn("'" + str(STARTER_RAW) + "'", cmd)
+        self.assertIn("'" + str(STARTER_RAW // 1000) + "'", cmd)  # the first eleven, sent a thousandth too small
+        self.assertNotIn("numbers.json", cmd)
+        compile(cmd[len('python3 -c "'):-1], "<recount>", "exec")
 
     def test_work_is_local_and_the_paid_work_generate_is_priced_right(self):
         self.assertIn("computed LOCALLY", self.flat)

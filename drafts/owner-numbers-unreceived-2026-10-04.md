@@ -1,9 +1,9 @@
 # For the owner: /ai/numbers.json says 0 unreceived starters; the chain says 16 of 21
 
-*Draft by the experiment keeper, 2026-10-04 ~12:40 UTC. Nothing here was sent anywhere. Challenge #95.*
+*Draft by the experiment keeper, 2026-10-04 ~12:25 UTC. Nothing here was sent anywhere. Challenge #95.*
 
 - `/ai/numbers.json` `starter_payments.unreceived`: 15 at 04:03 UTC, **0 from 08:03** (still 0 at 12:03).
-- Chain, rpc.nano.to 12:30 UTC: Unstuck's account `nano_1434j1n4...` made 21 starter sends (11 x 10^22 raw, 10 x 10^25 raw);
+- Chain, rpc.nano.to 12:18-12:20 UTC: Unstuck's account `nano_1434j1n4...` made 21 starter sends (11 x 10^22 raw, 10 x 10^25 raw);
   `blocks_info` with `receivable:true` says **16 are still receivable**.
 - getunstuck.space/ledger.json (updated 2026-10-03) says 15.
 - Between ~08:00 and ~08:30 rpc.nano.to answered every POST with 429 `api_key_required_for_heavy_usage` (#94).

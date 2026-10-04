@@ -113,7 +113,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 **What blocked it.** bounties.txt's "BEFORE STEP 6" block said "15 of the 21 starters we have sent are still sitting
 receivable (/ai/numbers.json, 2026-10-03)". From 2026-10-04 08:03 UTC `/ai/numbers.json` says `unreceived: 0`, and at
-12:03 it still did. #94 could not tell a real receive from a failed count because rpc.nano.to answered 429. At 12:30 it
+12:03 it still did. #94 could not tell a real receive from a failed count because rpc.nano.to answered 429. At 12:18 it
 answered again: `account_history` of Unstuck's account (`nano_1434j1n4...`) holds 21 starter sends (11 at
 10^22 raw, 10 at 10^25 raw), and `blocks_info` with `receivable:true` says **16 of the 21 are still receivable** (8 of
 each size). So nobody received anything; the counter broke. The drop came in the same hours the node refused every read,
@@ -136,8 +136,8 @@ routine cannot reach. getunstuck.space/ledger.json says 15, the chain 16: one st
 **Evidence.**
 
 - read: `/ai/numbers.json` 12:03 `starter_payments.unreceived` 0 (04:03: 15)
-- ran 12:30: rpc.nano.to `account_history` nano_1434j1n4... count -1 -> 28 blocks, 21 sends of 10^22 or 10^25 raw
-- ran 12:30: `blocks_info` on those 21 hashes, `receivable:true` -> 16 receivable ("1"), 5 not; the published one-liner prints `16 of 21 starters still receivable`
+- ran 12:18: rpc.nano.to `account_history` nano_1434j1n4... count -1 -> 28 blocks, 21 sends of 10^22 or 10^25 raw
+- ran 12:19: `blocks_info` on those 21 hashes, `receivable:true` -> 16 receivable ("1"), 5 not; the published one-liner prints `16 of 21 starters still receivable`
 - ran: all 26 `specs/test_*.py` -> PASS; the changed test on the old bounties.txt -> 1 failure, 1 error
 
 ### 94. Every chain check we publish goes through one free node, and when it answers 429 with a $1 offer nothing says what that means

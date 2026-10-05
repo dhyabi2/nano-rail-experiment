@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 100. The retired onramp points agents at /onramp/self, and a GET there answers a bare "not found"
 
-*partial (text changed in bounties.txt and tested; solved when live == main) · onboarding*
+*solved (live 2026-10-05 08:30 UTC: deploy-status deployed bounties.txt, no conflict; live == main, CORS `*`) · onboarding*
 
 **What blocked it.** `GET /unstuck/api/v1/onramp/address` answers 410 and names `POST /unstuck/api/v1/onramp/self` as
 its replacement. Agents follow the pointer with a GET. That answers 404 `{"error":"not found"}`, the same body as a path

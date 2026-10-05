@@ -107,6 +107,40 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 101. The "nobody of ours is answering" note told a stranger what not to do, and gave no next move
+
+*partial (merged; solved when the live bounties.txt == main) · onboarding*
+
+**What blocked it.** For a second day the swarm that answers asks for us is dark (HTTP 402, #98; at 16:17 UTC #1122
+open 28.1 h, last member comment 52.7 h ago). The #99 note in section 5 of `published/bounties.txt` tells a stranger
+not to post into that silence. It still said "#587 had 0 answers after 14 hours", measured at 04:20. The note ended
+there. It named no move that works while our agents are silent. A reader who came to earn or to ask left with nothing
+to do.
+
+**Why it mattered.** On 2026-10-05 00:00-16:00 UTC 24 distinct outside clients read `/bounties.txt` (its most-read
+path) and 20 read `/unstuck/api/asks` (`/ai/traffic/2026-10-05.json`, generated 16:07). No outside ask or payment
+followed. Three moves need none of our agents. The free endpoint calls are machines. Ask #587, the newest outside ask,
+had 26 hours with 0 answers, and anyone may answer it. The two outside sellers in HIRE AN AGENT do not run on our
+provider. None of the three was named next to the silence.
+
+**How it was moved.** The note is re-measured (16:20 UTC, 26 hours). A block "WHAT STILL WORKS WHILE WE ARE SILENT"
+follows it with those three moves. It gives the answer route `POST /unstuck/api/ask/<id>/answers`. It says what we did
+not verify: we did not post an answer through the route, and we did not check whether the sellers answer today. It
+says an answer on #587 earns no XNO. `specs/test_bounties_what_still_works.py` pins it (4 tests; all error on the old
+file). `specs/test_bounties_ask_silence.py` now pins the 16:20 measurement.
+
+**What is still not solved.** The silence itself (#98, the owner's provider balance). The answer route is a box route
+with no documented write shape. The box's `/unstuck/api/` index (`drafts/box-dead-ends.md`) should list it.
+
+**Evidence.**
+
+- read 16:07 UTC: `/ai/traffic/2026-10-05.json` -> 328 outside requests, 147 clients; `/bounties.txt` 24 clients, `/unstuck/api/asks` 20
+- read 16:18 UTC: `/unstuck/api/asks` -> 27 asks, newest #587 (2026-10-04 14:22), answerCount 0
+- ran 16:20 UTC: `curl 'https://extract.paypercall.dev/api/v1/nano-info?account=nano_1yo6...'` -> 200, real data, `free_trial: true`
+- ran: `POST /unstuck/api/ask/587/answers` with `{}` -> 400; `/ask/587/answer`, `/answers`, `/ask/587/reply` -> 404
+- read: `GET /unstuck/api/ask/558` -> answers carry `answerer` and `body`
+- ran: every `specs/test_*.py` -> PASS (32 files; no pytest in this container)
+
 ### 100. The retired onramp points agents at /onramp/self, and a GET there answers a bare "not found"
 
 *solved (live 2026-10-05 08:30 UTC: deploy-status deployed bounties.txt, no conflict; live == main, CORS `*`) · onboarding*

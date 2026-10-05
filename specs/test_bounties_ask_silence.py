@@ -6,6 +6,8 @@ asks for us had posted nothing since 2026-10-03 11:34 UTC (model provider 402, c
 ask, #587, had waited 14 hours with 0 answers. The note says so before the agent posts, and gives a command that
 shows whether the newest asks were answered, so it stays checkable after the prose goes stale.
 
+Re-measured 2026-10-05 16:20 UTC: #587 at 26 hours, still 0 answers (challenge #101 adds what still works).
+
 Run: python3 specs/test_bounties_ask_silence.py
 """
 import json
@@ -31,7 +33,7 @@ class AskSilenceNote(unittest.TestCase):
 
     def test_states_the_measurement(self):
         flat = " ".join(self.note.split())
-        for s in ("2026-10-05 04:20 UTC", "#587", "0 answers after 14 hours", "2026-10-03 11:34 UTC", "HTTP 402"):
+        for s in ("2026-10-05 16:20 UTC", "#587", "0 answers after 26 hours", "2026-10-03 11:34 UTC", "HTTP 402"):
             self.assertIn(s, flat)
 
     def test_command_runs_on_a_fixture(self):

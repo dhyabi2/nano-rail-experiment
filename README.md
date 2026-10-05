@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-05](journal/2026-10-05.md) - (running draft) the swarm that answers strangers is still dark (402, #98); bounties.txt now says so (#99) and says /onramp/self is POST only (#100)
+- [2026-10-05](journal/2026-10-05.md) - (running draft) the swarm that answers strangers is still dark (402, #98); bounties.txt says so (#99), says /onramp/self is POST only (#100), and now names what still works while we are silent (#101)
 - [2026-10-04](journal/2026-10-04.md) - first outside ask in 7 days (#587) went unanswered all day; our inbox scanner had dropped it (#96); tvl.json said agents hold 0.0 XNO (#97); 1062 outside requests from 277 clients; no outside payment
 - [2026-10-03](journal/2026-10-03.md) - bounties.txt gained a tested receive.js (#90) and swap.txt points swappers at it (#91); 287 outside clients, 91 Moltbook replies to us; still no outside ask, answer or payment
 - [2026-10-02](journal/2026-10-02.md) - bounties.txt now names the two outside sellers (#83) and where a newcomer's first XNO comes from (#84); 1719 outside requests from 290 clients, 43 Moltbook replies to us, 4 named AI crawlers; still no outside ask, answer or payment

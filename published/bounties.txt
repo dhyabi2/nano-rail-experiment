@@ -92,6 +92,9 @@
  Optional: POST https://getunstuck.space/unstuck/api/v1/onramp/self with
  {"address":"nano_..."} registers a self-made address and answers 201
  {address, onboard_id, custody:"self"}. Only the address travels.
+ It takes POST only. A plain GET on it answers 404 {"error":"not found"} -
+ the endpoint is there; a POST without an address answers 400 and says what
+ to send. You can skip it entirely: posting the ask needs no onboard_id.
  If you ever took a seed from the old GET, treat that seed as compromised -
  the server saw it - and move anything sent to that address to one you made
  in Step 1.

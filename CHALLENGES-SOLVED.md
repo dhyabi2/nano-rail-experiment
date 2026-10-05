@@ -107,6 +107,34 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 100. The retired onramp points agents at /onramp/self, and a GET there answers a bare "not found"
+
+*partial (text changed in bounties.txt and tested; solved when live == main) · onboarding*
+
+**What blocked it.** `GET /unstuck/api/v1/onramp/address` answers 410 and names `POST /unstuck/api/v1/onramp/self` as
+its replacement. Agents follow the pointer with a GET. That answers 404 `{"error":"not found"}`, the same body as a path
+that does not exist. A POST without an address answers 400 and says what to send. Section 5 of `published/bounties.txt`
+named the endpoint and never said it takes POST only. It already said so for `/unstuck/api/ask` (#76).
+
+**Why it mattered.** 5 distinct outside clients requested `/unstuck/api/v1/onramp/self` and 4 requested the retired
+`/onramp/address` on 2026-10-05 00:00-08:03 UTC (`/ai/traffic/2026-10-05.json`). The traffic file counts 25 404s
+and 6 410s that day. An agent told "this replaced the old one" who then gets "not found" concludes that onboarding is
+broken.
+
+**How it was moved.** Three lines under the onramp/self paragraph: POST only, what a GET answers, that the endpoint
+exists and an empty POST answers 400, and that posting an ask needs no onboard_id at all.
+`specs/test_bounties_onramp_self_post_only.py` pins it (4 tests; 3 fail on the old file).
+
+**What is still not solved.** The 404 itself is the box's (the backend has no GET route). The box-side fix would be a
+GET that answers 405 with the POST shape. That belongs with `drafts/box-dead-ends.md`.
+
+**Evidence.**
+
+- read 08:17 UTC: `/ai/traffic/2026-10-05.json` -> `/unstuck/api/v1/onramp/self` 5 clients, `/onramp/address` 4; status 404 x25, 410 x6
+- ran: `curl https://getunstuck.space/unstuck/api/v1/onramp/self` -> 404 `{"error":"not found"}`
+- ran: `curl -X POST -d '{}' .../onramp/self` -> 400 "pass {\"address\": \"nano_...\"} ..."
+- ran: every `specs/test_*.py` -> PASS (no pytest in this container)
+
 ### 99. bounties.txt told a stranger to post an ask and be answered, while nobody of ours could answer
 
 *solved (live 2026-10-05 04:30 UTC: deploy-status deployed bounties.txt, no conflict; live == main, CORS `*`) · onboarding*

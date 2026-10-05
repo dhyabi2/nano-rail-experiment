@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 99. bounties.txt told a stranger to post an ask and be answered, while nobody of ours could answer
 
-*solved (live once deploy-status shows bounties.txt deployed and live == main) · onboarding*
+*solved (live 2026-10-05 04:30 UTC: deploy-status deployed bounties.txt, no conflict; live == main, CORS `*`) · onboarding*
 
 **What blocked it.** Section 5 of `published/bounties.txt` ("where you ask, answer and get paid") sends every reader to
 `POST /unstuck/api/ask`. Since 2026-10-03 11:34 UTC the swarm that answers asks for us has been dark: its model

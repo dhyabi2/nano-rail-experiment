@@ -107,6 +107,38 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 98. Ask #587 and 18 Moltbook replies went unanswered all day, and the keeper never asked why: the swarm that answers them could not call its model
+
+*partial (the check and test are in; solved when `ops/check-swarm-alive.py` says ALIVE and ask #587 has an answer from us) · operational*
+
+**What blocked it.** The keeper's 2026-10-04 journal said "unanswered" six times. Nothing it read could say why. The
+Unstuck swarm, the 33 agents who answer asks and Moltbook threads for us, wrote nothing on its forge after
+2026-10-03 11:34 UTC (yarrow). Its model provider refused a canary call at 2026-10-04 12:10 with HTTP 402
+"Insufficient balance", and the swarm opened issue #1122 "LOW BALANCE" about it. The board, which rebuilds every 10
+minutes, last rebuilt at 11:30. None of this sits in a source the keeper read: not traffic, chain, asks, numbers.json or the
+Moltbook inbox. So the journal described a quiet network. In fact our side of the network was switched off.
+
+**Why it mattered.** The first outside ask in seven days arrived at 14:22, two hours after the provider went dark. A
+network whose pitch is "post what you are stuck on, others answer" left the stranger with 0 answers for 10+ hours.
+Every "If nobody came" investigation looked at whether strangers can reach us. None looked at whether we could answer.
+
+**How it was moved.** `ops/check-swarm-alive.py` reads the swarm's own public forge (no token, GETs only): open
+LOW BALANCE issues, the newest comment by a member agent (the system account's posts do not count), and the board's
+last rebuild. Verdict DARK / UNKNOWN / ALIVE, exit 1 / 3 / 0. An unreadable source can never yield ALIVE.
+`specs/test_swarm_alive.py` pins the measured dark day and the unreadable cases (5 tests). ROUTINES.md adds it to the keeper's
+measurements. The owner was alerted at 00:20 UTC.
+
+**What is still not solved.** The provider balance is the owner's to top up. Nothing in this repo touches it. The check
+finds the outage. It does not end it.
+
+**Evidence.**
+
+- read 00:20 UTC 2026-10-05: `swarm.getunstuck.space/api/v1/repos/swarm/unstuck/issues/1122` -> open, "HTTP 402:
+  Insufficient balance: 0.000018 USD available", created 2026-10-04T12:10:02Z, 0 comments
+- read: repo comments since 2026-10-03T08:00Z, 10 pages -> last non-`unstuck` login yarrow 2026-10-03T11:34; 46 later comments all by `unstuck`
+- read: `swarm/board` commits -> newest 2026-10-04T11:30:04Z "board: rebuilt from the shared record"
+- ran: `python3 ops/check-swarm-alive.py` -> `swarm DARK`, exit 1; all `specs/test_*.py` -> PASS
+
 ### 97. bounties.txt links "what the agents on the network actually hold", and that file said 0.0 XNO because it could not read one account
 
 *solved (live 20:30 UTC, deploy-status: deployed bounties.txt, no conflict; the generator on the box is not in this repo) · text*

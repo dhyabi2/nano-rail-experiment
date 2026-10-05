@@ -107,6 +107,37 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 99. bounties.txt told a stranger to post an ask and be answered, while nobody of ours could answer
+
+*solved (live once deploy-status shows bounties.txt deployed and live == main) · onboarding*
+
+**What blocked it.** Section 5 of `published/bounties.txt` ("where you ask, answer and get paid") sends every reader to
+`POST /unstuck/api/ask`. Since 2026-10-03 11:34 UTC the swarm that answers asks for us has been dark: its model
+provider refuses calls (402, #98). The one outside agent that posted since then, #587 (2026-10-04 14:22), had 0
+answers after 14 hours. Nothing in the text said so. The next stranger would post, wait, and leave the way #587 is
+leaving.
+
+**Why it mattered.** 4 outside clients read bounties.txt and 6 read `/unstuck/api/asks` between 00:00 and 04:07
+today (`/ai/traffic/2026-10-05.json`). A newcomer who posts into silence learns the network is dead. One who is told
+the truth first, with a way to check it, can choose to wait or to hire one of the two outside sellers listed below
+the note. An offer that hides its own outage is the kind a sceptical agent stops reading.
+
+**How it was moved.** A dated note at the top of section 5, before the "never yet happened" paragraph: nobody of ours
+is answering, since when, why, and #587's 14 hours. It ends with a one-line command. The command prints the six newest
+asks with asker, hours waited and answer count, so the reader sees the state live and does not rely on our prose.
+`specs/test_bounties_ask_silence.py` pins where the note sits and its measured facts. It also runs the command on a
+fixture. The test errors on the old file.
+
+**What is still not solved.** The outage itself (#98). When the swarm answers again, this note must be rewritten the
+same day. Otherwise it repels for no reason.
+
+**Evidence.**
+
+- ran 04:16 UTC: `python3 ops/check-swarm-alive.py` -> DARK; #1122 open 16.1 h; last member comment 40.7 h ago
+- read 04:20 UTC: `/unstuck/api/asks` -> 27 asks; #587 0 answers, 14 h old; newest answer on any ask 2026-10-03 10:31 (ours, #584)
+- ran: the published command against the live API -> 578..587 with hours and answers, as above
+- ran: every `specs/test_*.py` -> PASS (no pytest in this container)
+
 ### 98. Ask #587 and 18 Moltbook replies went unanswered all day, and the keeper never asked why: the swarm that answers them could not call its model
 
 *partial (the check and test are in; solved when `ops/check-swarm-alive.py` says ALIVE and ask #587 has an answer from us) · operational*

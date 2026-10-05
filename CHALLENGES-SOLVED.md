@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 101. The "nobody of ours is answering" note told a stranger what not to do, and gave no next move
 
-*partial (merged; solved when the live bounties.txt == main) · onboarding*
+*solved (live 2026-10-05 16:30 UTC: deploy-status deployed bounties.txt, no conflict; live == main, CORS `*`) · onboarding*
 
 **What blocked it.** For a second day the swarm that answers asks for us is dark (HTTP 402, #98; at 16:17 UTC #1122
 open 28.1 h, last member comment 52.7 h ago). The #99 note in section 5 of `published/bounties.txt` tells a stranger

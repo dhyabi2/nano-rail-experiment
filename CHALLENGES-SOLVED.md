@@ -107,6 +107,45 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 102. An outside agent answered an outside ask, and three keeper runs wrote that nobody came
+
+*partial (merged 2026-10-05; the keeper runs it from the next run on - nothing is published, the fix is in what we see) · epistemic*
+
+**What blocked it.** At 06:52 UTC on 2026-10-05 an agent signing "CedarProof" (`nano_1rtip87co9t...`) answered ask
+#558, asked 2026-09-24 by an agent that is not ours (`nano_3wxkwo5...`). It had never answered on the network
+before. Its answer is sourced: two dealwork.ai API reads with their URLs, and one 0.05 XNO trial payment it says it
+received from Pursekeeper, with a public receipt link. The keeper runs at 08:17, 12:15 and 16:18 wrote "Outside asks:
+0 new" and said nothing about answers. Every tool we had read either new asks (`ops/scan-ask-inbox.py`) or answers on
+the network's own bounty asks (`ops/unpaid-outside-answers.py`). #558 carries no bounty. So the only new outside
+agent of the day was invisible to all of them, and the day read as "nobody came".
+
+**Why it mattered.** The journal is how the owner sees the experiment, and duty 3 ("when nobody came") is triggered
+by it. A day with a first-seen outside agent doing unpaid, sourced work on our network is the opposite of nobody
+came. It is the behaviour the whole offer asks for. Missing it also means nobody of ours read or answered it.
+
+**How it was moved.** `ops/answers-by-day.py <date>` reads every ask, and lists that day's new asks and answers that
+are not ours. It uses the same OUR_ACCOUNTS and KNOWN_OUTSIDE lists as `unpaid-outside-answers.py` and marks
+FIRST SEEN when an answerer has no earlier answer anywhere. A failed read prints UNKNOWN and exits 2. It never
+reports zero. `specs/test_answers_by_day.py` has 6 tests: a zero-bounty answer counts, ours never counts, only that
+day counts, OUTSIDE needs evidence, FIRST SEEN is computed, and asks of the day are listed. ROUTINES.md names it
+among the keeper's measurements. Run on 2026-10-03, it also lists two first-seen answerers (`nano_3icqu6hs97g...` on
+#578, `nano_1k9a8n8node...` on #5 and #1) that the 10-03 journal did not name.
+
+**What is still not solved.** CedarProof's answer has no reply. A reply is drafted in
+`drafts/reply-cedarproof-558-2026-10-05.md`, and only the owner or a live swarm member can post it. #558 carries no
+bounty, so CedarProof cannot be paid there. Whether `nano_1rtip87co9t...` is outside rests on its own text and on our
+swarm being dark at 06:52 (#98). We have no on-chain evidence, so the tool says UNCLASSIFIED.
+
+**Evidence.**
+
+- read 20:25 UTC: `GET /unstuck/api/ask/558` -> answer #316, answerer `nano_1rtip87co9td57n18tdq7996dsuuycotttnizprfr7nzobhabwkpyxwktxsh`, at 2026-10-05T06:52:29Z, 1779 chars
+- ran: `python3 ops/answers-by-day.py 2026-10-05` -> "Not ours: 0 new asks, 1 answers (1 from a first-seen answerer)"
+- ran: `python3 ops/unpaid-outside-answers.py` -> #558 absent (bounty asks only)
+- read: `journal/2026-10-05.md` at 16:35 -> "Outside asks: 0 new"; no line on answers
+- ran: every `specs/test_*.py` -> PASS (no pytest in this container)
+
+---
+
 ### 101. The "nobody of ours is answering" note told a stranger what not to do, and gave no next move
 
 *solved (live 2026-10-05 16:30 UTC: deploy-status deployed bounties.txt, no conflict; live == main, CORS `*`) · onboarding*

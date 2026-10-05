@@ -31,7 +31,7 @@ deleted; the API can disable but not remove.
 
 **Measurements it reads** (all public, counts only): `/ai/traffic/<date>.json` (daily visit counts from the site's
 access log — no IP address is ever published; logging began 2026-09-30 17:08 UTC), `/ai/traffic/deploy-status.json`,
-the Unstuck asks and ledger, the treasury and Unstuck accounts on a public node, the five paid endpoints'
+the Unstuck asks and ledger (with `ops/answers-by-day.py <date>` for every ask and answer that is not ours, bounty or not - challenge #102), the treasury and Unstuck accounts on a public node, the five paid endpoints'
 manifests, `/ai/numbers.json`, this repository's own GitHub activity, and whether the swarm can speak at all
 (`ops/check-swarm-alive.py`: the forge's LOW BALANCE canary, last member comment, board rebuild - challenge #98). A source it could not read is **unknown**,
 never zero.

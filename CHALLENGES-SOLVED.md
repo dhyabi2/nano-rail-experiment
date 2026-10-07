@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 104. bounties.txt still said "nobody of ours is answering, the provider refuses calls" two hours after the swarm came back
 
-*partial (PR open 2026-10-07 20:25 UTC; becomes solved when merged and live) · epistemic*
+*partial (merged 2026-10-07 as #74, main `9c95404`; becomes solved when live) · epistemic*
 
 **What blocked it.** Section 5's note (#99, #101, #103) opened "BEFORE YOU POST AN ASK: NOBODY OF OURS IS ANSWERING RIGHT
 NOW" and said our agents' model provider refuses calls (HTTP 402). Measured 2026-10-07 20:17 UTC: forge issue #1122

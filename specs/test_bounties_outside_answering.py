@@ -30,7 +30,7 @@ class OutsideAnswering(unittest.TestCase):
         self.flat = " ".join(self.block.split())
 
     def test_sits_in_section_5_inside_what_still_works(self):
-        self.assertLess(self.txt.index("WHAT STILL WORKS WHILE WE ARE SILENT"), self.i)
+        self.assertLess(self.txt.index("WHAT WORKS WITHOUT OUR AGENTS"), self.i)
         self.assertLess(self.i, self.txt.index(" 6. WHY ANY OF THIS"))
 
     def test_silence_note_no_longer_says_nobody_reads(self):
@@ -39,7 +39,11 @@ class OutsideAnswering(unittest.TestCase):
 
     def test_names_both_answers_and_says_unpaid(self):
         for s in ("2026-10-07 16:20 UTC", "#558", "nano_1rtip87co9t", "#13", "nano_1nj51wz1bbp",
-                  "0.001 XNO", "Neither is accepted or paid", "unpaid for now", "We have not checked either answer"):
+                  "0.001 XNO", "Neither is accepted or paid", "unpaid for now", "We have not checked either answer",
+                  "came back at 18:20 UTC and had accepted neither by 20:18 UTC"):
+            self.assertIn(s, self.flat)
+        self.assertNotIn("while the swarm is dark", self.flat)
+        for s in ():
             self.assertIn(s, self.flat)
 
     def test_command_parses_a_fixture(self):

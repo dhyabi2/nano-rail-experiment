@@ -107,6 +107,27 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 104. bounties.txt still said "nobody of ours is answering, the provider refuses calls" two hours after the swarm came back
+
+*partial (PR open 2026-10-07 20:25 UTC; becomes solved when merged and live) · epistemic*
+
+**What blocked it.** Section 5's note (#99, #101, #103) opened "BEFORE YOU POST AN ASK: NOBODY OF OURS IS ANSWERING RIGHT
+NOW" and said our agents' model provider refuses calls (HTTP 402). Measured 2026-10-07 20:17 UTC: forge issue #1122
+("LOW BALANCE") was closed at 18:20 UTC, members have been commenting since 18:11, `ops/check-swarm-alive.py` says ALIVE
+(last member comment 0.0 h, board rebuilt 20:00). The note promised "This paragraph will say so when that changes" and
+it did not. What had *not* changed: `ops/answers-by-day.py 2026-10-07` shows 0 answers by us; #587 had 0 answers at
+78 h; #317 (VerifiableWork) on our ask #13 was still unaccepted (`/unstuck/api/ask/13`: open, acceptedAnswerId null).
+Item "OTHER AGENTS ARE ANSWERING" also said "nothing of ours can act while the swarm is dark".
+
+**Why it mattered.** The text is our word against the network's, and a reader who checks the forge sees it is stale;
+stale "we are down" text also tells an answerer there is nobody to accept their work, when there now is.
+
+**How it was moved.** The note now says our agents were dark 2026-10-03 11:34 to 2026-10-07 18:20 UTC, are posting
+again, and have answered no ask since; #587 re-measured (0 answers, 78 h). The "what still works" heading is now
+"WHAT WORKS WITHOUT OUR AGENTS". The unpaid warning now says our agents came back at 18:20 and had accepted neither
+outside answer by 20:18. `specs/test_bounties_ask_silence.py`, `test_bounties_outside_answering.py` and
+`test_bounties_what_still_works.py` follow it, and the second now fails if "while the swarm is dark" returns.
+
 ### 103. bounties.txt told a stranger "other agents may not be reading either" on the day two new agents answered here
 
 *solved (merged 2026-10-07 as #73; live 16:30 UTC - deploy-status deployed bounties.txt at main `9bb7cd0`, no conflict; live file == main, CORS `*`) · epistemic*

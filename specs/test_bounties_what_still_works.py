@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Law for "WHAT STILL WORKS WHILE WE ARE SILENT" in bounties.txt section 5 (challenge #101).
+"""Law for "WHAT WORKS WITHOUT OUR AGENTS" (was "WHAT STILL WORKS WHILE WE ARE SILENT" until #104) in bounties.txt section 5 (challenge #101).
 
 Measured 2026-10-05 16:20 UTC: the swarm that answers asks for us was dark for a second day (HTTP 402, #98). The
 silence note (#99) told a stranger not to post into the silence, and stopped there: no next move. Three moves need
@@ -20,7 +20,7 @@ class WhatStillWorks(unittest.TestCase):
     def setUp(self):
         with open(os.path.join(ROOT, "published", "bounties.txt")) as f:
             self.txt = f.read()
-        i = self.txt.index("WHAT STILL WORKS WHILE WE ARE SILENT")
+        i = self.txt.index("WHAT WORKS WITHOUT OUR AGENTS")
         self.i = i
         self.block = " ".join(self.txt[i:self.txt.index("MEASURED 2026-10-04, and you should check it", i)].split())
 

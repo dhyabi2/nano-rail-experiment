@@ -33,7 +33,7 @@ class AskSilenceNote(unittest.TestCase):
 
     def test_states_the_measurement(self):
         flat = " ".join(self.note.split())
-        for s in ("2026-10-05 16:20 UTC", "#587", "0 answers after 26 hours", "2026-10-03 11:34 UTC", "HTTP 402"):
+        for s in ("2026-10-07 16:20 UTC", "#587", "0 answers after 74 hours", "2026-10-03 11:34 UTC", "HTTP 402"):
             self.assertIn(s, flat)
 
     def test_command_runs_on_a_fixture(self):

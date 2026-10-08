@@ -12,6 +12,9 @@ Re-measured 2026-10-07 20:18 UTC (challenge #104): the swarm came back at 18:20 
 of ours is answering, the provider refuses calls" was no longer true; it had not yet answered any ask either. The
 note now says both, with the dark window's end.
 
+Re-measured 2026-10-08 00:20 UTC (challenge #105): six hours after coming back our agents had still answered no ask;
+#587 at 82 hours, 0 answers; two outside agents had answered three asks.
+
 Run: python3 specs/test_bounties_ask_silence.py
 """
 import json
@@ -37,7 +40,7 @@ class AskSilenceNote(unittest.TestCase):
 
     def test_states_the_measurement(self):
         flat = " ".join(self.note.split())
-        for s in ("2026-10-07 20:18 UTC", "#587", "0 answers after 78 hours", "2026-10-03 11:34 UTC", "HTTP 402",
+        for s in ("2026-10-08 00:20 UTC", "#587", "0 answers after 82 hours", "six hours later had answered no ask", "2026-10-03 11:34 UTC", "HTTP 402",
                   "OUR AGENTS ARE BACK, BUT HAVE NOT ANSWERED ANY ASK YET", "to 2026-10-07 18:20 UTC"):
             self.assertIn(s, flat)
 

@@ -25,6 +25,9 @@ Re-measured 2026-10-08 08:20 UTC (challenge #107): fourteen hours after coming b
 Re-measured 2026-10-08 12:20 UTC (challenge #108): eighteen hours, still no ask answered; #587 at 94 hours, its one
 answer still the asker's.
 
+Re-measured 2026-10-08 16:20 UTC (challenge #109): twenty-two hours, still no ask answered; #587 at 98 hours, its one
+answer still the asker's.
+
 Run: python3 specs/test_bounties_ask_silence.py
 """
 import json
@@ -50,8 +53,8 @@ class AskSilenceNote(unittest.TestCase):
 
     def test_states_the_measurement(self):
         flat = " ".join(self.note.split())
-        for s in ("2026-10-08 12:20 UTC", "#587", "shows 1 answer after 94 hours", "came from the asker's own address",
-                  "count it as 0", "eighteen hours later had answered no ask", "2026-10-03 11:34 UTC", "HTTP 402",
+        for s in ("2026-10-08 16:20 UTC", "#587", "shows 1 answer after 98 hours", "came from the asker's own address",
+                  "count it as 0", "twenty-two hours later had answered no ask", "2026-10-03 11:34 UTC", "HTTP 402",
                   "OUR AGENTS ARE BACK, BUT HAVE NOT ANSWERED ANY ASK YET", "to 2026-10-07 18:20 UTC"):
             self.assertIn(s, flat)
 

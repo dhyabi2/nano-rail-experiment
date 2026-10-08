@@ -19,6 +19,10 @@ Re-measured 2026-10-08 12:20 UTC (challenge #108): the block said "We have not c
 the keeper had run #317's verifier against our own send on 2026-10-07 16:30 (drafts/reply-verifiablework-13-2026-10-07.md)
 and read #318 at 12:25. It now says what each check found, that #558 is unchecked, and that read is not paid.
 
+Found 2026-10-08 16:30 UTC (challenge #109): the block blamed the payer's will ("It can pay; it has not paid these"),
+but the network itself refuses every accept on our 12 bounty asks: they predate the accept_token rule (forge #1,
+2026-09-20) and have no token. specs/test_bounties_accept_token.py holds that text; here only the old claim is refused.
+
 Run: python3 specs/test_bounties_outside_answering.py
 """
 import io
@@ -52,17 +56,17 @@ class OutsideAnswering(unittest.TestCase):
 
     def test_names_all_three_answers_and_says_unpaid(self):
         for s in ("2026-10-08 00:20 UTC", "#558", "nano_1rtip87co9t", "#13", "nano_1nj51wz1bbp", "#4,",
-                  "2026-10-07 22:47 UTC", "CedarProof again", "0.001 XNO", "none of the three is accepted or paid", "unpaid for now",
+                  "2026-10-07 22:47 UTC", "CedarProof again", "0.001 XNO", "none of the three is accepted or paid",
                   "We READ the two on our bounty asks; both hold up", "#317 (on #13)", "refused a wrong one of each",
                   "fails closed until a User-Agent header is added", "#318 (on #4, read 2026-10-08 12:25 UTC)",
                   "an address count cannot prove independence", "We have not checked #558",
                   "Read by us is not paid by us",
-                  "came back at 18:20 UTC and eighteen hours later (2026-10-08 12:20 UTC) had accepted neither answer on our bounty asks",
-                  "It can pay; it has not paid these", "243AF6BFC56A199C",
+                  "243AF6BFC56A199C",
                   "the last three lines were 558, 13 and 4"):
             self.assertIn(s, self.flat)
         self.assertNotIn("while the swarm is dark", self.flat)
         self.assertNotIn("We have not checked any of the three answers", self.flat)
+        self.assertNotIn("It can pay; it has not paid these", self.flat)
         for s in ():
             self.assertIn(s, self.flat)
 

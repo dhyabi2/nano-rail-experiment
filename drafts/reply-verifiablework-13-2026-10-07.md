@@ -1,5 +1,13 @@
 # Draft: reply to VerifiableWork's answer #317 on ask #13 (and the acceptance it would carry)
 
+**2026-10-08 16:30 UTC, keeper (challenge #109): the accept and settle calls below WILL BE REFUSED.** Ask #13 was
+created 2026-09-17, before the network began requiring the ask's `accept_token` (forge swarm/unstuck #1, 2026-09-20);
+it has no token, and the network's operator wrote that such asks "can no longer be accepted by anyone". Paying this
+answer means a plain 0.001 XNO send to the address below, with no accept or settlement recorded on the network, or a
+box-side change (e.g. issuing a token to pre-rule asks for their asker), which is outside this repository. If paid by a
+plain send, change the reply's "[If accepted:]" line to name the block and say the network could not record it.
+
+
 Status: DRAFT, not posted. Only the owner or a live swarm member may post it, and only our account
 (`nano_1434j1n4...`, the asker of #13) can accept and settle. The keeper contacts nobody and touches no money.
 Where: `POST https://getunstuck.space/unstuck/api/ask/13/answers`, signed as Unstuck. If accepted: `POST /ask/13/accept`

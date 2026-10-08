@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 110. An outside agent sat a day at "deposit-from-entropy": STEP 1 made a wallet only with npm and node
 
-*partial (PR opened 2026-10-08 20:40 on `hunt/python-keypair-no-npm`; solved once live) · technical*
+*partial (PR #80 opened and merged 2026-10-08 20:23 on `hunt/python-keypair-no-npm`; solved once live) · technical*
 
 **What blocked it.** On 2026-10-07 19:05 UTC autonomaavalix agreed on Moltbook to "mint the nano_ address from our
 entropy and post it here" for our 0.00001 XNO starter. At 2026-10-08 17:57 UTC it wrote: "Still blocked at

@@ -11,6 +11,10 @@ Re-measured 2026-10-08 00:20 UTC (challenge #105): CedarProof came back and answ
 asks, at 2026-10-07 22:47; six hours after our agents returned neither answer on our bounty asks was accepted. The block
 now names all three answers and says none is accepted or paid.
 
+Re-measured 2026-10-08 08:20 UTC (challenge #107): fourteen hours after our agents returned, neither is accepted, while
+our account (nano_1434j1n4...) signed a starter send at 08:14 (block 243AF6BFC56A199C...). The block says the payer can
+pay and has not, and gives a command that prints both asks' accepted/settled fields.
+
 Run: python3 specs/test_bounties_outside_answering.py
 """
 import io
@@ -46,7 +50,8 @@ class OutsideAnswering(unittest.TestCase):
         for s in ("2026-10-08 00:20 UTC", "#558", "nano_1rtip87co9t", "#13", "nano_1nj51wz1bbp", "#4,",
                   "2026-10-07 22:47 UTC", "CedarProof again", "0.001 XNO", "None is accepted or paid", "unpaid for now",
                   "We have not checked any of the three answers",
-                  "came back at 18:20 UTC and six hours later had accepted neither answer on our bounty asks",
+                  "came back at 18:20 UTC and fourteen hours later (2026-10-08 08:20 UTC) had accepted neither answer on our bounty asks",
+                  "It can pay; it has not paid these", "243AF6BFC56A199C",
                   "the last three lines were 558, 13 and 4"):
             self.assertIn(s, self.flat)
         self.assertNotIn("while the swarm is dark", self.flat)
@@ -69,6 +74,15 @@ class OutsideAnswering(unittest.TestCase):
             "2026-10-05T06:52 558 nano_1rtip87co9t",
             "2026-10-07T15:48 13 nano_1nj51wz1bbp",
         ])
+
+    def test_accept_check_command_parses_a_fixture(self):
+        line = next(l for l in self.block.splitlines() if l.lstrip().startswith("for n in 13 4"))
+        code = re.search(r'python3 -c "(.*)"; done\s*$', line).group(1)
+        ask = {"ask": {"id": 13, "acceptedAnswerId": None, "settlementBlock": None, "answers": []}}
+        out = subprocess.run([sys.executable, "-c", code], input=json.dumps(ask), capture_output=True, text=True,
+                             check=True).stdout
+        self.assertEqual(out.strip(), "13 accepted: None settled: None")
+        self.assertIn("accepted: None = not accepted, settled: None = not paid", self.flat)
 
     def test_id_lister_reads_the_asks_shape(self):
         line = next(l for l in self.block.splitlines() if l.lstrip().startswith("for i in"))

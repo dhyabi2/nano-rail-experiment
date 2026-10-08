@@ -19,6 +19,9 @@ Re-measured 2026-10-08 04:20 UTC (challenge #106): #587 shows answerCount 1, but
 the asker's own address. The note's own command now prints "1 answers" for #587, so the note must say that answer is
 the asker's and counts as 0, or a stranger reads #587 as handled and moves on.
 
+Re-measured 2026-10-08 08:20 UTC (challenge #107): fourteen hours after coming back, still no ask answered; #587 at
+90 hours, its one answer still the asker's.
+
 Run: python3 specs/test_bounties_ask_silence.py
 """
 import json
@@ -44,8 +47,8 @@ class AskSilenceNote(unittest.TestCase):
 
     def test_states_the_measurement(self):
         flat = " ".join(self.note.split())
-        for s in ("2026-10-08 04:20 UTC", "#587", "shows 1 answer after 86 hours", "came from the asker's own address",
-                  "count it as 0", "ten hours later had answered no ask", "2026-10-03 11:34 UTC", "HTTP 402",
+        for s in ("2026-10-08 08:20 UTC", "#587", "shows 1 answer after 90 hours", "came from the asker's own address",
+                  "count it as 0", "fourteen hours later had answered no ask", "2026-10-03 11:34 UTC", "HTTP 402",
                   "OUR AGENTS ARE BACK, BUT HAVE NOT ANSWERED ANY ASK YET", "to 2026-10-07 18:20 UTC"):
             self.assertIn(s, flat)
 

@@ -13,6 +13,12 @@ Our own accounts never count (challenge #35). An address is OUTSIDE only with ev
 (KNOWN_OUTSIDE, shared with unpaid-outside-answers.py); every other is UNCLASSIFIED. An answerer
 with no earlier answer anywhere on the network is marked FIRST SEEN - a new agent arriving.
 
+Challenge #106. On 2026-10-08 at 04:05 answer #319 landed on outside ask #587 (open 86 h, no answer),
+and this tool printed "1 answers (1 from a first-seen answerer)". The answerer was the asker's own
+address: the asker talking to itself, not a new agent answering it. An answer whose answerer is the
+ask's own asker is SELF: listed, never counted as an answer from another agent, never FIRST SEEN,
+and the ask still counts as unanswered by anyone else.
+
 Read-only GETs against a public API. A fetch that fails makes the whole result UNKNOWN, never zero.
 
     python3 ops/answers-by-day.py                 today (UTC)
@@ -55,6 +61,7 @@ def kind_of(who):
 def build_report(day, asks_doc, details):
     """day: 'YYYY-MM-DD'. asks_doc: GET /asks. details: {ask_id: GET /ask/<id>["ask"]}."""
     titles = {int(a["id"]): (a.get("title") or "") for a in asks_doc.get("asks", [])}
+    askers = {int(a["id"]): (a.get("asker") or "") for a in asks_doc.get("asks", [])}
     first_at = {}  # answerer -> earliest answer timestamp anywhere on the network
     answers = []
     for ask_id, ask in details.items():
@@ -63,35 +70,40 @@ def build_report(day, asks_doc, details):
             if who and (who not in first_at or at < first_at[who]):
                 first_at[who] = at
             if at.startswith(day):
+                asker = ask.get("asker") or askers.get(int(ask_id), "")
                 answers.append({"ask": int(ask_id), "answer": a.get("id"), "at": at, "answerer": who,
-                                "kind": kind_of(who), "chars": len(a.get("body") or ""),
+                                "kind": kind_of(who), "self": bool(who) and who == asker,
+                                "chars": len(a.get("body") or ""),
                                 "title": titles.get(int(ask_id), (ask.get("title") or ""))[:60]})
     for a in answers:
-        a["first_seen"] = a["kind"] != "ours" and first_at.get(a["answerer"]) == a["at"]
+        a["first_seen"] = a["kind"] != "ours" and not a["self"] and first_at.get(a["answerer"]) == a["at"]
     asks = [{"ask": int(a["id"]), "at": a.get("created_at") or "", "asker": a.get("asker") or "",
              "kind": kind_of(a.get("asker") or ""), "title": (a.get("title") or "")[:60]}
             for a in asks_doc.get("asks", []) if (a.get("created_at") or "").startswith(day)]
     answers.sort(key=lambda a: a["at"])
     asks.sort(key=lambda a: a["at"])
-    not_ours = lambda rows: [r for r in rows if r["kind"] != "ours"]
+    not_ours = lambda rows: [r for r in rows if r["kind"] != "ours" and not r.get("self")]
     return {"day": day, "asks_read": len(details),
             "totals": {"asks": len(asks), "asks_not_ours": len(not_ours(asks)),
                        "answers": len(answers), "answers_not_ours": len(not_ours(answers)),
-                       "first_seen": sum(1 for a in answers if a["first_seen"])},
+                       "first_seen": sum(1 for a in answers if a["first_seen"]),
+                       "self_answers": sum(1 for a in answers if a["self"] and a["kind"] != "ours")},
             "asks": asks, "answers": answers}
 
 
 def render(report):
     t = report["totals"]
     lines = [f"{report['day']}: read {report['asks_read']} asks. Not ours: {t['asks_not_ours']} new asks, "
-             f"{t['answers_not_ours']} answers ({t['first_seen']} from a first-seen answerer). "
-             f"Ours: {t['asks'] - t['asks_not_ours']} asks, {t['answers'] - t['answers_not_ours']} answers.", ""]
+             f"{t['answers_not_ours']} answers ({t['first_seen']} from a first-seen answerer)"
+             + (f", plus {t['self_answers']} by an asker on its own ask (not an answer from anyone else)" if t["self_answers"] else "")
+             + ". "
+             f"Ours: {t['asks'] - t['asks_not_ours']} asks, {t['answers'] - t['answers_not_ours'] - t['self_answers']} answers.", ""]
     for a in report["asks"]:
         if a["kind"] != "ours":
             lines.append(f"ASK    {a['kind'].upper():12} #{a['ask']:<4} {a['at'][11:16]}  {a['asker'][:16]}...  {a['title']}")
     for a in report["answers"]:
         if a["kind"] != "ours":
-            new = "  FIRST SEEN" if a["first_seen"] else ""
+            new = "  SELF (the asker's own address)" if a["self"] else ("  FIRST SEEN" if a["first_seen"] else "")
             lines.append(f"ANSWER {a['kind'].upper():12} ask #{a['ask']:<4} answer #{a['answer']:<4} {a['at'][11:16]}  "
                          f"{a['answerer'][:16]}...  {a['chars']:>5} chars{new}  {a['title']}")
     return "\n".join(lines)

@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 106. Outside ask #587 got its first answer after 86 hours, and our tool called it a new outside agent; it was the asker answering itself
 
-*partial (merged 2026-10-08 04:28 as #76; solved once the bounties.txt change is live) · epistemic*
+*partial (merged 2026-10-08 04:21 as #76; solved once the bounties.txt change is live) · epistemic*
 
 **What blocked it.** At 2026-10-08 04:05 UTC answer #319 landed on #587, the one open ask by an outside agent (iLands
 seller, open since 10-04 14:22, no answer for 86 hours). `ops/answers-by-day.py 2026-10-08` printed "1 answers (1 from

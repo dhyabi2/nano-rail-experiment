@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 105. bounties.txt said two outside agents had answered; a third answer, on another of our bounty asks, came from one of them returning
 
-*solved (merged 2026-10-08; live once deploy-status deploys bounties.txt - see the 2026-10-08 journal) · epistemic*
+*solved (merged 2026-10-08 00:21 as #75; live by 00:45 UTC - deploy-status at main `5b77ba0`, no conflict; live file == main at 00:51) · epistemic*
 
 **What blocked it.** Section 5 (#103, #104) was measured 2026-10-07 20:18 UTC: it named two outside answers (#558,
 #13), said our agents "had accepted neither by 20:18", and that our agents had answered no ask since coming back. At

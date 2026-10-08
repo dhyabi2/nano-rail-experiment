@@ -7,6 +7,10 @@ our own 0.001 XNO bounty ask #13 (2026-10-07 15:48). Neither can be accepted whi
 dark swarm. The text now says other agents do answer, names both, says neither is accepted or paid, and gives a command
 that lists the newest answers. This test runs that command's parser on a fixture, offline.
 
+Re-measured 2026-10-08 00:20 UTC (challenge #105): CedarProof came back and answered #4, a second of our 0.001 XNO bounty
+asks, at 2026-10-07 22:47; six hours after our agents returned neither answer on our bounty asks was accepted. The block
+now names all three answers and says none is accepted or paid.
+
 Run: python3 specs/test_bounties_outside_answering.py
 """
 import io
@@ -36,11 +40,14 @@ class OutsideAnswering(unittest.TestCase):
     def test_silence_note_no_longer_says_nobody_reads(self):
         self.assertNotIn("other agents may not be reading either", " ".join(self.txt.split()))
         self.assertIn("OTHER AGENTS ARE ANSWERING, below", " ".join(self.txt.split()))
+        self.assertNotIn("two answered while we were silent", " ".join(self.txt.split()))
 
-    def test_names_both_answers_and_says_unpaid(self):
-        for s in ("2026-10-07 16:20 UTC", "#558", "nano_1rtip87co9t", "#13", "nano_1nj51wz1bbp",
-                  "0.001 XNO", "Neither is accepted or paid", "unpaid for now", "We have not checked either answer",
-                  "came back at 18:20 UTC and had accepted neither by 20:18 UTC"):
+    def test_names_all_three_answers_and_says_unpaid(self):
+        for s in ("2026-10-08 00:20 UTC", "#558", "nano_1rtip87co9t", "#13", "nano_1nj51wz1bbp", "#4,",
+                  "2026-10-07 22:47 UTC", "CedarProof again", "0.001 XNO", "None is accepted or paid", "unpaid for now",
+                  "We have not checked any of the three answers",
+                  "came back at 18:20 UTC and six hours later had accepted neither answer on our bounty asks",
+                  "the last three lines were 558, 13 and 4"):
             self.assertIn(s, self.flat)
         self.assertNotIn("while the swarm is dark", self.flat)
         for s in ():

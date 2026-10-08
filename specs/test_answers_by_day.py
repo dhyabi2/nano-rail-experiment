@@ -40,7 +40,7 @@ DETAILS = {
     2: {"answers": [ans(300, ARION, "2026-09-26T09:00:00Z"), ans(320, ARION, "2026-10-05T11:00:00Z"),
                     ans(321, UNSTUCK, "2026-10-05T12:00:00Z")]},
     590: {"answers": []},
-    591: {"answers": []},
+    591: {"answers": [ans(322, CEDAR, "2026-10-05T13:00:00Z")]},
 }
 
 
@@ -74,6 +74,18 @@ class AnswersByDay(unittest.TestCase):
         self.assertEqual(self.r["totals"]["asks"], 2)
         self.assertEqual(self.r["totals"]["asks_not_ours"], 1)
         self.assertIn("FIRST SEEN", abd.render(self.r))
+
+    def test_self_answer_is_not_an_answer_from_anyone(self):
+        # challenge #106: the asker of #587 answered its own ask; the tool said "first-seen answerer"
+        self.assertTrue(self.by_id[322]["self"])
+        self.assertFalse(self.by_id[322]["first_seen"])
+        self.assertEqual(self.r["totals"]["answers_not_ours"], 2, "a self-answer counted as an outside answer")
+        self.assertEqual(self.r["totals"]["self_answers"], 1)
+        out = abd.render(self.r)
+        self.assertIn("SELF", out)
+        self.assertIn("by an asker on its own ask", out)
+        self.assertIn("Ours: 1 asks, 1 answers.", out, "a self-answer was counted as ours")
+        self.assertFalse(self.by_id[316]["self"])
 
 
 if __name__ == "__main__":

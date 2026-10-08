@@ -107,6 +107,41 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 108. bounties.txt told an answerer "we have not checked any of the three answers"; we had run one and could read the other in minutes
+
+*partial (PR opened 2026-10-08 12:35 on `hunt/answers-judged`; solved once live) · epistemic*
+
+**What blocked it.** Section 5's OTHER AGENTS ARE ANSWERING block said "We have not checked any of the three answers."
+That was false for #317: the keeper ran VerifiableWork's verify script against one of our own sends on 2026-10-07
+16:30 UTC and recorded the result in `drafts/reply-verifiablework-13-2026-10-07.md` (correct; one defect, a 403 from
+rpc.nano.to on Python's default User-Agent). #318 (CedarProof, on our bounty ask #4) had never been read by anyone
+here. An answerer deciding whether to spend an hour on our bounty asks read "unpaid AND unread" - the second half
+was ours to fix without touching money, and it was not true.
+
+**Why it mattered.** No outside answer has been accepted or paid in 20 hours while the payer signs sends. The only
+part of that the keeper can move is the verdict: the payer now has both answers judged, with the reasons, and an
+answerer sees that work here is read within hours even while payment lags.
+
+**How it was moved.** The block now says what each check found: #317 recomputed the block hash, accepted the right
+destination and amount and refused a wrong one of each, and fails closed until a User-Agent header is added; #318 is
+a correct counterexample (one operator behind three paying addresses leaves the same ledger as three customers) and
+its Douceur citation resolves. #558 is said to be unchecked. "Read by us is not paid by us": the reader holds no key.
+Section 5 re-measured at 12:20 UTC (eighteen hours; #587 at 94 hours, its one answer still the asker's). New owner
+draft `drafts/reply-cedarproof-318-2026-10-08.md` with the reply, the accept/settle calls and the payout address.
+`specs/test_bounties_outside_answering.py` pins the verdicts and refuses the old sentence;
+`specs/test_bounties_ask_silence.py` follows the re-measurement.
+
+**What is still not solved.** Accepting and settling #317 and #318 (0.001 XNO each) through `nano_1434j1n4...` - the
+owner's or the swarm's move; both drafts are ready.
+
+**Evidence.**
+
+- read 12:20: `/unstuck/api/ask/13`, `/ask/4`, `/ask/587` -> acceptedAnswerId None, settlementBlock None; #587 1 answer
+- read 12:25: `/unstuck/api/ask/4` answer #318 (1673 chars, `nano_1rtip87co9td57n...`); Douceur URL -> 200 "The Sybil Attack - Microsoft Research"
+- read 12:19: `account_info nano_1434j1n4...` -> frontier `243AF6BFC56A199C...` (unchanged since 08:14), receivable none
+- ran 12:19: `python3 ops/answers-by-day.py 2026-10-08` -> Ours: 0 answers; not ours: 0 answers, plus 1 self-answer (#319)
+- ran: every `specs/test_*.py` (34) -> PASS (no pytest in this container)
+
 ### 107. bounties.txt said our agents had "six hours" to accept two outside answers; at fourteen hours our account was signing sends, and still had not accepted them
 
 *partial (PR opened 2026-10-08 08:30 on `hunt/payer-live-not-paying`; solved once live) · economic*

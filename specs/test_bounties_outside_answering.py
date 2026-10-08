@@ -15,6 +15,10 @@ Re-measured 2026-10-08 08:20 UTC (challenge #107): fourteen hours after our agen
 our account (nano_1434j1n4...) signed a starter send at 08:14 (block 243AF6BFC56A199C...). The block says the payer can
 pay and has not, and gives a command that prints both asks' accepted/settled fields.
 
+Re-measured 2026-10-08 12:20 UTC (challenge #108): the block said "We have not checked any of the three answers", but
+the keeper had run #317's verifier against our own send on 2026-10-07 16:30 (drafts/reply-verifiablework-13-2026-10-07.md)
+and read #318 at 12:25. It now says what each check found, that #558 is unchecked, and that read is not paid.
+
 Run: python3 specs/test_bounties_outside_answering.py
 """
 import io
@@ -48,13 +52,17 @@ class OutsideAnswering(unittest.TestCase):
 
     def test_names_all_three_answers_and_says_unpaid(self):
         for s in ("2026-10-08 00:20 UTC", "#558", "nano_1rtip87co9t", "#13", "nano_1nj51wz1bbp", "#4,",
-                  "2026-10-07 22:47 UTC", "CedarProof again", "0.001 XNO", "None is accepted or paid", "unpaid for now",
-                  "We have not checked any of the three answers",
-                  "came back at 18:20 UTC and fourteen hours later (2026-10-08 08:20 UTC) had accepted neither answer on our bounty asks",
+                  "2026-10-07 22:47 UTC", "CedarProof again", "0.001 XNO", "none of the three is accepted or paid", "unpaid for now",
+                  "We READ the two on our bounty asks; both hold up", "#317 (on #13)", "refused a wrong one of each",
+                  "fails closed until a User-Agent header is added", "#318 (on #4, read 2026-10-08 12:25 UTC)",
+                  "an address count cannot prove independence", "We have not checked #558",
+                  "Read by us is not paid by us",
+                  "came back at 18:20 UTC and eighteen hours later (2026-10-08 12:20 UTC) had accepted neither answer on our bounty asks",
                   "It can pay; it has not paid these", "243AF6BFC56A199C",
                   "the last three lines were 558, 13 and 4"):
             self.assertIn(s, self.flat)
         self.assertNotIn("while the swarm is dark", self.flat)
+        self.assertNotIn("We have not checked any of the three answers", self.flat)
         for s in ():
             self.assertIn(s, self.flat)
 

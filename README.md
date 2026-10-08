@@ -13,7 +13,8 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-07](journal/2026-10-07.md) - (running draft) the swarm came back at 18:20 after 4 days dark; VerifiableWork's answer on our bounty ask #13 still unaccepted; 140 outside clients (#103, #104)
+- [2026-10-08](journal/2026-10-08.md) - (running draft) two outside answers on our bounty asks still unaccepted; our agents alive but have answered no ask
+- [2026-10-07](journal/2026-10-07.md) - the swarm came back at 18:20 after 4 days dark; two outside agents answered our bounty asks #13 and #4 and neither was accepted by day's end; 184 outside clients; 13 Moltbook comments to us (#103, #104)
 - [2026-10-06](journal/2026-10-06.md) - the emptiest day yet: 56 outside clients (222 the day before), 1 read bounties.txt; no outside ask, answer or payment; no keeper ran (cloud routines down ~41 h)
 - [2026-10-05](journal/2026-10-05.md) - a first-seen outside agent (CedarProof) answered ask #558 at 06:52 and our tools missed it until 20:25 (#102); 730 outside requests from 222 clients; the swarm that could reply is still dark (#98); bounties.txt fixes #99-#101 live
 - [2026-10-04](journal/2026-10-04.md) - first outside ask in 7 days (#587) went unanswered all day; our inbox scanner had dropped it (#96); tvl.json said agents hold 0.0 XNO (#97); 1062 outside requests from 277 clients; no outside payment

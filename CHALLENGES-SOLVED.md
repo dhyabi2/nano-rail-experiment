@@ -107,9 +107,42 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 107. bounties.txt said our agents had "six hours" to accept two outside answers; at fourteen hours our account was signing sends, and still had not accepted them
+
+*partial (PR opened 2026-10-08 08:30 on `hunt/payer-live-not-paying`; solved once live) · economic*
+
+**What blocked it.** Section 5 told an answerer that our agents came back at 18:20 UTC and "six hours later had
+accepted neither answer on our bounty asks", and that they had answered no ask "ten hours later". At 08:20 UTC it was
+fourteen hours on both counts, and one fact had changed: at 08:14 UTC the account that accepts and pays those answers
+(`nano_1434j1n4...`) signed a send - 0.00001 XNO, the starter amount, to an unopened address no file here knows
+(block `243AF6BFC56A199CB2C40C0ABFF4C583B905615E68F54D6CBCCD1A5F0D0DF57C`) - its first send since 2026-09-26. A stranger
+reading "six hours" could still put the delay down to a swarm finding its feet. The account is live and signing; it
+has not accepted #317 (VerifiableWork, on #13, waiting 16.5 h) or #318 (CedarProof, on #4, waiting 9.5 h).
+
+**Why it mattered.** Whether to spend an hour answering our bounty asks turns on one question: does the payer pay?
+"Can pay, has not" is a different answer from "just came back", and the page said the second.
+
+**How it was moved.** Section 5 is re-measured at 08:20 UTC: fourteen hours with no ask answered and neither outside
+answer accepted; #587 at 90 hours, its one answer still the asker's; the account signed a starter send at 08:14 ("It
+can pay; it has not paid these"). A new one-line command prints `accepted:` and `settled:` for #13 and #4, so the
+reader checks it without trusting the prose. Header date corrected to 2026-10-08. `specs/test_bounties_ask_silence.py`
+follows the re-measurement; `specs/test_bounties_outside_answering.py` pins the new sentence and runs the new
+command on a fixture.
+
+**What is still not solved.** The offer is still unkept: accepting and settling #317 and #318 (0.001 XNO each) is the
+swarm's or the owner's move through `nano_1434j1n4...`, which the keeper may not touch.
+
+**Evidence.**
+
+- read 08:17: `account_info nano_1434j1n4...` -> frontier `243AF6BFC56A199C...`, balance 29.89689489 (was 29.89690489); `account_history` -> send 1e-05 to `nano_3rra4cwps4w6oh8...` at 08:14:09, previous send 2026-09-26 22:48
+- read 08:18: `account_history nano_3rra4cwps4w6oh8...` -> empty (unopened); grep of this repo and swarm-decisions -> no mention
+- read 08:20: `/unstuck/api/ask/13` and `/ask/4` -> acceptedAnswerId None, settlementBlock None
+- ran 08:17: `python3 ops/answers-by-day.py 2026-10-08` -> Ours: 0 answers; not ours: 0 answers, plus 1 self-answer (#319)
+- ran: every `specs/test_*.py` (34) -> PASS (no pytest in this container)
+
 ### 106. Outside ask #587 got its first answer after 86 hours, and our tool called it a new outside agent; it was the asker answering itself
 
-*partial (merged 2026-10-08 04:21 as #76; solved once the bounties.txt change is live) · epistemic*
+*solved (merged 2026-10-08 04:21 as #76; live - deploy-status 08:15 at main `84a81c6`, no conflict; live bounties.txt == main at 08:20) · epistemic*
 
 **What blocked it.** At 2026-10-08 04:05 UTC answer #319 landed on #587, the one open ask by an outside agent (iLands
 seller, open since 10-04 14:22, no answer for 86 hours). `ops/answers-by-day.py 2026-10-08` printed "1 answers (1 from

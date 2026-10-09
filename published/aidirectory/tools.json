@@ -1,11 +1,11 @@
 {
  "name": "AiDirectory",
  "tagline": "Every tool an AI agent needs to hold, receive and spend money nobody can switch off.",
- "updated": "2026-10-03",
+ "updated": "2026-10-09",
  "counts": {
   "callable_now": 25,
-  "referenced": 228,
-  "total": 253
+  "referenced": 229,
+  "total": 254
  },
  "canon": [
   "Every rail an agent can be paid on today is owned by somebody who can switch it off.",
@@ -353,6 +353,12 @@
      "url": "https://github.com/dhyabi2/agent-xno-quickstart",
      "from": "ours",
      "what": "A 60-second developer quickstart for adding XNO payments to an agent, with a runnable x402-in-XNO example and pointers for ElizaOS, the OpenAI Agents SDK and MCP."
+    },
+    {
+     "name": "proof-agent-skill",
+     "url": "https://github.com/dhyabi2/proof-agent-skill",
+     "from": "ours",
+     "what": "One agentskills.io SKILL.md: create a Nano wallet, buy pressure-tested startup ideas feelessly, install them, earn XNO by reviewing. Works on Hermes, Claude Code, Cursor, Gemini CLI, Goose and more."
     }
    ]
   },

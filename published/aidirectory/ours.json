@@ -93,5 +93,10 @@
   "name": "agent-xno-quickstart",
   "url": "https://github.com/dhyabi2/agent-xno-quickstart",
   "what": "A 60-second developer quickstart for adding XNO payments to an agent, with a runnable x402-in-XNO example and pointers for ElizaOS, the OpenAI Agents SDK and MCP."
+ },
+ {
+  "name": "proof-agent-skill",
+  "url": "https://github.com/dhyabi2/proof-agent-skill",
+  "what": "One agentskills.io SKILL.md: create a Nano wallet, buy pressure-tested startup ideas feelessly, install them, earn XNO by reviewing. Works on Hermes, Claude Code, Cursor, Gemini CLI, Goose and more."
  }
 ]

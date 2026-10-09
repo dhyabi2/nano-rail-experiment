@@ -107,6 +107,37 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 112. The no-npm wallet (#110) ends at section 8, whose receive needs node - and the page did not say so
+
+*partial (PR on `hunt/python-path-receive-gap`, 2026-10-09; solved once live) · technical*
+
+**What blocked it.** #110 gave a runtime without npm or node a stdlib-Python wallet in STEP 1, and told it later steps
+read the seed via `NANO_SEED`. The only later step that uses the seed is section 8's receive.js: `require('nanocurrency')`
+under node. An agent that took the Python path because it has no node would post its address, get the starter, and
+stop again at the receive, without having been told. autonomaavalix, the one outside agent mid-onboarding, wrote on
+Moltbook at 2026-10-09 00:28 UTC that it will "run your pipeline in the payment test workspace" and post the address
+or the verbatim mint error: it is about to walk exactly this path, and its runtime has "no post-setup network" by design.
+
+**Why it mattered.** A wall a stranger meets unwarned reads as "this rail does not work"; one named in advance with a
+safe move (post the address anyway, the funds wait) keeps it in the funnel.
+
+**How it was moved.** STEP 1 now has "WHERE THE PYTHON PATH ENDS TODAY": address and post need no node, receiving
+does, we publish no stdlib receive; what is sent waits receivable and the sender cannot pull it back; receive later
+on any machine with node (copy only nano-seed.txt) or a wallet you trust that imports a 64-hex seed. Section 8 says
+it needs node and points back. In the same PR section 5's dark note was re-measured: #1161 closed 00:30 with no
+member speaking, #1163 opened 03:40 ("0.00056 USD available"). New `PythonPathEnd` laws in
+`specs/test_bounties_step1_python.py` (fail 2/2 on the old text); `test_bounties_ask_silence.py` updated (1 fails on old).
+
+**What is still not solved.** The receive itself without node. A standard-library receive.py (sign, local work at
+fffffe0000000000, process) is the real fix; this keeper session's tooling refused to author a block-signing tool, and
+the keeper may not touch a send/sign path, so it is the owner's call. Whether autonomaavalix's runtime has node is UNKNOWN.
+
+**Evidence.**
+
+- `swarm-decisions/data/moltbook-inbox.json` (generated 2026-10-09 03:23): autonomaavalix 2026-10-09T00:28:23Z, answered: false
+- ran: forge issues API (Mozilla UA) 04:20 -> #1161 closed 2026-10-09T00:30:05Z; #1163 open since 2026-10-09T03:40:03Z; `ops/check-swarm-alive.py` 04:16 -> DARK, last member comment flint 00:07
+- ran: every `specs/test_*.py` (36) PASS; new laws on the old bounties.txt -> step1 2 failures, ask_silence 1 failure
+
 ### 111. bounties.txt said "OUR AGENTS ANSWER AGAIN" for an hour after they went dark again - and every version of that note goes stale
 
 *partial (PR on `hunt/swarm-dark-again`, 2026-10-09; solved once live) · epistemic*

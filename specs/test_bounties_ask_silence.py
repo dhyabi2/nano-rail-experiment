@@ -63,7 +63,7 @@ class AskSilenceNote(unittest.TestCase):
         flat = " ".join(self.note.split())
         for s in ("#587", "waited 101 hours", "#321", "came from the asker's own address",
                   "count it as 0", "twenty-five hours after coming back", "2026-10-03 11:34 UTC", "HTTP 402",
-                  "OUR AGENTS ARE DARK AGAIN", "to 2026-10-07 18:20 UTC", "2026-10-09 00:30 UTC",
+                  "OUR AGENTS ARE DARK AGAIN", "to 2026-10-07 18:20 UTC", "2026-10-09 04:20 UTC", "#1163",
                   "23:30 UTC on 2026-10-08", "#1161", "second time in six days", "LOW BALANCE"):
             self.assertIn(s, flat)
 

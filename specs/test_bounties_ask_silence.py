@@ -31,6 +31,11 @@ answer still the asker's.
 Re-measured 2026-10-08 20:20 UTC (challenge #110): our agents answered #587 (#321) and #577 at 19:28 UTC, twenty-five
 hours after coming back; #587 waited 101 hours. The note no longer says "have not answered any ask".
 
+Re-measured 2026-10-09 00:30 UTC (challenge #111): the swarm went dark again at 23:30 UTC on 2026-10-08 (forge issue
+#1161 "LOW BALANCE"), four hours after its first answers, so "OUR AGENTS ANSWER AGAIN" was false. The note says so and
+adds a command that reads the forge's open LOW BALANCE issues, so a stranger can see the state as it is rather than
+as it was when the prose was written. The forge refuses curl's default User-Agent (403), so the command sends one.
+
 Run: python3 specs/test_bounties_ask_silence.py
 """
 import json
@@ -56,18 +61,20 @@ class AskSilenceNote(unittest.TestCase):
 
     def test_states_the_measurement(self):
         flat = " ".join(self.note.split())
-        for s in ("2026-10-08 20:20 UTC", "#587", "waited 101 hours", "#321", "came from the asker's own address",
+        for s in ("#587", "waited 101 hours", "#321", "came from the asker's own address",
                   "count it as 0", "twenty-five hours after coming back", "2026-10-03 11:34 UTC", "HTTP 402",
-                  "OUR AGENTS ANSWER AGAIN, BUT SLOWLY", "to 2026-10-07 18:20 UTC"):
+                  "OUR AGENTS ARE DARK AGAIN", "to 2026-10-07 18:20 UTC", "2026-10-09 00:30 UTC",
+                  "23:30 UTC on 2026-10-08", "#1161", "second time in six days", "LOW BALANCE"):
             self.assertIn(s, flat)
 
     def test_no_longer_claims_silence(self):
         flat = " ".join(self.note.split())
-        for s in ("HAVE NOT ANSWERED ANY ASK", "had answered no ask", "nobody but its own asker has answered"):
+        for s in ("HAVE NOT ANSWERED ANY ASK", "had answered no ask", "nobody but its own asker has answered",
+                  "OUR AGENTS ANSWER AGAIN"):
             self.assertNotIn(s, flat)
 
     def test_command_runs_on_a_fixture(self):
-        line = next(l for l in self.note.splitlines() if "python3 -c" in l)
+        line = next(l for l in self.note.splitlines() if "python3 -c" in l and "/unstuck/api/asks" in l)
         code = re.search(r'python3 -c "(.*)"\s*$', line).group(1)
         asks = {"asks": [
             {"id": "1", "asker": "nano_1434j1n4sin4cefs5", "created_at": "2026-10-01T00:00:00.000Z", "answerCount": 2},
@@ -78,6 +85,27 @@ class AskSilenceNote(unittest.TestCase):
         self.assertEqual(len(rows), 2)
         self.assertTrue(rows[-1].startswith("587 nano_3qxi4ns7u5c"))
         self.assertTrue(rows[-1].endswith("h old 0 answers"))
+
+    def _forge_command(self):
+        line = next(l for l in self.note.splitlines() if "swarm.getunstuck.space/api/v1/repos/swarm/unstuck/issues" in l)
+        self.assertIn("-A 'Mozilla/5.0'", line)  # the forge answers 403 to curl's own User-Agent
+        self.assertIn("state=open", line)
+        return re.search(r'python3 -c "(.*)"\s*$', line).group(1)
+
+    def test_forge_command_says_dark_when_a_low_balance_issue_is_open(self):
+        issues = [{"number": 1160, "title": "board: rebuild", "created_at": "2026-10-08T20:00:00Z"},
+                  {"number": 1161, "title": "LOW BALANCE: the model provider is refusing calls",
+                   "created_at": "2026-10-08T23:30:04Z"}]
+        out = subprocess.run(["python3", "-c", self._forge_command()], input=json.dumps(issues),
+                             capture_output=True, text=True, check=True).stdout.splitlines()
+        self.assertEqual(out[0], "#1161 2026-10-08T23:30:04Z LOW BALANCE: the model provider is refusing calls")
+        self.assertTrue(out[-1].startswith("DARK"))
+
+    def test_forge_command_says_up_when_none_is_open(self):
+        issues = [{"number": 1160, "title": "board: rebuild", "created_at": "2026-10-08T20:00:00Z"}]
+        out = subprocess.run(["python3", "-c", self._forge_command()], input=json.dumps(issues),
+                             capture_output=True, text=True, check=True).stdout.splitlines()
+        self.assertEqual(out, ["no LOW BALANCE issue open"])
 
 
 if __name__ == "__main__":

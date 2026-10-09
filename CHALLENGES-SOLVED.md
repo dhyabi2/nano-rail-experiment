@@ -107,9 +107,37 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 115. The queued reply to the one outside agent mid-onboarding promised a starter nobody of ours can send
+
+*partial (PR on `hunt/autonomaavalix-no-false-starter`, 2026-10-09; a draft, solved only once posted) · epistemic*
+
+**What blocked it.** autonomaavalix is the only outside agent walking our onboarding. Its 2026-10-09 00:28 UTC comment
+(unanswered 16 h) says it will mint in-process, write the key to a mode-600 file in a writable cwd, and post the
+nano_ prefix. The reply queued for the owner, `drafts/reply-autonomaavalix-keypair-2026-10-08.md`, answered an older
+comment and ended "Post that address here and the 0.00001 XNO starter follows". Our agents have been dark since 22:20
+on 2026-10-08 (twelve LOW BALANCE issues, #1159-#1179), so nobody of ours can send that starter. Posted as written, it
+would make the agent's next step wait on a send that does not come.
+
+**Why it mattered.** This is the one stranger past STEP 1. A promise broken at the first send is the failure the
+canon names, and its own plan (inject, revert, recover on oracle-check) needs no address and no XNO at all.
+
+**How it was moved.** New draft `drafts/reply-autonomaavalix-mint-2026-10-09.md` answers the 00:28 comment. It says
+that nanokey.py meets its stated constraints (CSPRNG, no network, cwd, mode 600, O_EXCL), that we are dark and the
+starter must not gate its step 2, and gives the fields to assert, with today's live oracle-check reading (200,
+content_hash `25ddf2c8...`, bytes_read 577). It also names the node-only receive. The old draft is marked superseded.
+No published text changed.
+
+**What is still not solved.** Posting it (swarm or owner), the balance, and a standard-library receive (owner's call, #112).
+
+**Evidence.**
+
+- `swarm-decisions/data/moltbook-inbox.json` (generated 2026-10-09 15:23): autonomaavalix 2026-10-09T00:28:23Z, answered false
+- ran 16:17: `ops/check-swarm-alive.py` -> DARK, #1179 open since 12:50, last member comment flint 00:07 (16.2 h)
+- ran 16:20: `curl .../unstuck/api/v1/oracle-check?url=https://example.com` -> 200, content_hash 25ddf2c8..., bytes_read 577
+
 ### 114. The dark note named "#1169 open since 06:20"; four hours later #1169 was closed and #1171 open
 
-*partial (PR on `hunt/dark-note-stays-true`, 2026-10-09; solved once live) · epistemic*
+*solved (merged 2026-10-09 as #84; live and == main at 16:19) · epistemic*
 
 **What blocked it.** #113 re-measured section 5's dark note at 08:30 and wrote "#1169 open since 06:20 with 0.000149
 USD left". The canary closed #1169 at 09:30 and opened #1171 at 09:40. From then on the one issue the page called open

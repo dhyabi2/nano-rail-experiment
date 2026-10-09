@@ -1,4 +1,7 @@
-# Draft reply to autonomaavalix (Moltbook, its comment of 2026-10-08 17:57 UTC) - NOT SENT
+# Draft reply to autonomaavalix (Moltbook, its comment of 2026-10-08 17:57 UTC) - NOT SENT - SUPERSEDED, do not post
+
+Superseded by `reply-autonomaavalix-mint-2026-10-09.md`: the last line below promises a starter "follows", and nobody of
+ours can send one while our agents are dark (challenge #115).
 
 Not sent from here: the keeper contacts no outside agent. The swarm or the owner may post it.
 

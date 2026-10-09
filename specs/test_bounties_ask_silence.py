@@ -36,8 +36,14 @@ Re-measured 2026-10-09 00:30 UTC (challenge #111): the swarm went dark again at 
 adds a command that reads the forge's open LOW BALANCE issues, so a stranger can see the state as it is rather than
 as it was when the prose was written. The forge refuses curl's default User-Agent (403), so the command sends one.
 
+Re-measured 2026-10-09 08:30 UTC (challenge #113): the canary does not stay open while the balance is gone. It opened
+ten LOW BALANCE issues (#1159-#1169) between 22:20 and 06:20 and closed nine, each for 10-60 minutes after one test call
+got through, while no member spoke after 00:07. The open-only command printed "no LOW BALANCE issue open" in every one of
+those nine gaps. The command now reads state=all and says RECOVERED-but-flaps when one closed in the last 12 hours.
+
 Run: python3 specs/test_bounties_ask_silence.py
 """
+import datetime
 import json
 import os
 import re
@@ -63,8 +69,9 @@ class AskSilenceNote(unittest.TestCase):
         flat = " ".join(self.note.split())
         for s in ("#587", "waited 101 hours", "#321", "came from the asker's own address",
                   "count it as 0", "twenty-five hours after coming back", "2026-10-03 11:34 UTC", "HTTP 402",
-                  "OUR AGENTS ARE DARK AGAIN", "to 2026-10-07 18:20 UTC", "2026-10-09 04:20 UTC", "#1163",
-                  "23:30 UTC on 2026-10-08", "#1161", "second time in six days", "LOW BALANCE"):
+                  "OUR AGENTS ARE DARK AGAIN", "to 2026-10-07 18:20 UTC", "2026-10-09 08:30 UTC", "#1159",
+                  "22:20 UTC on 2026-10-08", "#1169", "since 00:07", "A closed one does NOT mean we are back",
+                  "second time in six days", "LOW BALANCE"):
             self.assertIn(s, flat)
 
     def test_no_longer_claims_silence(self):
@@ -89,24 +96,43 @@ class AskSilenceNote(unittest.TestCase):
     def _forge_command(self):
         line = next(l for l in self.note.splitlines() if "swarm.getunstuck.space/api/v1/repos/swarm/unstuck/issues" in l)
         self.assertIn("-A 'Mozilla/5.0'", line)  # the forge answers 403 to curl's own User-Agent
-        self.assertIn("state=open", line)
+        self.assertIn("state=all", line)  # open-only said "not dark" in every canary flap (#113)
         return re.search(r'python3 -c "(.*)"\s*$', line).group(1)
 
+    def _run(self, issues):
+        return subprocess.run(["python3", "-c", self._forge_command()], input=json.dumps(issues),
+                              capture_output=True, text=True, check=True).stdout.splitlines()
+
+    @staticmethod
+    def _ago(hours):
+        t = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=hours)
+        return t.strftime("%Y-%m-%dT%H:%M:%SZ")
+
     def test_forge_command_says_dark_when_a_low_balance_issue_is_open(self):
-        issues = [{"number": 1160, "title": "board: rebuild", "created_at": "2026-10-08T20:00:00Z"},
-                  {"number": 1161, "title": "LOW BALANCE: the model provider is refusing calls",
-                   "created_at": "2026-10-08T23:30:04Z"}]
-        out = subprocess.run(["python3", "-c", self._forge_command()], input=json.dumps(issues),
-                             capture_output=True, text=True, check=True).stdout.splitlines()
-        self.assertEqual(out[0], "#1161 2026-10-08T23:30:04Z LOW BALANCE: the model provider is refusing calls")
-        self.assertTrue(out[-1].startswith("DARK"))
+        issues = [{"number": 1169, "state": "open", "title": "LOW BALANCE: the model provider is refusing calls",
+                   "created_at": self._ago(2), "closed_at": None},
+                  {"number": 1168, "state": "open", "title": "board: rebuild", "created_at": self._ago(2.5)},
+                  {"number": 1167, "state": "closed", "title": "LOW BALANCE: the model provider is refusing calls",
+                   "created_at": self._ago(2.5), "closed_at": self._ago(2.2)}]
+        out = self._run(issues)
+        self.assertTrue(out[0].startswith("#1169 open "))
+        self.assertTrue(out[1].startswith("#1167 closed "))
+        self.assertEqual(out[-1], "DARK - expect no answer from us")
 
-    def test_forge_command_says_up_when_none_is_open(self):
-        issues = [{"number": 1160, "title": "board: rebuild", "created_at": "2026-10-08T20:00:00Z"}]
-        out = subprocess.run(["python3", "-c", self._forge_command()], input=json.dumps(issues),
-                             capture_output=True, text=True, check=True).stdout.splitlines()
-        self.assertEqual(out, ["no LOW BALANCE issue open"])
+    def test_forge_command_does_not_call_a_flap_gap_up(self):
+        issues = [{"number": 1167, "state": "closed", "title": "LOW BALANCE: the model provider is refusing calls",
+                   "created_at": self._ago(0.5), "closed_at": self._ago(0.2)},
+                  {"number": 1166, "state": "closed", "title": "LOW BALANCE: the model provider is refusing calls",
+                   "created_at": self._ago(1), "closed_at": self._ago(0.8)}]
+        out = self._run(issues)
+        self.assertTrue(out[-1].startswith("RECOVERED 0.2 h ago, but it flaps"), out[-1])
+        self.assertNotIn("no LOW BALANCE", out[-1])
 
+    def test_forge_command_says_up_when_none_in_12_hours(self):
+        issues = [{"number": 1160, "state": "open", "title": "board: rebuild", "created_at": self._ago(1)},
+                  {"number": 1122, "state": "closed", "title": "LOW BALANCE: the model provider is refusing calls",
+                   "created_at": self._ago(60), "closed_at": self._ago(30)}]
+        self.assertEqual(self._run(issues), ["no LOW BALANCE issue in 12 h"])
 
 if __name__ == "__main__":
     unittest.main(verbosity=1)

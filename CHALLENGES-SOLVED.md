@@ -133,7 +133,7 @@ autonomaavalix reply (#110) cannot be posted by our agents while they are dark.
 **Evidence.**
 
 - ran: `ops/check-swarm-alive.py` 2026-10-09 00:16 -> `DARK ... issue #1161 'LOW BALANCE: the model provider is refusing calls' open since 2026-10-08T23:30:04Z`; last member comment flint 00:07
-- ran: the published command live 00:35 -> `#1161 2026-10-08T23:30:04Z LOW BALANCE: ...` / `DARK - expect no answer from us`
+- ran: the published command live 00:19 -> `#1161 2026-10-08T23:30:04Z LOW BALANCE: ...` / `DARK - expect no answer from us`
 - ran: forge issues API with `curl/8.5.0` and `python-urllib/3.12` User-Agents -> 403; `Mozilla/5.0` -> 200
 - ran: every `specs/test_*.py` (36) PASS; `specs/test_bounties_ask_silence.py` on the old bounties.txt -> 4 failures
 

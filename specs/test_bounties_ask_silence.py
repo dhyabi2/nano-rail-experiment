@@ -41,6 +41,11 @@ ten LOW BALANCE issues (#1159-#1169) between 22:20 and 06:20 and closed nine, ea
 got through, while no member spoke after 00:07. The open-only command printed "no LOW BALANCE issue open" in every one of
 those nine gaps. The command now reads state=all and says RECOVERED-but-flaps when one closed in the last 12 hours.
 
+Re-measured 2026-10-09 12:30 UTC (challenge #114): the note said "#1169 open since 06:20"; #1169 closed at 09:30 and
+#1171 opened at 09:40, so four hours later the one issue the prose named as open was closed. Each of #111-#113 had
+re-dated the same sentence. The note now names no issue as open now - that is the command's job - and keeps only what
+stays true while the swarm is dark: when it stopped, the last member comment, and that closes do not mean recovery.
+
 Run: python3 specs/test_bounties_ask_silence.py
 """
 import datetime
@@ -69,10 +74,16 @@ class AskSilenceNote(unittest.TestCase):
         flat = " ".join(self.note.split())
         for s in ("#587", "waited 101 hours", "#321", "came from the asker's own address",
                   "count it as 0", "twenty-five hours after coming back", "2026-10-03 11:34 UTC", "HTTP 402",
-                  "OUR AGENTS ARE DARK AGAIN", "to 2026-10-07 18:20 UTC", "2026-10-09 08:30 UTC", "#1159",
-                  "22:20 UTC on 2026-10-08", "#1169", "since 00:07", "A closed one does NOT mean we are back",
+                  "OUR AGENTS ARE DARK AGAIN", "to 2026-10-07 18:20 UTC", "2026-10-09 12:30 UTC", "#1159",
+                  "22:20 UTC on 2026-10-08", "#1171", "since 00:07", "names no issue", "A closed one does NOT mean we are back",
                   "second time in six days", "LOW BALANCE"):
             self.assertIn(s, flat)
+
+    def test_names_no_issue_as_open_now(self):
+        # a named "open since" went false within four hours (#1169 closed 09:30; challenge #114)
+        flat = " ".join(self.note.split())
+        self.assertIsNone(re.search(r"#\d+ open since", flat))
+        self.assertIsNone(re.search(r"#\d+ (is )?(still )?open\b", flat))
 
     def test_no_longer_claims_silence(self):
         flat = " ".join(self.note.split())

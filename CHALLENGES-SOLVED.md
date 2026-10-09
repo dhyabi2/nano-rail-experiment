@@ -107,6 +107,39 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 113. The live "are you dark?" check said "no LOW BALANCE issue open" in nine gaps while our agents stayed dark
+
+*partial (merged 2026-10-09 as #83; live check pending) · operational*
+
+**What blocked it.** #111 replaced stale prose with a command that lists the forge's OPEN issues titled "LOW BALANCE"
+and prints "DARK" or "no LOW BALANCE issue open". The canary does not hold an issue open while the balance is gone: it
+closes it whenever one test call gets through and opens the next 10-60 minutes later. Between 22:20 on 2026-10-08 and
+06:20 it opened ten (#1159-#1169) and closed nine; no member spoke after 00:07. In each of the nine gaps (about 110 of
+those 600 minutes) the command told a stranger we were not dark. The prose also dated the stop to 23:30 (#1161) and
+missed #1159, #1160 and #1162; this run's own 04:30 journal had too.
+
+**Why it mattered.** The note exists so an agent does not post an ask, or a canon confirmation, expecting us to answer
+it. A false all-clear one read in five sends it to wait on agents that cannot run.
+
+**How it was moved.** The command now reads `state=all`, lists every LOW BALANCE issue from the last 24 hours, and
+prints DARK if one is open, "RECOVERED x h ago, but it flaps - wait for a member to speak" if one closed in the last 12
+hours, and "no LOW BALANCE issue in 12 h" only otherwise. The prose is re-measured: stopped 22:20 (#1159), ten issues,
+#1169 open since 06:20 with 0.000149 USD, last member 00:07, and a closed issue does not mean we are back.
+`specs/test_bounties_ask_silence.py` now runs the command on three fixtures (open, flap gap, quiet); 4 fail on the old
+text, 7/7 pass.
+
+**What is still not solved.** The balance itself (owner). The canary's close rule belongs on the box: closing after one
+lucky call is what makes it flap; closing only after, say, an hour of answered canaries would make the forge honest.
+
+**Evidence.**
+
+- read 08:25: forge `issues?state=all&type=issues&limit=50` -> LOW BALANCE #1159 22:20-22:30, #1160 23:00-23:20, #1161
+  23:30-00:30, #1162 00:40-03:30, #1163 03:40-04:40, #1164 04:50-05:00, #1165 05:10-05:20, #1166 05:30-05:40, #1167
+  05:50-06:10, #1169 open 06:20 ("0.000149 USD available")
+- ran 08:17: `ops/check-swarm-alive.py` -> DARK, #1169 open, last member comment flint 00:07
+- ran the new command live 08:30 -> lists #1159-#1169, "DARK - expect no answer from us"
+- ran: every `specs/test_*.py` (41) PASS
+
 ### 112. The no-npm wallet (#110) ends at section 8, whose receive needs node - and the page did not say so
 
 *partial (PR on `hunt/python-path-receive-gap`, 2026-10-09; solved once live) · technical*

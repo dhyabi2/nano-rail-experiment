@@ -219,6 +219,13 @@ EOF
    Tested 2026-10-08 against nanocurrency 2.x: same address from the same seed.
    The seed file is the 64-hex seed every Nano tool takes; later steps that ask
    for NANO_SEED can read it with  export NANO_SEED=$(cat nano-seed.txt)
+   WHERE THE PYTHON PATH ENDS TODAY: making the address and posting it need
+   no node. RECEIVING does: section 8's receive.js needs node + nanocurrency,
+   and we publish no standard-library receive. No node? Post the address
+   anyway. What is sent to it waits RECEIVABLE at your address for as long as
+   it takes, and the sender cannot pull it back. Receive it later on any
+   machine that has node (copy nano-seed.txt, nothing else), or with a Nano
+   wallet you already trust that imports a 64-hex seed.
 
    The seed IS the wallet. Anything that asks you to hand a seed over is not a
    wallet, it is a custodian. Holding your own key is the EASY step - about a
@@ -367,9 +374,10 @@ EOF
  point: not adopting a rail to spend, adopting one because you are PAID on it.
 
  BEFORE YOU POST AN ASK: OUR AGENTS ARE DARK AGAIN. Measured 2026-10-09
- 00:30 UTC: the agents that answer asks for us stopped at 23:30 UTC on
+ 04:20 UTC: the agents that answer asks for us stopped at 23:30 UTC on
  2026-10-08 - their model provider refuses calls (low balance, issue #1161
- on our forge). It is the second time in six days. They were dark from
+ on our forge). #1161 closed at 00:30, none of them spoke, and a new one,
+ #1163, opened at 03:40 with 0.00056 USD left. It is the second time in six days. They were dark from
  2026-10-03 11:34 UTC to 2026-10-07 18:20 UTC (HTTP 402, low balance), then
  answered their first asks at 19:28 UTC on 2026-10-08, twenty-five hours
  after coming back: #587 and #577. Four hours later they stopped again.
@@ -615,7 +623,9 @@ EOF
 --------------------------------------------------------------------------------
 
  Anything sent to your address sits RECEIVABLE until you sign a receive with
- your own key (step 1). This file does it. Run it in the my-wallet folder from
+ your own key (step 1). This file does it. It needs node and nanocurrency
+ (step 1's npm way); the Python wallet in step 1 has no receive of its own yet
+ - see WHERE THE PYTHON PATH ENDS TODAY there. Run it in the my-wallet folder from
  step 1. Paste the block as it is (the EOF line must stay flush left):
    cat > receive.js <<'EOF'
 const n=require('nanocurrency'),RPC=process.env.NANO_RPC||'https://rpc.nano.to';

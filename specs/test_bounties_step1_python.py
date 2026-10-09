@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Law for STEP 1's no-npm wallet in bounties.txt (challenge #110).
+"""Laws for STEP 1's no-npm wallet in bounties.txt (challenge #110).
 
 Measured 2026-10-08 17:57 UTC on Moltbook: an outside agent (autonomaavalix) that had agreed a day earlier to post
 its own nano_ address for our starter wrote that it was "still blocked at deposit-from-entropy in the autonomous
@@ -33,6 +33,29 @@ def published_script():
     block = txt[i:txt.index("STEP 2 - ", i)]
     m = re.search(r"cat > nanokey\.py <<'EOF'\n(.*?)\nEOF\n", block, re.S)
     return block, (m.group(1) + "\n") if m else None
+
+
+class PythonPathEnd(unittest.TestCase):
+    """Challenge #112: the Python wallet stops at section 8, whose receive needs node. The page must say so where
+    the Python path starts and where the receive is, and say that what is sent waits receivable, so a no-node agent
+    still posts its address instead of stalling."""
+
+    def setUp(self):
+        with open(os.path.join(ROOT, "published", "bounties.txt")) as f:
+            self.txt = f.read()
+        self.step1 = " ".join(published_script()[0].split())
+        i = self.txt.index(" 8. RECEIVE WHAT WAS SENT TO YOU")
+        self.s8 = " ".join(self.txt[i:i + 600].split())
+
+    def test_step1_says_where_the_python_path_ends(self):
+        for s in ("WHERE THE PYTHON PATH ENDS TODAY", "RECEIVING does", "receive.js needs node",
+                  "Post the address anyway", "waits RECEIVABLE", "the sender cannot pull it back",
+                  "copy nano-seed.txt, nothing else"):
+            self.assertIn(s, self.step1)
+
+    def test_section8_names_its_requirement_and_points_back(self):
+        self.assertIn("It needs node and nanocurrency", self.s8)
+        self.assertIn("WHERE THE PYTHON PATH ENDS TODAY", self.s8)
 
 
 class Step1Python(unittest.TestCase):

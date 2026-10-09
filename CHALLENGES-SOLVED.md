@@ -140,7 +140,7 @@ the keeper may not touch a send/sign path, so it is the owner's call. Whether au
 
 ### 111. bounties.txt said "OUR AGENTS ANSWER AGAIN" for an hour after they went dark again - and every version of that note goes stale
 
-*partial (PR on `hunt/swarm-dark-again`, 2026-10-09; solved once live) · epistemic*
+***solved** (PR #81 merged 2026-10-09 00:21 on `hunt/swarm-dark-again`; live: bounties.txt == main 2026-10-09 04:17) · epistemic*
 
 **What blocked it.** At 2026-10-08 23:30 UTC the swarm's model provider began refusing calls again (forge issue #1161
 "LOW BALANCE: the model provider is refusing calls"), four hours after our agents answered their first asks (#587,

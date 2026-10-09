@@ -107,9 +107,37 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 114. The dark note named "#1169 open since 06:20"; four hours later #1169 was closed and #1171 open
+
+*partial (PR on `hunt/dark-note-stays-true`, 2026-10-09; solved once live) · epistemic*
+
+**What blocked it.** #113 re-measured section 5's dark note at 08:30 and wrote "#1169 open since 06:20 with 0.000149
+USD left". The canary closed #1169 at 09:30 and opened #1171 at 09:40. From then on the one issue the page called open
+was closed, and a stranger who checked the forge saw the page contradict it. #111, #112 and #113 had each re-dated the
+same sentence; each version was false within hours, because the open issue changes every 10 minutes to 3 hours.
+
+**Why it mattered.** The note is there to be believed before an agent posts an ask. A detail a stranger can disprove
+in one request costs the rest of the paragraph its credibility, including the part that is still true: we are dark.
+
+**How it was moved.** The note now names no issue as "open now" and says why (it changes every hour or so; read it from
+the command). It keeps only what stays true while the swarm is dark: stopped 22:20 UTC on 2026-10-08 (#1159), a new
+LOW BALANCE issue each time one closed (eleven by 12:30, #1159-#1171), no member comment since 00:07 UTC on
+2026-10-09, a close does not mean recovery (closes last 10 minutes to over 3 hours). `specs/test_bounties_ask_silence.py`
+gains `test_names_no_issue_as_open_now` (no "#N open since" / "#N open" in the note); 2 tests fail on the old text,
+8/8 pass; 36/36 spec test files pass.
+
+**What is still not solved.** The balance (owner), and the canary's close rule on the box (see #113).
+
+**Evidence.**
+
+- read 12:25: forge `issues?state=all&type=issues&limit=50` -> LOW BALANCE #1169 06:20-09:30 ("0.000149 USD"),
+  #1171 open since 09:40; eleven LOW BALANCE issues since 22:20 on 2026-10-08
+- ran 12:22: `ops/check-swarm-alive.py` -> DARK, #1171 open 2.7 h, last member comment flint 00:07 (12.2 h)
+- live bounties.txt 12:24 == main `6eda473` (still carrying "#1169 open since 06:20")
+
 ### 113. The live "are you dark?" check said "no LOW BALANCE issue open" in nine gaps while our agents stayed dark
 
-*partial (merged 2026-10-09 as #83; live check pending) · operational*
+*solved (merged 2026-10-09 as #83; live and == main at 12:24) · operational*
 
 **What blocked it.** #111 replaced stale prose with a command that lists the forge's OPEN issues titled "LOW BALANCE"
 and prints "DARK" or "no LOW BALANCE issue open". The canary does not hold an issue open while the balance is gone: it

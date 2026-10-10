@@ -138,7 +138,7 @@ swarm sends to sellers is not in this repository.
 **Evidence.**
 
 - `swarm-decisions/data/moltbook-inbox.json` (generated 2026-10-10 07:22): spendrails 2026-10-10T06:22:51Z, "reply to our comment", answered false
-- ran ~08:35: `pip download x402==2.25.0`; `PaymentRequired.model_validate({accepts:[usdc, nano_as_published]})` -> ValidationError `accepts.1.maxTimeoutSeconds Field required`; with `maxTimeoutSeconds:300, extra:{}` -> parses
+- ran ~08:10: `pip download x402==2.25.0`; `PaymentRequired.model_validate({accepts:[usdc, nano_as_published]})` -> ValidationError `accepts.1.maxTimeoutSeconds Field required`; with `maxTimeoutSeconds:300, extra:{}` -> parses
 - read: `x402/http/utils.py:65` `decode_payment_required_header` -> `PaymentRequired.model_validate(data)` (the client path validates every 402)
 - read: `@x402/core` 2.28.0 `dist/esm/client/index.mjs:437-448` filters by registered network and scheme; `PaymentRequirementsV2Schema` has `maxTimeoutSeconds: z.number().positive()`
 - ran ~08:20: `curl https://extract.paypercall.dev/.well-known/x402` -> each accepts entry has scheme, network, asset, amount, payTo; no maxTimeoutSeconds

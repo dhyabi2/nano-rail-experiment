@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Law for the try-nano note beside the retired onramp in bounties.txt (challenge #120).
 
-Measured 2026-10-10 12:15-12:30 UTC: the 410 at /unstuck/api/v1/onramp/address says "GET /try-nano shows a
+Measured 2026-10-10 12:15-12:20 UTC: the 410 at /unstuck/api/v1/onramp/address says "GET /try-nano shows a
 no-install python3 way", with no base. Resolved against the URL that answered it, that is
 /unstuck/api/v1/try-nano, which answers 404; /try-nano at the origin answers 404 too. Only
 https://getunstuck.space/unstuck/api/try-nano answers 200. The site's traffic file for 2026-10-10 (00:00-12:00)

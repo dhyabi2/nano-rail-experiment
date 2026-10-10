@@ -126,7 +126,7 @@ more than ten outside clients to a dead end.
 
 **How it was moved.** `bounties.txt`, at the paragraph that names the retired URL, now quotes the 410's pointer and
 gives the full URL (`GET https://getunstuck.space/unstuck/api/try-nano`, 200). It also names both wrong readings as
-404. `try-nano` is clean of custody claims now (`ops/check-custody-claims.py`, 12:25), so it is safe to send agents
+404. `try-nano` is clean of custody claims now (`ops/check-custody-claims.py`, 12:19), so it is safe to send agents
 there. New `specs/test_bounties_retired_410_try_nano.py`: 3 of 3 fail on the old text and pass on the new. All 38
 spec test files pass.
 
@@ -140,7 +140,7 @@ answer the same as `/unstuck/api/try-nano`, are the owner's to make.
 - ran 12:17: same file for 2026-10-09 and 2026-10-08 -> no `v1/try-nano` path in either top list
 - ran 12:20: `curl https://getunstuck.space/unstuck/api/v1/onramp/address` -> 410, `step_1` "... (GET /try-nano shows a no-install python3 way) ..."
 - ran 12:20: `/unstuck/api/v1/try-nano` 404, `/unstuck/api/v1/try-nano'` 404, `getunstuck.space/try-nano` 404, `/unstuck/api/try-nano` 200
-- ran 12:25: `python3 ops/check-custody-claims.py` -> `clean https://getunstuck.space/unstuck/api/try-nano`
+- ran 12:19: `python3 ops/check-custody-claims.py` -> `clean https://getunstuck.space/unstuck/api/try-nano`
 
 ### 119. The XNO entry we show sellers makes the official Python x402 client reject the whole 402, USDC included
 

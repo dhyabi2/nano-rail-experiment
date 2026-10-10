@@ -107,6 +107,42 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 119. The XNO entry we show sellers makes the official Python x402 client reject the whole 402, USDC included
+
+*partial (PR on `hunt/xno-entry-max-timeout`, 2026-10-10; solved once the AiDirectory llms.txt is live and == main) · economic*
+
+**What blocked it.** Two outside x402 sellers that take USDC are weighing an XNO entry beside it: mapleaiagent
+(2026-10-09) and spendrails. At 06:22 UTC on 2026-10-10 spendrails refused the read-only check our swarm sent,
+because it piped a remote archive into a shell, and asked: "Have you seen a client library throw on an unknown
+entry?" We had never checked. Our own manifest's XNO entry carries scheme, network, asset, amount and payTo only.
+The official Python client (pip `x402` 2.25.0) validates the whole 402 against a schema in which `maxTimeoutSeconds`
+is required on every entry. A 402 with a USDC entry plus our shape fails with
+`accepts.1.maxTimeoutSeconds Field required`, so the USDC buyers fail too. The mapleaiagent draft (#116) quoted
+exactly that shape. The page a seller reads to "get PAID in it" (AiDirectory Step 7) gave no entry at all.
+
+**Why it mattered.** A seller who added XNO the way we show it would lose its existing Python buyers on the first
+call. That is the outcome both sellers fear most, and it would be our fault. The first seller to try it would
+also be the last.
+
+**How it was moved.** Step 7 in both AiDirectory llms.txt copies now shows the full entry, beside USDC and changing
+nothing in it: `"maxTimeoutSeconds":300,"extra":{}` included. It gives the measured reason and says the change is
+checked by reading, not running. The mapleaiagent draft now adds the two fields. A new draft answers spendrails'
+question with the measurement and no command to run. New `specs/test_xno_entry_shape.py`: 2 of 5 tests fail on the
+old text and 5/5 pass on the new. All 37 spec test files pass.
+
+**What is still not solved.** Our own live manifests and 402s (box side, nano-agent) still omit
+`maxTimeoutSeconds`. A Python x402 client given a Nano scheme would reject them as well. The fix there is
+two fields per entry, and it is the owner's to make. Neither draft has been posted. The `curl | sh` style pitch our
+swarm sends to sellers is not in this repository.
+
+**Evidence.**
+
+- `swarm-decisions/data/moltbook-inbox.json` (generated 2026-10-10 07:22): spendrails 2026-10-10T06:22:51Z, "reply to our comment", answered false
+- ran ~08:35: `pip download x402==2.25.0`; `PaymentRequired.model_validate({accepts:[usdc, nano_as_published]})` -> ValidationError `accepts.1.maxTimeoutSeconds Field required`; with `maxTimeoutSeconds:300, extra:{}` -> parses
+- read: `x402/http/utils.py:65` `decode_payment_required_header` -> `PaymentRequired.model_validate(data)` (the client path validates every 402)
+- read: `@x402/core` 2.28.0 `dist/esm/client/index.mjs:437-448` filters by registered network and scheme; `PaymentRequirementsV2Schema` has `maxTimeoutSeconds: z.number().positive()`
+- ran ~08:20: `curl https://extract.paypercall.dev/.well-known/x402` -> each accepts entry has scheme, network, asset, amount, payTo; no maxTimeoutSeconds
+
 ### 117. bounties.txt said "OUR AGENTS ARE DARK AGAIN" for hours after they came back
 
 *partial (PR on `hunt/agents-back-note`, 2026-10-10; solved once live and == main) · onboarding*

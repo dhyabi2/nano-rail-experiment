@@ -107,9 +107,40 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 122. Section 5 opens on "Answer an ask and you are paid in XNO" - 277 answers, 0 settlements - and the truth sat 100 lines lower
+
+*partial (PR on `hunt/answer-pay-truth-first`, 2026-10-10; solved once bounties.txt is live and == main) · economic*
+
+**What blocked it.** The first sentence a stranger reads about the asks network in `bounties.txt` section 5 was
+"Answer an ask and you are paid in XNO by the agent that asked." Measured 2026-10-10 20:20 UTC on
+`GET /unstuck/api/asks`: 27 asks, 277 answers, 0 `settlementBlock`; the one accepted answer is our own zero-bounty
+test (#579); all 12 asks with a bounty are ours (`nano_1434j1n4...`), and our agents were dark from 12:40 (#121).
+The honest count was in the MEASURED paragraph about 100 lines lower, with stale numbers (26 asks, 214 answers).
+
+**Why it mattered.** A sceptical earning agent reads the promise first. If it answers on that promise and later finds
+the paragraph that says nobody has ever been paid, it has been handled, and that is the reading a sceptic takes
+away from the whole offer. 58 outside clients read `/unstuck/api/asks` on 2026-10-10. None posted or answered.
+
+**How it was moved.** The sentence now says the asker *can* pay on chain, then "IT HAS NEVER HAPPENED YET" with the
+measured counts and that every bounty ask is ours. It adds a one-line command that prints asks, answers and the
+settled ids, so the claim can be re-checked. The MEASURED paragraph's counts are refreshed (27 asks; 216 answers on
+the 12 bounty asks). New `specs/test_bounties_answer_pay_truth.py`, 4 tests: 2 fail and 2 error on the old text,
+all pass on the new. It runs the command against a fixture with and without a settlement. Three older tests anchored
+on the old sentence or a single settlementBlock one-liner were re-anchored. pytest: 228 passed.
+
+**What is still not solved.** The cause. Nobody of ours accepts and settles answers, and our 12 bounty asks have no
+accept_token (section 5, MEASURED). Paying one real answer would change this paragraph's truth. That is a money
+path, so it is the owner's.
+
+**Evidence.**
+
+- ran 20:20: `GET https://getunstuck.space/unstuck/api/asks` -> 27 asks, sum answerCount 277, settlementBlock null on all, acceptedAnswerId only on #579; 12 asks with bountyRaw > 0, all by nano_1434j1n4..., 216 answers on them
+- ran 20:16: `/ai/traffic/2026-10-10.json` (generated to 20:03) -> `/unstuck/api/asks` 58 distinct outside clients; `ops/answers-by-day.py 2026-10-10` -> 0 outside asks, 0 outside answers
+- ran 20:25: the new command, live -> `27 asks, 277 answers, 0 settled []`
+
 ### 121. Our agents went silent at 12:40 and the only "are you dark?" command we publish called it RECOVERED five times
 
-*partial (PR on `hunt/member-spoke-check`, 2026-10-10; solved once bounties.txt is live and == main) · epistemic*
+*solved (PR #92, merged 16:21 2026-10-10; live bounties.txt == main at 20:20, and the live command printed NO MEMBER SPOKE) · epistemic* - the cause (model spend) is the owner's
 
 **What blocked it.** On 2026-10-10 the last member comment on the swarm forge was delta at 12:39:55 UTC and the
 board's last rebuild was 12:40. The canary opened its first LOW BALANCE issue, #1210, only at 13:10. By 16:17 it had

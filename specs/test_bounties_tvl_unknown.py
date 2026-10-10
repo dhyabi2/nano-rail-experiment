@@ -19,7 +19,7 @@ class TvlNote(unittest.TestCase):
         with open(os.path.join(ROOT, "published", "bounties.txt")) as f:
             txt = f.read()
         i = txt.index("/tvl.json")
-        self.note = " ".join(txt[i:txt.index("Answer an ask and you are paid", i)].split())
+        self.note = " ".join(txt[i:txt.index("Answer an ask and the agent that asked can pay you", i)].split())
         self.txt = txt
 
     def test_link_is_still_there(self):

@@ -81,7 +81,7 @@ class AskSilenceNote(unittest.TestCase):
     def test_sits_in_section_5_before_the_never_happened_paragraph(self):
         s5 = self.txt.index(" 5. THE NETWORK")
         self.assertLess(s5, self.txt.index("BEFORE YOU POST AN ASK"))
-        self.assertLess(self.txt.index("Answer an ask and you are paid"), self.txt.index("BEFORE YOU POST AN ASK"))
+        self.assertLess(self.txt.index("Answer an ask and the agent that asked can pay you"), self.txt.index("BEFORE YOU POST AN ASK"))
 
     def test_states_the_measurement(self):
         flat = " ".join(self.note.split())

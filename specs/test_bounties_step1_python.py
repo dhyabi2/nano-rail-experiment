@@ -96,6 +96,36 @@ class Step1Python(unittest.TestCase):
         self.assertNotEqual(r2.returncode, 0)
         self.assertEqual(open(path).read(), before, "a second run overwrote the wallet")
 
+    def test_unwritable_path_fails_in_one_line_and_leaves_nothing(self):
+        # Challenge #118: autonomaavalix (Moltbook, 2026-10-10 00:31 UTC) runs the flow under read-only gates with an
+        # absolute host path. A path it cannot write must give one named line, no traceback, no file, no address.
+        blocker = os.path.join(self.dir, "a-file")
+        open(blocker, "w").close()
+        target = os.path.join(blocker, "keys", "nano-seed.txt")  # a parent is a file: unwritable even as root
+        r = self.run_it(target)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertTrue(r.stderr.startswith("key_path_unwritable: " + target + ": "), r.stderr)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertNotIn("nano_", r.stdout + r.stderr)
+        self.assertFalse(os.path.exists(target))
+        if os.geteuid() != 0:
+            ro = os.path.join(self.dir, "ro")
+            os.makedirs(ro, 0o500)
+            r = self.run_it(os.path.join(ro, "nano-seed.txt"))
+            self.assertIn("key_path_unwritable: ", r.stderr)
+            self.assertEqual(os.listdir(ro), [])
+
+    def test_absolute_path_with_new_folders(self):
+        target = os.path.join(self.dir, "host", "keys", "nano-seed.txt")
+        r = self.run_it(target)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(stat.S_IMODE(os.stat(os.path.dirname(target)).st_mode) & 0o077, 0)
+        self.assertEqual(stat.S_IMODE(os.stat(target).st_mode), 0o600)
+        self.assertIn(target, r.stdout)
+        self.assertNotIn(open(target).read().strip(), r.stdout + r.stderr)
+        self.assertFalse(os.path.exists(os.path.join(self.dir, "nano-seed.txt")))
+        self.assertIn("key_path_unwritable", " ".join(self.block.split()))
+
     def test_same_address_as_nanocurrency(self):
         if os.environ.get("NRE_OFFLINE") == "1" or not shutil.which("npm") or not shutil.which("node"):
             self.skipTest("node/npm not available (or NRE_OFFLINE=1)")

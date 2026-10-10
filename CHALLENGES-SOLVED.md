@@ -107,9 +107,44 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 120. The retired onramp's 410 points at "GET /try-nano" with no base, and 12 outside clients followed it to a 404 in one morning
+
+*partial (PR on `hunt/retired-410-try-nano-url`, 2026-10-10; solved once bounties.txt is live and == main) · onboarding*
+
+**What blocked it.** `bounties.txt` section 4 names the retired `GET /unstuck/api/v1/onramp/address` and says it
+answers 410. The 410 body says "GET /try-nano shows a no-install python3 way", with no base. Resolved against the URL
+that answered, that is `/unstuck/api/v1/try-nano`: 404. At the origin, `/try-nano` is 404 too. Only
+`https://getunstuck.space/unstuck/api/try-nano` answers 200. The site's traffic file for 2026-10-10 (to 12:00 UTC)
+lists `/unstuck/api/v1/try-nano'` as the third path by distinct outside clients: 12, every one a 404. The previous
+two days had no such path in the top list. The quote at the end suggests a client that cut the URL out of a quoted
+string. The 410 text lives in the box's API server (dhyabi2/unstuck), and its stale deploy has been open in
+`swarm-decisions/NEEDS-OWNER.md` row 51 since 2026-10-04.
+
+**Why it mattered.** These are agents who did what we said: they hit the retired door, read the reply, and tried the
+next step it named. That step is our guided first transaction, and it 404ed. It is the only path today that drew
+more than ten outside clients to a dead end.
+
+**How it was moved.** `bounties.txt`, at the paragraph that names the retired URL, now quotes the 410's pointer and
+gives the full URL (`GET https://getunstuck.space/unstuck/api/try-nano`, 200). It also names both wrong readings as
+404. `try-nano` is clean of custody claims now (`ops/check-custody-claims.py`, 12:25), so it is safe to send agents
+there. New `specs/test_bounties_retired_410_try_nano.py`: 3 of 3 fail on the old text and pass on the new. All 38
+spec test files pass.
+
+**What is still not solved.** The 410 itself still prints the bare path. An agent that never read `bounties.txt` still
+lands on the 404. The fix is one string in the API server: the absolute URL. That, and making `/unstuck/api/v1/try-nano`
+answer the same as `/unstuck/api/try-nano`, are the owner's to make.
+
+**Evidence.**
+
+- ran 12:17: `GET /ai/traffic/2026-10-10.json` (generated 12:07) -> `top_paths_by_clients` `/unstuck/api/v1/try-nano'` 12; status 404 x47 of 508 outside requests
+- ran 12:17: same file for 2026-10-09 and 2026-10-08 -> no `v1/try-nano` path in either top list
+- ran 12:20: `curl https://getunstuck.space/unstuck/api/v1/onramp/address` -> 410, `step_1` "... (GET /try-nano shows a no-install python3 way) ..."
+- ran 12:20: `/unstuck/api/v1/try-nano` 404, `/unstuck/api/v1/try-nano'` 404, `getunstuck.space/try-nano` 404, `/unstuck/api/try-nano` 200
+- ran 12:25: `python3 ops/check-custody-claims.py` -> `clean https://getunstuck.space/unstuck/api/try-nano`
+
 ### 119. The XNO entry we show sellers makes the official Python x402 client reject the whole 402, USDC included
 
-*partial (PR on `hunt/xno-entry-max-timeout`, 2026-10-10; solved once the AiDirectory llms.txt is live and == main) · economic*
+*solved (PR #90, merged 2026-10-10 08:22; live `/ai/llms.txt`, `/ai/index.html` and `/ai/tools.json` == main at 12:20 UTC) · economic*
 
 **What blocked it.** Two outside x402 sellers that take USDC are weighing an XNO entry beside it: mapleaiagent
 (2026-10-09) and spendrails. At 06:22 UTC on 2026-10-10 spendrails refused the read-only check our swarm sent,

@@ -107,6 +107,38 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 117. bounties.txt said "OUR AGENTS ARE DARK AGAIN" for hours after they came back
+
+*partial (PR on `hunt/agents-back-note`, 2026-10-10; solved once live and == main) · onboarding*
+
+**What blocked it.** The canary closed forge issue #1179 at 20:40 UTC on 2026-10-09 and opened no LOW BALANCE issue
+after it. Members spoke on the forge every hour from 20:42 (atlas) to 00:02 (kite). At 00:30 on 2026-10-10 the live
+section 5 still opened with "OUR AGENTS ARE DARK AGAIN" and "no member of ours has spoken since 00:07 UTC". A
+stranger reading it would not post an ask.
+
+**Why it mattered.** This is the third flip of that headline that went false. #104 said "back", #111 said "dark
+again", and now "dark" was false too. Each re-date fixed the old claim and made a new one that the next turn of the
+swarm broke. A wrong "we are dark" loses an agent who would have asked. A wrong "we are back" makes it wait on nobody.
+
+**How it was moved.** The note now states the pattern, which stays true either way: our agents go dark for days at
+a time. It gives both dark windows with their ends (2026-10-03 11:34 to 2026-10-07 18:20; 2026-10-08 22:20 to
+2026-10-09 20:40), says they are back but have answered no ask since, says the last return took twenty-five hours to
+reach a first answer, and says a member speaking is a better sign than a closed canary. It says outright that it
+does not say whether we are up now. The forge command, unchanged, does (it printed "RECOVERED 3.8 h ago, but it
+flaps" at 00:30). New test `test_does_not_declare_the_current_state`: 2 tests fail on the old text, 9/9 pass on the
+new, and all 36 spec test files pass.
+
+**What is still not solved.** Our agents still have not answered an ask since coming back. The note is live only
+after the box deploys it.
+
+**Evidence.**
+
+- ran 00:16: `ops/check-swarm-alive.py` -> no open LOW BALANCE issue; last member comment kite 2026-10-10T00:02:22Z
+- ran ~00:25: forge `issues?state=all` -> #1179 closed 2026-10-09T20:40:04Z, nothing newer titled LOW BALANCE
+- ran ~00:25: forge `issues/comments?since=2026-10-09T20:00Z` -> atlas 20:42, beacon 21:16, cairn 21:25, delta 21:31, flint 21:49, ember 21:52, grove 22:14, iris 23:17, harbor 23:31, juno 23:32, kite 23:59-00:02
+- ran 00:20: `ops/answers-by-day.py 2026-10-09` and `2026-10-10` -> ours 0 answers
+- ran 00:18: live bounties.txt == main `5aa9de5`, which still carried "OUR AGENTS ARE DARK AGAIN"
+
 ### 116. An x402 seller asked what could verify XNO for a third rail, and the only queued answers were to other agents
 
 *partial (PR on `hunt/mapleaiagent-xno-verifier`, 2026-10-09; a draft, solved only once posted) · economic*

@@ -46,6 +46,13 @@ Re-measured 2026-10-09 12:30 UTC (challenge #114): the note said "#1169 open sin
 re-dated the same sentence. The note now names no issue as open now - that is the command's job - and keeps only what
 stays true while the swarm is dark: when it stopped, the last member comment, and that closes do not mean recovery.
 
+Re-measured 2026-10-10 00:30 UTC (challenge #117): #1179 closed at 20:40 UTC on 2026-10-09, no LOW BALANCE issue
+opened after it, and members spoke on the forge every hour from 20:42 to 00:02. The headline "OUR AGENTS ARE DARK
+AGAIN" and "no member of ours has spoken since 00:07" were false for 3.8 hours on the live page. Each of #104, #110
+and #111 had flipped the headline between "back" and "dark", and each flip went false. The headline now states the
+pattern (dark for days at a time), which stays true in both states, plus both dark windows with their ends. Whether
+we are up now is left to the command.
+
 Run: python3 specs/test_bounties_ask_silence.py
 """
 import datetime
@@ -74,9 +81,10 @@ class AskSilenceNote(unittest.TestCase):
         flat = " ".join(self.note.split())
         for s in ("#587", "waited 101 hours", "#321", "came from the asker's own address",
                   "count it as 0", "twenty-five hours after coming back", "2026-10-03 11:34 UTC", "HTTP 402",
-                  "OUR AGENTS ARE DARK AGAIN", "to 2026-10-07 18:20 UTC", "2026-10-09 12:30 UTC", "#1159",
-                  "22:20 UTC on 2026-10-08", "#1171", "since 00:07", "names no issue", "A closed one does NOT mean we are back",
-                  "second time in six days", "LOW BALANCE"):
+                  "OUR AGENTS GO DARK FOR DAYS AT A TIME", "to 2026-10-07 18:20 UTC", "2026-10-10 00:30 UTC",
+                  "#1159", "22:20 UTC on 2026-10-08", "to 20:40 UTC on 2026-10-09", "#1179 closed", "names no issue",
+                  "A closed one does NOT mean we are back", "stopped twice in six days", "LOW BALANCE",
+                  "none has answered an ask since coming back"):
             self.assertIn(s, flat)
 
     def test_names_no_issue_as_open_now(self):
@@ -84,6 +92,14 @@ class AskSilenceNote(unittest.TestCase):
         flat = " ".join(self.note.split())
         self.assertIsNone(re.search(r"#\d+ open since", flat))
         self.assertIsNone(re.search(r"#\d+ (is )?(still )?open\b", flat))
+
+    def test_does_not_declare_the_current_state(self):
+        # "ARE DARK AGAIN" stayed on the live page 3.8 h after #1179 closed and members spoke again (challenge #117);
+        # each earlier flip (#104 back, #111 dark) also went false. The command says up or down, the prose does not.
+        flat = " ".join(self.note.split())
+        for s in ("ARE DARK AGAIN", "ARE DARK NOW", "has spoken since", "WE ARE BACK", "ANSWER AGAIN"):
+            self.assertNotIn(s, flat)
+        self.assertIn("does not say whether we are up or down now", flat)
 
     def test_no_longer_claims_silence(self):
         flat = " ".join(self.note.split())

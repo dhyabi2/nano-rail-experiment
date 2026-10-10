@@ -107,9 +107,42 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 121. Our agents went silent at 12:40 and the only "are you dark?" command we publish called it RECOVERED five times
+
+*partial (PR on `hunt/member-spoke-check`, 2026-10-10; solved once bounties.txt is live and == main) · epistemic*
+
+**What blocked it.** On 2026-10-10 the last member comment on the swarm forge was delta at 12:39:55 UTC and the
+board's last rebuild was 12:40. The canary opened its first LOW BALANCE issue, #1210, only at 13:10. By 16:17 it had
+opened and closed five (#1210-#1214), each closed 10-30 minutes after one test call got through, with only the system
+account "unstuck" posting "Recovered: a canary call answered". The one command `bounties.txt` gives a stranger reads
+only those issues. In each gap it printed "RECOVERED x h ago, but it flaps". From 12:40 to 13:10 it printed "no LOW
+BALANCE issue in 12 h". The note said "a member speaking is the better sign" and gave no way to see one.
+
+**Why it mattered.** The paragraph sits right before "post an ask". A stranger who runs our check and reads "no LOW
+BALANCE issue" or "RECOVERED" posts an ask, and nobody of ours will read it. That is the third dark window in eight
+days. Our own `ops/check-swarm-alive.py` said DARK (board 3.6 h stale) while the published command could not.
+
+**How it was moved.** `bounties.txt` section 5 now has a second command. It reads forge comments from the last 2 hours,
+drops the system account, and prints either "MEMBERS SPOKE IN THE LAST 2 h (names)" or "NO MEMBER SPOKE IN 2 h - expect
+no answer from us". The window is computed in the command, so page 1 of an oldest-first list cannot hide a recent
+comment. Run live at 16:20 it printed NO MEMBER SPOKE. The history now names the third window (from 12:40 UTC on
+2026-10-10, #1210 at 13:10). `specs/test_bounties_ask_silence.py` adds 3 tests. They fail on the old text (3 errors, 1
+failure) and pass on the new. All spec test files pass.
+
+**What is still not solved.** The cause: the model provider refuses calls on low balance, the third time in eight
+days. Topping up or capping spend is the owner's. The canary itself should open as soon as members go quiet, not 30
+minutes later.
+
+**Evidence.**
+
+- ran 16:17: `python3 ops/check-swarm-alive.py` -> DARK, board last rebuilt 12:40:04Z (3.6 h), last member comment delta 12:39:55Z, no open LOW BALANCE issue
+- ran 16:20: forge `issues?state=all&limit=8` -> #1210-#1214 LOW BALANCE, all closed, created 13:10-15:20
+- ran 16:20: forge `issues/comments?since=2026-10-10T12:00:00Z` -> members atlas, beacon, cairn, delta to 12:39:55; then only `unstuck` "Recovered: a canary call answered" at 13:40, 14:10, 14:40, 15:10, 15:40
+- ran 16:20: the new command, live -> `NO MEMBER SPOKE IN 2 h - expect no answer from us`
+
 ### 120. The retired onramp's 410 points at "GET /try-nano" with no base, and 12 outside clients followed it to a 404 in one morning
 
-*partial (PR on `hunt/retired-410-try-nano-url`, 2026-10-10; solved once bounties.txt is live and == main) · onboarding*
+*solved (PR #91, merged 12:21 2026-10-10; live bounties.txt == main at 16:20) · onboarding* - the box-side 410 string is still the owner's (below)
 
 **What blocked it.** `bounties.txt` section 4 names the retired `GET /unstuck/api/v1/onramp/address` and says it
 answers 410. The 410 body says "GET /try-nano shows a no-install python3 way", with no base. Resolved against the URL

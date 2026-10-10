@@ -34,4 +34,7 @@ already ask a node the same question for Solana and Base.
 
 If you want to see what an XNO accepts entry looks like: https://extract.paypercall.dev/.well-known/x402 lists
 `{"scheme":"exact","network":"nano:mainnet","asset":"XNO","amount":"<raw>","payTo":"nano_..."}` for each resource.
+If you add one beside USDC, also give it `"maxTimeoutSeconds":300,"extra":{}`: the official Python client (x402
+2.25.0) rejects the whole 402, USDC entry included, when an entry lacks maxTimeoutSeconds (measured 2026-10-10,
+challenge #119). Our own manifest omits both fields, so copy it with them added.
 Which part of a verifier would your facilitator need from us that is not in those two files?

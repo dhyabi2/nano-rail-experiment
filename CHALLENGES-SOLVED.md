@@ -125,7 +125,7 @@ clients read bounties.txt by 08:00 UTC today. The funder story itself got strong
 **How it was moved.** The note keeps the 10-10 reading, dated, and adds the 10-11 reading with the 82 XNO move,
 pyfile-toolkit's 22.15 and nano_1bfapscrwk7...'s 2.05 (3.0 of its 3.05 received came from the funder), and "the
 other 22 accounts held 0.53 XNO between them". It says our figures go stale in a day and gives a command that prints
-the file's own top 3, each one's share, the total, "complete" and "updated". Run live 08:40: `nano_1xug1q5t7nx
+the file's own top 3, each one's share, the total, "complete" and "updated". Run live ~08:19: `nano_1xug1q5t7nx
 133.25 XNO 84 %`. `specs/test_bounties_seller_funding.py` gains 2 tests (both fail on the old text; the command runs
 against a fixture and a zero-total file without dividing by zero). `specs/test_bounties_tvl_unknown.py` now expects
 the link twice (label and command). `python3 -m unittest discover -s specs`: 236 OK.
@@ -135,9 +135,9 @@ Who controls nano_1xug1q5t7... is the owner's question (#123, #124).
 
 **Evidence.**
 
-- ran 08:26: `curl https://172-86-112-140.sslip.io/tvl.json` -> updated 2026-10-11T04:17:03Z, complete true, tvl_xno 157.98, top nano_1xug1q5t7 133.247, nano_3uojbn47 22.152, nano_1bfapscrwk7 2.05, nano_3t6k35gi 0.326, nano_3m8cz87 0.209
-- ran 08:28: rpc.nano.to `account_history` nano_1xug1q5t7... count 12 -> 10-10 sends 0.01, 0.01, 25.0, 10.0 (09:25-09:33), 20.0 and 4.0 (13:48), 4.0 (17:58), 4.0 (22:07), 15.0 (22:46); 10-09 11:24 receive 200.0 from nano_16qcqjhqkgopyq6...
-- ran 08:28: rpc.nano.to `account_history` nano_1bfapscrwk7... -> receives 3.0 from nano_1xug1q5t7 and 0.05 from nano_1yadwtsawdfa; receivable 45.25 per tvl.json; the first 5 receivable blocks read (count 5) hold 16.6 from nano_1xug1q5t7 and 0.25 from nano_1i3y944es (tvl.json counts balance only)
+- ran ~08:18: `curl https://172-86-112-140.sslip.io/tvl.json` -> updated 2026-10-11T04:17:03Z, complete true, tvl_xno 157.98, top nano_1xug1q5t7 133.247, nano_3uojbn47 22.152, nano_1bfapscrwk7 2.05, nano_3t6k35gi 0.326, nano_3m8cz87 0.209
+- ran ~08:18: rpc.nano.to `account_history` nano_1xug1q5t7... count 12 -> 10-10 sends 0.01, 0.01, 25.0, 10.0 (09:25-09:33), 20.0 and 4.0 (13:48), 4.0 (17:58), 4.0 (22:07), 15.0 (22:46); 10-09 11:24 receive 200.0 from nano_16qcqjhqkgopyq6...
+- ran ~08:18: rpc.nano.to `account_history` nano_1bfapscrwk7... -> receives 3.0 from nano_1xug1q5t7 and 0.05 from nano_1yadwtsawdfa; receivable 45.25 per tvl.json; the first 5 receivable blocks read (count 5) hold 16.6 from nano_1xug1q5t7 and 0.25 from nano_1i3y944es (tvl.json counts balance only)
 
 ### 124. The #123 fix said "Only ARION's money is shown to be its own"; 68% of ARION's money came from the same funder
 

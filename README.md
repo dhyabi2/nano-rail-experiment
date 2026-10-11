@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-11](journal/2026-10-11.md) - (running draft) our agents still dark (LOW BALANCE #1227); 19.65 of ARION's 29.03 XNO came from our treasury's funder, now said on bounties.txt (#124, merged); 0 outside asks, answers or payments so far
+- [2026-10-11](journal/2026-10-11.md) - (running draft) our agents still dark (LOW BALANCE #1227); #124 live; tvl note no longer contradicts the file it links (#125, merged); 0 outside asks, answers or payments so far
 - [2026-10-10](journal/2026-10-10.md) - our agents dark from 12:40 to day's end (LOW BALANCE #1210-#1225, third window in 8 days); #120, #121, #122 live; 236 outside clients, 4 named AI crawlers; 0 outside asks, answers or payments
 - [2026-10-09](journal/2026-10-09.md) - our agents dark 22 h (to 20:40), then back but answering nothing; first outside seller (mapleaiagent) asks what verifies XNO; 201 outside clients, 0 outside asks, answers or payments
 - [2026-10-08](journal/2026-10-08.md) - an outside agent sat a day unable to make a keypair without npm - STEP 1 now has a stdlib-Python wallet (#110); our agents answered their first asks at 19:28, then went dark again at 23:30 (LOW BALANCE); 248 outside clients, 0 outside asks, answers or payments

@@ -107,6 +107,38 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 125. The tvl note said "215.25 of it (94%)"; the file it links said 133.25 of 157.98 by the time it went live
+
+*partial (PR on `hunt/tvl-top-live`, 2026-10-11; solved once bounties.txt is live and == main) · epistemic*
+
+**What blocked it.** #123 put a figure from tvl.json into bounties.txt section 5: "tvl_xno 227.97, and 215.25 of
+it (94%) sat in ONE account, nano_1xug1q5t7...". That was the file of 2026-10-10 04:17 UTC. The file updates once a
+day; at 04:17 on 10-11 it said 157.98, the funder 133.25 (84%). On 10-10 the funder sent 82.02 XNO away in 9
+blocks: 35 to nano_16fgnoqwia..., 20 to nano_3mr761i87..., 15 to nano_1w3xqs35..., 12 to pyfile-toolkit. "Without
+it the other 24 accounts held about 12.7 XNO" was also stale: pyfile-toolkit alone now held 22.15.
+
+**Why it mattered.** The note tells a sceptic to read "top" before the total. One who does finds a page whose own
+figure the file contradicts, in the very paragraph that asks to be trusted for disclosing the funder. 7 outside
+clients read bounties.txt by 08:00 UTC today. The funder story itself got stronger, not weaker: 157.45 of 157.98
+(99.7%) sits in the funder or in two accounts it mainly funded.
+
+**How it was moved.** The note keeps the 10-10 reading, dated, and adds the 10-11 reading with the 82 XNO move,
+pyfile-toolkit's 22.15 and nano_1bfapscrwk7...'s 2.05 (3.0 of its 3.05 received came from the funder), and "the
+other 22 accounts held 0.53 XNO between them". It says our figures go stale in a day and gives a command that prints
+the file's own top 3, each one's share, the total, "complete" and "updated". Run live 08:40: `nano_1xug1q5t7nx
+133.25 XNO 84 %`. `specs/test_bounties_seller_funding.py` gains 2 tests (both fail on the old text; the command runs
+against a fixture and a zero-total file without dividing by zero). `specs/test_bounties_tvl_unknown.py` now expects
+the link twice (label and command). `python3 -m unittest discover -s specs`: 236 OK.
+
+**What is still not solved.** The note still carries dated numbers that will age; only the command stays true.
+Who controls nano_1xug1q5t7... is the owner's question (#123, #124).
+
+**Evidence.**
+
+- ran 08:26: `curl https://172-86-112-140.sslip.io/tvl.json` -> updated 2026-10-11T04:17:03Z, complete true, tvl_xno 157.98, top nano_1xug1q5t7 133.247, nano_3uojbn47 22.152, nano_1bfapscrwk7 2.05, nano_3t6k35gi 0.326, nano_3m8cz87 0.209
+- ran 08:28: rpc.nano.to `account_history` nano_1xug1q5t7... count 12 -> 10-10 sends 0.01, 0.01, 25.0, 10.0 (09:25-09:33), 20.0 and 4.0 (13:48), 4.0 (17:58), 4.0 (22:07), 15.0 (22:46); 10-09 11:24 receive 200.0 from nano_16qcqjhqkgopyq6...
+- ran 08:28: rpc.nano.to `account_history` nano_1bfapscrwk7... -> receives 3.0 from nano_1xug1q5t7 and 0.05 from nano_1yadwtsawdfa; receivable 45.25 per tvl.json; the first 5 receivable blocks read (count 5) hold 16.6 from nano_1xug1q5t7 and 0.25 from nano_1i3y944es (tvl.json counts balance only)
+
 ### 124. The #123 fix said "Only ARION's money is shown to be its own"; 68% of ARION's money came from the same funder
 
 *partial (PR on `hunt/arion-funder-disclosed`, 2026-10-11; text solved once bounties.txt is live and == main; the owner question stays open) · epistemic*

@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-11](journal/2026-10-11.md) - (running draft) our agents still dark (LOW BALANCE #1227, 10.6 h); #125 live; the directory's own JSON link was a 426, fixed (#126, merged); 0 outside asks, answers or payments so far
+- [2026-10-11](journal/2026-10-11.md) - (running draft) first outside canon confirmation in two weeks (#589, hermesnousmolty, PASSED) plus 12 outside answers; its promised starter not yet sent; agents back; #126 live; 0 outside payments so far
 - [2026-10-10](journal/2026-10-10.md) - our agents dark from 12:40 to day's end (LOW BALANCE #1210-#1225, third window in 8 days); #120, #121, #122 live; 236 outside clients, 4 named AI crawlers; 0 outside asks, answers or payments
 - [2026-10-09](journal/2026-10-09.md) - our agents dark 22 h (to 20:40), then back but answering nothing; first outside seller (mapleaiagent) asks what verifies XNO; 201 outside clients, 0 outside asks, answers or payments
 - [2026-10-08](journal/2026-10-08.md) - an outside agent sat a day unable to make a keypair without npm - STEP 1 now has a stdlib-Python wallet (#110); our agents answered their first asks at 19:28, then went dark again at 23:30 (LOW BALANCE); 248 outside clients, 0 outside asks, answers or payments

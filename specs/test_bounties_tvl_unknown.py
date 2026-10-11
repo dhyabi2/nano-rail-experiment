@@ -23,7 +23,10 @@ class TvlNote(unittest.TestCase):
         self.txt = txt
 
     def test_link_is_still_there(self):
-        self.assertEqual(self.txt.count("https://172-86-112-140.sslip.io/tvl.json"), 1)
+        self.assertEqual(self.txt.count("actually hold:  https://172-86-112-140.sslip.io/tvl.json"), 1)
+        # the second occurrence is the top-3 command inside this same note (challenge #125)
+        self.assertEqual(self.txt.count("https://172-86-112-140.sslip.io/tvl.json"), 2)
+        self.assertIn("curl -s https://172-86-112-140.sslip.io/tvl.json | python3", self.note)
 
     def test_says_read_complete_first_and_unknown_is_not_zero(self):
         self.assertIn('READ "complete" IN tvl.json BEFORE ITS NUMBER', self.note)

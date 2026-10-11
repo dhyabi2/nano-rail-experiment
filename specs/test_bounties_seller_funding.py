@@ -14,6 +14,11 @@ Challenge #124 (same day): the #123 text said "Only ARION's money is shown to be
 still came out of Nanswap money received that morning, so the page now says the first payment was its own and the
 later money is not shown to be, with the same top-senders command for ARION's address.
 
+Challenge #125 (same day): the tvl note's "215.25 of it (94%)" was a day old when it went live. By 04:17 UTC the
+file said 157.98 and the funder held 133.25 (84%) after sending 82 XNO away on 10-10, so a sceptic who checked found
+our figure contradicting the file we link. The note now dates both readings and carries a command that prints the
+file's own top 3 with their share; it is run here against a fixture.
+
 Run: python3 specs/test_bounties_seller_funding.py
 """
 import importlib.util
@@ -64,6 +69,32 @@ class SellerFunding(unittest.TestCase):
         txt = bounties()
         self.assertIn('THEN READ "top" BEFORE THE TOTAL', txt)
         self.assertIn("215.25 of it (94%)", txt)
+
+    def test_tvl_note_carries_both_dated_readings(self):
+        txt = bounties()
+        self.assertIn("on 2026-10-10 04:17 UTC it was 227.97 XNO", txt)
+        self.assertIn("(updated 2026-10-11 04:17 UTC", txt)
+        self.assertIn("It still held 133.25 (84%)", txt)
+
+    def test_tvl_top_command_prints_share_and_age(self):
+        cmds = re.findall(r"^   curl -s https://172-86-112-140\.sslip\.io/tvl\.json \| python3 -c \"(.*?)\"\n", bounties(), re.M)
+        self.assertEqual(len(cmds), 1, "bounties.txt must carry exactly one tvl.json top-3 command")
+        tvl = {"updated": "2026-10-11T04:17:03Z", "complete": True, "tvl_xno": 157.98372998183015, "top": [
+            {"address": FUNDER, "balance_xno": 133.247456290742},
+            {"address": PYFILE, "balance_xno": 22.1515905786748},
+            {"address": "nano_1bfapscrwk7t66faz9emcqo318698d4yc9n7p8rh8gjuttg8ehgajgzw4bk1", "balance_xno": 2.05},
+            {"address": ARION, "balance_xno": 0.209}]}
+        r = subprocess.run([sys.executable, "-c", cmds[0]], input=json.dumps(tvl),
+                           capture_output=True, text=True, timeout=30)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(r.stdout.splitlines(), [
+            FUNDER[:16] + " 133.25 XNO 84 %", PYFILE[:16] + " 22.15 XNO 14 %", "nano_1bfapscrwk7 2.05 XNO 1 %",
+            "total 157.98 complete True updated 2026-10-11T04:17:03Z"])
+        tvl.update(tvl_xno=0.0, complete=False, top=[{"address": FUNDER, "balance_xno": 0.0}])
+        r = subprocess.run([sys.executable, "-c", cmds[0]], input=json.dumps(tvl),
+                           capture_output=True, text=True, timeout=30)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("complete False", r.stdout)
 
     def test_funding_command_prints_top_senders(self):
         code = funding_command(bounties())

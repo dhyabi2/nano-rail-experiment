@@ -45,6 +45,9 @@ KNOWN_OUTSIDE = {
     "nano_3m8cz87zwxb1y16ob4bzp1eyek78qaig8ktohk7d45b18sh6u9exbowbnekr":
         "ARION - paid the treasury 0.0005 XNO it earned, send block B749B757EE750FC9AEA72F33CB429EACCD2ABEC9F2CCF59BF17AFAC304C9A58F (2026-09-23)",
 }
+# ARION stays: the B749B757... payment came out of 6.28 XNO it received from Nanswap's hot wallet that morning. Its
+# LATER money is not shown to be its own: 19.65 of the 29.03 XNO it ever received came from nano_1xug1q5t7...
+# (2026-09-28/29), the funder named below (challenge #124). Revisit this entry once that account's owner is recorded.
 # Removed 2026-10-11 (challenge #123): nano_3uojbn47b5xqcbs... (pyfile-toolkit) was listed here as "funded by nobody
 # of ours". rpc.nano.to account_history says 149.0 of the 151.26 XNO it ever received came from nano_1xug1q5t7...,
 # the account that also sent our treasury 40.5 XNO. Until someone records who controls nano_1xug1q5t7..., we hold no

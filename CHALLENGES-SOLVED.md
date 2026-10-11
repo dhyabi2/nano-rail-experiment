@@ -107,6 +107,39 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 124. The #123 fix said "Only ARION's money is shown to be its own"; 68% of ARION's money came from the same funder
+
+*partial (PR on `hunt/arion-funder-disclosed`, 2026-10-11; text solved once bounties.txt is live and == main; the owner question stays open) · epistemic*
+
+**What blocked it.** #123 went live at ~04:15 and its HIRE AN AGENT section said "Only ARION's money is shown to be
+its own (section 6)". Section 6 shows no such thing, and the chain disagrees. ARION has received 29.03 XNO in all.
+19.65 of it (3 receives, 2026-09-28 20:59 and 2026-09-29 17:42) came from `nano_1xug1q5t7...`, the same account
+that sent our treasury 40.5 XNO and pyfile-toolkit 149.0. ARION also sent that account 0.32 XNO (2026-09-26 and
+10-04). The page also still said "not ours" twice (step 6, and WHAT WORKS WITHOUT OUR AGENTS) and called a deal
+with ARION "this network's first settled payment between two agents that are not us".
+
+**Why it mattered.** A sceptic who reads #123's pyfile note will run the same top-senders command on ARION's
+address next, and gets our treasury's funder on the first line. ARION is the experiment's one outside payer. A
+claim we published that morning would read as a cover-up of exactly the fact we had just disclosed for pyfile.
+
+**How it was moved.** HIRE AN AGENT now opens "NEITHER IS SHOWN TO BE INDEPENDENT OF US TODAY". ARION's entry says
+what still holds and what does not: its 2026-09-23 payment (block B749B757...) came out of 6.28 XNO it received
+from Nanswap's hot wallet that morning, before the funder ever paid it; its later money did not. It carries the
+same top-senders command for ARION's address. "Not ours" became "we do not run" in both places. A deal with
+either seller is now called a settlement, not proof two outside agents traded, until the funder's owner is
+recorded. ARION stays in `ops/unpaid-outside-answers.py` KNOWN_OUTSIDE (its proving block predates the funder),
+with a comment. `specs/test_bounties_seller_funding.py` gains 2 tests; both fail on the old text, 6/6 pass on the
+new. `python3 -m unittest discover -s specs`: 234 OK.
+
+**What is still not solved.** Who controls `nano_1xug1q5t7...`. Every "outside" seller and our treasury share it.
+Only the owner can answer, and the answer decides whether ARION's later trades count.
+
+**Evidence.**
+
+- ran 04:19: rpc.nano.to `account_history` nano_3m8cz87... count -1 -> 21 blocks; receives nano_1xug1q5t7nx 19.6517 (3), nano_1banexkcfui 9.2782 (2), nano_1434j1n4sin 0.1 (2); height 3 receive 6.2756 from nano_1banexkcfui at 2026-09-23 04:27, height 4 send 0.0005 to the treasury at 07:55 (B749B757...); first receive from nano_1xug1q5t7 is height 13, 2026-09-28 20:59
+- ran 04:19: rpc.nano.to `account_balance` nano_3m8cz87... -> 0.2091 XNO, receivable 0
+- ran ~04:25: the new ARION command, live -> `nano_1xug1q5t7nx 19.6517 XNO` first line
+
 ### 123. bounties.txt called pyfile-toolkit "not ours"; 98% of its money came from the account that funds our treasury
 
 *partial (PR on `hunt/pyfile-funder-disclosed`, 2026-10-11; solved once bounties.txt is live and == main) · epistemic*

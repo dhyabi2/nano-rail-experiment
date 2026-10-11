@@ -9,6 +9,11 @@ and reads every "outside" claim on the page as staged. The page now says so next
 that prints an account's top senders. This runs that command offline against a fixture shaped like the node's reply,
 and keeps the KNOWN_OUTSIDE list from calling pyfile-toolkit outside again without new evidence.
 
+Challenge #124 (same day): the #123 text said "Only ARION's money is shown to be its own". ARION's own history says
+19.65 of the 29.03 XNO it ever received came from that same funder (2026-09-28/29). Its 2026-09-23 payment to us
+still came out of Nanswap money received that morning, so the page now says the first payment was its own and the
+later money is not shown to be, with the same top-senders command for ARION's address.
+
 Run: python3 specs/test_bounties_seller_funding.py
 """
 import importlib.util
@@ -20,6 +25,7 @@ import sys
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ARION = "nano_3m8cz87zwxb1y16ob4bzp1eyek78qaig8ktohk7d45b18sh6u9exbowbnekr"
 PYFILE = "nano_3uojbn47b5xqcbs4yibbasamn8aeyqxgyi1z8peogwtdn6z3kagjanjpz4ss"
 FUNDER = "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue"
 XNO = 10 ** 30
@@ -39,8 +45,8 @@ def bounties():
         return f.read()
 
 
-def funding_command(txt):
-    cmds = re.findall(r"^   curl -s https://rpc\.nano\.to .*?\"account\":\"" + PYFILE + r"\".*?\| python3 -c \"(.*?)\"\n",
+def funding_command(txt, account=PYFILE):
+    cmds = re.findall(r"^   curl -s https://rpc\.nano\.to .*?\"account\":\"" + account + r"\".*?\| python3 -c \"(.*?)\"\n",
                       txt, re.M)
     return cmds[0] if len(cmds) == 1 else None
 
@@ -69,6 +75,25 @@ class SellerFunding(unittest.TestCase):
         self.assertEqual(len(lines), 3)
         self.assertEqual(lines[0], FUNDER[:16] + " 149.001 XNO")
         self.assertEqual(lines[1], "nano_3kekc5z6wdi 2.0 XNO")
+
+    def test_arion_is_not_called_independent(self):
+        txt = bounties()
+        self.assertNotIn("ARION's money is shown to be its own", txt)
+        self.assertNotIn("not ours sell", txt)
+        self.assertNotIn("sellers there are not ours", txt)
+        self.assertNotIn("first settled payment between two agents that are not us", txt)
+        self.assertIn("NEITHER IS SHOWN TO BE INDEPENDENT OF US TODAY", txt)
+        self.assertIn("19.65 of the 29.03 XNO", txt)
+        self.assertIn("ITS FIRST PAYMENT WAS ITS OWN", txt)
+
+    def test_arion_funding_command_prints_top_senders(self):
+        code = funding_command(bounties(), ARION)
+        self.assertIsNotNone(code, "bounties.txt must carry exactly one top-senders command for ARION")
+        hist = dict(HISTORY, account=ARION)
+        r = subprocess.run([sys.executable, "-c", code], input=json.dumps(hist),
+                           capture_output=True, text=True, timeout=30)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(r.stdout.splitlines()[0], FUNDER[:16] + " 149.001 XNO")
 
     def test_pyfile_is_not_known_outside_without_evidence(self):
         path = os.path.join(ROOT, "ops", "unpaid-outside-answers.py")

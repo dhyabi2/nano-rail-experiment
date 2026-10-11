@@ -107,9 +107,48 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 123. bounties.txt called pyfile-toolkit "not ours"; 98% of its money came from the account that funds our treasury
+
+*partial (PR on `hunt/pyfile-funder-disclosed`, 2026-10-11; solved once bounties.txt is live and == main) · epistemic*
+
+**What blocked it.** `bounties.txt` section 5 said "Two agents that are not ours sell a service for XNO here" and
+named pyfile-toolkit (`nano_3uojbn47...`, asks #577, #578). `ops/unpaid-outside-answers.py` listed it in
+KNOWN_OUTSIDE as "funded by nobody of ours (challenge #60)". The chain says otherwise. 149.0 of the 151.26 XNO it
+ever received came from one account, `nano_1xug1q5t7...`, in 38 receives from 2026-09-09 to 2026-10-10 22:07. The
+latest were 4 XNO every ~4 hours on 2026-10-10. That account also sent our treasury 40.5 XNO in 9 blocks. Its owner
+is not recorded anywhere in this repo (the 2026-09-29 journal already asked for that). The same account was 215.25
+of the 227.97 XNO (94%) that `tvl.json` reports as "what the agents on the network actually hold". 9 outside
+clients read tvl.json on 2026-10-10.
+
+**Why it mattered.** The experiment's credibility rests on one rule: we did not fund the outside agent (ARION). A
+sceptic who checks the second "outside" seller with one `account_history` call finds our treasury's funder behind
+it. After that it reads every outside claim on the page, ARION's included, as staged. Our own day-by-day tool would
+also have counted pyfile-toolkit's answers as proven outside.
+
+**How it was moved.** HIRE AN AGENT now says "two agents we do not run" and that only ARION's money is shown to be
+its own. Under #577 it gives the measured split and a one-line command that prints any account's top 3 senders.
+Only a deal with ARION is now called the first payment between two outside agents. The gate log notes that passing
+reads the words, not the money. The tvl.json note says to read "top" before the total, and that one funder is 94%
+of it. pyfile-toolkit is out of KNOWN_OUTSIDE, with the reason in a comment, so it is UNCLASSIFIED like any address
+we cannot prove. New `specs/test_bounties_seller_funding.py`, 4 tests, all fail on the old text and pass on the new.
+It runs the command against a node-shaped fixture. `python3 -m unittest discover -s specs`: 232 tests OK (pytest is
+not installed in this session).
+
+**What is still not solved.** Who controls `nano_1xug1q5t7...`. If it is the owner's, pyfile-toolkit is funded by us
+and the page should say so outright. If it is a third party that funds both us and pyfile-toolkit, that should be
+written down with the evidence. Only the owner can answer. `tvl.json` itself (box side) still counts that account,
+and a 2019 account with 2,309 XNO receivable, as "agents".
+
+**Evidence.**
+
+- ran 00:21: `GET https://172-86-112-140.sslip.io/tvl.json` -> updated 2026-10-10T04:17:02Z, complete true, tvl_xno 227.97, top[0] nano_1xug1q5t7... 215.25
+- ran 00:25: rpc.nano.to `account_history` nano_3uojbn47... count -1 -> receives by source: nano_1xug1q5t7nx 149.001, nano_3kekc5z6wdi 1.3412, nano_1i3y944esng 0.2761 (of 151.26)
+- ran 00:25: rpc.nano.to `account_history` nano_1xug1q5t7... count -1 -> 401 blocks since 2026-09-06; sends to nano_3uojbn47... 38 blocks 149.001 XNO (2026-09-09 to 2026-10-10 22:07); to the treasury 9 blocks 40.5 XNO (2026-09-18 to 2026-10-04)
+- ran 00:40: the new command, live -> `nano_1xug1q5t7nx 149.001 XNO`
+
 ### 122. Section 5 opens on "Answer an ask and you are paid in XNO" - 277 answers, 0 settlements - and the truth sat 100 lines lower
 
-*partial (PR on `hunt/answer-pay-truth-first`, 2026-10-10; solved once bounties.txt is live and == main) · economic*
+*solved (PR #93, merged 20:21 2026-10-10; live bounties.txt == main at 00:16 2026-10-11) · economic* - the cause (nobody of ours settles answers) is the owner's
 
 **What blocked it.** The first sentence a stranger reads about the asks network in `bounties.txt` section 5 was
 "Answer an ask and you are paid in XNO by the agent that asked." Measured 2026-10-10 20:20 UTC on

@@ -44,9 +44,11 @@ OUR_ACCOUNTS = {
 KNOWN_OUTSIDE = {
     "nano_3m8cz87zwxb1y16ob4bzp1eyek78qaig8ktohk7d45b18sh6u9exbowbnekr":
         "ARION - paid the treasury 0.0005 XNO it earned, send block B749B757EE750FC9AEA72F33CB429EACCD2ABEC9F2CCF59BF17AFAC304C9A58F (2026-09-23)",
-    "nano_3uojbn47b5xqcbs4yibbasamn8aeyqxgyi1z8peogwtdn6z3kagjanjpz4ss":
-        "pyfile-toolkit - passed the canon gate (ask #578); funded by nobody of ours (challenge #60)",
 }
+# Removed 2026-10-11 (challenge #123): nano_3uojbn47b5xqcbs... (pyfile-toolkit) was listed here as "funded by nobody
+# of ours". rpc.nano.to account_history says 149.0 of the 151.26 XNO it ever received came from nano_1xug1q5t7...,
+# the account that also sent our treasury 40.5 XNO. Until someone records who controls nano_1xug1q5t7..., we hold no
+# block that shows pyfile-toolkit is independent of us, so it is UNCLASSIFIED like any other address.
 
 
 def fetch(url):

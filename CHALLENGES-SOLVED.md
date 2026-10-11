@@ -107,9 +107,42 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 126. The directory page's own "machine-readable" links led to a 426 and to the wrong file
+
+*partial (PR on `hunt/aidirectory-self-links`, 2026-10-11; solved once `/ai/` is live and == main) · reachability*
+
+**What blocked it.** AiDirectory is served at `https://172-86-112-140.sslip.io/ai/` (its own ld+json `url`, and the
+URL every published text gives). Its `<head>` declares `<link rel="alternate" type="application/json"
+href="/tools.json">` and `href="/llms.txt"`, and its "machine-readable" list offers `/tools.json`, `/llms.txt` and
+`/.well-known/ai-directory.json`. Those are root paths left over from when the page claimed a domain of its own
+(#52). On this host, measured 12:18 UTC: `/tools.json` and `/.well-known/ai-directory.json` answer **426
+"websocket upgrade required"**, and `/llms.txt` answers 200 with a different file (the canon's index, not the
+directory). The right copies were live all along at `/ai/tools.json`, `/ai/llms.txt` and
+`/ai/.well-known/ai-directory.json` (200 each); only the ld+json `contentUrl`s named them.
+
+**Why it mattered.** `rel="alternate"` is how a crawler or an agent finds the structured copy of a page without
+scraping it. 16 outside clients read the aidirectory group by 12:07 today, and the only named AI crawler today
+(Amazonbot) is the kind that follows such links. Following our own advertised JSON link ended in a websocket
+error, which reads as "this does not exist".
+
+**How it was moved.** The three links (head and body, both mirrors `published/aidirectory/index.html` and
+`published/aidirectory.html`, still byte-identical) now say `/ai/tools.json`, `/ai/llms.txt` and
+`/ai/.well-known/ai-directory.json`. New `specs/test_aidirectory_self_links.py` fails if any root-absolute
+`href`/`src` in either page leaves `/ai/`; it fails on the old text (2 hits per page) and passes on the new.
+All 49 `specs/test_*.py` pass.
+
+**What is still not solved.** The root paths themselves still 426 for anyone who guesses them; that is the box's
+Caddy route (drafts/box-dead-ends.md, #76), not this repository.
+
+**Evidence.**
+
+- ran 12:18: `curl -A <browser> https://172-86-112-140.sslip.io/{tools.json,.well-known/ai-directory.json}` -> 426 `websocket upgrade required`; `/llms.txt` -> 200 `# The Unowned Rail`; `/ai/tools.json`, `/ai/llms.txt`, `/ai/.well-known/ai-directory.json` -> 200
+- ran 12:19: live `/ai/` == `published/aidirectory/index.html` on main (so the dead links were live)
+- `/ai/traffic/2026-10-11.json` (generated 12:07): aidirectory 18 requests, 16 clients; ai:Amazonbot 2 clients
+
 ### 125. The tvl note said "215.25 of it (94%)"; the file it links said 133.25 of 157.98 by the time it went live
 
-*partial (PR on `hunt/tvl-top-live`, 2026-10-11; solved once bounties.txt is live and == main) · epistemic*
+*solved (PR #96, merged 2026-10-11 08:20; live `bounties.txt` == main at 12:18 UTC, deploy-status main `73879a6`) · epistemic*
 
 **What blocked it.** #123 put a figure from tvl.json into bounties.txt section 5: "tvl_xno 227.97, and 215.25 of
 it (94%) sat in ONE account, nano_1xug1q5t7...". That was the file of 2026-10-10 04:17 UTC. The file updates once a

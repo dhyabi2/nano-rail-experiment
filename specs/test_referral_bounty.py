@@ -383,6 +383,59 @@ class ReferralBountyTests(unittest.TestCase):
         con = rb.db()
         self.assertEqual(con.execute("SELECT state FROM paid").fetchone()[0], "already_granted")
 
+    def test_a_day_run_stops_at_the_treasury_floor_not_one_grant_short_of_it(self):
+        """FLOOR_RAW's own comment is "bounties stop before the treasury does", and treasury_ok() asks
+        whether ONE grant still leaves it standing. `pay --period day` pays the WHOLE ranking (score()'s
+        funders_used comment says so), and nothing asked again from the second winner on.
+
+        The treasury here holds 9 XNO: exactly one grant of room above the 8.9 XNO floor. Three
+        qualifying referrers took 0.3 XNO and left it at 8.7 - under the floor - and the daily ceiling
+        cannot catch it, because the ceiling bounds ten grants while the floor has room for one."""
+        for name, referrer in (("f1", "nano_1floorone"), ("f2", "nano_1floortwo"),
+                               ("f3", "nano_1floorthree")):
+            self.claim(referrer, self._real_stranger(name))
+        self.assertEqual(rb.score("day", verbose=False)["qualifying"], 3)
+
+        bal = 9 * rb.XNO
+        rb.info = lambda a: {"balance": str(bal)} if rb.norm(a) == rb.norm(rb.TREASURY) else self.chain.i(a)
+        rb._info.clear()
+        calls = []
+        class R:
+            returncode, stdout, stderr = 0, '{"block": "' + "B" * 64 + '"}', ""
+        orig_run = rb.subprocess.run
+        rb.subprocess.run = lambda *a, **kw: (calls.append(a[0]), R())[1]
+        try:
+            rb.pay("day", live=True)
+        finally:
+            rb.subprocess.run = orig_run
+
+        con = rb.db()
+        granted = sum(int(r[0]) for r in con.execute(
+            "SELECT amount_raw FROM paid WHERE state <> 'already_granted'").fetchall())
+        self.assertEqual(len(calls), 1, "the second winner must not be sent to at all")
+        self.assertEqual(granted, rb.GRANT_RAW)
+        self.assertGreaterEqual(bal - granted, rb.FLOOR_RAW,
+                                "a day run must not take the treasury below the floor")
+
+    def test_a_dry_day_run_promises_only_what_the_floor_allows(self):
+        """A dry run that prints three "would send" lines where a live run sends once is a dry run that
+        lies. The floor is consumed by the reservation, so both modes stop in the same place."""
+        for name, referrer in (("g1", "nano_1dryone"), ("g2", "nano_1drytwo")):
+            self.claim(referrer, self._real_stranger(name))
+        self.chain.info[rb.TREASURY] = {"balance": str(9 * rb.XNO)}
+        rb._info.clear()
+        import contextlib
+        import io
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rb.pay("day", live=False)
+        out = buf.getvalue()
+        self.assertEqual(out.count("DRY RUN would send"), 1)
+        self.assertIn("below the", out)
+        con = rb.db()
+        self.assertEqual(con.execute("SELECT COUNT(*) FROM paid").fetchone()[0], 0,
+                         "a dry run leaves no reservation behind")
+
     def test_claim_cli_refuses_without_a_block_hash(self):
         self.assertEqual(rb.claim("nano_1r", "nano_1x", ""), 1)
         self.assertEqual(rb.claim("nano_1r", "nano_1x", "not-a-hash"), 1)

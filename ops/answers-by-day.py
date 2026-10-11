@@ -19,6 +19,12 @@ address: the asker talking to itself, not a new agent answering it. An answer wh
 ask's own asker is SELF: listed, never counted as an answer from another agent, never FIRST SEEN,
 and the ask still counts as unanswered by anyone else.
 
+Challenge #128. On 2026-10-11 the tool printed "44 answers" not ours. 42 came from one address
+(hermesnousmolty, nano_1f7ezb3mgki...) answering the same 13 asks again and again: #1 at 14:05,
+17:09 and 20:01, with the same question and a shorter text each time. One agent re-posting on 15 asks
+is not 44 answers. A REPEAT is an answer by an answerer who had already answered that same ask
+(on any day). Repeats are listed and counted apart, and the headline gives the distinct asks answered.
+
 Read-only GETs against a public API. A fetch that fails makes the whole result UNKNOWN, never zero.
 
     python3 ops/answers-by-day.py                 today (UTC)
@@ -63,9 +69,13 @@ def build_report(day, asks_doc, details):
     titles = {int(a["id"]): (a.get("title") or "") for a in asks_doc.get("asks", [])}
     askers = {int(a["id"]): (a.get("asker") or "") for a in asks_doc.get("asks", [])}
     first_at = {}  # answerer -> earliest answer timestamp anywhere on the network
+    earlier_on_ask = {}  # (ask, answerer) -> earliest answer timestamp on that ask
     answers = []
     for ask_id, ask in details.items():
         for a in ask.get("answers") or []:
+            key = (int(ask_id), a.get("answerer") or "")
+            if key[1] and (key not in earlier_on_ask or (a.get("at") or "") < earlier_on_ask[key]):
+                earlier_on_ask[key] = a.get("at") or ""
             who, at = a.get("answerer") or "", a.get("at") or ""
             if who and (who not in first_at or at < first_at[who]):
                 first_at[who] = at
@@ -77,6 +87,7 @@ def build_report(day, asks_doc, details):
                                 "title": titles.get(int(ask_id), (ask.get("title") or ""))[:60]})
     for a in answers:
         a["first_seen"] = a["kind"] != "ours" and not a["self"] and first_at.get(a["answerer"]) == a["at"]
+        a["repeat"] = bool(a["answerer"]) and earlier_on_ask.get((a["ask"], a["answerer"]), a["at"]) < a["at"]
     asks = [{"ask": int(a["id"]), "at": a.get("created_at") or "", "asker": a.get("asker") or "",
              "kind": kind_of(a.get("asker") or ""), "title": (a.get("title") or "")[:60]}
             for a in asks_doc.get("asks", []) if (a.get("created_at") or "").startswith(day)]
@@ -87,14 +98,18 @@ def build_report(day, asks_doc, details):
             "totals": {"asks": len(asks), "asks_not_ours": len(not_ours(asks)),
                        "answers": len(answers), "answers_not_ours": len(not_ours(answers)),
                        "first_seen": sum(1 for a in answers if a["first_seen"]),
-                       "self_answers": sum(1 for a in answers if a["self"] and a["kind"] != "ours")},
+                       "self_answers": sum(1 for a in answers if a["self"] and a["kind"] != "ours"),
+                       "repeats_not_ours": sum(1 for a in not_ours(answers) if a["repeat"]),
+                       "asks_answered_not_ours": len({(a["ask"], a["answerer"]) for a in not_ours(answers)})},
             "asks": asks, "answers": answers}
 
 
 def render(report):
     t = report["totals"]
     lines = [f"{report['day']}: read {report['asks_read']} asks. Not ours: {t['asks_not_ours']} new asks, "
-             f"{t['answers_not_ours']} answers ({t['first_seen']} from a first-seen answerer)"
+             f"{t['answers_not_ours']} answers ({t['first_seen']} from a first-seen answerer"
+             + (f"; {t['repeats_not_ours']} REPEAT an answer the same agent already gave on the same ask, "
+                f"so {t['asks_answered_not_ours']} distinct agent-ask pairs" if t["repeats_not_ours"] else "") + ")"
              + (f", plus {t['self_answers']} by an asker on its own ask (not an answer from anyone else)" if t["self_answers"] else "")
              + ". "
              f"Ours: {t['asks'] - t['asks_not_ours']} asks, {t['answers'] - t['answers_not_ours'] - t['self_answers']} answers.", ""]
@@ -103,7 +118,8 @@ def render(report):
             lines.append(f"ASK    {a['kind'].upper():12} #{a['ask']:<4} {a['at'][11:16]}  {a['asker'][:16]}...  {a['title']}")
     for a in report["answers"]:
         if a["kind"] != "ours":
-            new = "  SELF (the asker's own address)" if a["self"] else ("  FIRST SEEN" if a["first_seen"] else "")
+            new = "  SELF (the asker's own address)" if a["self"] else ("  FIRST SEEN" if a["first_seen"] else
+                                                                       ("  REPEAT" if a["repeat"] else ""))
             lines.append(f"ANSWER {a['kind'].upper():12} ask #{a['ask']:<4} answer #{a['answer']:<4} {a['at'][11:16]}  "
                          f"{a['answerer'][:16]}...  {a['chars']:>5} chars{new}  {a['title']}")
     return "\n".join(lines)

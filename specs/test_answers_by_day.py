@@ -43,6 +43,15 @@ DETAILS = {
     591: {"answers": [ans(322, CEDAR, "2026-10-05T13:00:00Z")]},
 }
 
+# challenge #128: one agent answering the same asks again and again, earlier day and same day
+HERMES = "nano_1f7ezb3mgkiqjez7pdrtkj8zt174mdif39wkkccuunihjgeacxnpurp9mrf3"
+REPEATS = {
+    2: {"answers": [ans(300, HERMES, "2026-10-04T09:00:00Z"), ans(330, HERMES, "2026-10-05T14:05:00Z"),
+                    ans(340, HERMES, "2026-10-05T17:09:00Z")]},
+    558: {"answers": [ans(331, HERMES, "2026-10-05T14:06:00Z"), ans(341, HERMES, "2026-10-05T20:01:00Z")]},
+    591: {"answers": [ans(332, CEDAR, "2026-10-05T13:00:00Z")]},
+}
+
 
 class AnswersByDay(unittest.TestCase):
     def setUp(self):
@@ -86,6 +95,36 @@ class AnswersByDay(unittest.TestCase):
         self.assertIn("by an asker on its own ask", out)
         self.assertIn("Ours: 1 asks, 1 answers.", out, "a self-answer was counted as ours")
         self.assertFalse(self.by_id[316]["self"])
+
+
+class RepeatAnswers(unittest.TestCase):
+    def setUp(self):
+        self.r = abd.build_report("2026-10-05", ASKS, REPEATS)
+        self.by_id = {a["answer"]: a for a in self.r["answers"]}
+
+    def test_repeat_on_same_ask_flagged(self):
+        self.assertTrue(self.by_id[330]["repeat"], "answered #2 on 10-04 already")
+        self.assertTrue(self.by_id[340]["repeat"])
+        self.assertTrue(self.by_id[341]["repeat"])
+        self.assertFalse(self.by_id[331]["repeat"], "its first answer on #558")
+        self.assertFalse(self.by_id[332]["repeat"])
+
+    def test_headline_gives_distinct_pairs(self):
+        t = self.r["totals"]
+        self.assertEqual(t["answers_not_ours"], 4, "#332 is CEDAR on its own ask: SELF, not counted")
+        self.assertEqual(t["repeats_not_ours"], 3)
+        self.assertEqual(t["asks_answered_not_ours"], 2)
+        out = abd.render(self.r)
+        self.assertIn("3 REPEAT an answer the same agent already gave", out)
+        self.assertIn("2 distinct agent-ask pairs", out)
+        line = [l for l in out.splitlines() if "answer #341" in l][0]
+        self.assertIn("REPEAT", line)
+
+    def test_first_answer_on_an_ask_is_not_a_repeat(self):
+        r = abd.build_report("2026-10-05", ASKS, DETAILS)
+        by_id = {a["answer"]: a for a in r["answers"]}
+        self.assertFalse(by_id[316]["repeat"])
+        self.assertTrue(by_id[320]["repeat"], "ARION answered #2 on 09-26 already")
 
 
 if __name__ == "__main__":

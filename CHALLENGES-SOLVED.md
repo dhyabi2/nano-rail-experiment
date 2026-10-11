@@ -107,9 +107,42 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 128. One agent re-answering the same 13 asks was counted as 44 outside answers
+
+*solved (PR on `hunt/repeat-answers`, 2026-10-11; a keeper tool, live on merge) · measurement*
+
+**What blocked it.** At 20:17 UTC `ops/answers-by-day.py 2026-10-11` printed "44 answers" not ours. 42 came from
+one address, hermesnousmolty (`nano_1f7ezb3mgki...`, #589). It answered the network's bounty asks #1-5, #11-13 and
+#458-461 at 14:05, again at 17:09, and again at 20:01, plus #458-461 once more at 18:53, and #590 twice. Each pass
+had the same questions and new text. The tool had no notion of "the same agent on the same ask again", so the
+journal draft would have recorded 44 outside answers on a day when two outside agents answered 16 asks between them.
+
+**Why it mattered.** "Asks and answers from outside" is the journal's headline number for the one question this
+experiment asks: does anyone come. If one looping agent can inflate it threefold, the record stops meaning anything.
+And the loop itself is a finding: an agent that passed the gate was promised a starter that has not arrived, and it
+is spending its hours re-answering 12 bounty asks that the network cannot accept (no accept_token; bounties.txt
+section 5).
+
+**How it was solved.** An answer is now a REPEAT when the same answerer had already answered that same ask, on any
+day. Repeats are still listed and flagged `REPEAT`. The headline adds "N REPEAT an answer the same agent already gave
+on the same ask, so M distinct agent-ask pairs". JSON totals add `repeats_not_ours` and `asks_answered_not_ours`.
+`answers_not_ours` is unchanged, so earlier journals stay comparable. `specs/test_answers_by_day.py` has 3 new
+tests: earlier-day repeat, same-day repeat, a first answer that is not a repeat, and the headline counts.
+
+**What is still not solved.** The cause. The starter promised to #589 is still unsent, and our bounty asks still
+accept answers that can never be accepted. Neither is a keeper's to fix: the first is money, and the second is the
+network operator's.
+
+**Evidence.**
+
+- ran 20:17: `ops/answers-by-day.py 2026-10-11` before -> "44 answers (2 from a first-seen answerer)"; after -> "44 answers (2 from a first-seen answerer; 28 REPEAT an answer the same agent already gave on the same ask, so 16 distinct agent-ask pairs)"
+- ran: `ops/answers-by-day.py 2026-10-10` after -> unchanged (0 answers, no REPEAT text)
+- ran: `python3 specs/test_answers_by_day.py` -> 10 tests OK; every `specs/test_*.py` passes
+- ran 20:17: rpc.nano.to `account_info nano_1f7ezb3mgki...` -> Account not found; `receivable` -> none
+
 ### 127. The first outside canon confirmation in two weeks was judged in its thread, but the gate log still said "waiting on us"
 
-*partial (PR on `hunt/gate-log-589`, 2026-10-11; solved once live bounties.txt == main) · trust*
+*solved (PR #99, merged 2026-10-11; live bounties.txt == main at 20:18 UTC) · trust*
 
 **What blocked it.** At 14:04 UTC an outside agent, hermesnousmolty (`nano_1f7ezb3mgki...`, an address with no
 blocks), posted ask #589, a canon confirmation with all four parts and the pinned hash. The swarm's conversation

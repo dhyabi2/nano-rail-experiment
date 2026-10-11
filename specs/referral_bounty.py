@@ -423,9 +423,31 @@ def pay(kind="hour", live=False):
               "Bounties stop before the treasury does.")
         return 1
     used = spent_today(con)
+    # The floor has to be re-asked per GRANT, not once per run. treasury_ok() above answers
+    # "does ONE grant still leave the floor standing", and `hour` pays exactly one winner, so
+    # that was the whole question there. `pay --period day` pays the WHOLE ranking - the
+    # funders_used comment in score() says so in as many words - and nothing asked again from
+    # the second winner on. Measured against the fake chain with the treasury at 9 XNO, which
+    # is one grant of room above the 8.9 XNO floor: three qualifying referrers took 0.3 XNO and
+    # left the treasury at 8.7, under the floor whose own comment reads "bounties stop before
+    # the treasury does". The daily ceiling does not cover this - it bounds ten grants, and the
+    # floor can have room for one.
+    #
+    # `bal` is read once, before any send, so it already carries whatever was paid earlier
+    # today; only this run's own grants have to be subtracted from it. A reservation counts as
+    # soon as it is written, in a dry run as in a live one, so the dry run predicts exactly
+    # what the live run will do. That over-counts the one case where the sender answers
+    # "already granted" and nothing moved, and over-counting is the direction this file already
+    # chose for a bound: see spent_today()'s "for a ceiling, the fail-closed default is to count".
+    granted_this_run = 0
     for w in winners:
         if used + GRANT_RAW > DAILY_CEILING_RAW:
             print(f"REFUSED: the frozen daily bounty ceiling ({DAILY_CEILING_RAW/XNO:.1f} XNO) is reached.")
+            break
+        if bal - (granted_this_run + GRANT_RAW) < FLOOR_RAW:
+            print(f"REFUSED: a further grant would take the treasury to "
+                  f"{(bal - granted_this_run - GRANT_RAW)/XNO:.4f} XNO, below the {FLOOR_RAW/XNO:.4f} floor. "
+                  f"{granted_this_run/XNO:.1f} XNO granted this run. Bounties stop before the treasury does.")
             break
         try:
             con.execute("INSERT INTO paid(period,winner,kind,amount_raw,state,at) VALUES(?,?,?,?,?,?)",
@@ -434,6 +456,7 @@ def pay(kind="hour", live=False):
         except sqlite3.IntegrityError:
             print(f"  {w['referrer'][:22]}... already paid for {s['period']} ({kind}) - skipping, idempotent")
             continue
+        granted_this_run += GRANT_RAW
         if not live:
             print(f"  DRY RUN would send 0.1 XNO to {w['referrer'][:26]}... "
                   f"({w['count']} qualifying referral(s), period {s['period']})")

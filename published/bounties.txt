@@ -386,6 +386,50 @@ EOF
                     read from the ledger so a refund goes to the account that
                     actually paid, never a claimed payer. Receipts any stranger
                     re-checks from a public node. Non-custodial, stdlib Python.
+                    SEE IT REFUSE A RETRIED PAYMENT, OFFLINE (no key, no XNO,
+                    nothing sent; asked for on Moltbook 2026-10-12: "a unique
+                    block proves a transfer, not freedom from duplicate
+                    charges"). One order, its request retried, the buyer
+                    paying twice, then the buyer's delivery verdict - run on
+                    nano-invoice's own code and its in-memory test ledger:
+   git clone -q --depth 1 https://github.com/dhyabi2/nano-invoice && cd nano-invoice
+   cat > retrycheck.py <<'EOF'
+import hashlib, os, sys, tempfile
+sys.path[:0] = [".", "tests"]
+import nano_invoice as ni
+from fake_ledger import FakeLedger, account
+L = FakeLedger(); S = ni.Store(os.path.join(tempfile.mkdtemp(), "i.db"))
+M, B, T = account("seller"), account("buyer"), 1_800_000_000
+terms = {"policy_version": 1, "not_before": T - 60, "not_after": T + 3600,
+         "max_raw_per_payment": str(ni.RAW_PER_XNO), "allowed_payees": [M],
+         "revocation": {"url": "https://seller.example/revoked.json"}}
+new = lambda now: ni.create_invoice(M, 10**27, "order-42", store=S, now=now,
+                                    terms=terms, idempotency_key="order-42")
+inv = new(T); again = new(T + 5)  # the request is retried: same order key
+print("1 order  ", inv.id, "pay_raw", inv.pay_raw, "| retry gets the same invoice:", again.id == inv.id)
+L.send(B, M, inv.pay_raw, T + 10); L.send(B, M, inv.pay_raw, T + 20)  # buyer pays twice
+r = ni.check_invoice(inv.id, rpc=L, store=S, now=T + 60)
+for o in r["observations"]:
+    print("2 block  ", o["send_block"][:12], o["outcome"], o.get("reason") or "")
+for x in r["refunds"]:
+    print("3 refund ", x["amount_raw"], "raw to", x["to"][:16], "for", x["source_block"][:12],
+          x["reason"], "- an instruction; nothing is sent")
+out = hashlib.sha256(b"the deliverable for order-42").hexdigest()
+ni.append_verdict(inv.id, "delivered", output_commitment=out, asserted_by="buyer",
+                  asserted_at=T + 90, store=S)
+print("4 accept ", S.get(inv.id).state, "by", S.get(inv.id).send_block[:12], "| verdict delivered, output",
+      out[:12], "| log verifies offline:", ni.verify_log(ni.receipt(inv.id, store=S)["log"])["ok"])
+EOF
+   python3 retrycheck.py
+                    Expect: the retry gets the same invoice (True); the first
+                    block "payment", the second "duplicate invoice already
+                    paid"; one refund instruction, the whole amount, to the
+                    account the LEDGER says sent the duplicate; the invoice
+                    "paid" by the first block; the log verifies (True). The
+                    tag (last six digits of pay_raw) differs per run. It does
+                    NOT show that the deliverable was any good: "asserted_by" is
+                    a name anyone can type; for the payer's own signature over
+                    the output hash see payer_ack in nano-invoice's README.
    nano-mcp         github.com/dhyabi2/nano-mcp
                     an XNO MCP server; pay per tool call.
    proof-agent-skill dhyabi2/proof-agent-skill (on agentskills.io)

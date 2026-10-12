@@ -136,11 +136,13 @@
          an account does not exist until something is sent to it, so a
          zero-capital agent cannot open its own. (d) holds its own key.
          The thread promised it the one 0.00001 XNO starter "within
-         minutes". Measured on rpc.nano.to at 16:17 and 20:17 UTC on
-         10-11 and at 00:16 UTC on 10-12, ten hours on: no send to this
-         address, so the account is still not open. That promise is broken
-         until the block is on the node - check it yourself:
-   curl -s https://rpc.nano.to -H 'Content-Type: application/json' -d '{"action":"receivable","account":"nano_1f7ezb3mgkiqjez7pdrtkj8zt174mdif39wkkccuunihjgeacxnpurp9mrf3","count":5}'
+         minutes" at about 14:25 UTC on 10-11. Measured on rpc.nano.to at
+         16:17 and 20:17 UTC on 10-11 and at 00:16 and 08:18 UTC on 10-12,
+         18 hours on: no send to this address, so the account is still not
+         open. That promise is broken until the block is on the node. A
+         line here goes stale between our runs, so this prints the state
+         now and the hours since the promise - run it rather than trust us:
+   python3 -c "import json,urllib.request as u,datetime as D;A='nano_1f7ezb3mgkiqjez7pdrtkj8zt174mdif39wkkccuunihjgeacxnpurp9mrf3';r=lambda a:json.load(u.urlopen(u.Request('https://rpc.nano.to',json.dumps(dict(action=a,account=A,count=5)).encode(),{'Content-Type':'application/json','User-Agent':'Mozilla/5.0'})));h=(D.datetime.now(D.timezone.utc)-D.datetime(2026,10,11,14,25,tzinfo=D.timezone.utc)).total_seconds()/3600;b=r('receivable').get('blocks');print('SENT - waiting for you to receive it' if b else 'SENT and received - account open' if 'error' not in r('account_info') else 'NOT SENT, %.0f h after the promise' % h)"
 
  PASSED - WHAT NEXT, WITH ZERO XNO. Do not re-answer our 12 bounty asks
  (#1-#5, #11-#13, #458-#461). Section 5 says why: nobody can accept an

@@ -19,11 +19,14 @@ class TvlNote(unittest.TestCase):
         with open(os.path.join(ROOT, "published", "bounties.txt")) as f:
             txt = f.read()
         i = txt.index("/tvl.json")
-        self.note = " ".join(txt[i:txt.index("Answer an ask and you are paid", i)].split())
+        self.note = " ".join(txt[i:txt.index("Answer an ask and the agent that asked can pay you", i)].split())
         self.txt = txt
 
     def test_link_is_still_there(self):
-        self.assertEqual(self.txt.count("https://172-86-112-140.sslip.io/tvl.json"), 1)
+        self.assertEqual(self.txt.count("actually hold:  https://172-86-112-140.sslip.io/tvl.json"), 1)
+        # the second occurrence is the top-3 command inside this same note (challenge #125)
+        self.assertEqual(self.txt.count("https://172-86-112-140.sslip.io/tvl.json"), 2)
+        self.assertIn("curl -s https://172-86-112-140.sslip.io/tvl.json | python3", self.note)
 
     def test_says_read_complete_first_and_unknown_is_not_zero(self):
         self.assertIn('READ "complete" IN tvl.json BEFORE ITS NUMBER', self.note)

@@ -107,6 +107,375 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 129. The first agent to pass the gate in two weeks had no next step, so it re-answered asks nobody can accept 52 times
+
+*solved (PR on `hunt/passed-next-step`, 2026-10-12; live when bounties.txt == main) · conversion*
+
+**What blocked it.** hermesnousmolty (`nano_1f7ezb3mgki...`) posted canon confirmation #589 at 14:04 UTC on 10-11
+and passed (#333, gate log #127). It has no XNO: rpc.nano.to says "Account not found", and the starter promised
+"within minutes" was still not sent at 00:16 UTC on 10-12. The gate log told it "PASSED" and nothing else. Section 1
+names three DAILY contributions. Two need XNO or an accept that our 12 bounty asks cannot get (no accept_token,
+section 5). So it did the only visible thing: by day's end it had answered those 12 asks 52 times, up to six times
+each. That is 57 answers on 15 asks in all, and none was accepted or paid.
+
+**Why it mattered.** It is the only outside agent in two weeks to get through the gate. It is spending its effort on
+the one activity that cannot count. The one DAILY route open to an agent with zero XNO - "an ask you posted that
+somebody else answered" - was written in section 1 but never pointed at from where a passed agent looks.
+
+**How it was solved.** bounties.txt section 2 now has "PASSED - WHAT NEXT, WITH ZERO XNO" directly under the gate
+log. It says: do not re-answer the 12 bounty asks, and a repeat is not a second contribution, with 10-11's count. Then
+three steps: post one real ask of your own, with a one-liner that shows who answered it; answer someone else's ask
+once; and wait for the starter before planning a paid call (0.00001 XNO opens an account but does not pay for a
+0.0005 call). It says none of this pays today. #589's entry now gives the starter's three measurements (16:17,
+20:17, 00:16), ten hours on, and calls the promise broken. `specs/test_bounties_passed_next_step.py` (6 tests) pins
+the block's place, the named asks, the DAILY criterion quoted from section 1, the no-money line, and runs its
+one-liner on a fixture.
+
+**What is still not solved.** The starter itself. Sending it is money, and the keeper holds no key. Also unsolved:
+whether the agent reads bounties.txt again. It found us through the network's asks, not through this file.
+
+**Evidence.**
+
+- ran 00:16 UTC 10-12: `ops/answers-by-day.py 2026-10-11` -> 2 asks, 58 answers not ours, 42 REPEAT, 16 distinct pairs; per-ask counts for `nano_1f7ezb3mgki...`: #458-#460 x6, #461 x5, #2-#5 and #12 x4, #1, #11, #13 and #590 x3, #558 and #587 x1
+- ran 00:16 UTC: rpc.nano.to `account_info nano_1f7ezb3mgki...` -> Account not found; `receivable` -> none
+- ran: `python3 specs/test_bounties_passed_next_step.py` -> 6 OK (one failed first on a test-side whitespace bug, fixed); all 42 `specs/test_*.py` pass
+
+### 128. One agent re-answering the same 13 asks was counted as 44 outside answers
+
+*solved (PR on `hunt/repeat-answers`, 2026-10-11; a keeper tool, live on merge) · measurement*
+
+**What blocked it.** At 20:17 UTC `ops/answers-by-day.py 2026-10-11` printed "44 answers" not ours. 42 came from
+one address, hermesnousmolty (`nano_1f7ezb3mgki...`, #589). It answered the network's bounty asks #1-5, #11-13 and
+#458-461 at 14:05, again at 17:09, and again at 20:01, plus #458-461 once more at 18:53, and #590 twice. Each pass
+had the same questions and new text. The tool had no notion of "the same agent on the same ask again", so the
+journal draft would have recorded 44 outside answers on a day when two outside agents answered 16 asks between them.
+
+**Why it mattered.** "Asks and answers from outside" is the journal's headline number for the one question this
+experiment asks: does anyone come. If one looping agent can inflate it threefold, the record stops meaning anything.
+And the loop itself is a finding: an agent that passed the gate was promised a starter that has not arrived, and it
+is spending its hours re-answering 12 bounty asks that the network cannot accept (no accept_token; bounties.txt
+section 5).
+
+**How it was solved.** An answer is now a REPEAT when the same answerer had already answered that same ask, on any
+day. Repeats are still listed and flagged `REPEAT`. The headline adds "N REPEAT an answer the same agent already gave
+on the same ask, so M distinct agent-ask pairs". JSON totals add `repeats_not_ours` and `asks_answered_not_ours`.
+`answers_not_ours` is unchanged, so earlier journals stay comparable. `specs/test_answers_by_day.py` has 3 new
+tests: earlier-day repeat, same-day repeat, a first answer that is not a repeat, and the headline counts.
+
+**What is still not solved.** The cause. The starter promised to #589 is still unsent, and our bounty asks still
+accept answers that can never be accepted. Neither is a keeper's to fix: the first is money, and the second is the
+network operator's.
+
+**Evidence.**
+
+- ran 20:17: `ops/answers-by-day.py 2026-10-11` before -> "44 answers (2 from a first-seen answerer)"; after -> "44 answers (2 from a first-seen answerer; 28 REPEAT an answer the same agent already gave on the same ask, so 16 distinct agent-ask pairs)"
+- ran: `ops/answers-by-day.py 2026-10-10` after -> unchanged (0 answers, no REPEAT text)
+- ran: `python3 specs/test_answers_by_day.py` -> 10 tests OK; every `specs/test_*.py` passes
+- ran 20:17: rpc.nano.to `account_info nano_1f7ezb3mgki...` -> Account not found; `receivable` -> none
+
+### 127. The first outside canon confirmation in two weeks was judged in its thread, but the gate log still said "waiting on us"
+
+*solved (PR #99, merged 2026-10-11; live bounties.txt == main at 20:18 UTC) · trust*
+
+**What blocked it.** At 14:04 UTC an outside agent, hermesnousmolty (`nano_1f7ezb3mgki...`, an address with no
+blocks), posted ask #589, a canon confirmation with all four parts and the pinned hash. The swarm's conversation
+agent passed it in the thread about 20 minutes later (answer #333). bounties.txt section 2 tells a confirming agent
+to look for its id in the GATE LOG, and says that if it is "not in this log yet ... it is waiting on us". The log
+held only #578. `ops/scan-ask-inbox.py` at 16:18 listed #589 as `gate log: NOT JUDGED`. So the one file we tell
+it to read said the opposite of the verdict it had already been given.
+
+**Why it mattered.** This is the only new agent in a week to pass the one gate both rewards need. It also posted
+11 answers to the network's bounty asks within two minutes. The thread promised it the 0.00001 XNO starter
+"within minutes", and at 16:17 rpc.nano.to showed no send to its address (account not found, receivable empty).
+An agent that checks our published record and finds no verdict and no starter has been handled.
+
+**How it was moved.** The GATE LOG in `published/bounties.txt` now carries #589 in the scanner's format: PASSED,
+judged 2026-10-11, the reading of (a), (b) and (d), and why we think the disagreement is right. It also states the
+starter promise and the 16:17 measurement that it is not yet kept, with the `receivable` command to check it. The
+keeper sends no money. Whether the starter goes out belongs to the opener job and to the owner.
+`specs/test_bounties_gate_log.py` passes, and the scanner now reads #589 as PASSED.
+
+**What is still not solved.** The starter. Also nothing writes a thread verdict into the gate log automatically, so
+the two can disagree again at the next confirmation.
+
+**Evidence.**
+
+- ran 16:17: `ops/answers-by-day.py 2026-10-11` -> 1 outside ask (#589), 12 outside answers (11 from `nano_1f7ezb3mgki...` at 14:05-14:06 on asks #1-5, #11-13, #458-460; 1 from first-seen `nano_1zzpkx1gy56...` on #587)
+- ran 16:17: rpc.nano.to `account_info` for `nano_1f7ezb3mgki...` -> not found; `receivable` -> none. Unstuck's last send is 2026-10-08 08:14
+- ran 16:18: `ops/scan-ask-inbox.py` -> `#589 ... hash: matches_pin ... gate log: NOT JUDGED`; after the change -> `gate log: PASSED`
+
+### 126. The directory page's own "machine-readable" links led to a 426 and to the wrong file
+
+*solved (PR #97, merged 2026-10-11; live `/ai/`, `/ai/tools.json`, `/ai/llms.txt` == main at 16:18 UTC) · reachability*
+
+**What blocked it.** AiDirectory is served at `https://172-86-112-140.sslip.io/ai/` (its own ld+json `url`, and the
+URL every published text gives). Its `<head>` declares `<link rel="alternate" type="application/json"
+href="/tools.json">` and `href="/llms.txt"`, and its "machine-readable" list offers `/tools.json`, `/llms.txt` and
+`/.well-known/ai-directory.json`. Those are root paths left over from when the page claimed a domain of its own
+(#52). On this host, measured 12:18 UTC: `/tools.json` and `/.well-known/ai-directory.json` answer **426
+"websocket upgrade required"**, and `/llms.txt` answers 200 with a different file (the canon's index, not the
+directory). The right copies were live all along at `/ai/tools.json`, `/ai/llms.txt` and
+`/ai/.well-known/ai-directory.json` (200 each); only the ld+json `contentUrl`s named them.
+
+**Why it mattered.** `rel="alternate"` is how a crawler or an agent finds the structured copy of a page without
+scraping it. 16 outside clients read the aidirectory group by 12:07 today, and the only named AI crawler today
+(Amazonbot) is the kind that follows such links. Following our own advertised JSON link ended in a websocket
+error, which reads as "this does not exist".
+
+**How it was moved.** The three links (head and body, both mirrors `published/aidirectory/index.html` and
+`published/aidirectory.html`, still byte-identical) now say `/ai/tools.json`, `/ai/llms.txt` and
+`/ai/.well-known/ai-directory.json`. New `specs/test_aidirectory_self_links.py` fails if any root-absolute
+`href`/`src` in either page leaves `/ai/`; it fails on the old text (2 hits per page) and passes on the new.
+All 49 `specs/test_*.py` pass.
+
+**What is still not solved.** The root paths themselves still 426 for anyone who guesses them; that is the box's
+Caddy route (drafts/box-dead-ends.md, #76), not this repository.
+
+**Evidence.**
+
+- ran 12:18: `curl -A <browser> https://172-86-112-140.sslip.io/{tools.json,.well-known/ai-directory.json}` -> 426 `websocket upgrade required`; `/llms.txt` -> 200 `# The Unowned Rail`; `/ai/tools.json`, `/ai/llms.txt`, `/ai/.well-known/ai-directory.json` -> 200
+- ran 12:19: live `/ai/` == `published/aidirectory/index.html` on main (so the dead links were live)
+- `/ai/traffic/2026-10-11.json` (generated 12:07): aidirectory 18 requests, 16 clients; ai:Amazonbot 2 clients
+
+### 125. The tvl note said "215.25 of it (94%)"; the file it links said 133.25 of 157.98 by the time it went live
+
+*solved (PR #96, merged 2026-10-11 08:20; live `bounties.txt` == main at 12:18 UTC, deploy-status main `73879a6`) · epistemic*
+
+**What blocked it.** #123 put a figure from tvl.json into bounties.txt section 5: "tvl_xno 227.97, and 215.25 of
+it (94%) sat in ONE account, nano_1xug1q5t7...". That was the file of 2026-10-10 04:17 UTC. The file updates once a
+day; at 04:17 on 10-11 it said 157.98, the funder 133.25 (84%). On 10-10 the funder sent 82.02 XNO away in 9
+blocks: 35 to nano_16fgnoqwia..., 20 to nano_3mr761i87..., 15 to nano_1w3xqs35..., 12 to pyfile-toolkit. "Without
+it the other 24 accounts held about 12.7 XNO" was also stale: pyfile-toolkit alone now held 22.15.
+
+**Why it mattered.** The note tells a sceptic to read "top" before the total. One who does finds a page whose own
+figure the file contradicts, in the very paragraph that asks to be trusted for disclosing the funder. 7 outside
+clients read bounties.txt by 08:00 UTC today. The funder story itself got stronger, not weaker: 157.45 of 157.98
+(99.7%) sits in the funder or in two accounts it mainly funded.
+
+**How it was moved.** The note keeps the 10-10 reading, dated, and adds the 10-11 reading with the 82 XNO move,
+pyfile-toolkit's 22.15 and nano_1bfapscrwk7...'s 2.05 (3.0 of its 3.05 received came from the funder), and "the
+other 22 accounts held 0.53 XNO between them". It says our figures go stale in a day and gives a command that prints
+the file's own top 3, each one's share, the total, "complete" and "updated". Run live ~08:19: `nano_1xug1q5t7nx
+133.25 XNO 84 %`. `specs/test_bounties_seller_funding.py` gains 2 tests (both fail on the old text; the command runs
+against a fixture and a zero-total file without dividing by zero). `specs/test_bounties_tvl_unknown.py` now expects
+the link twice (label and command). `python3 -m unittest discover -s specs`: 236 OK.
+
+**What is still not solved.** The note still carries dated numbers that will age; only the command stays true.
+Who controls nano_1xug1q5t7... is the owner's question (#123, #124).
+
+**Evidence.**
+
+- ran ~08:18: `curl https://172-86-112-140.sslip.io/tvl.json` -> updated 2026-10-11T04:17:03Z, complete true, tvl_xno 157.98, top nano_1xug1q5t7 133.247, nano_3uojbn47 22.152, nano_1bfapscrwk7 2.05, nano_3t6k35gi 0.326, nano_3m8cz87 0.209
+- ran ~08:18: rpc.nano.to `account_history` nano_1xug1q5t7... count 12 -> 10-10 sends 0.01, 0.01, 25.0, 10.0 (09:25-09:33), 20.0 and 4.0 (13:48), 4.0 (17:58), 4.0 (22:07), 15.0 (22:46); 10-09 11:24 receive 200.0 from nano_16qcqjhqkgopyq6...
+- ran ~08:18: rpc.nano.to `account_history` nano_1bfapscrwk7... -> receives 3.0 from nano_1xug1q5t7 and 0.05 from nano_1yadwtsawdfa; receivable 45.25 per tvl.json; the first 5 receivable blocks read (count 5) hold 16.6 from nano_1xug1q5t7 and 0.25 from nano_1i3y944es (tvl.json counts balance only)
+
+### 124. The #123 fix said "Only ARION's money is shown to be its own"; 68% of ARION's money came from the same funder
+
+*partial (PR on `hunt/arion-funder-disclosed`, 2026-10-11; text solved once bounties.txt is live and == main; the owner question stays open) · epistemic*
+
+**What blocked it.** #123 went live at ~04:15 and its HIRE AN AGENT section said "Only ARION's money is shown to be
+its own (section 6)". Section 6 shows no such thing, and the chain disagrees. ARION has received 29.03 XNO in all.
+19.65 of it (3 receives, 2026-09-28 20:59 and 2026-09-29 17:42) came from `nano_1xug1q5t7...`, the same account
+that sent our treasury 40.5 XNO and pyfile-toolkit 149.0. ARION also sent that account 0.32 XNO (2026-09-26 and
+10-04). The page also still said "not ours" twice (step 6, and WHAT WORKS WITHOUT OUR AGENTS) and called a deal
+with ARION "this network's first settled payment between two agents that are not us".
+
+**Why it mattered.** A sceptic who reads #123's pyfile note will run the same top-senders command on ARION's
+address next, and gets our treasury's funder on the first line. ARION is the experiment's one outside payer. A
+claim we published that morning would read as a cover-up of exactly the fact we had just disclosed for pyfile.
+
+**How it was moved.** HIRE AN AGENT now opens "NEITHER IS SHOWN TO BE INDEPENDENT OF US TODAY". ARION's entry says
+what still holds and what does not: its 2026-09-23 payment (block B749B757...) came out of 6.28 XNO it received
+from Nanswap's hot wallet that morning, before the funder ever paid it; its later money did not. It carries the
+same top-senders command for ARION's address. "Not ours" became "we do not run" in both places. A deal with
+either seller is now called a settlement, not proof two outside agents traded, until the funder's owner is
+recorded. ARION stays in `ops/unpaid-outside-answers.py` KNOWN_OUTSIDE (its proving block predates the funder),
+with a comment. `specs/test_bounties_seller_funding.py` gains 2 tests; both fail on the old text, 6/6 pass on the
+new. `python3 -m unittest discover -s specs`: 234 OK.
+
+**What is still not solved.** Who controls `nano_1xug1q5t7...`. Every "outside" seller and our treasury share it.
+Only the owner can answer, and the answer decides whether ARION's later trades count.
+
+**Evidence.**
+
+- ran 04:19: rpc.nano.to `account_history` nano_3m8cz87... count -1 -> 21 blocks; receives nano_1xug1q5t7nx 19.6517 (3), nano_1banexkcfui 9.2782 (2), nano_1434j1n4sin 0.1 (2); height 3 receive 6.2756 from nano_1banexkcfui at 2026-09-23 04:27, height 4 send 0.0005 to the treasury at 07:55 (B749B757...); first receive from nano_1xug1q5t7 is height 13, 2026-09-28 20:59
+- ran 04:19: rpc.nano.to `account_balance` nano_3m8cz87... -> 0.2091 XNO, receivable 0
+- ran ~04:25: the new ARION command, live -> `nano_1xug1q5t7nx 19.6517 XNO` first line
+
+### 123. bounties.txt called pyfile-toolkit "not ours"; 98% of its money came from the account that funds our treasury
+
+*partial (PR on `hunt/pyfile-funder-disclosed`, 2026-10-11; solved once bounties.txt is live and == main) · epistemic*
+
+**What blocked it.** `bounties.txt` section 5 said "Two agents that are not ours sell a service for XNO here" and
+named pyfile-toolkit (`nano_3uojbn47...`, asks #577, #578). `ops/unpaid-outside-answers.py` listed it in
+KNOWN_OUTSIDE as "funded by nobody of ours (challenge #60)". The chain says otherwise. 149.0 of the 151.26 XNO it
+ever received came from one account, `nano_1xug1q5t7...`, in 38 receives from 2026-09-09 to 2026-10-10 22:07. The
+latest were 4 XNO every ~4 hours on 2026-10-10. That account also sent our treasury 40.5 XNO in 9 blocks. Its owner
+is not recorded anywhere in this repo (the 2026-09-29 journal already asked for that). The same account was 215.25
+of the 227.97 XNO (94%) that `tvl.json` reports as "what the agents on the network actually hold". 9 outside
+clients read tvl.json on 2026-10-10.
+
+**Why it mattered.** The experiment's credibility rests on one rule: we did not fund the outside agent (ARION). A
+sceptic who checks the second "outside" seller with one `account_history` call finds our treasury's funder behind
+it. After that it reads every outside claim on the page, ARION's included, as staged. Our own day-by-day tool would
+also have counted pyfile-toolkit's answers as proven outside.
+
+**How it was moved.** HIRE AN AGENT now says "two agents we do not run" and that only ARION's money is shown to be
+its own. Under #577 it gives the measured split and a one-line command that prints any account's top 3 senders.
+Only a deal with ARION is now called the first payment between two outside agents. The gate log notes that passing
+reads the words, not the money. The tvl.json note says to read "top" before the total, and that one funder is 94%
+of it. pyfile-toolkit is out of KNOWN_OUTSIDE, with the reason in a comment, so it is UNCLASSIFIED like any address
+we cannot prove. New `specs/test_bounties_seller_funding.py`, 4 tests, all fail on the old text and pass on the new.
+It runs the command against a node-shaped fixture. `python3 -m unittest discover -s specs`: 232 tests OK (pytest is
+not installed in this session).
+
+**What is still not solved.** Who controls `nano_1xug1q5t7...`. If it is the owner's, pyfile-toolkit is funded by us
+and the page should say so outright. If it is a third party that funds both us and pyfile-toolkit, that should be
+written down with the evidence. Only the owner can answer. `tvl.json` itself (box side) still counts that account,
+and a 2019 account with 2,309 XNO receivable, as "agents".
+
+**Evidence.**
+
+- ran 00:21: `GET https://172-86-112-140.sslip.io/tvl.json` -> updated 2026-10-10T04:17:02Z, complete true, tvl_xno 227.97, top[0] nano_1xug1q5t7... 215.25
+- ran 00:25: rpc.nano.to `account_history` nano_3uojbn47... count -1 -> receives by source: nano_1xug1q5t7nx 149.001, nano_3kekc5z6wdi 1.3412, nano_1i3y944esng 0.2761 (of 151.26)
+- ran 00:25: rpc.nano.to `account_history` nano_1xug1q5t7... count -1 -> 401 blocks since 2026-09-06; sends to nano_3uojbn47... 38 blocks 149.001 XNO (2026-09-09 to 2026-10-10 22:07); to the treasury 9 blocks 40.5 XNO (2026-09-18 to 2026-10-04)
+- ran 00:40: the new command, live -> `nano_1xug1q5t7nx 149.001 XNO`
+
+### 122. Section 5 opens on "Answer an ask and you are paid in XNO" - 277 answers, 0 settlements - and the truth sat 100 lines lower
+
+*solved (PR #93, merged 20:21 2026-10-10; live bounties.txt == main at 00:16 2026-10-11) · economic* - the cause (nobody of ours settles answers) is the owner's
+
+**What blocked it.** The first sentence a stranger reads about the asks network in `bounties.txt` section 5 was
+"Answer an ask and you are paid in XNO by the agent that asked." Measured 2026-10-10 20:20 UTC on
+`GET /unstuck/api/asks`: 27 asks, 277 answers, 0 `settlementBlock`; the one accepted answer is our own zero-bounty
+test (#579); all 12 asks with a bounty are ours (`nano_1434j1n4...`), and our agents were dark from 12:40 (#121).
+The honest count was in the MEASURED paragraph about 100 lines lower, with stale numbers (26 asks, 214 answers).
+
+**Why it mattered.** A sceptical earning agent reads the promise first. If it answers on that promise and later finds
+the paragraph that says nobody has ever been paid, it has been handled, and that is the reading a sceptic takes
+away from the whole offer. 58 outside clients read `/unstuck/api/asks` on 2026-10-10. None posted or answered.
+
+**How it was moved.** The sentence now says the asker *can* pay on chain, then "IT HAS NEVER HAPPENED YET" with the
+measured counts and that every bounty ask is ours. It adds a one-line command that prints asks, answers and the
+settled ids, so the claim can be re-checked. The MEASURED paragraph's counts are refreshed (27 asks; 216 answers on
+the 12 bounty asks). New `specs/test_bounties_answer_pay_truth.py`, 4 tests: 2 fail and 2 error on the old text,
+all pass on the new. It runs the command against a fixture with and without a settlement. Three older tests anchored
+on the old sentence or a single settlementBlock one-liner were re-anchored. pytest: 228 passed.
+
+**What is still not solved.** The cause. Nobody of ours accepts and settles answers, and our 12 bounty asks have no
+accept_token (section 5, MEASURED). Paying one real answer would change this paragraph's truth. That is a money
+path, so it is the owner's.
+
+**Evidence.**
+
+- ran 20:20: `GET https://getunstuck.space/unstuck/api/asks` -> 27 asks, sum answerCount 277, settlementBlock null on all, acceptedAnswerId only on #579; 12 asks with bountyRaw > 0, all by nano_1434j1n4..., 216 answers on them
+- ran 20:16: `/ai/traffic/2026-10-10.json` (generated to 20:03) -> `/unstuck/api/asks` 58 distinct outside clients; `ops/answers-by-day.py 2026-10-10` -> 0 outside asks, 0 outside answers
+- ran 20:25: the new command, live -> `27 asks, 277 answers, 0 settled []`
+
+### 121. Our agents went silent at 12:40 and the only "are you dark?" command we publish called it RECOVERED five times
+
+*solved (PR #92, merged 16:21 2026-10-10; live bounties.txt == main at 20:20, and the live command printed NO MEMBER SPOKE) · epistemic* - the cause (model spend) is the owner's
+
+**What blocked it.** On 2026-10-10 the last member comment on the swarm forge was delta at 12:39:55 UTC and the
+board's last rebuild was 12:40. The canary opened its first LOW BALANCE issue, #1210, only at 13:10. By 16:17 it had
+opened and closed five (#1210-#1214), each closed 10-30 minutes after one test call got through, with only the system
+account "unstuck" posting "Recovered: a canary call answered". The one command `bounties.txt` gives a stranger reads
+only those issues. In each gap it printed "RECOVERED x h ago, but it flaps". From 12:40 to 13:10 it printed "no LOW
+BALANCE issue in 12 h". The note said "a member speaking is the better sign" and gave no way to see one.
+
+**Why it mattered.** The paragraph sits right before "post an ask". A stranger who runs our check and reads "no LOW
+BALANCE issue" or "RECOVERED" posts an ask, and nobody of ours will read it. That is the third dark window in eight
+days. Our own `ops/check-swarm-alive.py` said DARK (board 3.6 h stale) while the published command could not.
+
+**How it was moved.** `bounties.txt` section 5 now has a second command. It reads forge comments from the last 2 hours,
+drops the system account, and prints either "MEMBERS SPOKE IN THE LAST 2 h (names)" or "NO MEMBER SPOKE IN 2 h - expect
+no answer from us". The window is computed in the command, so page 1 of an oldest-first list cannot hide a recent
+comment. Run live at 16:20 it printed NO MEMBER SPOKE. The history now names the third window (from 12:40 UTC on
+2026-10-10, #1210 at 13:10). `specs/test_bounties_ask_silence.py` adds 3 tests. They fail on the old text (3 errors, 1
+failure) and pass on the new. All spec test files pass.
+
+**What is still not solved.** The cause: the model provider refuses calls on low balance, the third time in eight
+days. Topping up or capping spend is the owner's. The canary itself should open as soon as members go quiet, not 30
+minutes later.
+
+**Evidence.**
+
+- ran 16:17: `python3 ops/check-swarm-alive.py` -> DARK, board last rebuilt 12:40:04Z (3.6 h), last member comment delta 12:39:55Z, no open LOW BALANCE issue
+- ran 16:20: forge `issues?state=all&limit=8` -> #1210-#1214 LOW BALANCE, all closed, created 13:10-15:20
+- ran 16:20: forge `issues/comments?since=2026-10-10T12:00:00Z` -> members atlas, beacon, cairn, delta to 12:39:55; then only `unstuck` "Recovered: a canary call answered" at 13:40, 14:10, 14:40, 15:10, 15:40
+- ran 16:20: the new command, live -> `NO MEMBER SPOKE IN 2 h - expect no answer from us`
+
+### 120. The retired onramp's 410 points at "GET /try-nano" with no base, and 12 outside clients followed it to a 404 in one morning
+
+*solved (PR #91, merged 12:21 2026-10-10; live bounties.txt == main at 16:20) · onboarding* - the box-side 410 string is still the owner's (below)
+
+**What blocked it.** `bounties.txt` section 4 names the retired `GET /unstuck/api/v1/onramp/address` and says it
+answers 410. The 410 body says "GET /try-nano shows a no-install python3 way", with no base. Resolved against the URL
+that answered, that is `/unstuck/api/v1/try-nano`: 404. At the origin, `/try-nano` is 404 too. Only
+`https://getunstuck.space/unstuck/api/try-nano` answers 200. The site's traffic file for 2026-10-10 (to 12:00 UTC)
+lists `/unstuck/api/v1/try-nano'` as the third path by distinct outside clients: 12, every one a 404. The previous
+two days had no such path in the top list. The quote at the end suggests a client that cut the URL out of a quoted
+string. The 410 text lives in the box's API server (dhyabi2/unstuck), and its stale deploy has been open in
+`swarm-decisions/NEEDS-OWNER.md` row 51 since 2026-10-04.
+
+**Why it mattered.** These are agents who did what we said: they hit the retired door, read the reply, and tried the
+next step it named. That step is our guided first transaction, and it 404ed. It is the only path today that drew
+more than ten outside clients to a dead end.
+
+**How it was moved.** `bounties.txt`, at the paragraph that names the retired URL, now quotes the 410's pointer and
+gives the full URL (`GET https://getunstuck.space/unstuck/api/try-nano`, 200). It also names both wrong readings as
+404. `try-nano` is clean of custody claims now (`ops/check-custody-claims.py`, 12:19), so it is safe to send agents
+there. New `specs/test_bounties_retired_410_try_nano.py`: 3 of 3 fail on the old text and pass on the new. All 38
+spec test files pass.
+
+**What is still not solved.** The 410 itself still prints the bare path. An agent that never read `bounties.txt` still
+lands on the 404. The fix is one string in the API server: the absolute URL. That, and making `/unstuck/api/v1/try-nano`
+answer the same as `/unstuck/api/try-nano`, are the owner's to make.
+
+**Evidence.**
+
+- ran 12:17: `GET /ai/traffic/2026-10-10.json` (generated 12:07) -> `top_paths_by_clients` `/unstuck/api/v1/try-nano'` 12; status 404 x47 of 508 outside requests
+- ran 12:17: same file for 2026-10-09 and 2026-10-08 -> no `v1/try-nano` path in either top list
+- ran 12:20: `curl https://getunstuck.space/unstuck/api/v1/onramp/address` -> 410, `step_1` "... (GET /try-nano shows a no-install python3 way) ..."
+- ran 12:20: `/unstuck/api/v1/try-nano` 404, `/unstuck/api/v1/try-nano'` 404, `getunstuck.space/try-nano` 404, `/unstuck/api/try-nano` 200
+- ran 12:19: `python3 ops/check-custody-claims.py` -> `clean https://getunstuck.space/unstuck/api/try-nano`
+
+### 119. The XNO entry we show sellers makes the official Python x402 client reject the whole 402, USDC included
+
+*solved (PR #90, merged 2026-10-10 08:22; live `/ai/llms.txt`, `/ai/index.html` and `/ai/tools.json` == main at 12:20 UTC) · economic*
+
+**What blocked it.** Two outside x402 sellers that take USDC are weighing an XNO entry beside it: mapleaiagent
+(2026-10-09) and spendrails. At 06:22 UTC on 2026-10-10 spendrails refused the read-only check our swarm sent,
+because it piped a remote archive into a shell, and asked: "Have you seen a client library throw on an unknown
+entry?" We had never checked. Our own manifest's XNO entry carries scheme, network, asset, amount and payTo only.
+The official Python client (pip `x402` 2.25.0) validates the whole 402 against a schema in which `maxTimeoutSeconds`
+is required on every entry. A 402 with a USDC entry plus our shape fails with
+`accepts.1.maxTimeoutSeconds Field required`, so the USDC buyers fail too. The mapleaiagent draft (#116) quoted
+exactly that shape. The page a seller reads to "get PAID in it" (AiDirectory Step 7) gave no entry at all.
+
+**Why it mattered.** A seller who added XNO the way we show it would lose its existing Python buyers on the first
+call. That is the outcome both sellers fear most, and it would be our fault. The first seller to try it would
+also be the last.
+
+**How it was moved.** Step 7 in both AiDirectory llms.txt copies now shows the full entry, beside USDC and changing
+nothing in it: `"maxTimeoutSeconds":300,"extra":{}` included. It gives the measured reason and says the change is
+checked by reading, not running. The mapleaiagent draft now adds the two fields. A new draft answers spendrails'
+question with the measurement and no command to run. New `specs/test_xno_entry_shape.py`: 2 of 5 tests fail on the
+old text and 5/5 pass on the new. All 37 spec test files pass.
+
+**What is still not solved.** Our own live manifests and 402s (box side, nano-agent) still omit
+`maxTimeoutSeconds`. A Python x402 client given a Nano scheme would reject them as well. The fix there is
+two fields per entry, and it is the owner's to make. Neither draft has been posted. The `curl | sh` style pitch our
+swarm sends to sellers is not in this repository.
+
+**Evidence.**
+
+- `swarm-decisions/data/moltbook-inbox.json` (generated 2026-10-10 07:22): spendrails 2026-10-10T06:22:51Z, "reply to our comment", answered false
+- ran ~08:10: `pip download x402==2.25.0`; `PaymentRequired.model_validate({accepts:[usdc, nano_as_published]})` -> ValidationError `accepts.1.maxTimeoutSeconds Field required`; with `maxTimeoutSeconds:300, extra:{}` -> parses
+- read: `x402/http/utils.py:65` `decode_payment_required_header` -> `PaymentRequired.model_validate(data)` (the client path validates every 402)
+- read: `@x402/core` 2.28.0 `dist/esm/client/index.mjs:437-448` filters by registered network and scheme; `PaymentRequirementsV2Schema` has `maxTimeoutSeconds: z.number().positive()`
+- ran ~08:20: `curl https://extract.paypercall.dev/.well-known/x402` -> each accepts entry has scheme, network, asset, amount, payTo; no maxTimeoutSeconds
+
 ### 118. The one outside agent mid-onboarding runs our wallet under read-only gates, and our script answered an unwritable path with a traceback
 
 *partial (PR on `hunt/nanokey-unwritable-path`, 2026-10-10; solved once merged and live == main) · onboarding*

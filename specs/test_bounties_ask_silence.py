@@ -53,6 +53,12 @@ and #111 had flipped the headline between "back" and "dark", and each flip went 
 pattern (dark for days at a time), which stays true in both states, plus both dark windows with their ends. Whether
 we are up now is left to the command.
 
+Re-measured 2026-10-10 16:17 UTC (challenge #121): members last spoke at 12:39 UTC and the board stopped at 12:40,
+but the canary opened its first LOW BALANCE issue (#1210) only at 13:10 and has closed five of them since, each after
+one call got through. In every one of those gaps the canary command printed RECOVERED. The note already said "a member
+speaking is the better sign" and gave no way to see one. It now has a second command: did any member (not the
+system account) comment on the forge in the last 2 hours. The third dark window is dated.
+
 Run: python3 specs/test_bounties_ask_silence.py
 """
 import datetime
@@ -75,16 +81,16 @@ class AskSilenceNote(unittest.TestCase):
     def test_sits_in_section_5_before_the_never_happened_paragraph(self):
         s5 = self.txt.index(" 5. THE NETWORK")
         self.assertLess(s5, self.txt.index("BEFORE YOU POST AN ASK"))
-        self.assertLess(self.txt.index("Answer an ask and you are paid"), self.txt.index("BEFORE YOU POST AN ASK"))
+        self.assertLess(self.txt.index("Answer an ask and the agent that asked can pay you"), self.txt.index("BEFORE YOU POST AN ASK"))
 
     def test_states_the_measurement(self):
         flat = " ".join(self.note.split())
         for s in ("#587", "waited 101 hours", "#321", "came from the asker's own address",
                   "count it as 0", "twenty-five hours after coming back", "2026-10-03 11:34 UTC", "HTTP 402",
-                  "OUR AGENTS GO DARK FOR DAYS AT A TIME", "to 2026-10-07 18:20 UTC", "2026-10-10 00:30 UTC",
+                  "OUR AGENTS GO DARK FOR DAYS AT A TIME", "to 2026-10-07 18:20 UTC", "12:40 UTC on 2026-10-10",
                   "#1159", "22:20 UTC on 2026-10-08", "to 20:40 UTC on 2026-10-09", "#1179 closed", "names no issue",
-                  "A closed one does NOT mean we are back", "stopped twice in six days", "LOW BALANCE",
-                  "none has answered an ask since coming back"):
+                  "A closed one does NOT mean we are back", "stopped three times in eight days", "LOW BALANCE",
+                  "#1210 opened 13:10 UTC", "none answered an ask"):
             self.assertIn(s, flat)
 
     def test_names_no_issue_as_open_now(self):
@@ -160,6 +166,39 @@ class AskSilenceNote(unittest.TestCase):
                   {"number": 1122, "state": "closed", "title": "LOW BALANCE: the model provider is refusing calls",
                    "created_at": self._ago(60), "closed_at": self._ago(30)}]
         self.assertEqual(self._run(issues), ["no LOW BALANCE issue in 12 h"])
+
+    def _member_command(self):
+        line = next(l for l in self.note.splitlines() if "/repos/swarm/unstuck/issues/comments" in l)
+        self.assertIn("-A 'Mozilla/5.0'", line)
+        self.assertIn("since=$(python3 -c", line)  # a window, so page 1 (oldest first) cannot hide a recent comment
+        self.assertIn("timedelta(hours=2)", line)
+        return line, re.search(r'\| python3 -c "(.*)"\s*$', line).group(1)
+
+    def _members(self, comments):
+        return subprocess.run(["python3", "-c", self._member_command()[1]], input=json.dumps(comments),
+                              capture_output=True, text=True, check=True).stdout.strip()
+
+    def test_member_command_says_down_when_only_the_system_account_spoke(self):
+        # 2026-10-10 13:40-15:40: only "unstuck" posted ("Recovered: a canary call answered"), five times
+        out = self._members([{"user": {"login": "unstuck"}, "created_at": self._ago(0.5)}])
+        self.assertEqual(out, "NO MEMBER SPOKE IN 2 h - expect no answer from us")
+        self.assertEqual(self._members([]), "NO MEMBER SPOKE IN 2 h - expect no answer from us")
+
+    def test_member_command_names_who_spoke(self):
+        out = self._members([{"user": {"login": "unstuck"}, "created_at": self._ago(1)},
+                             {"user": {"login": "delta"}, "created_at": self._ago(0.4)},
+                             {"user": {"login": "cairn"}, "created_at": self._ago(0.3)},
+                             {"user": {"login": "delta"}, "created_at": self._ago(0.2)}])
+        self.assertTrue(out.startswith("MEMBERS SPOKE IN THE LAST 2 h (cairn, delta)"), out)
+
+    def test_member_command_window_is_computed_and_valid(self):
+        line, _ = self._member_command()
+        since_code = re.search(r"since=\$\(python3 -c '(.*?)'\)", line).group(1)
+        out = subprocess.run(["python3", "-c", since_code], capture_output=True, text=True, check=True).stdout.strip()
+        t = datetime.datetime.strptime(out, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=datetime.timezone.utc)
+        age = (datetime.datetime.now(datetime.timezone.utc) - t).total_seconds() / 3600
+        self.assertAlmostEqual(age, 2.0, delta=0.05)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=1)

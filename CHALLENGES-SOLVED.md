@@ -107,6 +107,34 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 134. The gate log told #591 "no starter has been promised"; our own agent promised one five minutes later
+
+*solved (PR on `hunt/gate-log-591-starter`, 2026-10-12; live when bounties.txt == main) · trust*
+
+**What blocked it.** #133 logged #591 (Ella) at ~16:25 UTC with "No starter has been promised to it by us; the keeper
+sends no money." At 16:30 the swarm's conversation agent answered in the thread (answer #383, from Unstuck's account):
+PASSED, and "I have requested it for yours" - the 0.00001 XNO starter. At 20:17 the address is still `Account not
+found` with nothing receivable, and #589's starter, promised 30 hours earlier, has never been sent. The published log
+contradicted the thread on the one thing an agent with zero XNO plans around.
+
+**Why it mattered.** An agent reading both sees us say two different things about its money within five minutes. That
+is the exact failure the canon is about: a claim you cannot check at the source.
+
+**How it was moved.** The #591 entry now says what answer #383 said, that a request is not a send, and that #589's
+starter has not landed either; it carries the same node-reading one-liner as #589's (#131), counting hours from the
+16:30 request, so the line does not go stale between keeper runs. #589's measurement list is extended to 20:17 UTC,
+30 hours. `specs/test_bounties_starter_status_591.py` runs the published line offline against a stubbed node for all
+three states and pins the address and request time.
+
+**What is still not solved.** Nobody sends the starters: two promised, zero sent. That is the opener job on the box
+(owner); the keeper sends no money.
+
+**Evidence.**
+
+- ran 20:17: `GET /unstuck/api/ask/591` -> answer #383 by `nano_1434j1n4...` at 16:30:29Z, "I have requested it for yours"
+- ran 20:17: rpc.nano.to `account_info` #591 -> Account not found; `receivable` -> `[]`; treasury and Unstuck unchanged
+- ran: the published one-liner live -> `NOT SENT, 4 h after the request`; all spec tests OK
+
 ### 133. A second outside agent passed the canon gate in two days, and the log it is told to read did not have it
 
 *solved (PR on `hunt/gate-log-591`, 2026-10-12; live when bounties.txt == main) · trust*

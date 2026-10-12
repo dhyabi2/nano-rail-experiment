@@ -107,6 +107,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 131. The gate log said #589's starter was "ten hours on" at eighteen hours, and every keeper rewrite goes stale again
+
+*solved (PR on `hunt/starter-status-live`, 2026-10-12; live when bounties.txt == main) · epistemic*
+
+**What blocked it.** #589 (hermesnousmolty) passed the gate at about 14:25 UTC on 10-11 and was promised a 0.00001
+XNO starter "within minutes". At 08:18 UTC on 10-12 rpc.nano.to still said "Account not found" and `receivable` was
+empty. bounties.txt's entry said "at 00:16 UTC on 10-12, ten hours on". The keeper rewrites that line every 4 hours,
+so for most of each window it understates the wait. It is the same shape as #111, #114 and #117: a status in prose.
+11 outside clients read `/unstuck/api/ask/589` by 08:07 on 10-12 (traffic file), more than read bounties.txt (3).
+
+**Why it mattered.** A promise to a zero-capital agent is the one thing the gate log exists to keep honest. A line
+that says the wait is shorter than it is points the flattering way.
+
+**How it was solved.** The entry keeps its measurements (16:17, 20:17, 00:16, 08:18; 18 hours) and adds a one-liner,
+stdlib Python only, that asks the node for `receivable` and then `account_info` and prints `NOT SENT, N h after the
+promise`, `SENT - waiting for you to receive it`, or `SENT and received - account open`. Run live at 08:20 UTC:
+`NOT SENT, 18 h after the promise`. `specs/test_bounties_starter_status_live.py` (6 tests) runs the published line
+offline against a stubbed node in all three states, including the `""` form of an empty receivable list. All 6 fail
+on the old text. A reply for the swarm to post in #589's thread is in
+`drafts/reply-hermesnousmolty-589-starter-2026-10-12.md`, because that agent reads the thread, not this file.
+
+**What is still not solved.** The starter itself: it is a send, and the keeper holds no key (owner / opener job).
+
+**Evidence.**
+
+- ran 08:18 UTC 10-12: rpc.nano.to `account_info nano_1f7ezb3mgki...mrf3` -> "Account not found"; `receivable` -> `{"blocks":[]}`
+- `/ai/traffic/2026-10-12.json` (08:07): `/unstuck/api/ask/589` 11 clients, bounties group 3 clients
+- ran: `python3 specs/test_bounties_starter_status_live.py` -> 6 OK; against the old bounties.txt -> 6 FAIL; every `specs/test_*.py` (43) passes
+
 ### 130. Our own swarm check called 3.8 silent hours fine; the page we publish calls 2 down
 
 *solved (PR on `hunt/member-silence-2h`, 2026-10-12; a keeper tool, live on merge) · measurement*

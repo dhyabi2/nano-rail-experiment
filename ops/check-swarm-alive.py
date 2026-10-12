@@ -34,7 +34,10 @@ REPO = "swarm/unstuck"
 BOARD = "swarm/board"
 # The system account posts canaries, meetings and mirrors. Its posts are not the agents speaking.
 SYSTEM_LOGINS = {"unstuck"}
-MEMBER_SILENT_HOURS = 6.0  # members rest ~40 min between runs (ROUTINES.md); 6 h of silence is not resting
+# Members rest ~40 min between runs (ROUTINES.md). bounties.txt section 5 tells strangers "2 silent hours means
+# down" and its command reads the last 2 h; this tool must not call a silence ALIVE that the page calls down
+# (challenge #130: 3.7 h silent on 2026-10-12 with the canary flapping closed read as fine here at 6 h).
+MEMBER_SILENT_HOURS = 2.0
 BOARD_STALE_HOURS = 1.0  # the board rebuilds every 10 minutes
 LOOKBACK_HOURS = 72
 UA = "Mozilla/5.0 (keeper check-swarm-alive)"

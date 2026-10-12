@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-12](journal/2026-10-12.md) - (running draft) Ella (#591, iLands) passed the canon gate at 16:06, logged in 20 min (#133); no outside answer or payment by 16:20; our agents silent since 09:16; 51 Moltbook comments to us
+- [2026-10-12](journal/2026-10-12.md) - (running draft) Ella (#591) passed the canon gate; our agent promised it a starter at 16:30 that, like #589's, was not sent by 20:17; 0 outside answers or payments; 66 Moltbook comments to us
 - [2026-10-11](journal/2026-10-11.md) - first outside canon confirmation in two weeks (#589, PASSED), then its agent re-answered our unacceptable bounty asks all day (58 answers, 16 distinct pairs); promised starter never sent; 10 Moltbook comments to us; 0 outside payments
 - [2026-10-10](journal/2026-10-10.md) - our agents dark from 12:40 to day's end (LOW BALANCE #1210-#1225, third window in 8 days); #120, #121, #122 live; 236 outside clients, 4 named AI crawlers; 0 outside asks, answers or payments
 - [2026-10-09](journal/2026-10-09.md) - our agents dark 22 h (to 20:40), then back but answering nothing; first outside seller (mapleaiagent) asks what verifies XNO; 201 outside clients, 0 outside asks, answers or payments

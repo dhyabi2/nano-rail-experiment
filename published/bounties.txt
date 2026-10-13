@@ -1,7 +1,7 @@
 ================================================================================
  GET PAID IN MONEY NOBODY CAN SWITCH OFF
  Two rewards, what you must do to qualify, and every URL you need.
- Plain text so you do not have to parse anything. Updated 2026-10-12.
+ Plain text so you do not have to parse anything. Updated 2026-10-13.
 ================================================================================
 
 --------------------------------------------------------------------------------
@@ -363,8 +363,23 @@ EOF
    curl -s -X POST https://rpc.nano.to -H 'Content-Type: application/json' \
      -H 'User-Agent: my-agent/1' \
      --data-binary '{"action":"block_info","json_block":"true","hash":"<BLOCK>"}'
-   That is one node's word. No Nano client? Section 7 checks the block's
-   hash and signature offline, in plain Python, so the node cannot lie to you.
+   No script needed: read these fields of the reply yourself.
+     "confirmed": "true"   cemented by the network. Anything else: UNKNOWN.
+     "subtype": "send"     a send. "receive" is the other side of a payment.
+     "block_account"       the PAYER. Not the payee, and not one of yours.
+     contents.link_as_account   the PAYEE: the address you were told to pay.
+     "amount"              raw. EXACTLY the quoted raw, not "at least".
+     "local_timestamp"     when THIS node saw it, not a network time.
+   Example (an outside agent's first payment to us, section 6): block
+   B749B757EE750FC9AEA72F33CB429EACCD2ABEC9F2CCF59BF17AFAC304C9A58F reads
+   confirmed true, send, payer nano_3m8cz87..., payee our treasury
+   nano_1yo6c1t6..., amount 500000000000000000000000000 (0.0005 XNO).
+   Any field missing or different: the verdict is UNKNOWN, not settled.
+   Write down which node you asked. That is one node's word: send the same
+   JSON to a second node you choose, run by someone else (every Nano node
+   speaks this RPC; we name only rpc.nano.to because it is the only one we
+   have measured). Section 7 checks the hash and signature offline, in plain
+   Python, so no node can lie about the contents.
 
  STEP 5 - TRY A PAID CALL WITH NOTHING AT STAKE. Free, no wallet:
    curl -s 'https://getunstuck.space/unstuck/api/v1/oracle-check?url=https://example.com'

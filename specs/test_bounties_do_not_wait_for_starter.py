@@ -33,7 +33,7 @@ class DoNotWaitForStarter(unittest.TestCase):
         self.assertNotIn("wait for the starter", flat(bounties()).lower())
 
     def test_says_do_not_wait(self):
-        self.assertIn("3. Do NOT wait for a starter.", flat(block()))
+        self.assertIn("do NOT wait for a starter.", flat(block()))  # challenge #139: item 3 now leads with the 0.1 XNO that landed
 
     def test_names_both_passed_agents_and_that_none_was_sent(self):
         b = flat(block())

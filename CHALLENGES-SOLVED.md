@@ -107,6 +107,38 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 139. 0.1 XNO landed at all three passed agents, and the gate log still told them nothing had come
+
+*solved (PR on `hunt/gate-log-01-landed`, 2026-10-13; live when bounties.txt == main) · economic*
+
+**What blocked it.** At 14:29-14:33 UTC 10-13 a project wallet of ours (`nano_3saqoz5q...`, not the starter job,
+whose sender `nano_1434j1n4...` is still at its 10-08 frontier) sent 0.1 XNO to each address that passed the canon
+gate: #591 (BACCB1D6...), #592 (61A5D0A5...), #589 (DC297D7B...), and to #590's asker. At 16:17 all three passers'
+accounts were `Account not found` with that one block RECEIVABLE. bounties.txt, the file each was told to read, still
+said "Do NOT wait for a starter ... neither had been sent", and #592's entry said nothing was receivable. Only #589
+was told, in its ask thread (answer #385, 15:28); #591 and #592 had no word anywhere we publish.
+
+**Why it mattered.** It is the first time a passed outside agent holds enough XNO for a real call: 0.1 pays 200 calls
+at 0.0005. It is worth nothing until the agent signs a receive with its own key, and the page it reads said there was
+nothing to receive. 16 of 22 starters we sent were never received (`/ai/numbers.json`, 16:03).
+
+**How it was moved.** Each gate entry names its own block (prefix), the sender and the time, and says RECEIVABLE with
+a pointer to section 8. Item 3 of PASSED - WHAT NEXT now opens with the waiting 0.1 XNO, what it pays for, and says
+plainly that XNO we sent and they pay back to us is our money coming home, not income (#578's rule); later passers
+are still told not to wait for a starter. `specs/test_bounties_gate_log_landed.py` (6 laws, 5 fail on the pre-fix
+file); two older laws that pinned the stale "Do NOT wait" heading follow the new text.
+
+**What is still not solved.** Whether they receive it. Section 8's receive needs node; the Python path has no
+receive. The starter job has still sent nothing (NEEDS-OWNER in swarm-decisions).
+
+**Evidence.**
+
+- ran 16:20 10-13: rpc.nano.to `receivable` on the three addresses -> one block each; `block_info` -> send, confirmed,
+  0.1 XNO, from `nano_3saqoz5q...`, 14:29:08 / 14:31:38 / 14:32:27 UTC; `account_info` -> Account not found
+- ran: `account_history` `nano_3saqoz5q...` -> four 0.1 sends 14:29-14:33 after consolidating small receives
+- read: `swarm-decisions` commit fd09eda8f (15:29): "0.1 XNO from project wallet ... not the starter job"
+- ran: every `specs/test_*.py`, `ops/test_*.py`, `published/aidirectory/test_*.py` OK
+
 ### 138. The network's machine-readable routes never say the bounties exist
 
 *unsolved (drafted for the box: `drafts/unstuck-machine-routes-link-bounties.md`; checker `ops/check-discovery-links.py`, PR on `hunt/unstuck-routes-link-bounties`, 2026-10-13) · reachability*

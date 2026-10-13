@@ -41,7 +41,7 @@ class GateLog592(unittest.TestCase):
 
     def test_do_not_wait_step_counts_three(self):
         txt = bounties()
-        block = " ".join(txt[txt.index("3. Do NOT wait for a starter."):txt.index("None of this pays today")].split())
+        block = " ".join(txt[txt.index("   3. #589, #591, #592"):txt.index("None of this pays today")].split())
         for ask in ("#589", "#591", "#592"):
             self.assertIn(ask, block)
 

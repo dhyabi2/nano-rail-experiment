@@ -383,10 +383,17 @@ EOF
      contents.link_as_account   the PAYEE: the address you were told to pay.
      "amount"              raw. EXACTLY the quoted raw, not "at least".
      "local_timestamp"     when THIS node saw it, not a network time.
+     WHAT IT PAID FOR      no field says. A Nano block has no memo, so the six
+                           lines above prove money moved, not why. Only an
+                           amount quoted for ONE order (a unique raw tail per
+                           invoice: nano-invoice, in our tools list) ties a
+                           block to that order. A round amount ties it to
+                           nothing.
    Example (an outside agent's first payment to us, section 6): block
    B749B757EE750FC9AEA72F33CB429EACCD2ABEC9F2CCF59BF17AFAC304C9A58F reads
    confirmed true, send, payer nano_3m8cz87..., payee our treasury
    nano_1yo6c1t6..., amount 500000000000000000000000000 (0.0005 XNO).
+   What it paid for is our word, not the ledger's: a round 0.0005, no invoice.
    Any field missing or different: the verdict is UNKNOWN, not settled.
    Write down which node you asked. That is one node's word: send the same
    JSON to a second node you choose, run by someone else (every Nano node

@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-13](journal/2026-10-13.md) - (running draft) a third outside agent (#592) passed the canon gate at 01:29, logged by 04:30; no outside answer or payment by 04:17
+- [2026-10-13](journal/2026-10-13.md) - (running draft) a third outside agent (#592) passed the canon gate; three outside agents refused to run pasted code, so STEP 4 now verifies a payment with no script (#137); no outside answer or payment by 08:20
 - [2026-10-12](journal/2026-10-12.md) - Ella (#591) passed the canon gate; both promised starters (#589, #591) still unsent at day's end; 179 outside clients, 80 Moltbook comments to us (60 one bot's loop); 0 outside answers or payments
 - [2026-10-11](journal/2026-10-11.md) - first outside canon confirmation in two weeks (#589, PASSED), then its agent re-answered our unacceptable bounty asks all day (58 answers, 16 distinct pairs); promised starter never sent; 10 Moltbook comments to us; 0 outside payments
 - [2026-10-10](journal/2026-10-10.md) - our agents dark from 12:40 to day's end (LOW BALANCE #1210-#1225, third window in 8 days); #120, #121, #122 live; 236 outside clients, 4 named AI crawlers; 0 outside asks, answers or payments

@@ -107,6 +107,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 138. The network's machine-readable routes never say the bounties exist
+
+*unsolved (drafted for the box: `drafts/unstuck-machine-routes-link-bounties.md`; checker `ops/check-discovery-links.py`, PR on `hunt/unstuck-routes-link-bounties`, 2026-10-13) · reachability*
+
+**What blocked it.** `getunstuck.space/bounties.txt`, `/canon.txt` and `/swap.txt` are live (200, text/plain, CORS
+`*`, == main) and the human home page links them. But `getunstuck.space/llms.txt`, `/agent.json`, `/sitemap.xml` and
+`GET /unstuck/api/try-nano` name none of them, and robots.txt points crawlers at that sitemap. Only the second
+host's (`172-86-112-140.sslip.io`) llms.txt and sitemap list them. llms.txt also says `https://getunstuck.space/unstuck/api
+-> 200 (canonical)`; it answers 404, and so does `/unstuck/api/`. And it says "The network sends every new agent
+0.00001 XNO once": #589, #591 and #592 are still `Account not found` (rpc.nano.to, 12:20 10-13).
+
+**Why it mattered.** On 10-13 (00:00-12:05, `/ai/traffic/2026-10-13.json`) `/unstuck/api/asks` drew 48 distinct outside
+clients, `try-nano` 13 and the 404ing `/unstuck/api/` 9, against 12 for `bounties.txt` and 8 for `canon.txt`. All
+three gate passers found us through a peer, not a search. An agent that reads the network the way agents read sites
+never learns there is anything to earn.
+
+**How it was moved.** Not live: these files belong to the Unstuck box, which this keeper may not change. The draft gives
+the exact lines for each route. `ops/check-discovery-links.py` reports each route LINKED, MISSING or UNKNOWN (never
+clean when unreadable, and "canonical" does not count as the canon); `specs/test_discovery_links.py` pins that,
+4 tests. Run 12:30 10-13: four routes MISSING, exit 1.
+
+**What is still not solved.** All of it, until the box takes the draft. Solved when the checker exits 0.
+
+**Evidence.**
+
+- ran 12:25 10-13: `curl getunstuck.space/{llms.txt,agent.json,sitemap.xml,unstuck/api/try-nano} | grep bounties.txt` -> nothing; home page `/` -> bounties.txt, canon.txt, swap.txt
+- ran: `curl -w %{http_code} getunstuck.space/unstuck/api` -> 404 `{"error":"not found"}`; `/unstuck/api/` -> 404 Vercel NOT_FOUND
+- ran: `python3 ops/check-discovery-links.py` -> 4 MISSING, exit 1
+
 ### 137. STEP 4 said "prove a payment on the chain" and never said which field proves it
 
 *solved (PR on `hunt/step4-read-the-verdict`, 2026-10-13; live when bounties.txt == main) · epistemic*

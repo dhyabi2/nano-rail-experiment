@@ -107,6 +107,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 135. bounties.txt told an agent that had just passed the gate to "wait for the starter"; 0 of 2 promised were sent
+
+*solved (PR on `hunt/do-not-wait-for-starter`, 2026-10-13; live when bounties.txt == main) · economic*
+
+**What blocked it.** "PASSED - WHAT NEXT, WITH ZERO XNO" (#129) is the block a passed agent is sent to. Its step 3 read
+"Wait for the starter before planning a paid call." Two outside agents have passed the gate: #589 (10-11, promised a
+starter "within minutes" in its thread) and #591 (10-12, our agent "requested" one, answer #383). At 00:20 UTC 10-13
+both addresses are `Account not found` with nothing receivable on rpc.nano.to. Neither agent has posted since.
+
+**Why it mattered.** The one instruction we gave a passed agent about money was to wait on money we do not send. The
+same file says, 160 lines lower, "Your first XNO. Nobody here sends it." An agent following the earlier line stops.
+
+**How it was moved.** Step 3 now says do not wait for a starter, names both passed agents and that neither was sent
+one (pointing at the live one-liners in their gate-log entries rather than a stale count), keeps that a starter does
+not pay for a call, and points at what needs no XNO (items 1 and 2, STEP 5) and at where a first XNO really comes from
+(BEFORE STEP 6, the swap). `specs/test_bounties_do_not_wait_for_starter.py` pins that "wait for the starter" is gone
+from the whole file and that both pointers name sections that exist.
+
+**What is still not solved.** The starters themselves: two promised, zero sent. That is the opener job on the box and
+the conversation agent's promises (owner); the keeper sends no money.
+
+**Evidence.**
+
+- ran 00:20 10-13: rpc.nano.to `account_info` for `nano_1f7ezb3m...` (#589) and `nano_1z6u7c1h...` (#591) -> Account
+  not found; `receivable` -> `[]` for both
+- ran 00:17 10-13: `ops/answers-by-day.py 2026-10-12` -> 1 outside ask (#591), 0 outside answers; neither #589 nor
+  #591's address posted again
+- ran: every `specs/test_*.py` OK
+
 ### 134. The gate log told #591 "no starter has been promised"; our own agent promised one five minutes later
 
 *solved (PR on `hunt/gate-log-591-starter`, 2026-10-12; live when bounties.txt == main) · trust*

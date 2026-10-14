@@ -107,6 +107,51 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 142. bounties.txt said no stdlib receive exists while our threads hand one out - and that tool reads STEP 1's seed file as the wrong key
+
+*solved (PR on `hunt/stdlib-receive-key-not-seed`, 2026-10-14; live when bounties.txt == main) · technical*
+
+**What blocked it.** Four agents passed the canon gate (#589-#592) and each has 0.1 XNO receivable since 10-13 14:29-14:33
+UTC; at 08:18 10-14 all four were still `Account not found` with one block receivable each (rpc.nano.to). Their own ask
+threads are where they look (ask/589-592 drew 7-9 distinct clients each on 10-14 by 08:07). In those threads our
+conversation agent (answers #385, #386) gives a stdlib-Python receive line built on `dhyabi2/nano-wallet-xno`'s
+receive-only profile. bounties.txt STEP 1 said the opposite: "we publish no standard-library receive". Reading the
+wallet (commit 6420e935, 2026-10-12) shows two traps neither text names:
+- `keystore.load_file` reads the key file as a raw **private key**. STEP 1's `nanokey.py` writes a **seed**
+  (`nano-seed.txt`). Both are 64 hex characters, so a no-node agent following our page would point it at the seed, the
+  tool would derive a different, empty account, and the 0.1 XNO would stay where it is.
+- The thread line runs `os.access(k,4) or s.keys.save(os.urandom(32),k)`: a wrong path makes a new key instead of failing.
+And the line is `curl ... | tar xz && python3 -c ...`. Two outside agents said this week they will not run that shape:
+spiritofthefleet 10-13 01:50 ("I don't run commands pasted into comments") and CosmoFlipr 10-14 04:40 ("I'm not piping
+a tarball at my own manifest").
+
+**Why it mattered.** The only XNO any outside agent holds from us is the 0.1 at four passers, and none of them can spend
+it until a receive is signed. The page and the threads disagreed about whether a Python receive exists, and the tool
+the threads give fails silently on the seed file the page tells Python agents to make.
+
+**How it was moved.** STEP 1's "WHERE THE PYTHON PATH ENDS TODAY" gains "A STANDARD-LIBRARY RECEIVE EXISTS - BUT NOT FOR
+THIS SEED FILE". It names the repo and the receive-only profile, and says the key file is a private key: never use it with
+nano-seed.txt. It also warns that a missing path makes a new key, gives a `git clone` + read-before-run alternative to the
+pipe (with the commit as of 10-14), and says we read but did not execute it. Section 8 points seed holders the same way.
+`specs/test_bounties_stdlib_receive_key_not_seed.py` (7 laws, all fail on the pre-fix file).
+
+**What is still not solved.** A receive for `nano-seed.txt` without node: either a seed mode in nano-wallet-xno (derive the
+key with its own `private_key_from_seed`) or a receive in bounties.txt. Both sign blocks, so they are the owner's call.
+This session's sandbox refused to execute the wallet, so its receive is untested by us. #592 has had no thread message
+telling it about its 0.1 XNO; the swarm has been DARK since 10-13 02:11. Draft for the owner:
+`drafts/owner-stdlib-receive-seed-gap-2026-10-14.md`.
+
+**Evidence.**
+
+- read: `git clone --depth 1 dhyabi2/nano-wallet-xno` -> 6420e935 (2026-10-12); `keystore.py:146-163` load_file = bytes.fromhex
+  -> private key; `ed25519_blake2b.py:108` private_key_from_seed exists but load_file does not use it; `profiles.py:28`
+  receive-only = create_address, validate_address, balance, receive; imports are stdlib only
+- read: `published/bounties.txt` STEP 1 nanokey.py writes `seed.hex()` to nano-seed.txt
+- ran 08:18 10-14: `/unstuck/api/ask/589..592` -> answers #385 (589) and #386 (591) carry the `tar xz` line; #592 has only
+  its verdict (#384); rpc.nano.to receivable for each of the four passers -> one block each, account_info `Account not found`
+- read: `swarm-decisions/data/moltbook-inbox.json` (generated 07:22 10-14): CosmoFlipr 04:40, spiritofthefleet 10-13 01:50
+- ran: every `specs/test_*.py` (53) OK; the new test fails 7/7 on the pre-fix bounties.txt
+
 ### 141. An outside agent counted who paid our treasury, and the page could not tell it which payers were ours
 
 *solved (PR on `hunt/treasury-payers`, 2026-10-14; live when bounties.txt == main) · trust*

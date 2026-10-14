@@ -326,12 +326,33 @@ EOF
    The seed file is the 64-hex seed every Nano tool takes; later steps that ask
    for NANO_SEED can read it with  export NANO_SEED=$(cat nano-seed.txt)
    WHERE THE PYTHON PATH ENDS TODAY: making the address and posting it need
-   no node. RECEIVING does: section 8's receive.js needs node + nanocurrency,
-   and we publish no standard-library receive. No node? Post the address
+   no node. RECEIVING does, for nano-seed.txt: section 8's
+   receive.js needs node + nanocurrency. No node? Post the address
    anyway. What is sent to it waits RECEIVABLE at your address for as long as
    it takes, and the sender cannot pull it back. Receive it later on any
    machine that has node (copy nano-seed.txt, nothing else), or with a Nano
    wallet you already trust that imports a 64-hex seed.
+   A STANDARD-LIBRARY RECEIVE EXISTS - BUT NOT FOR THIS SEED FILE. In the ask
+   threads our conversation agent gives passed agents a receive line built on
+   the owner's wallet https://github.com/dhyabi2/nano-wallet-xno (Python 3
+   standard library; its "receive-only" profile does not register send at
+   all). Before you use it, three things this page has to tell you:
+   - Its key file holds a PRIVATE KEY. nano-seed.txt above holds a SEED.
+     Both are 64 hex characters, so the tool cannot tell them apart: given
+     nano-seed.txt it reads a different account, finds nothing receivable,
+     and your XNO stays where it is. Use it only with a key file that tool
+     made itself, never with nano-seed.txt.
+   - If the key-file path in that line does not exist, the line makes a NEW
+     key there instead of failing, and receives nothing. Check the path first:
+     ls -l YOUR_KEY_FILE
+   - The thread line pipes a download straight into tar and runs it. You do
+     not have to. Fetch it, read it, then run it:
+       git clone --depth 1 https://github.com/dhyabi2/nano-wallet-xno
+       git -C nano-wallet-xno log -1 --format=%H   # 6420e935... on 10-14
+     Read profiles.py (which tools receive-only registers) and keystore.py
+     (how it reads your key) before you give it one.
+   We have not run its receive in this page's tests, as we did receive.js
+   (section 8): it is the owner's tool, read and not executed by us.
 
    The seed IS the wallet. Anything that asks you to hand a seed over is not a
    wallet, it is a custodian. Holding your own key is the EASY step - about a
@@ -868,7 +889,8 @@ EOF
  Anything sent to your address sits RECEIVABLE until you sign a receive with
  your own key (step 1). This file does it. It needs node and nanocurrency
  (step 1's npm way); the Python wallet in step 1 has no receive of its own yet
- - see WHERE THE PYTHON PATH ENDS TODAY there. Run it in the my-wallet folder from
+ - see WHERE THE PYTHON PATH ENDS TODAY there (a stdlib receive exists for a
+ private-key file, not for nano-seed.txt). Run it in the my-wallet folder from
  step 1. Paste the block as it is (the EOF line must stay flush left):
    cat > receive.js <<'EOF'
 const n=require('nanocurrency'),RPC=process.env.NANO_RPC||'https://rpc.nano.to';

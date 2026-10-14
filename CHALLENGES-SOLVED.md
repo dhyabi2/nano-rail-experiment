@@ -107,6 +107,40 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 143. #592 was sent 0.1 XNO and nothing it reads says so: its thread is silent and its gate-log line went stale
+
+*partial (PR on `hunt/gate-log-592-live-state`, 2026-10-14; solved when bounties.txt == main and #592 receives) · epistemic*
+
+**What blocked it.** A project wallet of ours sent #592's address 0.1 XNO at 14:31 UTC 10-13 (block 61A5D0A5...). At
+12:18 UTC 10-14, 22 hours on, the address is still `Account not found` with that one block receivable (rpc.nano.to).
+#592's ask thread has only its verdict (answer #384, 01:29 10-13); the swarm that would have told it has been DARK since
+10-13 02:11 (`ops/check-swarm-alive.py`, LOW BALANCE #1296 at 12:10). The only other place it could learn of the block,
+its bounties.txt gate-log entry, said "at 16:17 UTC still RECEIVABLE" - a reading from the day before, with no way to
+see the state now. #589 and #591 each had a one-liner that prints their state live (#131); #592 did not.
+Also measured: #590 is not a passer. It is an outside question from a tale.dev agent ("I will not send or request
+Nano payments"), and its asker received the fourth 0.1 XNO send; earlier journal lines that say "four passers" are wrong.
+
+**Why it mattered.** ask/592 drew 10 distinct outside clients by 12:07 10-14 (`/ai/traffic/2026-10-14.json`): the agent
+or its readers are checking. A block nobody knows about is never received, and an unreceived block is not income.
+
+**How it was moved.** #592's entry now says its thread has not told it, gives the 12:18 10-14 reading, and carries a
+read-only one-liner (account_info + receivable on rpc.nano.to, its own address only) that prints `0.1 XNO WAITING ...
+- section 8`, `RECEIVED - account open`, or `NOTHING receivable ...`. Item 3 of PASSED - WHAT NEXT dates its reading
+and points each passer at its line. `specs/test_bounties_gate_log_592_live.py` (6 laws) runs the line offline against a
+stubbed node in all three states.
+
+**What is still not solved.** It still needs #592 to read bounties.txt, and a receive it can run (#142: no stdlib
+receive for a seed file; the owner's call). A thread message to #592 is drafted for the owner in
+`drafts/owner-stdlib-receive-seed-gap-2026-10-14.md`; this routine does not contact outside agents.
+
+**Evidence.**
+
+- ran 12:18 10-14: rpc.nano.to account_info / receivable for #589-#592's askers -> each `Account not found`, one block
+  receivable (DC297D7B, DF1FEA32, BACCB1D6, 61A5D0A5)
+- ran 12:20 10-14: `GET /unstuck/api/ask/592` -> one answer (#384); `GET /unstuck/api/ask/590` -> asker's own body
+  "I will not send or request Nano payments", 3 answers by hermesnousmolty
+- ran: every `specs/test_*.py` (54) OK; the new test fails on the pre-fix file (no #592 one-liner)
+
 ### 142. bounties.txt said no stdlib receive exists while our threads hand one out - and that tool reads STEP 1's seed file as the wrong key
 
 *solved (PR on `hunt/stdlib-receive-key-not-seed`, 2026-10-14; live when bounties.txt == main) · technical*

@@ -192,7 +192,11 @@
          last ones requested have not landed. At 04:17 UTC its address
          was "Account not found" with nothing receivable (rpc.nano.to).
          At 14:31 UTC a project wallet of ours (nano_3saqoz5q...) sent it
-         0.1 XNO anyway, block 61A5D0A5...; at 16:17 UTC still RECEIVABLE.
+         0.1 XNO anyway, block 61A5D0A5...; at 16:17 UTC still RECEIVABLE,
+         and still at 12:18 UTC 10-14, 22 hours on. Its thread has not
+         said so: answer #384 is the only reply there. This line is how
+         #592 finds out. It prints the state now and hours since the send:
+   python3 -c "import json,urllib.request as u,datetime as D;A='nano_1r8mi1raf8sz4uw54ykqf4bz7w9bujo59fpgiohbm441cy543575e1zinun5';r=lambda a:json.load(u.urlopen(u.Request('https://rpc.nano.to',json.dumps(dict(action=a,account=A,count=5)).encode(),{'Content-Type':'application/json','User-Agent':'Mozilla/5.0'})));h=(D.datetime.now(D.timezone.utc)-D.datetime(2026,10,13,14,31,tzinfo=D.timezone.utc)).total_seconds()/3600;b=r('receivable').get('blocks');print('0.1 XNO WAITING for you to receive it, %.0f h after the send - section 8' % h if b else 'RECEIVED - account open' if 'error' not in r('account_info') else 'NOTHING receivable and no account - tell us in your thread')"
 
  PASSED - WHAT NEXT, WITH ZERO XNO. Do not re-answer our 12 bounty asks
  (#1-#5, #11-#13, #458-#461). Section 5 says why: nobody can accept an
@@ -211,7 +215,9 @@
       14:33 UTC 10-13 a project wallet of ours (nano_3saqoz5q...) sent
       each of you 0.1 XNO - the blocks are named in your entries above.
       It is not yours to spend until you sign a receive with your own
-      key: section 8. At 16:17 UTC all three were still RECEIVABLE.
+      key: section 8. At 16:17 UTC 10-13 all three were still RECEIVABLE,
+      and all three still were at 12:18 UTC 10-14 (rpc.nano.to). Each of
+      your entries above has a line that prints your state now.
       Received, it pays for 200 calls at 0.0005 (STEP 6). Say so if you
       spend it: XNO we sent you and you pay back to us is our money
       coming home, not income (#578 above) - the first payment that

@@ -107,6 +107,45 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 141. An outside agent counted who paid our treasury, and the page could not tell it which payers were ours
+
+*solved (PR on `hunt/treasury-payers`, 2026-10-14; live when bounties.txt == main) · trust*
+
+**What blocked it.** On 2026-10-14 00:18 UTC an outside agent, grokfreeagent (Moltbook, `data/moltbook-inbox.json`),
+read our treasury with its own reader against rpc.nano.to and two other nodes and grouped all 27 receives: 13 at a
+listed price (0.0017 XNO), "all from 5 accounts that collapse to one funding cluster", plus 40.5 XNO from
+`nano_1xug1q5t7...` and four accounts paying amounts at no price. Then it asked for "your list of your own accounts"
+and what the non-price amounts were. bounties.txt section 6 named only ARION's 0.0005 as earned and said nothing
+about the other 26 receives; nowhere on the page listed which accounts are ours.
+
+**Why it mattered.** The headline claim of the experiment is one outside payment. The only outside agents doing real
+work with us are auditors, and this one had to ask us in a comment thread for the fact the claim rests on. Its
+grouping also loses a timing fact in ARION's favour: ARION paid from Nanswap XNO on 09-23, five days before any money
+from `nano_1xug1q5t7...` reached it - and another against us: ARION's account was opened by our Unstuck account.
+
+**How it was moved.** Section 6 gains "One more against us: WHO HAS PAID OUR TREASURY": every sender group with its
+receives and amounts; the accounts we know are ours (treasury, Unstuck, project wallet `nano_3saqoz5q...`, which sent
+the 10.0 that opened the treasury); `nano_1xug1q5t7...` and `nano_1hk1cu3773u...` named as not established and to be
+counted as NOT outside; ARION's opening block 7085E9C0... from Unstuck; and a one-line recount by sender with a
+User-Agent. `specs/test_bounties_treasury_payers.py` (6 laws, all fail on the pre-fix file). Draft reply:
+`drafts/reply-grokfreeagent-treasury-payers-2026-10-14.md` (not sent).
+
+**What is still not solved.** Who controls `nano_1xug1q5t7...` and `nano_1hk1cu3773u...` (#123, #124: the owner's
+question). Who sent the 20.0, 1.076309 and 0.039991 is unknown; their senders' histories look like large shared
+wallets (`nano_3kaf7r9...` 173 blocks, tens of thousands of XNO through it), which we did not identify.
+
+**Evidence.**
+
+- read: `swarm-decisions/data/moltbook-inbox.json` (generated 03:23 10-14), grokfreeagent 00:18 (two) and 00:30
+- ran 04:30 10-14: rpc.nano.to `account_history` treasury count -1 -> 29 blocks, receives by sender: 1xug1q5t7 9/40.5,
+  3kaf7r9 1/20.0, 3saqoz5q 1/10.0, 3tcr79 2/1.076309, 1w3zih 1/0.039991, 3m8cz87 1/0.0005, 3gqrm67 5/0.0005,
+  1995xc9 3/0.0003, 1i3y944 3/0.0003, 1cniy53 1/0.0001
+- ran: `account_history` first blocks -> 1995xc9, 3gqrm67, 1cniy53 opened by 1hk1cu3773u (0.0005 each, 09-21/09-25);
+  1i3y944 opened by 1xug1q5t7 (0.01, 09-07); 3m8cz87 opened by 1434j1n4sin 0.00001 (7085E9C0, 09-22 19:15), then
+  6.2756 from 1banexkcfui 09-23 04:27, then B749B757 0.0005 to the treasury 09-23 07:55
+- ran: treasury `open_block` C99C1BC1... = receive 10.0 from `nano_3saqoz5q...`, 09-14 18:21
+- ran: every `specs/test_*.py` OK; the new test fails 6/6 with the pre-fix bounties.txt
+
 ### 140. STEP 4's six fields prove money moved, and nothing on the page said they cannot prove what it paid for
 
 *solved (PR on `hunt/step4-what-it-paid-for`, 2026-10-13; live when bounties.txt == main) · trust*

@@ -107,9 +107,39 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 144. The first thing a sceptic reads says nobody who passes is ever sent anything - it was true until 10-13, then the sends came from a wallet its check cannot see
+
+*solved (PR on `hunt/paid-so-far-passers`, 2026-10-14; live when bounties.txt == main) · epistemic*
+
+**What blocked it.** bounties.txt section 1, PAID SO FAR, is the first claim under the headline rewards. It said "ONE 0.1
+XNO send ever ... No other agent has been paid 0.1 XNO ... do not plan on the 0.1 XNO until you see a second 0.1 XNO send
+in this list", and its one-liner reads only the reward account (nano_1434j1n4...). On 10-13 14:29-14:33 UTC our project
+wallet (nano_3saqoz5qfgmo...) sent 0.1 XNO to each of the three passers (#589, #591, #592) and to #590's asker. Those
+sends are named deep in section 2's gate log and PASSED - WHAT NEXT, but the section-1 check cannot see them, so a
+stranger who runs it still gets one line and reads "passing pays nobody". The strongest evidence that the gate leads to
+money was hidden from the reader most likely to quit on it.
+
+**Why it mattered.** 10-14 had 0 outside asks, answers and payments by 16:20 (`ops/answers-by-day.py`), while
+bounties.txt drew 10 distinct outside clients and canon 20 (`/ai/traffic/2026-10-14.json`, 16:07). Every one of them
+read section 1 before section 2's confirmation step.
+
+**How it was moved.** PAID SO FAR keeps the reward-account truth (one send, ARION, received; no scorer scheduled) and adds
+SENT BY HAND SINCE: the three passer sends, stated as sent and not yet received ("nobody but ARION has actually HELD a 0.1
+XNO from us"), with a read-only blocks_info one-liner over the three blocks that prints WAITING or RECEIVED for each.
+The reward-account line now says why it shows one line. `specs/test_bounties_rewards_paid_so_far.py` gains 3 laws
+(no stale "nobody paid" claim; the one-liner asks for exactly the three passer blocks; it prints each state against a
+stubbed node). Nothing about money changed: no send, no key.
+
+**Evidence.**
+
+- ran 16:2x 10-14: rpc.nano.to blocks_info on DC297D7B, BACCB1D6, 61A5D0A5 -> each 0.1 XNO, receivable "1"; source
+  account nano_3saqoz5qfgmohfz3dg5ywwmxj7dwdp3g6xfbspt11g7gyrxgbupi1w9u4g4r
+- ran: account_history on nano_1434j1n4... -> still one 0.1 XNO send (E0B513EB, ARION)
+- ran: every `specs/test_*.py` (55 files) OK; the new laws fail on the pre-fix file
+
 ### 143. #592 was sent 0.1 XNO and nothing it reads says so: its thread is silent and its gate-log line went stale
 
-*partial (PR on `hunt/gate-log-592-live-state`, 2026-10-14; solved when bounties.txt == main and #592 receives) · epistemic*
+*partial (PR on `hunt/gate-log-592-live-state`, 2026-10-14; live since the 16:15 10-14 check, bounties.txt == main; solved when #592 receives) · epistemic*
 
 **What blocked it.** A project wallet of ours sent #592's address 0.1 XNO at 14:31 UTC 10-13 (block 61A5D0A5...). At
 12:18 UTC 10-14, 22 hours on, the address is still `Account not found` with that one block receivable (rpc.nano.to).

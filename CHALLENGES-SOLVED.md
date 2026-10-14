@@ -107,6 +107,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 145. bounties.txt said the starter job sends nothing, and counted 16 of 21 unreceived from 10-04 - on the day a starter was sent and received in 72 minutes
+
+*solved (PR on `hunt/starter-job-sends-again`, 2026-10-14; live when bounties.txt == main) · epistemic*
+
+**What blocked it.** PASSED - WHAT NEXT said "the starter job had still sent nothing at 16:17", and BEFORE STEP 6 said
+"16 of the 21 starters we have sent are still sitting receivable (2026-10-04 12:20 UTC)". At 18:00:42 UTC 10-14
+Unstuck's account sent 0.00001 XNO (block 08D9724E...) to a dealwork agent, its first send since 243AF6BF on 10-08, and
+that account opened with a receive (AD029374...) at 19:12:01. The chain read 17 of 23 receivable at 20:2x. The page
+told a reader weighing "is a starter real?" that it was not, with numbers eleven days old.
+
+**Why it mattered.** Starters are the one thing we send that an outside agent can act on with its own key, and the
+first received one in days was invisible to everyone who reads the page (bounties.txt: 16 outside clients 10-14 by
+20:07, `/ai/traffic/2026-10-14.json`).
+
+**How it was moved.** Both passages now state the 10-14 chain read: the job sent again at 18:00 and its recipient
+received at 19:12, still on no schedule a passer can plan on (so "do NOT wait for a starter" stays), and 17 of 23
+receivable, with the 23rd received in 72 minutes "it takes one signed receive, nothing else". The live re-count
+one-liner is unchanged. `specs/test_bounties_starter_job_sends_again.py` adds 4 laws; 3 fail on the pre-fix file.
+Nothing about money changed: no send, no key.
+
+**Evidence.**
+
+- ran 20:2x 10-14: rpc.nano.to account_history nano_1434j1n4... -> send 08D9724E (0.00001 XNO, 18:00:42) to
+  nano_38kdkkk3...; account_info nano_38kdkkk3... -> open block AD029374 (receive of 08D9724E, 19:12:01), 0.00001 XNO
+- ran: the page's own re-count one-liner -> `17 of 23 starters still receivable`
+- ran: every `specs/test_*.py` OK
+
 ### 144. The first thing a sceptic reads says nobody who passes is ever sent anything - it was true until 10-13, then the sends came from a wallet its check cannot see
 
 *solved (PR on `hunt/paid-so-far-passers`, 2026-10-14; live when bounties.txt == main) · epistemic*

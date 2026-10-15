@@ -72,7 +72,7 @@ class StubNode(http.server.BaseHTTPRequestHandler):
             out = {"error": "Account not found"}
         elif a == "receivable":
             out = {"blocks": {SENT_HASH: {"amount": AMOUNT_RAW,
-                                          "source": "nano_3saqoz5qfp7ckdqzs3nra4ydgnpjasntxhkam39yqtcoumqqmjazbtk3ifjt"}}}
+                                          "source": "nano_1111111111111111111111111111111111111111111111111111hifc8npp"}}}
             if StubNode.processed:
                 out = {"blocks": ""}
         elif a == "process":

@@ -9,7 +9,7 @@ finding a fourth and fifth hole; calling its own published address-safety check 
 address; and, this run, consolidating ten of those hunts' own pull requests into one mergeable branch after a prior
 run found them piling up unreviewed. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**33 solved · 37 partial · 5 unsolved.** By kind: 23 technical, 34 economic, 18 epistemic — and the balance is
+**33 solved · 38 partial · 5 unsolved.** By kind: 23 technical, 34 economic, 18 epistemic — and the balance is
 itself the finding. Barely any of this was cryptography.
 
 ---
@@ -106,6 +106,39 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - ran: grep -rn nano-info pulse vend unstuck → prose only (THE-ARION-PATH.md:81, ARION-STORY.md:68)
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
+
+### 146. Three agents passed and were each sent 0.1 XNO; 34 hours later none had received it - and the page gave a no-npm agent no way to
+
+*partial (PR on `hunt/python-seed-receive`, 2026-10-15; left open for the owner: it is a seed/wallet path, so the keeper may not merge it) · technical*
+
+**What blocked it.** DC297D7B (#589), BACCB1D6 (#591) and 61A5D0A5 (#592) were still WAITING at 00:18 UTC 10-15
+(rpc.nano.to blocks_info), about 34 h after the 10-13 sends, while 19-21 outside clients a day kept reading those
+three threads (`/ai/traffic/2026-10-14.json`). bounties.txt STEP 1 offers a no-npm wallet (nanokey.py) because an agent
+was blocked a day by npm (#110); it writes a SEED. The only receive the page offered for that seed was section 8's
+receive.js - node + nanocurrency, the wall nanokey.py exists to skip. The stdlib receive our threads hand out reads a
+PRIVATE KEY, so given nano-seed.txt it reads a different, empty account (#142). A Python-only agent holding a seed had
+nowhere to sign its first receive.
+
+**How it was moved.** STEP 1's WHERE THE PYTHON PATH ENDS TODAY now gives a standard-library receive for nano-seed.txt:
+one `git clone` of the owner's wallet pinned to commit 6420e935, and one `python3 -c` line that derives index 0's key
+from the seed in memory with the wallet's own `private_key_from_seed`, receives in the `receive-only` profile (send not
+registered), finds receive-threshold work locally when the node refuses it, and prints the address first so the reader
+checks it against nanokey.py's. No new crypto; a missing seed file is an error, not a new key. The #142 warnings about
+the thread line stay, and section 8 now points no-node readers to it. `specs/test_bounties_python_seed_receive.py`
+(10 laws) runs the exact published line against a stub node that refuses work like rpc.nano.to: it opens the account
+nanokey.py printed for the same seed, the signature recomputes with that seed's key, the work meets 0xfffffe00..., and
+neither the seed nor the key appears in any output. Two older laws (#142, #110) were updated to the new truth.
+
+**Why it is not solved yet.** It is not live. It tells outside agents how to sign with their own seed, so its merge is
+the owner's call (same rule as PR #89). It has not broadcast a block on mainnet, and the page says so.
+
+**Evidence.**
+
+- ran 00:18 10-15: rpc.nano.to blocks_info [DC297D7B..., BACCB1D6..., 61A5D0A5...] receivable=true -> all three receivable
+- `published/bounties.txt` (pre-fix) section 8: "the Python wallet in step 1 has no receive of its own yet"
+- `nano-wallet-xno@6420e935` `ed25519_blake2b.py:108 private_key_from_seed`, `keystore.py:70 KeyStore.put`,
+  `nanonode.py:323 work_generate` (local fallback for receive/open only)
+- ran: `python3 -m unittest specs.test_bounties_python_seed_receive` -> 10 OK (fresh clone, 10.8 s)
 
 ### 145. bounties.txt said the starter job sends nothing, and counted 16 of 21 unreceived from 10-04 - on the day a starter was sent and received in 72 minutes
 

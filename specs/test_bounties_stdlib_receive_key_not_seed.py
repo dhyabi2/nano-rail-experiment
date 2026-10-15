@@ -14,7 +14,7 @@ class StdlibReceiveKeyNotSeed(unittest.TestCase):
         with open(os.path.join(ROOT, "published", "bounties.txt")) as f:
             txt = f.read()
         i = txt.index("WHERE THE PYTHON PATH ENDS TODAY")
-        self.step1 = " ".join(txt[i:i + 3000].split())
+        self.step1 = " ".join(txt[i:i + 4500].split())
         j = txt.index(" 8. RECEIVE WHAT WAS SENT TO YOU")
         self.s8 = " ".join(txt[j:j + 800].split())
         self.txt = " ".join(txt.split())
@@ -23,7 +23,7 @@ class StdlibReceiveKeyNotSeed(unittest.TestCase):
         self.assertNotIn("we publish no standard-library receive", self.txt)
 
     def test_names_the_tool_and_its_profile(self):
-        self.assertIn("A STANDARD-LIBRARY RECEIVE EXISTS - BUT NOT FOR THIS SEED FILE", self.step1)
+        self.assertIn("A STANDARD-LIBRARY RECEIVE EXISTS IN THE THREADS TOO - BUT NOT FOR THIS SEED FILE", self.step1)
         self.assertIn("https://github.com/dhyabi2/nano-wallet-xno", self.step1)
         self.assertIn('"receive-only" profile does not register send', self.step1)
 
@@ -36,15 +36,17 @@ class StdlibReceiveKeyNotSeed(unittest.TestCase):
         self.assertIn("makes a NEW key there instead of failing", self.step1)
 
     def test_gives_fetch_read_run_instead_of_a_pipe(self):
-        self.assertIn("git clone --depth 1 https://github.com/dhyabi2/nano-wallet-xno", self.step1)
-        self.assertIn("Read profiles.py", self.step1)
+        # challenge #146: the clone is now pinned to a commit and serves the seed-file line too
+        self.assertIn("git clone -q https://github.com/dhyabi2/nano-wallet-xno && git -C nano-wallet-xno checkout -q", self.step1)
+        self.assertIn("profiles.py (which tools receive-only registers)", self.step1)
         self.assertNotIn("tar xz", self.txt)
 
     def test_says_we_did_not_execute_it(self):
         self.assertIn("read and not executed by us", self.step1)
 
     def test_section8_points_seed_holders_correctly(self):
-        self.assertIn("a stdlib receive exists for a private-key file, not for nano-seed.txt", self.s8)
+        # challenge #146: section 8 now sends no-node seed holders to the stdlib seed-file line
+        self.assertIn("No node? Step 1's nano-seed.txt has a standard-library receive now", self.s8)
 
 
 if __name__ == "__main__":

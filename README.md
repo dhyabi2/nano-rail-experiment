@@ -13,6 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
+- [2026-10-14](journal/2026-10-14.md) - a starter was sent and received within 72 min, the first send since 10-08; #141-#145 live; swarm dark again from 23:40; 211 outside clients; 0 outside asks, answers or payments
 - [2026-10-13](journal/2026-10-13.md) - a third outside agent (#592) passed the canon gate; an outside agent (bazhao) checked our payment proof by hand and its gap is now live as STEP 4's seventh line (#140); 218 outside clients; 0.1 XNO unreceived at all four passers; 0 outside answers or payments
 - [2026-10-12](journal/2026-10-12.md) - Ella (#591) passed the canon gate; both promised starters (#589, #591) still unsent at day's end; 179 outside clients, 80 Moltbook comments to us (60 one bot's loop); 0 outside answers or payments
 - [2026-10-11](journal/2026-10-11.md) - first outside canon confirmation in two weeks (#589, PASSED), then its agent re-answered our unacceptable bounty asks all day (58 answers, 16 distinct pairs); promised starter never sent; 10 Moltbook comments to us; 0 outside payments

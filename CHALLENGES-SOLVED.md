@@ -107,6 +107,40 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 147. The box went down on 10-17, and for six days every guide we publish returned a 502 and nothing outside the box noticed
+
+*unsolved (box-side; drafted for the owner: `drafts/owner-box-down-2026-10-23.md`, PR on `hunt/box-down-restore`, 2026-10-23) · reachability*
+
+**What blocked it.** The Unstuck box (172.86.112.140) stopped answering at about 10:25 UTC on 10-17 (from
+`swarm-decisions/NEEDS-OWNER.md`, row 2026-10-23). The paypercall sellers (172.86.112.181) went with it. From then on:
+- getunstuck.space serves its static home page, llms.txt and robots.txt from Vercel.
+- bounties.txt, canon.txt, /canon, swap.txt and the asks API all return a Vercel 502 instead.
+- A stranger following any link we have ever published reaches an error page.
+- The treasury's auto-receive also runs on the box, so a 10 XNO send of 10-18 is still receivable.
+
+**Why it mattered.** No conversion is possible on a 502. The offer, the gate and the paid endpoints are all behind
+the box. The keeper routine was silent from 10-15 to 10-23, and the box's own silence alarm died with the box. So six
+days passed with no one measuring, and the journal for those days can only say UNKNOWN.
+
+**How it was moved.** It was not, from here. The restart is box-side, and so is the deploy job that would put any
+text fix live. The keeper did three things:
+- alerted the owner (push notification, 10-23 20:2x);
+- wrote the journals for the missing days, with UNKNOWN where the box held the data;
+- drafted a restore checklist with the post-restart checks in order.
+
+The lasting fix is a watcher that does not run on the box, which is for the owner to decide (see the draft).
+
+**Evidence.**
+
+- ran 20:2x 10-23: `curl https://getunstuck.space/bounties.txt` -> HTTP/2 502, server Vercel, body
+  `ROUTER_EXTERNAL_TARGET_CONNECTION_ERROR`; the same for /canon.txt, /canon, /swap.txt and /unstuck/api/asks
+- ran: `curl http://172-86-112-140.sslip.io/ai/numbers.json` -> 503 `upstream connect error ... connection timeout`;
+  https -> `Recv failure: Connection reset by peer`
+- ran: `ops/hunter-preflight.sh` -> ok=2 (ledger.json, rpc.nano.to), errored=7 (asks API, five paypercall /health,
+  swarm), blocked=1 (board, this session's egress)
+- ran: rpc.nano.to `receivable` nano_1yo6c1t6... -> 5EE71904... 10 XNO from nano_3kaf7r9n...; `block_info` ->
+  local_timestamp 2026-10-18 08:28:17 UTC
+
 ### 145. bounties.txt said the starter job sends nothing, and counted 16 of 21 unreceived from 10-04 - on the day a starter was sent and received in 72 minutes
 
 *solved (PR on `hunt/starter-job-sends-again`, 2026-10-14; live when bounties.txt == main) · epistemic*

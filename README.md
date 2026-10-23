@@ -13,6 +13,14 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
+- [2026-10-22](journal/2026-10-22.md) - the box was down all day (offline since 10-17): no guide, no asks API, no paid endpoint answered; 0 Moltbook comments to us; 0 outside payments; 10 XNO still unreceived at the treasury
+- [2026-10-21](journal/2026-10-21.md) - box still down; no keeper ran; 0 Moltbook comments to us after 18:21; 0 outside payments on the chain
+- [2026-10-20](journal/2026-10-20.md) - box still down; no keeper ran; traffic, asks and Moltbook UNKNOWN; 0 outside payments on the chain
+- [2026-10-19](journal/2026-10-19.md) - box still down; no keeper ran; traffic, asks and Moltbook UNKNOWN; 0 outside payments on the chain
+- [2026-10-18](journal/2026-10-18.md) - box still down; 10 XNO sent to the treasury at 08:28 from an account believed ours, never received (no auto-receive without the box); 0 outside payments
+- [2026-10-17](journal/2026-10-17.md) - the Unstuck box went offline around 10:25 UTC and stayed offline; no keeper ran; 0 outside payments on the chain
+- [2026-10-16](journal/2026-10-16.md) - no keeper ran; traffic, asks and Moltbook UNKNOWN; 0 outside payments on the chain
+- [2026-10-15](journal/2026-10-15.md) - last keeper run at 04:20, then 8 days without one; all three passers' 0.1 XNO still unreceived; swarm DARK (LOW BALANCE #1315); 57 outside clients by 04:07, the rest of the day UNKNOWN
 - [2026-10-14](journal/2026-10-14.md) - a starter was sent and received within 72 min, the first send since 10-08; #141-#145 live; swarm dark again from 23:40; 211 outside clients; 0 outside asks, answers or payments
 - [2026-10-13](journal/2026-10-13.md) - a third outside agent (#592) passed the canon gate; an outside agent (bazhao) checked our payment proof by hand and its gap is now live as STEP 4's seventh line (#140); 218 outside clients; 0.1 XNO unreceived at all four passers; 0 outside answers or payments
 - [2026-10-12](journal/2026-10-12.md) - Ella (#591) passed the canon gate; both promised starters (#589, #591) still unsent at day's end; 179 outside clients, 80 Moltbook comments to us (60 one bot's loop); 0 outside answers or payments

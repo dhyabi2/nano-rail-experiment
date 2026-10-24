@@ -79,6 +79,16 @@ page proves nothing. Fetch it by id before concluding it is gone.*
 
 ---
 
+## On GitHub's runners (not the box, not Claude)
+
+### Outage watch — `.github/workflows/outage-watch.yml`
+
+**`41 * * * *`** (hourly) · runs `ops/watch-outage.py` (challenge #148). It reads only public URLs and the read-only
+RPC actions `account_info`, `receivable` and `blocks_info`. It checks that the guides and the asks API answer, that the
+five sellers pay only the treasury in XNO, and that the treasury is at or above 9.0 XNO with nothing receivable for
+over an hour. On a fault it opens **one** issue titled `[outage-watch] ...`, edits that issue while the fault lasts,
+and closes it on recovery. It exists because the box's own silence alarm died with the box on 10-17.
+
 ## On the boxes (cron and systemd, not Claude)
 
 These belong to the swarms rather than to the experiment, and are listed so nobody schedules a second one:

@@ -107,6 +107,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 149. STEP 6 still sent strangers to spend XNO at five sellers that had not answered for seven days
+
+*solved once live (PR on `hunt/sellers-down-check`, 2026-10-24) · onboarding*
+
+**What blocked it.** The guides came back at about 04:00 UTC 10-24, but the five paypercall hosts, which run on one
+box of ours (172.86.112.181), had answered nothing since about 10:25 UTC 10-17. `bounties.txt` STEP 6 still said
+"SPEND IT ON SOMETHING REAL" there, HOW A CALL IS PAID told the reader to send exactly `amount` to `payTo`, and
+WHAT WORKS WITHOUT OUR AGENTS still said the free calls answer with real data. The traffic file for 10-24 showed 7
+outside clients reading bounties.txt between 04:14 and 07:59 UTC. Each of them was told to pay into a dead seller.
+
+**How it was moved.** STEP 6 now has a dated measurement of the outage (10-17 to at least 08:20 UTC 10-24, issue
+#121) and one bounded command. It checks each of the five `/health` endpoints with a 10 s cap and prints the status
+code. `000` means no answer, so do not pay. The text also names what needs no seller: the canon confirmation
+(section 2) and answering an ask (section 5). The WHAT WORKS bullet points at the check. The page states no current
+up or down status, because that would go stale. `specs/test_bounties_sellers_down_check.py` has 5 laws. Against the
+old text, 4 fail and 1 errors.
+
+**Not done.** The AiDirectory copies, `swap.txt` and `register.txt` still name the sellers without the check. The
+sellers' box itself needs the owner.
+
+**Evidence.**
+
+- ran 08:1x 10-24: curl to all five `/health` and `/.well-known/x402` -> `000` (no answer); issue #121 (GitHub
+  runners, 04:25) shows the same
+- `/ai/traffic/2026-10-24.json` (generated 08:07): bounties 7 requests from 7 outside clients
+- ran: `python3 specs/test_bounties_sellers_down_check.py` -> 5 OK; all 57 `specs/test_*.py` pass
+
 ### 148. The only alarm for a dead box ran on the box, so a six-and-a-half-day outage reached the owner from a routine that happened to fire
 
 *solved (live on main via PR #120, 2026-10-24; first run opened issue #121 at 04:25 UTC) · reachability*

@@ -1,0 +1,41 @@
+# Off-box outage watch (challenge #148). The box went down on 10-17 and nothing noticed for six days, because the
+# silence alarm ran on the box itself. This runs on GitHub's runners instead. On a fault it opens ONE issue (one email
+# to the owner), then only edits that issue's body while the fault lasts, and closes it (one email) on recovery.
+name: outage-watch
+on:
+  schedule:
+    - cron: "41 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check guides, paid endpoints and treasury
+        id: watch
+        run: |
+          set +e
+          python3 ops/watch-outage.py > report.txt
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          cat report.txt
+      - name: Open, update or close the outage issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: "[outage-watch] the box or the treasury needs the owner"
+        run: |
+          open=$(gh issue list --state open --search "in:title [outage-watch]" --json number --jq '.[0].number')
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          if [ "${{ steps.watch.outputs.code }}" != "0" ]; then
+            printf '%s\n\nLatest run: %s\n' "$(cat report.txt)" "$run_url" > body.md
+            if [ -z "$open" ]; then
+              gh issue create --title "$TITLE" --body-file body.md
+            else
+              gh issue edit "$open" --body-file body.md
+            fi
+          elif [ -n "$open" ]; then
+            gh issue close "$open" --comment "Recovered: $(cat report.txt). $run_url"
+          fi

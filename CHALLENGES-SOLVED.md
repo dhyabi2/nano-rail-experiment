@@ -107,6 +107,36 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 148. The only alarm for a dead box ran on the box, so a six-and-a-half-day outage reached the owner from a routine that happened to fire
+
+*partial (watcher built and tested; live once `.github/workflows/outage-watch.yml` is on main and its first run is read, PR on `hunt/off-box-outage-watch`, 2026-10-24) · reachability*
+
+**What blocked it.** From about 10:25 UTC on 10-17 to about 04:00 on 10-24 every guide returned a Vercel 502, the
+five paid endpoints timed out, and a 10 XNO send sat receivable at the treasury (#147). Every check that could have
+said so ran in one of two places: on the box (the silence alarm, the auto-receive, the traffic exporter), or in the
+keeper routine, which did not fire from 10-15 to 10-23. Neither place is independent of what fails.
+
+**How it was moved.** `ops/watch-outage.py` checks the keeper's critical list and nothing else:
+- every guide and the asks API answer 200, and the .txt guides are text/plain;
+- every seller's `/.well-known/x402` names only the treasury and accepts XNO;
+- the treasury holds 9.0 XNO or more and has nothing receivable for over an hour.
+
+It uses only GETs and three read-only RPC actions, and a check that cannot run counts as a fault. The workflow
+runs it hourly on GitHub's runners. On a fault it opens one issue, which sends the owner one email. While the fault
+lasts it only edits that issue, and it closes the issue on recovery. `specs/test_watch_outage.py` has 9 laws, and one
+of them replays the 10-17 outage as it was measured.
+
+**Why it mattered.** No conversion is possible on a 502, and an outage nobody sees lasts until someone happens to
+look. This one lasted six and a half days. The next one should cost at most an hour.
+
+**Evidence.**
+
+- ran 04:21 10-24 (box back since ~04:00): `python3 ops/watch-outage.py` -> exit 1, 6 faults: all five
+  `/.well-known/x402` timeouts (172.86.112.181 still down) and `receivable block 5EE71904 ... 139.9 hours old`;
+  all seven guide/API/sslip URLs passed
+- ran: `python3 specs/test_watch_outage.py` -> 9 tests OK
+- `swarm-decisions` supervisor 03:40 10-24: "box dead 162 h"; deploy-status.json `checked_utc` 04:15:03 10-24
+
 ### 147. The box went down on 10-17, and for six days every guide we publish returned a 502 and nothing outside the box noticed
 
 *unsolved (box-side; drafted for the owner: `drafts/owner-box-down-2026-10-23.md`, PR on `hunt/box-down-restore`, 2026-10-23) · reachability*

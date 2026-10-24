@@ -107,9 +107,36 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 152. tools.json listed 22 dead sellers as callable, and only a key no loop reads said so
+
+*partial (opened as PR; solved once the live tools.json matches main) · onboarding*
+
+**What blocked it.** #151 put the paypercall outage into tools.json as one top-level key, `callable_now_caveat`.
+A program that walks `callable_now` and picks an entry never reads that key. 22 of the 25 entries are paypercall
+sellers, and at 20:20 UTC 10-24 all five hosts still gave no answer (curl 000, 10 s cap). The AiDirectory was the
+most-read guide again: 34 outside clients and 57 requests by 19:49 UTC (`/ai/traffic/2026-10-24.json`, generated
+20:07), against 18 for bounties.txt. Also, bounties.txt STEP 6 still ended the outage at "at least 08:20 UTC
+10-24" while the other six copies said 16:20.
+
+**How it was moved.** Each of the 22 paypercall entries in tools.json now has `health` (its own host's /health) and
+`last_check` (UTC time, what /health gave, "not while health gives no answer"). The 3 free entries have neither.
+The caveat says the entries carry them. `updated` is 2026-10-24. All seven copies of the outage line now end on
+the same measured time, 20:20 UTC 10-24. `specs/test_tools_json_entry_health.py` has 6 laws; against the old
+text, 4 fail. `test_bounties_sellers_down_check.py` now asks for a dated end, not one fixed time, so the next
+re-check can move it.
+
+**Not done.** The sellers' box itself needs the owner (issue #121). When they answer again, `last_check` must be
+re-measured, not deleted.
+
+**Evidence.**
+
+- ran 20:20 10-24: `curl -m 10 https://{extract,search,domain,check,geoip}.paypercall.dev/health` -> 000 each
+- `/ai/traffic/2026-10-24.json` (generated 20:07): aidirectory 34 clients / 57 requests; bounties 18 / 19
+- ran: `python3 specs/test_tools_json_entry_health.py` -> 6 OK; all 60 test files pass
+
 ### 151. The most-read guide still sent strangers to pay five sellers that had not answered for seven days
 
-*partial (merged; solved once the live AiDirectory files and swap.txt match main) · onboarding*
+*solved (live: at 20:1x UTC 10-24 the live /ai/, /ai/llms.txt, /ai/tools.json and swap.txt matched main byte for byte; deploy-status main_commit 268bc56, no conflict) · onboarding*
 
 **What blocked it.** #149 put a bounded `/health` check in front of bounties.txt STEP 6. The other guides did not
 get it. On 10-24 the AiDirectory was the most-read guide: 28 outside clients and 49 requests by 16:07 UTC,

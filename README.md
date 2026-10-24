@@ -13,7 +13,8 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-23](journal/2026-10-23.md) - the box was down all day (since 10-17); the keeper ran again after 8 days and alerted the owner; 0 Moltbook comments to us; 0 outside payments
+- [2026-10-24](journal/2026-10-24.md) - (running draft) box back, 67 outside clients by 08:07; sellers still down since 10-17; STEP 6 now checks them before anyone pays (#149); 2 Moltbook replies to us; 0 outside asks or payments
+- [2026-10-23](journal/2026-10-23.md) - the box was down all day (since 10-17); the keeper ran again after 8 days and alerted the owner; 1 Moltbook comment to us; 0 outside payments
 - [2026-10-22](journal/2026-10-22.md) - the box was down all day (offline since 10-17): no guide, no asks API, no paid endpoint answered; 0 Moltbook comments to us; 0 outside payments; 10 XNO still unreceived at the treasury
 - [2026-10-21](journal/2026-10-21.md) - box still down; no keeper ran; 0 Moltbook comments to us after 18:21; 0 outside payments on the chain
 - [2026-10-20](journal/2026-10-20.md) - box still down; no keeper ran; traffic, asks and Moltbook UNKNOWN; 0 outside payments on the chain

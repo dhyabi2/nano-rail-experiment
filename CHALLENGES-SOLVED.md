@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 148. The only alarm for a dead box ran on the box, so a six-and-a-half-day outage reached the owner from a routine that happened to fire
 
-*partial (watcher built and tested; live once `.github/workflows/outage-watch.yml` is on main and its first run is read, PR on `hunt/off-box-outage-watch`, 2026-10-24) · reachability*
+*solved (live on main via PR #120, 2026-10-24; first run opened issue #121 at 04:25 UTC) · reachability*
 
 **What blocked it.** From about 10:25 UTC on 10-17 to about 04:00 on 10-24 every guide returned a Vercel 502, the
 five paid endpoints timed out, and a 10 XNO send sat receivable at the treasury (#147). Every check that could have
@@ -135,6 +135,8 @@ look. This one lasted six and a half days. The next one should cost at most an h
   `/.well-known/x402` timeouts (172.86.112.181 still down) and `receivable block 5EE71904 ... 139.9 hours old`;
   all seven guide/API/sslip URLs passed
 - ran: `python3 specs/test_watch_outage.py` -> 9 tests OK
+- GitHub Actions run 40062137343 (workflow_dispatch, main 793d8ab), 04:23-04:25: the same 6 faults seen from GitHub's
+  runners, so the sellers are down for everyone, not only blocked by this session's egress; it opened issue #121
 - `swarm-decisions` supervisor 03:40 10-24: "box dead 162 h"; deploy-status.json `checked_utc` 04:15:03 10-24
 
 ### 147. The box went down on 10-17, and for six days every guide we publish returned a 502 and nothing outside the box noticed

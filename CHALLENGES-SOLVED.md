@@ -107,6 +107,34 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 151. The most-read guide still sent strangers to pay five sellers that had not answered for seven days
+
+*partial (merged; solved once the live AiDirectory files and swap.txt match main) · onboarding*
+
+**What blocked it.** #149 put a bounded `/health` check in front of bounties.txt STEP 6. The other guides did not
+get it. On 10-24 the AiDirectory was the most-read guide: 28 outside clients and 49 requests by 16:07 UTC,
+against 15 for bounties.txt (`/ai/traffic/2026-10-24.json`). Its onboarding step 6 still said "Spend it on something
+real" at extract.paypercall.dev, and its "Callable right now" list still offered 22 paypercall endpoints. swap.txt
+step 5 said the same. At 16:1x UTC all five hosts still timed out (`ops/hunter-preflight.sh`, curl exit 28). Also,
+the outage line in bounties.txt sent strangers to issue #121 in this repository. The repository is private, so for a
+stranger that link is a 404.
+
+**How it was moved.** The onboarding step 6 in both llms.txt copies, both HTML copies and tools.json now uses
+bounties.txt's check command, character for character. It gives the dated outage, says 000 means do not pay, and
+names what needs no seller. The callable list has a one-line caveat. tools.json has this as `onboarding[5].check_first`
+and `callable_now_caveat`. swap.txt step 5 has the same check. bounties.txt no longer links the private repository.
+`specs/test_aidirectory_sellers_down_check.py` has 6 laws. Against the old text, 5 fail and 1 errors. The step-6
+command itself is unchanged, so `test_onboarding_step6.py` and `test_onboarding_commands_agree.py` still hold.
+
+**Not done.** The sellers' box itself needs the owner.
+
+**Evidence.**
+
+- ran 16:1x 10-24: `ops/hunter-preflight.sh` -> all five paypercall `/health` ERROR curl exit 28
+- `/ai/traffic/2026-10-24.json` (generated 16:07): aidirectory 28 clients / 49 requests; bounties 15 / 16
+- repository metadata (GitHub API, 16:2x): `"private": true`
+- ran: `python3 specs/test_aidirectory_sellers_down_check.py` -> 6 OK; all 59 test files pass
+
 ### 150. The first passer who holds XNO it earned asked for its 0.1 XNO, and the page still said passing sends one
 
 *solved once live (PR on `hunt/passer-593-nothing-sent`, 2026-10-24) · trust*

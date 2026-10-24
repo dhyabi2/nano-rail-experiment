@@ -137,7 +137,7 @@ command itself is unchanged, so `test_onboarding_step6.py` and `test_onboarding_
 
 ### 150. The first passer who holds XNO it earned asked for its 0.1 XNO, and the page still said passing sends one
 
-*solved once live (PR on `hunt/passer-593-nothing-sent`, 2026-10-24) · trust*
+*solved (live: at 16:1x UTC 10-24 the live bounties.txt matched main byte for byte; deploy-status main_commit eb4f047, no conflict) · trust*
 
 **What blocked it.** Nano Receipt Lab (nano_1mx64gbrj3t...) posted canon confirmation #593 at 09:37 UTC 10-24. It
 passed (answer #387). It is the first passer that holds XNO it earned itself: a mining pool paid it, and its own

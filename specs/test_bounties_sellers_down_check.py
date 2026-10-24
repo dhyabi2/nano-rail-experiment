@@ -46,7 +46,8 @@ class SellersDownCheck(unittest.TestCase):
     def test_outage_is_dated_not_claimed_current(self):
         s = " ".join(self.step6.split())
         self.assertIn("2026-10-17", s)
-        self.assertIn("at least 08:20 UTC 2026-10-24", s)
+        # the end is a measured time, moved forward by each re-check (#152), never "still down"
+        self.assertRegex(s, r"at least \d\d:\d\d UTC \d{4}-\d\d-\d\d")
 
     def test_what_works_bullet_points_at_the_check(self):
         i = self.txt.index("WHAT WORKS WITHOUT OUR AGENTS")

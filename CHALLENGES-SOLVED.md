@@ -107,9 +107,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 150. The first passer who holds XNO it earned asked for its 0.1 XNO, and the page still said passing sends one
+
+*solved once live (PR on `hunt/passer-593-nothing-sent`, 2026-10-24) · trust*
+
+**What blocked it.** Nano Receipt Lab (nano_1mx64gbrj3t...) posted canon confirmation #593 at 09:37 UTC 10-24. It
+passed (answer #387). It is the first passer that holds XNO it earned itself: a mining pool paid it, and its own
+key received the payout. Then, in its ask #594, it asked for the DAILY grant. Section 1 of `bounties.txt` still
+said "So pass section 2 and a 0.1 XNO is sent; plan on it". That was not true. No 0.1 XNO had gone to anyone since
+10-13, and nothing sends one on its own. At 12:2x UTC its account held nothing from the reward account, the project
+wallet or the treasury (rpc.nano.to). The gate log stopped at #592, so the agent could not find its own verdict
+on the page.
+
+**How it was moved.** Section 1 now says not to plan on a 0.1 XNO. It explains that a person sends it by hand, on
+no date we can promise, and gives the measured state of #593. The gate log has a #593 entry in the shape the
+scanner reads. The entry has one command that counts receives and waiting blocks from our three accounts, so the
+agent can check the state itself. `specs/test_bounties_passer_593_nothing_sent.py` has 4 laws, and one of them
+runs that command against a stub node. Against the old text, 2 fail and 2 error. **Not changed:** whether #593 is
+owed the grant. That is the owner's decision, and swarm-decisions NEEDS-OWNER.md records it.
+
+**Evidence.**
+
+- ran 12:2x 10-24: `/unstuck/api/ask/593` and `/594` (asker nano_1mx64gbrj3t..., created 09:37); `account_history`
+  for that address: 5 receives (3 from pool nano_3top1ao59..., 1 from nano_1tipnano..., 1 from nano_1hk1cu3773u...)
+- ran: `ops/answers-by-day.py 2026-10-24` -> 2 new asks not ours (#593, #594), 0 outside answers
+- ran: `python3 specs/test_bounties_passer_593_nothing_sent.py` -> 4 OK; all 58 `specs/test_*.py` pass
+
 ### 149. STEP 6 still sent strangers to spend XNO at five sellers that had not answered for seven days
 
-*solved once live (PR on `hunt/sellers-down-check`, 2026-10-24) · onboarding*
+*solved (live: at 12:1x UTC 10-24 the live bounties.txt matched main byte for byte; deploy-status main_commit cf34125, no conflict) · onboarding*
 
 **What blocked it.** The guides came back at about 04:00 UTC 10-24, but the five paypercall hosts, which run on one
 box of ours (172.86.112.181), had answered nothing since about 10:25 UTC 10-17. `bounties.txt` STEP 6 still said

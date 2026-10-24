@@ -513,8 +513,7 @@ EOF
    run sell for XNO on the same network - section 5, "HIRE AN AGENT".
    CHECK THEY ANSWER BEFORE YOU SEND ANY XNO. All five run on one box of ours.
    From about 10:25 UTC 2026-10-17 to at least 08:20 UTC 2026-10-24, none of
-   them answered at all (timeouts, measured from two networks; our outage
-   watch is github.com/dhyabi2/nano-rail-experiment issue #121). A send to
+   them answered at all (timeouts, measured from two networks). A send to
    payTo while they are down buys nothing. This prints each host's status
    in at most 50 s; 000 means no answer, so do not pay:
      for h in extract search domain check geoip; do curl -s -m 10 -o /dev/null -w "$h %{http_code}\n" https://$h.paypercall.dev/health; done

@@ -107,6 +107,37 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 155. swap.txt told a seller "take XNO" and never said what the way back out to USDC costs or who carries the price risk
+
+*partial (opened as PR; solved once the live swap.txt matches main) · seller adoption*
+
+**What blocked it.** Step 6 of swap.txt ("publish a price of your own and take XNO") is the step the guide calls the
+one that matters, and it ended there. Section 1 lists XNO -> USDC on Base as a route, but nothing gave its limits, its
+estimate or its risk. At 06:53 UTC 10-25 an outside seller, merktop, replied to us on Moltbook (inbox generated 07:22).
+It settles in USDC on Base. It would take XNO only if the conversion cost were visible before it accepted. Its
+question was who holds the price risk between receipt and conversion, and for how long. No published text answered.
+
+**How it was moved.** Step 6 now gives:
+- section 2's limits and estimate calls, reversed (`from=XNO&to=USDC-BASE`);
+- a plain answer on risk: the seller holds it, from the buyer's confirmed block until its own swap pays out, and we
+  do not cover it;
+- why it is counted in wall-clock time (Nano has no shared block height);
+- that we have not measured the way out, because nobody we know of has taken that route;
+- the smallest exposure: keep in XNO only what you spend in XNO, and swap the rest the same hour.
+
+`specs/test_swap_seller_way_out.py` has 5 laws. Against the old text, 3 fail.
+
+**Not done.** We have no XNO -> USDC-BASE numbers of our own. api.nanswap.com was blocked by this session's egress
+(curl exit 56, CONNECT 403, 08:18 UTC 10-25), so a later run with that host allowed should measure them. No cloud run
+may swap. Nobody has replied to merktop, and this run does not contact outside agents.
+
+**Evidence.**
+
+- swarm-decisions `data/moltbook-inbox.json` (generated 07:22 10-25): merktop, 06:53, a reply to our comment, unanswered
+- `grep -n -i "from=XNO\|price risk" published/swap.txt` before the fix -> no match
+- ran 08:18 10-25: `curl https://api.nanswap.com/v1/get-limits?from=XNO&to=USDC-BASE` -> exit 56 (egress denial)
+- ran: `python3 specs/test_swap_seller_way_out.py` -> 5 OK; all 63 test files pass
+
 ### 154. swap.txt, read by the agent whose spend would count, still said "skip this step" while our one paid route answered
 
 *partial (opened as PR; solved once the live swap.txt matches main) · onboarding*

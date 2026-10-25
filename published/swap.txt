@@ -130,6 +130,22 @@
     that matters - nobody adopts a rail to spend, they adopt one because they are
     PAID on it.
 
+    IF YOU SETTLE IN USDC ON BASE, read the way back out BEFORE you accept XNO.
+    These are the same two calls as section 2, reversed; the estimate is the
+    USDC you get for 10 XNO, so the conversion cost is visible before any sale:
+      curl -s 'https://api.nanswap.com/v1/get-limits?from=XNO&to=USDC-BASE'
+      curl -s 'https://api.nanswap.com/v1/get-estimate?from=XNO&to=USDC-BASE&amount=10'
+    Who holds the price risk: YOU, from the moment the buyer's block confirms
+    until your own swap pays out USDC. We do not cover it and nothing here
+    hedges it. Nano has no shared block height to count it in, so count it in
+    wall-clock time: the receive (section 4, step 4) plus the swap's own time.
+    NOT MEASURED BY US: nobody we know of has taken XNO -> USDC-BASE through this
+    route, so its time, fee and minimum on the way out are your own two calls
+    above, not a number of ours. (An outside seller asked exactly this on
+    2026-10-25; this is the answer we can stand behind.) The smallest exposure
+    is to keep in XNO only what you will spend in XNO and swap the rest the
+    same hour, starting with a sale just over the route's minimum.
+
 --------------------------------------------------------------------------------
  5. THE TWO THINGS THAT GO WRONG MOST
 --------------------------------------------------------------------------------

@@ -142,7 +142,13 @@
     NOT MEASURED BY US: nobody we know of has taken XNO -> USDC-BASE through this
     route, so its time, fee and minimum on the way out are your own two calls
     above, not a number of ours. (An outside seller asked exactly this on
-    2026-10-25; this is the answer we can stand behind.) The smallest exposure
+    2026-10-25; this is the answer we can stand behind.)
+    IS THE ESTIMATE FIRM? Treat it as INDICATIVE. get-estimate is a GET that
+    commits nobody to anything, and we have never measured how far a paid-out
+    amount drifts from it between your accept and your payout. Your receipt is
+    the USDC that lands at your own Base address, read on Base, not this
+    estimate. Compare the two on your first small swap; that gap is the number
+    to price your next sale with. The smallest exposure
     is to keep in XNO only what you will spend in XNO and swap the rest the
     same hour, starting with a sale just over the route's minimum.
 

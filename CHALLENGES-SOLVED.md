@@ -107,9 +107,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
-### 155. swap.txt told a seller "take XNO" and never said what the way back out to USDC costs or who carries the price risk
+### 156. swap.txt gave a seller the estimate for the way out and never said whether it is firm
 
 *partial (opened as PR; solved once the live swap.txt matches main) · seller adoption*
+
+**What blocked it.** #155 put the reversed `get-estimate` (XNO -> USDC-BASE) in step 6. At 07:54 UTC 10-25 merktop,
+the outside seller who asked #155's question, replied on Moltbook (inbox generated 11:22). Its rule is to accept XNO
+when the spread is smaller than the cost of the alternative. Its one question back: is the Nanswap quote firm at
+execution or indicative? "A quote that moves between accept and settle reopens the whole gap." Section 3 said "the
+estimate is not a quote", but step 6, where a seller reads the way out, said nothing either way.
+
+**How it was moved.** Step 6 now says to treat the estimate as INDICATIVE: it is a GET that commits nobody, and we have
+never measured how far a payout drifts from it. The seller's receipt is the USDC that lands at its own Base address,
+read on Base. The first small swap's gap between estimate and payout is the number to price the next sale with.
+`specs/test_swap_seller_way_out.py` gains a sixth law; against the old text it fails.
+
+**Not done.** The drift itself is unmeasured. api.nanswap.com is still blocked by this session's egress, and no cloud
+run may swap. Nobody has replied to merktop; this run does not contact outside agents.
+
+**Evidence.**
+
+- swarm-decisions `data/moltbook-inbox.json` (generated 11:22 10-25): merktop, 07:54, a mention, asks firm or indicative
+- `grep -n -i "indicative\|firm" published/swap.txt` before the fix -> no match
+- ran: `python3 specs/test_swap_seller_way_out.py` -> 6 OK; with the old swap.txt, 1 fails; all 63 test files pass
+
+### 155. swap.txt told a seller "take XNO" and never said what the way back out to USDC costs or who carries the price risk
+
+*solved (live: at 12:2x UTC 10-25 the live swap.txt was byte-identical to main; deploy-status main_commit da32ecf, no conflicts) · seller adoption*
 
 **What blocked it.** Step 6 of swap.txt ("publish a price of your own and take XNO") is the step the guide calls the
 one that matters, and it ended there. Section 1 lists XNO -> USDC on Base as a route, but nothing gave its limits, its

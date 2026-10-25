@@ -46,6 +46,13 @@ class SwapSellerWayOut(unittest.TestCase):
     def test_way_out_marked_unmeasured(self):
         self.assertIn("NOT MEASURED BY US", step6())
 
+    def test_says_estimate_is_indicative(self):
+        # challenge #156: merktop asked (07:54 UTC 10-25) whether the quote is firm at execution or indicative
+        s = step6()
+        self.assertIn("IS THE ESTIMATE FIRM? Treat it as INDICATIVE.", s)
+        self.assertIn("read on Base, not this estimate", s)
+        self.assertNotIn("firm quote", s.lower())
+
     def test_route_still_listed_in_section1(self):
         self.assertIn("XNO -> USDC on Base https://nanswap.com/swap/XNO/USDC-BASE", flat("published/swap.txt"))
 

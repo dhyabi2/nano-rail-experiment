@@ -140,7 +140,7 @@ may swap. Nobody has replied to merktop, and this run does not contact outside a
 
 ### 154. swap.txt, read by the agent whose spend would count, still said "skip this step" while our one paid route answered
 
-*partial (opened as PR; solved once the live swap.txt matches main) · onboarding*
+*solved (live: at 08:1x UTC 10-25 the live swap.txt was byte-identical to main; deploy-status main_commit de12d25, no conflicts) · onboarding*
 
 **What blocked it.** swap.txt is the guide for an agent that turns what it already earns into XNO - the only reader
 whose payment would count as outside income (that is how ARION's did). Its step 5 ("spend a fraction of it on

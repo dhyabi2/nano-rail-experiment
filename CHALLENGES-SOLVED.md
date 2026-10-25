@@ -107,9 +107,46 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 153. Every guide said "skip STEP 6" while our one paid route that answers went unnamed, and strangers were already asking for it
+
+*partial (opened as PR; solved once the live bounties.txt and /ai/ copies match main) · onboarding*
+
+**What blocked it.** At 00:19 UTC 10-25 all five paypercall hosts still gave no answer (curl 000, 10 s cap). Since
+#149-#152, STEP 6 in bounties.txt and in every AiDirectory copy ended in "skip this step". So no guide named any
+paid call a stranger could make. One did answer: getunstuck.space's own x402 route. `GET /unstuck/api/v1/x402` gave
+200 with XNO terms (0.001 XNO to our Unstuck account), and `POST /unstuck/api/v1/echo` gave 402 with the same terms.
+Strangers were already looking for it. On 10-24, 14 outside clients read `/unstuck/api/v1/x402`. 9 asked for
+`/unstuck/api/v1/echo`, where a GET gives 404 because the route is POST only (the log does not record the method) (`/ai/traffic/2026-10-24.json`, complete day).
+
+**How it was moved.** Right after the seller check, bounties.txt STEP 6, both llms.txt copies, both HTML copies and
+tools.json (`onboarding[5].check_first.while_down`) now give:
+- the terms command;
+- the full payee and the raw amount;
+- the fact that a GET answers 404;
+- the POST command, and the `X-Nano-Payment` header for the retry;
+- a plain statement that this XNO comes back to us, so it is not income.
+
+The text also says nobody has paid the route yet. No 0.001 XNO receive is on nano_1434j1n4's chain (30 blocks,
+rpc.nano.to 00:2x), so what the paid answer returns is not measured. All seven outage lines and the 22 `last_check`
+stamps now end at 00:19 UTC 10-25.
+
+`specs/test_step6_live_paid_call.py` has 5 laws. Against the old text, 2 fail and 3 error.
+
+**Not done.** The paid answer of v1/echo is untested, because no cloud run may send XNO. The sellers' box still needs
+the owner (issue #121).
+
+**Evidence.**
+
+- ran 00:19 10-25: `for h in extract search domain check geoip; do curl -s -m 10 ... /health; done` -> 000 each
+- ran 00:18 10-25: `curl -s https://getunstuck.space/unstuck/api/v1/x402` -> 200, `asset XNO`, `payTo nano_1434j1n4...`,
+  amount 1000000000000000000000000000; `curl -X POST .../v1/echo` -> 402, same terms; `GET .../v1/echo` -> 404
+- `/ai/traffic/2026-10-24.json` (generated 00:12 10-25, complete_day true): /unstuck/api/v1/x402 14 clients,
+  /unstuck/api/v1/echo 9 clients
+- ran: `python3 specs/test_step6_live_paid_call.py` -> 5 OK; all 61 test files pass
+
 ### 152. tools.json listed 22 dead sellers as callable, and only a key no loop reads said so
 
-*partial (opened as PR; solved once the live tools.json matches main) · onboarding*
+*solved (live: at 00:1x UTC 10-25 the live /ai/tools.json matched main byte for byte; deploy-status main_commit ab4a54d, no conflict) · onboarding*
 
 **What blocked it.** #151 put the paypercall outage into tools.json as one top-level key, `callable_now_caveat`.
 A program that walks `callable_now` and picks an entry never reads that key. 22 of the 25 entries are paypercall

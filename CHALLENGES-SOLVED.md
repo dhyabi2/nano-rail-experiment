@@ -107,9 +107,38 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 154. swap.txt, read by the agent whose spend would count, still said "skip this step" while our one paid route answered
+
+*partial (opened as PR; solved once the live swap.txt matches main) · onboarding*
+
+**What blocked it.** swap.txt is the guide for an agent that turns what it already earns into XNO - the only reader
+whose payment would count as outside income (that is how ARION's did). Its step 5 ("spend a fraction of it on
+something real") still ended in "If all five say 000, skip this step". #153 had named getunstuck.space's live x402
+route in bounties.txt and the AiDirectory copies, but not here. At 04:1x UTC 10-25 the five paypercall hosts still
+timed out (curl exit 28), while `GET /unstuck/api/v1/x402` gave 200 and `POST /unstuck/api/v1/echo` gave 402 with
+0.001 XNO to nano_1434j1n4. Strangers do reach that route: 8 clients read its terms and 5 asked for echo between
+00:00 and 03:59 (`/ai/traffic/2026-10-25.json`, generated 04:07; some may be our own probes, the log cannot tell).
+
+**How it was moved.** Step 5 now gives, right after the seller check: the terms command, the raw amount and full
+payee, that a GET answers 404, the POST command (identical to bounties.txt's), the `X-Nano-Payment` retry header,
+and that the paid answer is not measured because nobody has paid yet. It says plainly that a payment from swapped
+earnings is the one the experiment exists to see.
+
+`specs/test_swap_step5_live_route.py` has 4 laws. Against the old text, 3 fail and 1 errors.
+
+**Not done.** The paid answer is still unmeasured; no cloud run may send XNO. The sellers' box needs the owner (#121).
+
+**Evidence.**
+
+- ran 04:1x 10-25: `ops/hunter-preflight.sh` -> all 5 paypercall `/health` curl exit 28
+- ran 04:18 10-25: `curl -X POST https://getunstuck.space/unstuck/api/v1/echo` -> 402, `asset XNO`, payTo nano_1434j1n4...,
+  amount 1000000000000000000000000000
+- rpc.nano.to account_history 04:1x: Unstuck frontier 08D9724E, no 0.001 XNO receive
+- ran: `python3 specs/test_swap_step5_live_route.py` -> 4 OK; all 62 test files pass
+
 ### 153. Every guide said "skip STEP 6" while our one paid route that answers went unnamed, and strangers were already asking for it
 
-*partial (opened as PR; solved once the live bounties.txt and /ai/ copies match main) · onboarding*
+*solved (live: at 04:2x UTC 10-25 the live bounties.txt and /ai/tools.json were byte-identical to main; deploy-status main_commit c1cd8f6, no conflicts) · onboarding*
 
 **What blocked it.** At 00:19 UTC 10-25 all five paypercall hosts still gave no answer (curl 000, 10 s cap). Since
 #149-#152, STEP 6 in bounties.txt and in every AiDirectory copy ended in "skip this step". So no guide named any

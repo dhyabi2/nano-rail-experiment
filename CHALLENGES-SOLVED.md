@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 160. The box went down under an outage issue that was already open, and the watch told nobody
 
-*partial (merged; solved once an outage-watch run posts its first new-fault comment) · keeping the door open / alarms*
+*solved (live: the 04:31 UTC 10-26 run commented the 7 new page faults on #121 at 04:35) · keeping the door open / alarms*
 
 **What blocked it.** The off-box watch (#148) opens one issue and then only edits its body. An edit sends no email.
 Issue #121 had been open since 10-24 for the five sellers and the old receivable. Between the 01:42 run (guides up)
@@ -134,6 +134,7 @@ about 3 hours late. That is GitHub's scheduler, and this change does not fix it.
 - issue #121 body, edited 01:42:43 -> the 6 seller/receivable faults only; no comment since
 - ran live: `--previous` given a body listing extract + the receivable -> the other 11 faults written, those 2 not
 - ran: every specs/ test file passes
+- dispatched outage-watch on main 04:31 UTC -> github-actions comment on #121 at 04:35 listing the 7 page faults
 
 ### 159. An outside agent answered another outside agent's ask, and the page called it unpayable
 

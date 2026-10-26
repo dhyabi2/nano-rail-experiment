@@ -107,6 +107,32 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 162. "Live when it equals main" was checked by hand each run, and the 10-26 outage left #159 with nothing to run when the box returns
+
+*solved (tool on main via PR on `hunt/check-live`, 2026-10-26; nothing to deploy - it runs off the box. Its first real confirmation waits for the box) · reachability*
+
+**What blocked it.** Every challenge marked solved here is "live when the live file is byte-identical to main", and
+every keeper run checked that by hand: curl each URL, compare it with main, read deploy-status.json. The run also had
+to remember which URL serves which file (`/canon` is `canon.html`, `/ai/` is `aidirectory/index.html`). #159 was
+merged at 00:4x on 10-26 and the box went down between 01:42 and 04:16, so the journal carried "confirm #159 is live"
+with no command to run when the box comes back. A hand check that times out is easy to write down as "no change".
+
+**How it was moved.** `ops/check-live.py` maps the seven published files to the URLs a stranger reads them at. It
+compares each live copy with main byte for byte, gives the first differing line, and reads deploy-status.json for
+conflicts. A file it could not fetch is UNKNOWN, never live. It exits 0 only when every file is live and no conflict
+is named. 8 laws in `specs/test_check_live.py`, one of which replays the 10-26 outage as all UNKNOWN.
+
+**Why it mattered.** A text fix converts nobody until it is live. The step that says it is live is now one command,
+and the command cannot report an unreachable file as clean.
+
+**Evidence.**
+
+- ran 12:2x 10-26: `python3 ops/check-live.py` -> exit 1, all 7 files and deploy-status UNKNOWN (box down)
+- ran 12:24 10-26: `python3 ops/watch-outage.py` -> 13 faults (7 pages, 5 sellers, 5EE71904 receivable 195.9 h)
+- ran: `python3 specs/test_check_live.py` -> 8 OK; all 67 `specs/test_*.py` pass (NRE_OFFLINE=1; no pytest installed)
+- each URL pair is taken from a live byte-identical match recorded above (#151 `/ai/`, `/ai/llms.txt`,
+  `/ai/tools.json`, swap.txt; #149 bounties.txt; #79 `/canon`; #158 canon.txt)
+
 ### 161. Four outside agents wrote to us while the box was down, and nothing that answers Moltbook could answer them
 
 *open (drafted: `drafts/moltbook-replies-2026-10-26.md`, 2026-10-26) · outside interest / voice*

@@ -107,6 +107,34 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 163. When the box dies, the static home page still sends every reader to the four guides, and all four die with it
+
+*open (drafted for the owner: `drafts/owner-guides-static-fallback-2026-10-26.md`, PR on `hunt/guides-static-fallback`, 2026-10-26) · reachability*
+
+**What blocked it.** getunstuck.space is half static (Vercel) and half a rewrite to the box. On 10-26 at 16:2x UTC,
+with the box down since about 04:11, the static half answered 200: the home page, llms.txt, robots.txt, sitemap.xml,
+agent.json, ledger.json, try-nano.html and /.well-known/x402. Every guide we publish is in the other half:
+`/canon`, `/canon.txt`, `/canon.md`, `/bounties.txt` and `/swap.txt` timed out. The static home page links to exactly
+those five, including the gate's "I have read THE CANON". The guides are plain files from this repository and need
+nothing from the box.
+
+**Why it mattered.** This is the second box outage in ten days (six and a half days from 10-17, about 12 hours so far
+on 10-26). In both, a reader reached the pitch and met an error on every next step. #148 and #160 made the outage
+reach the owner within the hour; neither keeps the offer readable while the box is down.
+
+**How it was moved.** Not from here: the Vercel project lives in the Unstuck repository, which this keeper cannot
+reach. The draft gives the owner the exact change: copy the four guides and the pinned canon into the static output
+from this repository's main, keep the content types and CORS, and deploy them with the Vercel project. It also gives
+the smaller fallback-only option and how the keeper will confirm it (`ops/check-live.py` LIVE with the box down).
+
+**Evidence.**
+
+- ran 16:2x 10-26: curl getunstuck.space `/`, `/llms.txt`, `/robots.txt`, `/sitemap.xml`, `/agent.json`,
+  `/ledger.json`, `/try-nano.html`, `/nano-onramp-check.js`, `/.well-known/x402` -> 200; `/canon`, `/canon.md`,
+  `/bounties.txt`, `/canon.txt`, `/swap.txt` -> no answer
+- static home page (fetched 16:2x): lines 187, 188, 201, 202, 226, 264 link `/canon`, `/canon.txt`, `/bounties.txt`, `/swap.txt`
+- ran 16:21 10-26: `python3 ops/watch-outage.py` -> 13 faults (7 pages, 5 sellers, 5EE71904 receivable 199.9 h)
+
 ### 162. "Live when it equals main" was checked by hand each run, and the 10-26 outage left #159 with nothing to run when the box returns
 
 *solved (tool on main via PR on `hunt/check-live`, 2026-10-26; nothing to deploy - it runs off the box. Its first real confirmation waits for the box) · reachability*

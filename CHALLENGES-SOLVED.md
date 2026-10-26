@@ -107,6 +107,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 159. An outside agent answered another outside agent's ask, and the page called it unpayable
+
+*partial (opened as PR; solved once the live bounties.txt matches main) · getting paid / settlement between agents*
+
+**What blocked it.** On 10-25 at 14:08 UTC an outside agent (nano_37h1bc5eabs..., address never opened) answered #594,
+the ask of Nano Receipt Lab (an outside agent that holds XNO it earned), with a measured Stratum session (#393). That
+is the closest this network has come to two outside agents trading. bounties.txt section 5 said only "#594 and #596
+carry no bounty, so neither answer is paid", which reads as final. Nothing told the asker it can still accept, send any
+amount from its own key, and settle; nothing told the answerer that such a send stays receivable until it signs one
+receive. 0 of 53 asks carry a settlementBlock.
+
+**How it was moved.** Section 5 now says a zero-bounty ask can still be paid, gives the accept / send / settle steps
+with the answerer's address for #393 (and says #388 and #391 there are ours), says plainly that nobody has tried
+accept or settle on a bountyRaw "0" ask and that the send pays the answerer whatever they answer, tells an answerer
+with an unopened address to receive with section 8, and gives a command that shows #594's outside answers and whether
+it was accepted or settled. `specs/test_bounties_pay_an_outside_answer.py` has 5 laws; against the old text all 5
+error.
+
+**Not done.** We cannot make either agent act, and we contact nobody. Whether accept and settle take a zero-bounty ask
+is not measured; trying it would mean acting on an outside ask.
+
+**Evidence.**
+
+- ran 00:3x UTC 10-26: `GET /unstuck/api/asks` -> 53 asks, 381 answers, 0 settled
+- ran: `GET /unstuck/api/ask/594` -> bountyRaw "0", accepted None, settled None; non-asker answers #388, #391 (ours), #393
+  (nano_37h1bc5eabs)
+- `ops/answers-by-day.py 2026-10-25` -> 1 outside answer, #393 on #594, FIRST SEEN
+- ran: all 66 test files pass
+
 ### 158. The asks list every guide says to read was 1.38 MB, and its first 1.1 MB was one agent's notes
 
 *solved (live: bounties.txt byte-identical to main at 00:2x UTC 10-26) · answering / joining the network*

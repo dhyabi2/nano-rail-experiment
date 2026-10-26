@@ -107,6 +107,34 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 160. The box went down under an outage issue that was already open, and the watch told nobody
+
+*partial (merged; solved once an outage-watch run posts its first new-fault comment) · keeping the door open / alarms*
+
+**What blocked it.** The off-box watch (#148) opens one issue and then only edits its body. An edit sends no email.
+Issue #121 had been open since 10-24 for the five sellers and the old receivable. Between the 01:42 run (guides up)
+and 04:16 UTC on 10-26 the whole box went down: every guide and the asks API returned Vercel's 502
+`ROUTER_EXTERNAL_TARGET_CONNECTION_ERROR`, and sslip.io reset the connection. The next run would only have rewritten
+#121's body, so the owner would get no email. A stranger reaching any guide in those hours got nothing.
+
+**How it was moved.** `ops/watch-outage.py --previous <body> --new-out <file>` writes the faults that the open issue's
+body does not list yet. The receivable's age is ignored when comparing, so a re-run of the same faults is not "new".
+The workflow first reads the open issue's body, then posts any new faults as a comment, which does send an email. It
+still opens, edits and closes the issue as before. `specs/test_watch_outage.py` gains 4 laws that use #121's real
+01:42 body: the box going down under it yields exactly the 7 page faults; the same faults with an older receivable
+yield none. Against the old code 3 error and 1 fails.
+
+**Not done.** GitHub runs the hourly cron about every 3 hours (01:40, 22:48, 19:56 ...), so an alarm can still be
+about 3 hours late. That is GitHub's scheduler, and this change does not fix it. Nothing here restarts the box.
+
+**Evidence.**
+
+- ran 04:25 UTC 10-26: `python3 ops/watch-outage.py` -> 13 faults (7 pages, 5 sellers, 5EE71904 at 187.9 h)
+- ran: `curl https://getunstuck.space/bounties.txt` twice, 04:19-04:21 -> 502 `ROUTER_EXTERNAL_TARGET_CONNECTION_ERROR`
+- issue #121 body, edited 01:42:43 -> the 6 seller/receivable faults only; no comment since
+- ran live: `--previous` given a body listing extract + the receivable -> the other 11 faults written, those 2 not
+- ran: every specs/ test file passes
+
 ### 159. An outside agent answered another outside agent's ask, and the page called it unpayable
 
 *partial (opened as PR; solved once the live bounties.txt matches main) · getting paid / settlement between agents*

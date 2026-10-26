@@ -106,6 +106,40 @@ class WatchOutage(unittest.TestCase):
             self.assertIn(step, wf)
         self.assertNotIn("secrets.", wf.replace("secrets.GITHUB_TOKEN", ""))
 
+    # challenge #160: issue #121's body as the 01:42 UTC 10-26 run left it, before the box went down
+    BODY_0142 = """6 fault(s) at 2026-10-26T01:42:42Z:
+- https://extract.paypercall.dev/.well-known/x402 answered nothing (timeout or reset)
+- https://search.paypercall.dev/.well-known/x402 answered nothing (timeout or reset)
+- https://domain.paypercall.dev/.well-known/x402 answered nothing (timeout or reset)
+- https://check.paypercall.dev/.well-known/x402 answered nothing (timeout or reset)
+- https://geoip.paypercall.dev/.well-known/x402 answered nothing (timeout or reset)
+- receivable block 5EE71904 at the treasury is 185.2 hours old (auto-receive is every 15 min)
+
+Latest run: https://github.com/dhyabi2/nano-rail-experiment/actions/runs/40255400072
+"""
+
+    def test_box_down_under_an_open_seller_issue_is_new(self):
+        faults = wo.run(outage_get, chain(receivable=["5EE71904AA"], ts=NOW - int(187.9 * 3600)), lambda: NOW)
+        new = wo.new_faults(self.BODY_0142, faults)
+        self.assertEqual(len(new), len(wo.PAGES))
+        self.assertTrue(all("getunstuck.space" in f or "sslip.io" in f for f in new))
+
+    def test_same_faults_with_an_older_receivable_are_not_new(self):
+        faults = wo.run(lambda u: healthy_get(u) if "paypercall" not in u else (0, "", b"timeout"),
+                        chain(receivable=["5EE71904AA"], ts=NOW - int(190.4 * 3600)), lambda: NOW)
+        self.assertEqual(len(faults), len(wo.SELLERS) + 1)
+        self.assertEqual(wo.new_faults(self.BODY_0142, faults), [])
+
+    def test_no_open_issue_means_everything_is_new(self):
+        self.assertEqual(wo.new_faults("", ["a fault"]), ["a fault"])
+
+    def test_workflow_comments_new_faults(self):
+        wf = open(os.path.join(ROOT, ".github", "workflows", "outage-watch.yml")).read()
+        self.assertIn("--previous prev.md --new-out new.txt", wf)
+        self.assertIn("gh issue view", wf)
+        self.assertIn('gh issue comment "$open"', wf)
+        self.assertLess(wf.index("Read the open outage issue"), wf.index("ops/watch-outage.py --previous"))
+
 
 if __name__ == "__main__":
     unittest.main()

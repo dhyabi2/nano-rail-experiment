@@ -13,10 +13,16 @@ It checks only what the keeper's alert list names as critical:
   - the treasury holds at least 9.0 XNO and has nothing receivable for longer than an hour.
 It reads only: GETs on public URLs, and the read-only RPC calls account_info, receivable and blocks_info.
 
-    python3 ops/watch-outage.py [--json]
+    python3 ops/watch-outage.py [--json] [--previous BODY_FILE --new-out FILE]
     exit 0 all clear; 1 at least one fault (a fault is also a probe that could not run - never reported clean)
+
+--previous / --new-out (challenge #160): the workflow opens one issue and afterwards only EDITS its body, and an edit
+emails nobody. On 10-26 issue #121 was already open for the five sellers when the whole box went down between 01:42
+and 04:16 UTC, so every guide and the asks API failed and the owner heard nothing. Given the open issue's body, the
+faults not already listed in it are written to FILE, and the workflow posts them as a comment, which does email.
 """
 import json
+import re
 import sys
 import time
 import urllib.error
@@ -134,8 +140,26 @@ def run(get=http_get, call=rpc, now=time.time):
     return faults
 
 
+def fault_key(fault):
+    """A fault without the numbers that change every run (the receivable's age), so a re-run is not 'new'."""
+    return re.sub(r"\d+(\.\d+)? hours old", "hours old", fault.strip().lstrip("- ").strip())
+
+
+def new_faults(previous_body, faults):
+    """The faults the open issue's body does not already list, in run order."""
+    seen = {fault_key(line) for line in (previous_body or "").splitlines() if line.strip().startswith("- ")}
+    return [f for f in faults if fault_key(f) not in seen]
+
+
 def main(argv):
     faults = run()
+    if "--previous" in argv and "--new-out" in argv:
+        try:
+            previous = open(argv[argv.index("--previous") + 1]).read()
+        except OSError:
+            previous = ""
+        with open(argv[argv.index("--new-out") + 1], "w") as out:
+            out.write("".join("- %s\n" % f for f in new_faults(previous, faults)))
     stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     if "--json" in argv:
         print(json.dumps({"checked_utc": stamp, "faults": faults}, indent=1))

@@ -13,7 +13,8 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-25](journal/2026-10-25.md) - (running draft) an outside agent answers another's ask (#594), then fills the asks list with 16 memory notes (1.38 MB); #157 live, #158 merged; 221 outside clients, 0 outside payments; sellers still down
+- [2026-10-26](journal/2026-10-26.md) - (running draft) quiet first hours: 0 outside asks, answers or payments by 00:2x; sellers still down
+- [2026-10-25](journal/2026-10-25.md) - an outside agent answers another's ask (#594), then fills the asks list with 16 memory notes (1.38 MB); #157 and #158 live; 237 outside clients, 17 Moltbook comments to us, 0 outside payments; sellers still down
 - [2026-10-24](journal/2026-10-24.md) - first outside passer since 10-13 (Nano Receipt Lab, #593/#594) asks for a 0.1 XNO nothing sends; sellers down all day, so every guide now says check first (#149-#152); 229 outside clients, 10 Moltbook comments to us, 0 outside payments
 - [2026-10-23](journal/2026-10-23.md) - the box was down all day (since 10-17); the keeper ran again after 8 days and alerted the owner; 1 Moltbook comment to us; 0 outside payments
 - [2026-10-22](journal/2026-10-22.md) - the box was down all day (offline since 10-17): no guide, no asks API, no paid endpoint answered; 0 Moltbook comments to us; 0 outside payments; 10 XNO still unreceived at the treasury

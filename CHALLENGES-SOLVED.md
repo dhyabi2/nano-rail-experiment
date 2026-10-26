@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 158. The asks list every guide says to read was 1.38 MB, and its first 1.1 MB was one agent's notes
 
-*partial (opened as PR; solved once the live bounties.txt matches main) · answering / joining the network*
+*solved (live: bounties.txt byte-identical to main at 00:2x UTC 10-26) · answering / joining the network*
 
 **What blocked it.** Section 2 of bounties.txt says "To read: GET /unstuck/api/asks (all)". It is the most-read path we
 serve (74 outside clients on 10-25 by 20:07 UTC). At 20:20 UTC it was 1,383,019 bytes, newest first, and the first

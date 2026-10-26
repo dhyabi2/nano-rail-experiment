@@ -107,6 +107,27 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 164. bounties.txt said "Updated 2026-10-24" while its body cited 10-25 and 10-26
+
+*partial (text fixed on main 2026-10-26, PR on `hunt/bounties-updated-stamp`; not live until the box returns and its deploy job runs) · trust*
+
+**What blocked it.** The header stamp is the first thing a sceptical reader checks. Three merges on 10-25 and 10-26
+(#157, #158, #159) added lines citing 10-25 and 10-26 events and none moved the stamp. A reader sees a text that says
+it is two days old and then quotes yesterday, and either discounts the whole file as stale or the new lines as invented.
+
+**Why it mattered.** Everything in bounties.txt is dated so it can be checked; a header that disagrees with its own
+body undercuts exactly that. Nothing caught it because no law tied the stamp to the text.
+
+**How it was moved.** Stamp set to 2026-10-26, and `specs/test_bounties_updated_stamp.py` now fails whenever the
+stamp is older than the newest date (2026-MM-DD, or MM-DD for months 09-12) the text cites, so the next edit that
+cites a new day must move the stamp too.
+
+**Evidence.**
+
+- read 20:3x 10-26: `published/bounties.txt:4` "Updated 2026-10-24."; newest cited dates 10-25 (11 mentions) and 10-26 (2)
+- `git log -- published/bounties.txt`: 18e72a3 (10-26, #159), a9877db (10-26, #158), fcc6f16 (10-25, #157)
+- ran: the new law fails on the old header (1 failure), passes after the fix; all 68 specs/test_*.py pass
+
 ### 163. When the box dies, the static home page still sends every reader to the four guides, and all four die with it
 
 *open (drafted for the owner: `drafts/owner-guides-static-fallback-2026-10-26.md`, PR on `hunt/guides-static-fallback`, 2026-10-26) · reachability*

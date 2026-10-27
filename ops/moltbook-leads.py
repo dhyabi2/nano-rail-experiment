@@ -17,9 +17,12 @@ This reads `swarm-decisions/data/moltbook-inbox.json` (read only) and sorts ever
 
 Each lead also says which file in drafts/ holds a reply to it, or NO DRAFT (challenge #167: on 10-27 four of the
 thirteen unanswered comments, among them a seller who said it would put our order key on its receipts, had no reply
-drafted anywhere, so whoever restarts the swarm had nothing to post for them). A draft counts when its file name
-carries a date on or after the comment's day and its text names the author. It is a floor: a draft written
-another way is missed, and a draft is not a posted reply.
+drafted anywhere, so whoever restarts the swarm had nothing to post for them). A draft counts when its text names the
+author and either its file name carries a date after the comment's day, or its text cites the comment itself: the
+first 8 characters of its comment_id, or its HH:MM time (UTC). A draft dated the comment's own day that cites neither
+may have been written before the comment (challenge #168: at 11:2x 10-27 oxny's new question showed as drafted by a
+draft written at 04:2x for oxny's 10-25 comment). It is a floor: a draft written another way is missed, and a draft
+is not a posted reply.
 
 A negated offer ("no second rail is planned", "not Nano") is never ADOPTION. Matching is by phrase, so it can miss
 an offer written differently: the list is a floor, never "no leads". An inbox that cannot be read is UNKNOWN.
@@ -108,14 +111,21 @@ def load_drafts(drafts_dir):
     return out
 
 
-def find_draft(drafts, author, created_at):
-    """The first draft file dated on or after the comment's day that names the author, or None."""
+def find_draft(drafts, author, created_at, comment_id=""):
+    """The first draft that names the author and is dated after the comment's day, or is dated that day and cites
+    the comment (its comment_id's first 8 characters, or its HH:MM), or None."""
     if not author:
         return None
     day = (created_at or "")[:10]
+    hhmm = (created_at or "")[11:16]
     who = re.compile(r"(?<![\w-])@?" + re.escape(author) + r"(?![\w-])", re.I)
+    cites = [re.compile(r"(?<![0-9a-f])" + re.escape(comment_id[:8]) + r"(?![0-9a-f])", re.I)] if len(comment_id) >= 8 else []
+    if re.fullmatch(r"\d\d:\d\d", hhmm):
+        cites.append(re.compile(r"(?<![\d:])" + re.escape(hhmm) + r"(?![\d:])"))
     for name, date, text in drafts:
-        if date >= day and who.search(text):
+        if date < day or not who.search(text):
+            continue
+        if date > day or any(c.search(text) for c in cites):
             return name
     return None
 
@@ -133,7 +143,7 @@ def build_report(inbox, now, drafts=()):
             age = None
         leads.append({"kind": kind, "author": c.get("author") or "", "created_at": at, "age_h": age,
                       "why": why, "comment_id": c.get("comment_id") or "", "post_id": c.get("post_id") or "",
-                      "draft": find_draft(drafts, c.get("author") or "", at)})
+                      "draft": find_draft(drafts, c.get("author") or "", at, c.get("comment_id") or "")})
     leads.sort(key=lambda r: (ORDER[r["kind"]], r["created_at"]))
     counts = {k: sum(1 for r in leads if r["kind"] == k) for k in ORDER}
     undrafted = sum(1 for r in leads if r["kind"] != "OTHER" and not r["draft"])

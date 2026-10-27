@@ -107,6 +107,34 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 170. Every guide dated the sellers' outage "to at least 10-25" 2.8 days later, and one still said the free calls answer
+
+*solved once live (text on `hunt/sellers-down-dated-10-27`, 2026-10-27; live after the box deploys main) · reachability*
+
+**What blocked it.** At 20:22 UTC 10-27 all five paypercall hosts gave no answer (`/health`, curl 000, 10 s cap), as
+they had since about 10:25 UTC 10-17. bounties.txt, swap.txt, both llms.txt copies, both directory pages and
+tools.json still said the outage ran "to at least 00:19 UTC 2026-10-25" (llms.txt's row caveat: "16:20 UTC
+2026-10-24"), and tools.json's 22 `last_check` stamps read 10-25 00:19. bounties.txt's WHAT WORKS WITHOUT OUR AGENTS
+still said the 5 free calls "answered with real data at 16:20 UTC the same day", a sentence from before the outage.
+
+**Why it mattered.** #152's rule is that each re-check moves the stamp forward; nobody had since 10-25, because the box
+was down 10-26 04:11 to 10-27 09:51. A stranger reading a three-day-old end date can fairly take the sellers as back,
+and the WHAT WORKS line says outright that the free calls work. Either sends it to 000s, or to a send that buys nothing.
+
+**How it was moved.** Every copy now dates the outage to at least 20:22 UTC 2026-10-27, the echo route's re-measure is
+20:20 UTC 10-27 (terms 200, unpaid POST 402; still no 0.001 XNO receive on the Unstuck chain), and the WHAT WORKS bullet
+says the endpoints answer nothing, not even the free calls. `specs/test_sellers_down_stamp_agrees.py` makes the seven
+copies carry one stamp, tools.json's paypercall `last_check` match it, and no copy say "answered with real data". It
+fails on old main (two laws) and caught the llms.txt caveat this fix had first missed.
+
+**Evidence.**
+
+- ran 20:22 10-27: `for h in extract search domain check geoip; do curl -s -m 10 ... /health` -> five 000
+- ran 20:18: `python3 ops/watch-outage.py` -> 6 faults (five sellers' manifests; 5EE71904 receivable 227.8 h)
+- ran 20:20: `curl getunstuck.space/unstuck/api/v1/x402` -> 200, payTo nano_1434...; unpaid POST `/v1/echo` -> 402
+- ran: `account_history` nano_1434... count 40 -> no 1000000000000000000000000000-raw receive
+- ran: every specs/test_*.py passes (71 files); `diff` of both mirror pairs empty; tools.json parses
+
 ### 169. Two outside sellers weighed taking XNO today, and neither had a reply drafted
 
 *partial (reply drafts on main 2026-10-27, PR on `hunt/afternoon-adoption-drafts`; nothing to deploy. Not solved until

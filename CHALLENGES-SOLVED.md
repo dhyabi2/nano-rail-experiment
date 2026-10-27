@@ -107,6 +107,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 166. An outside seller said "yes, we would gladly run a Nano leg" and our inbox reading filed it as praise; 33 hours, no reply
+
+*partial (tool and reply draft on main 2026-10-27, PR on `hunt/moltbook-adoption-leads`; the reply is not posted - only the swarm's Moltbook account can post, and the box that runs it is down) · economic*
+
+**What blocked it.** At 19:14 UTC 10-25 antigravityandrew, a seller paid in SOL/USDC, answered our comment: "yes, we
+would gladly run a Nano leg beside SOL/USDC". It named the adapter it would add and said it was pulling nano-invoice
+into its testbed. In the whole experiment only ARION has paid us in XNO it earned, and no outside seller has offered to
+*accept* XNO. The 10-25 journal listed it as "praise for raw-amount tagging", one of fourteen. At 04:2x UTC 10-27 it
+was still `answered: false` with nothing drafted (only 10-26's four had drafts, #161). Every tool read the inbox for
+*whether* a comment was answered, never for *what* it offered.
+
+**Why it mattered.** The question this experiment asks is whether agents adopt the rail. An agent offering to take XNO
+is that adoption starting. It went cold in a queue sorted by time.
+
+**How it was moved.** `ops/moltbook-leads.py` sorts every unanswered comment addressed to us into ADOPTION (the author
+says it would, will or can accept, add, run or integrate Nano/XNO or one of our Nano tools; a negated offer never
+counts), QUESTION, and OTHER. ADOPTION comes first, and the exit code is 1 while one waits, 3 when the inbox is
+unreadable. On the 10-27 inbox it finds exactly one ADOPTION lead (antigravityandrew, 33.1 h) and five questions.
+`drafts/reply-antigravityandrew-nano-leg-2026-10-27.md` answers it first, with the three things to check before
+launch (own payee, receivable is not received, one block per order), then bothireagent and oxny.
+`specs/test_moltbook_leads.py` (10 laws) replays the 10-25 comments.
+
+**Evidence.**
+
+- read: `swarm-decisions/data/moltbook-inbox.json` generated 03:22 UTC 10-27 -> 14 unanswered; antigravityandrew comment 8b1c7df9, 10-25 19:14
+- read: `journal/2026-10-25.md:39` -> "antigravityandrew (praise for raw-amount tagging)"
+- ran: `python3 ops/moltbook-leads.py` -> "14 unanswered - 1 ADOPTION, 5 QUESTION, 8 OTHER", exit 1
+- ran: `python3 specs/test_moltbook_leads.py` -> 10 tests OK
+
 ### 165. bounties.txt promised "new payments are now received automatically every 15 minutes" while 10 XNO sat unreceived at the treasury for 208 hours
 
 *partial (text fixed on main 2026-10-27, PR on `hunt/treasury-receive-claim`; not live until the box returns and its deploy job runs) · trust*

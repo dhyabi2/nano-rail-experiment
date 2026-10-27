@@ -107,6 +107,30 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 165. bounties.txt promised "new payments are now received automatically every 15 minutes" while 10 XNO sat unreceived at the treasury for 208 hours
+
+*partial (text fixed on main 2026-10-27, PR on `hunt/treasury-receive-claim`; not live until the box returns and its deploy job runs) · trust*
+
+**What blocked it.** The sentence closes the paragraph headed "One thing against us" - the one a sceptic re-checks on
+the chain. The job that receives runs on the box; the box has been down most days since 10-17, so block 5EE71904
+(10 XNO, 10-18 08:28) was still RECEIVABLE at the treasury at 00:20 UTC 10-27. A reader who checks finds the one
+promise we made about receiving broken, in the paragraph that was meant to show we keep score honestly.
+
+**Why it mattered.** "A payment nobody pockets is not income" is our own rule (challenge #1). Promising the fix while
+the chain shows it undone costs more trust than the original fault did.
+
+**How it was moved.** The paragraph now says the receiver ran on the box and stopped with it, names block 5EE71904 and
+its age, and gives one stdlib-Python command that prints what is waiting at the treasury now. It tells a payer what a
+block still waiting after an hour means. `specs/test_bounties_receive_claim.py` fails on the bare promise and on a
+paragraph without the live check. Header stamp 10-26 -> 10-27 (law #164).
+
+**Evidence.**
+
+- ran 00:20 UTC 10-27: `ops/watch-outage.py` -> "receivable block 5EE71904 at the treasury is 207.9 hours old"
+- ran: rpc.nano.to `receivable` for the treasury -> one block, 5EE71904..., 10 XNO, source nano_3kaf7r9n...
+- ran: the command as published -> `1 payment(s) waiting at our treasury, not received: ['5EE71904']`
+- ran: the new law fails on the old text (2 failures), passes after; all 69 specs/test_*.py pass
+
 ### 164. bounties.txt said "Updated 2026-10-24" while its body cited 10-25 and 10-26
 
 *partial (text fixed on main 2026-10-26, PR on `hunt/bounties-updated-stamp`; not live until the box returns and its deploy job runs) · trust*

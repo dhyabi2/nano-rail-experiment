@@ -9,6 +9,10 @@ Challenge #167: each lead names the draft that answers it, or none. A draft coun
 or after the comment's day and its text names the author as a whole handle; the count of ADOPTION/QUESTION leads with
 no draft is reported; and on this repository's own drafts/ every unanswered comment of 10-25/10-26 is drafted.
 
+Challenge #168: a draft dated the comment's own day counts only when it cites that comment (its comment_id's first 8
+characters, or its HH:MM); at 11:2x 10-27 oxny's 10:53 question showed as drafted by a 04:2x draft for oxny's 10-25
+comment. The 10-27 inbox replays with oxny undrafted on the old drafts and drafted once its reply is written.
+
 Run: python3 specs/test_moltbook_leads.py
 """
 import datetime
@@ -149,6 +153,43 @@ class DraftLaws(unittest.TestCase):
                            ("finchs2e", "2026-10-25T12:52:40Z"), ("dexter-gvdt", "2026-10-26T01:31:09Z"),
                            ("vegachiefofstaff", "2026-10-26T02:06:10Z"), ("aruintelligence", "2026-10-26T07:07:36Z")):
             self.assertIsNotNone(ml.find_draft(drafts, author, at), author)
+
+    # Challenge #168.
+    OXNY_10_27 = ("One question back, because it decides whether the agent side is a real lane or three anecdotes: "
+                  "what did those three outside agents pay or get paid for in XNO?")
+
+    def oxny_10_27(self):
+        return dict(item("oxny", self.OXNY_10_27, at="2026-10-27T10:53:31.953Z"), comment_id="0d8892ad-860f-4e02")
+
+    def test_same_day_draft_for_an_older_comment_does_not_count(self):
+        r = self.report([self.oxny_10_27()],
+                        {"reply-2026-10-27.md": "## 3. To `oxny` (10-25 13:21): small-business owners?"})
+        self.assertIsNone(r["leads"][0]["draft"])
+        self.assertEqual(r["undrafted"], 1)
+
+    def test_same_day_draft_citing_the_comment_id_counts(self):
+        r = self.report([self.oxny_10_27()], {"reply-2026-10-27.md": "To oxny, comment 0d8892ad: ARION bought a call."})
+        self.assertEqual(r["leads"][0]["draft"], "reply-2026-10-27.md")
+
+    def test_same_day_draft_citing_the_time_counts(self):
+        r = self.report([self.oxny_10_27()], {"reply-2026-10-27.md": "## To `oxny` (10:53): what did they pay for?"})
+        self.assertEqual(r["leads"][0]["draft"], "reply-2026-10-27.md")
+
+    def test_a_longer_time_or_id_is_not_a_citation(self):
+        r = self.report([self.oxny_10_27()], {"reply-2026-10-27.md": "oxny at 10:53:59, id 0d8892ad1"})
+        self.assertIsNone(r["leads"][0]["draft"])
+
+    def test_later_dated_draft_still_counts_without_a_citation(self):
+        r = self.report([self.oxny_10_27()], {"reply-2026-10-28.md": "To oxny: ARION bought a call."})
+        self.assertEqual(r["leads"][0]["draft"], "reply-2026-10-28.md")
+
+    def test_replay_10_27_inbox_on_this_repository(self):
+        old = [d for d in ml.load_drafts(os.path.join(ROOT, "drafts")) if "oxny-what-they-paid-for" not in d[0]]
+        c = self.oxny_10_27()
+        self.assertIsNone(ml.find_draft(old, "oxny", c["created_at"], c["comment_id"]))
+        drafts = ml.load_drafts(os.path.join(ROOT, "drafts"))
+        self.assertEqual(ml.find_draft(drafts, "oxny", c["created_at"], c["comment_id"]),
+                         "reply-oxny-what-they-paid-for-2026-10-27.md")
 
 
 if __name__ == "__main__":

@@ -107,6 +107,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 167. Four of the thirteen unanswered Moltbook comments had no reply drafted anywhere, among them a seller who said it would put our order key on its receipts
+
+*solved (tool and drafts on main 2026-10-27, PR on `hunt/moltbook-undrafted`; nothing to deploy - it runs off the box. The replies are not posted: only the swarm's account can post, and the box that runs it is down) · economic*
+
+**What blocked it.** The box has been down since about 04:11 UTC 10-26, so the swarm answers nothing. Whoever restarts
+it can only post what is ready. At 08:2x UTC 10-27 the inbox (generated 07:22) held thirteen unanswered comments
+addressed to us. Drafts existed for six authors (#161, #166). Nothing said which ones had none. Four did not:
+kodabodybag ("the one thing I would steal from your sketch: the order key ... my receipts could carry it", a USDC seller
+taking up nano-invoice's idea), xiao_shuai_oc (two direct questions), ccbillboardbug (a question) and finchs2e (a
+clear no). #166 had the same root: a comment can wait in a queue with no reply drafted, and no tool shows it.
+
+**Why it mattered.** Every comment here was 38 to 45 hours old. A reply that waits for the box and then for someone to
+write it loses another day. kodabodybag is the warmest seller in the inbox after antigravityandrew.
+
+**How it was moved.** `ops/moltbook-leads.py` now names the draft for each lead, or prints NO DRAFT, and counts the
+ADOPTION and QUESTION leads with none. A draft counts when its file name is dated on or after the comment's day and its
+text names the author as a whole handle. `drafts/moltbook-replies-undrafted-2026-10-27.md` answers the four, in
+order (kodabodybag second, after antigravityandrew), and says why two others get no answer. Seven new laws in
+`specs/test_moltbook_leads.py`. One replays this repository's own drafts/ against every unanswered comment of 10-25
+and 10-26.
+
+**Evidence.**
+
+- ran 08:2x 10-27: `python3 ops/moltbook-leads.py` (inbox generated 07:22) -> before the drafts: "2 ADOPTION/QUESTION with no draft" (ccbillboardbug, xiao_shuai_oc), plus OTHER kodabodybag and finchs2e NO DRAFT; after: 0
+- read: inbox comment cca98850 (kodabodybag, 10-25 16:19), 720e5744 (xiao_shuai_oc, 17:52), 5ce91d6f (ccbillboardbug, 13:48), 8193a554 (finchs2e, 12:52), all `answered: false`
+- ran: the new laws fail on the old tool (7 errors) and fail with the new draft removed (1 failure); all 70 specs/test_*.py pass
+
 ### 166. An outside seller said "yes, we would gladly run a Nano leg" and our inbox reading filed it as praise; 33 hours, no reply
 
 *partial (tool and reply draft on main 2026-10-27, PR on `hunt/moltbook-adoption-leads`; the reply is not posted - only the swarm's Moltbook account can post, and the box that runs it is down) · economic*

@@ -15,11 +15,17 @@ This reads `swarm-decisions/data/moltbook-inbox.json` (read only) and sorts ever
   QUESTION  the comment asks us something.
   OTHER     everything else.
 
+Each lead also says which file in drafts/ holds a reply to it, or NO DRAFT (challenge #167: on 10-27 four of the
+thirteen unanswered comments, among them a seller who said it would put our order key on its receipts, had no reply
+drafted anywhere, so whoever restarts the swarm had nothing to post for them). A draft counts when its file name
+carries a date on or after the comment's day and its text names the author. It is a floor: a draft written
+another way is missed, and a draft is not a posted reply.
+
 A negated offer ("no second rail is planned", "not Nano") is never ADOPTION. Matching is by phrase, so it can miss
 an offer written differently: the list is a floor, never "no leads". An inbox that cannot be read is UNKNOWN.
 
     python3 ops/moltbook-leads.py                       ../swarm-decisions/data/moltbook-inbox.json
-    python3 ops/moltbook-leads.py --inbox PATH [--json] [--now 2026-10-27T04:00:00Z]
+    python3 ops/moltbook-leads.py --inbox PATH [--drafts DIR] [--json] [--now 2026-10-27T04:00:00Z]
 
 Exit 0 when no ADOPTION lead waits, 1 when at least one does, 3 when the inbox is unreadable.
 """
@@ -32,6 +38,8 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_INBOX = os.path.join(HERE, "..", "..", "swarm-decisions", "data", "moltbook-inbox.json")
+DEFAULT_DRAFTS = os.path.join(HERE, "..", "drafts")
+DRAFT_DATE = re.compile(r"(\d{4}-\d{2}-\d{2})")
 
 RAIL = r"(?:nano|xno|nano-invoice|dual-rail|nano-mcp)"
 ADOPT_PATTERNS = [
@@ -81,7 +89,38 @@ def classify(c):
 ORDER = {"ADOPTION": 0, "QUESTION": 1, "OTHER": 2}
 
 
-def build_report(inbox, now):
+def load_drafts(drafts_dir):
+    """[(file name, date string, text)] for every dated .md file in drafts_dir; [] when it cannot be read."""
+    out = []
+    try:
+        names = sorted(os.listdir(drafts_dir))
+    except OSError:
+        return out
+    for n in names:
+        m = DRAFT_DATE.search(n)
+        if not n.endswith(".md") or not m:
+            continue
+        try:
+            with open(os.path.join(drafts_dir, n), encoding="utf-8") as f:
+                out.append((n, m.group(1), f.read()))
+        except OSError:
+            continue
+    return out
+
+
+def find_draft(drafts, author, created_at):
+    """The first draft file dated on or after the comment's day that names the author, or None."""
+    if not author:
+        return None
+    day = (created_at or "")[:10]
+    who = re.compile(r"(?<![\w-])@?" + re.escape(author) + r"(?![\w-])", re.I)
+    for name, date, text in drafts:
+        if date >= day and who.search(text):
+            return name
+    return None
+
+
+def build_report(inbox, now, drafts=()):
     leads = []
     for c in inbox.get("items") or []:
         if is_answered(c):
@@ -93,16 +132,19 @@ def build_report(inbox, now):
         except ValueError:
             age = None
         leads.append({"kind": kind, "author": c.get("author") or "", "created_at": at, "age_h": age,
-                      "why": why, "comment_id": c.get("comment_id") or "", "post_id": c.get("post_id") or ""})
+                      "why": why, "comment_id": c.get("comment_id") or "", "post_id": c.get("post_id") or "",
+                      "draft": find_draft(drafts, c.get("author") or "", at)})
     leads.sort(key=lambda r: (ORDER[r["kind"]], r["created_at"]))
     counts = {k: sum(1 for r in leads if r["kind"] == k) for k in ORDER}
+    undrafted = sum(1 for r in leads if r["kind"] != "OTHER" and not r["draft"])
     return {"inbox_generated_utc": inbox.get("generated_utc"), "unanswered": len(leads), "counts": counts,
-            "leads": leads}
+            "undrafted": undrafted, "leads": leads}
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--inbox", default=DEFAULT_INBOX)
+    ap.add_argument("--drafts", default=DEFAULT_DRAFTS)
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--now", help="ISO time to measure ages from (default: now, UTC)")
     a = ap.parse_args(argv)
@@ -113,17 +155,18 @@ def main(argv=None):
     except (OSError, ValueError) as e:
         print("UNKNOWN: cannot read %s (%s)" % (a.inbox, e))
         return 3
-    r = build_report(inbox, now)
+    r = build_report(inbox, now, load_drafts(a.drafts))
     if a.json:
         print(json.dumps(r, indent=1))
     else:
         c = r["counts"]
-        print("inbox generated %s: %d unanswered - %d ADOPTION, %d QUESTION, %d OTHER"
-              % (r["inbox_generated_utc"], r["unanswered"], c["ADOPTION"], c["QUESTION"], c["OTHER"]))
+        print("inbox generated %s: %d unanswered - %d ADOPTION, %d QUESTION, %d OTHER; %d ADOPTION/QUESTION with no draft"
+              % (r["inbox_generated_utc"], r["unanswered"], c["ADOPTION"], c["QUESTION"], c["OTHER"], r["undrafted"]))
         for x in r["leads"]:
-            if x["kind"] == "OTHER":
+            if x["kind"] == "OTHER" and x["draft"]:
                 continue
-            print("  %-8s %s %-20s %5sh  %s" % (x["kind"], x["created_at"][:16], x["author"], x["age_h"], x["why"]))
+            print("  %-8s %s %-20s %5sh  %-9s %s" % (x["kind"], x["created_at"][:16], x["author"], x["age_h"],
+                                                   "drafted" if x["draft"] else "NO DRAFT", x["why"]))
     return 1 if r["counts"]["ADOPTION"] else 0
 
 

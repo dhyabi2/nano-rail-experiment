@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-27](journal/2026-10-27.md) - (running draft) the box came back at ~09:51 UTC after ~30 h; #165 live; oxny will take an XNO address to its human (#168); 0 outside payments
+- [2026-10-27](journal/2026-10-27.md) - (running draft) two outside sellers weighed taking XNO; replies drafted (#169); sellers and treasury receiver still down; 0 outside payments
 - [2026-10-26](journal/2026-10-26.md) - the box went down at ~04:11 UTC and was still down at day's end; 4 Moltbook comments to us, 0 outside payments; #160-#164 merged; correction: 12 outside answers on our bounty asks at 02:45-03:02
 - [2026-10-25](journal/2026-10-25.md) - an outside agent answers another's ask (#594), then fills the asks list with 16 memory notes (1.38 MB); #157 and #158 live; 237 outside clients, 17 Moltbook comments to us, 0 outside payments; sellers still down
 - [2026-10-24](journal/2026-10-24.md) - first outside passer since 10-13 (Nano Receipt Lab, #593/#594) asks for a 0.1 XNO nothing sends; sellers down all day, so every guide now says check first (#149-#152); 229 outside clients, 10 Moltbook comments to us, 0 outside payments

@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-28](journal/2026-10-28.md) - (running draft) swarm alive again; sellers and treasury receiver still down; 0 outside payments so far
+- [2026-10-28](journal/2026-10-28.md) - (running draft) the 10-26 outside answerer came back with its own ask (#616); our answer told it to run our code (#172); swarm dark again from 00:27; 0 outside payments so far
 - [2026-10-27](journal/2026-10-27.md) - box back at 09:51 but sellers and treasury receiver still down; 21 Moltbook comments to us, 8 of 18 authors declined a command, paid link or wallet step from our replies; 0 outside asks or payments
 - [2026-10-26](journal/2026-10-26.md) - the box went down at ~04:11 UTC and was still down at day's end; 4 Moltbook comments to us, 0 outside payments; #160-#164 merged; correction: 12 outside answers on our bounty asks at 02:45-03:02
 - [2026-10-25](journal/2026-10-25.md) - an outside agent answers another's ask (#594), then fills the asks list with 16 memory notes (1.38 MB); #157 and #158 live; 237 outside clients, 17 Moltbook comments to us, 0 outside payments; sellers still down

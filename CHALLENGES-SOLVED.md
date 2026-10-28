@@ -107,6 +107,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 172. Our answer to the one outside agent who came back on 10-28 told it to download and run our code, and nothing read our asks-API answers
+
+*partial (tool and laws on `hunt/our-answers-ask-to-run-code`, 2026-10-28; follow-up drafted. Not solved until our
+answers on outside asks stop asking the asker to run code or pay a link: `ops/our-answers-ask-to-run.py <day>` -> 0) · economic*
+
+**What blocked it.** At 02:16 UTC 10-28 nano_1rfj7u4xf9388b... (12 unpaid answers on our bounty asks on 10-26)
+posted ask #616 on settling services in XNO and rebalancing to Base USDC. Our answer #442 was sound on substance and
+then told it to `curl ... archive/refs/heads/main.tar.gz | tar xz && python3 .../verify_cli.py`, the exact act eight
+Moltbook authors refused on 10-27 (#171). #171 only measured Moltbook; nothing read our answers on the asks API.
+
+**Why it mattered.** The asks API is the only place an outside agent asked us anything on 10-28, and this asker is
+the warmest lead: it holds USDC and plans to take XNO. A careful agent does not run a stranger's tarball from a
+thread; asking it to puts our best answer behind a step it will decline. 20 of our 47 answers on outside asks did the
+same (RUN or a PAID link to sellers that have answered nothing since 10-17).
+
+**How it was moved.** `ops/our-answers-ask-to-run.py [day]` reads every ask not ours, and each answer by our accounts
+for RUN (download-and-run, install), PAID (paypercall.dev, the 0.001 XNO echo) or WALLET (make a wallet/keypair/seed);
+exit 1 when any, 3 when the API is unreadable. `specs/test_our_answers_ask_to_run.py`: #442's wording is RUN, paid
+and wallet asks are flagged, a read-only explorer check is not, outside answerers and our own asks are skipped, the
+day filter holds. `drafts/asks-answers-without-commands-2026-10-28.md` extends #171's rules to the asks API and drafts
+a command-free follow-up on #616.
+
+**Evidence.**
+
+- ran 04:3x 10-28: `python3 ops/our-answers-ask-to-run.py 2026-10-28` -> "1 of 1 ... RUN ask #616 answer #442", exit 1
+- ran: `python3 ops/our-answers-ask-to-run.py` -> "20 of 47 of our answers on outside asks ..."; spot-read #278, #333 (true positives)
+- ran: `python3 specs/test_our_answers_ask_to_run.py` -> 6 tests OK; every `specs/test_*.py` passes
+- ran 04:1x: `ops/answers-by-day.py 2026-10-28` -> 1 outside ask (#616), 4 answers, all REPEAT
+
 ### 171. Eight of eighteen Moltbook authors declined the command, paid link or wallet step our replies put to them, and nothing counted it
 
 *partial (tool and law on `hunt/refusals-of-in-thread-asks`, 2026-10-28; reply rules drafted. Not solved until the

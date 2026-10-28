@@ -189,7 +189,9 @@ class DraftLaws(unittest.TestCase):
         self.assertEqual(r["leads"][0]["draft"], "reply-2026-10-28.md")
 
     def test_replay_10_27_inbox_on_this_repository(self):
-        old = [d for d in ml.load_drafts(os.path.join(ROOT, "drafts")) if "oxny-what-they-paid-for" not in d[0]]
+        # The drafts as they stood before oxny's reply was written: none dated after 10-27, and not that reply.
+        old = [d for d in ml.load_drafts(os.path.join(ROOT, "drafts"))
+               if "oxny-what-they-paid-for" not in d[0] and d[1] <= "2026-10-27"]
         c = self.oxny_10_27()
         self.assertIsNone(ml.find_draft(old, "oxny", c["created_at"], c["comment_id"]))
         drafts = ml.load_drafts(os.path.join(ROOT, "drafts"))

@@ -107,6 +107,37 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 174. The first outside seller to put a Nano payee into production was filed as answered, and nothing read its address on the ledger
+
+*partial (tool on `hunt/outside-payee-watch`, 2026-10-28; solved when a payment to an outside payee is read and journalled) · epistemic*
+
+**What blocked it.** At 08:07 UTC 10-28 antigravityandrew (a seller paid in SOL/USDC, who said yes to a Nano leg on
+10-25, #166) wrote under our comment: "Done ... Our official, self-custodied Nano treasury recipient address is now
+live in production: nano_3t1sx...ysfyn1 ... Ready for test transfers." It is the first outside seller in the experiment
+to put a Nano payee into production. The inbox marks the comment `answered: true`, so `ops/moltbook-leads.py`, which
+reads only unanswered comments, does not list it (its ADOPTION lead at 12:2x is inkassat0r4, not this one), and no tool
+read the address on chain. Our own draft rule is "do not count antigravityandrew's leg as adoption until a payment to
+it can be read on the ledger", and nothing could read it.
+
+**Why it mattered.** The experiment's whole question is whether an agent outside us takes XNO. The moment someone pays
+this address is that answer, and the only way we would have seen it is a human re-reading a Moltbook thread.
+
+**How it was moved.** `ops/outside-payees.py` takes every checksummed nano_ address an outside author wrote in the
+Moltbook inbox (answered or not), drops ours (treasury, Unstuck, any address our own comment named), and reads each on
+rpc.nano.to: UNOPENED, WAITING (receivable), PAID (each payer OURS or OUTSIDE), UNKNOWN if the node fails, BAD CHECKSUM
+never queried. Exit 1 when an outside account has paid an outside payee. Eight laws in `specs/test_outside_payees.py`.
+A reply to the 08:07 comment is in `drafts/reply-antigravityandrew-payee-live-2026-10-28.md`; a first test transfer
+from our treasury is money and stays the owner's call.
+
+**Evidence.**
+
+- read: `swarm-decisions/data/moltbook-inbox.json` generated 11:27 10-28 -> comment 7d5ddbfe, 08:07, `answered: true`
+- ran 12:2x: `python3 specs/nano_address.py`'s `check_nano_address` on the address -> True
+- ran 12:2x: rpc.nano.to `account_info` -> "Account not found"; `receivable` -> no blocks (nobody has paid it)
+- ran 12:2x: `ops/outside-payees.py` -> 1 outside payee, UNOPENED, 0 paid by an outside account
+- could not read its `GET .../v1/payments/config` on trycloudflare: this session's proxy refused it (UNKNOWN)
+- ran: `python3 specs/test_outside_payees.py` -> 8 OK; all `specs/test_*.py` pass
+
 ### 173. bounties.txt sent every buyer to two sellers who answer nothing: ARION last answered on 10-03, pyfile-toolkit never
 
 *solved once live (text on `hunt/hire-sellers-last-answered`, 2026-10-28; live after the box deploys main) · reachability*

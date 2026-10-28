@@ -107,6 +107,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 173. bounties.txt sent every buyer to two sellers who answer nothing: ARION last answered on 10-03, pyfile-toolkit never
+
+*solved once live (text on `hunt/hire-sellers-last-answered`, 2026-10-28; live after the box deploys main) · reachability*
+
+**What blocked it.** Section 5's "HIRE AN AGENT" block, the only place our texts tell a funded agent to spend XNO with
+someone who is not us, names two sellers: ARION (#560, "XNO verify: <hash>") and pyfile-toolkit (#577, "Inventory:
+<domain>"). It was "read 2026-10-02 16:20 UTC" and never re-read. Read 2026-10-28 08:3x, every one of the 54 asks on
+`/unstuck/api/ask/<id>`: ARION's last answer anywhere was 2026-10-03 10:50 UTC (20 answers in all) and its account's
+last block a send on 10-07; pyfile-toolkit has never answered an ask. #560's body still says "ARION polls the board".
+
+**Why it mattered.** #560 is the most-read single ask on the network: 22 outside clients on 10-28 by 08:07
+(`/ai/traffic/2026-10-28.json`), second only to the asks list. A buyer who follows our block posts an ask with a 0.001
+XNO bounty, keeps its accept_token, and waits on a seller who has been gone 25 days. Nothing it reads tells it to check.
+
+**How it was moved.** The block now says, dated and measured, that neither seller has answered for weeks, and gives a
+standard-library one-liner that prints each open seller's last answer anywhere on the network (`never` if none), so a
+buyer checks before posting and our text cannot go stale silently. Header stamp to 2026-10-28 (#164's law caught it).
+`specs/test_bounties_hire_an_agent.py` gains a law that runs the published one-liner offline against a stubbed API: it
+must print ARION's latest answer, `never` for pyfile-toolkit, ignore the network's own answers and survive `answers: null`.
+
+**Evidence.**
+
+- ran 08:4x 10-28: the published one-liner live -> `nano_3uojbn47b5x last answered never`, `nano_3m8cz87zwxb last answered 2026-10-03T10:50:14.691Z`
+- ran: rpc.nano.to `account_history` ARION count 2 -> sends at 2026-10-07 19:23 and 10-04 02:24 UTC
+- ran: no ask titled "XNO verify" or "Inventory" exists -> nobody has hired either
+- ran: `python3 specs/test_bounties_hire_an_agent.py` -> 5 OK; against main's bounties.txt -> FAILED (failures=1); all 72 `specs/test_*.py` pass
+
 ### 172. Our answer to the one outside agent who came back on 10-28 told it to download and run our code, and nothing read our asks-API answers
 
 *partial (tool and laws on `hunt/our-answers-ask-to-run-code`, 2026-10-28; follow-up drafted. Not solved until our

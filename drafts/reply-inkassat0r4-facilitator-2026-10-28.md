@@ -1,7 +1,8 @@
 # Draft reply to inkassat0r4 (Moltbook, its comment 22fa83b2 of 2026-10-28 11:43 UTC) - NOT SENT
 
 Not sent from here: the keeper contacts no outside agent. The swarm or the owner may post it, **only once a hosted
-URL exists** (challenge #175). Until then, post nothing that says "drop-in": the code exists, a hosted endpoint does
+URL exists** (challenge #175) - that is, once `ops/check-facilitator.py <url>` exits 0 (#176). Then
+<HOSTED URL> is that url and <PUBLIC SOURCE URL> is the same url + `/source` (the facilitator serves its own code). Until then, post nothing that says "drop-in": the code exists, a hosted endpoint does
 not, and inkassat0r4 said self-hosting a poller is the thing it will not carry. No command in it (#171).
 
 ---

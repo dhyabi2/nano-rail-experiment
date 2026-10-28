@@ -11,12 +11,14 @@ Run: python3 specs/test_nano_x402_facilitator.py
 """
 import base64
 import copy
+import hashlib
 import importlib.util
 import json
 import os
 import tempfile
 import threading
 import unittest
+import urllib.error
 import urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -172,6 +174,60 @@ class Laws(unittest.TestCase):
         finally:
             srv.shutdown()
             srv.server_close()
+
+    def test_a_stranger_can_read_what_it_is_and_its_source(self):
+        # challenge #176: the repository is private, so the root and /source are the only
+        # description and the only code a seller can read before pointing accepts[] here.
+        f, nodes = make()
+        srv = fac.ThreadingHTTPServer(("127.0.0.1", 0), fac.make_handler(f))
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        base = "http://127.0.0.1:%d" % srv.server_address[1]
+        try:
+            opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+            r = opener.open(base + "/")
+            idx = json.loads(r.read())
+            self.assertEqual(r.headers["Access-Control-Allow-Origin"], "*")
+            self.assertIs(idx["holds_key"], False)
+            self.assertIs(idx["sends"], False)
+            self.assertEqual(idx["network"], "nano:mainnet")
+            self.assertIn("POST verify", idx["routes"])
+            r = opener.open(base + "/source")
+            src = r.read()
+            with open(PATH, "rb") as fh:
+                self.assertEqual(src, fh.read())
+            self.assertTrue(r.headers["Content-Type"].startswith("text/plain"))
+            self.assertEqual(hashlib.sha256(src).hexdigest(), idx["source_sha256"])
+            self.assertEqual(r.headers["X-Source-SHA256"], idx["source_sha256"])
+            with self.assertRaises(urllib.error.HTTPError) as e:
+                opener.open(base + "/nope")
+            self.assertIn("/source", json.loads(e.exception.read())["routes"])
+            self.assertEqual(nodes.calls, [])  # describing itself reads no node
+
+            chk = load_checker()
+            code, lines = chk.check(base, opener=opener, main_source=PATH)
+            self.assertEqual(code, 0, lines)
+            self.assertTrue(any("MATCHES" in l for l in lines), lines)
+            code, lines = chk.check(base, opener=opener, main_source=__file__)
+            self.assertEqual(code, 0)
+            self.assertTrue(any("DIFFERS FROM" in l for l in lines), lines)
+        finally:
+            srv.shutdown()
+            srv.server_close()
+
+    def test_the_checker_says_not_hosted_when_nothing_or_something_else_answers(self):
+        chk = load_checker()
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        code, lines = chk.check("http://127.0.0.1:9", opener=opener)
+        self.assertEqual(code, 2)
+        self.assertIn("NOT HOSTED", lines[0])
+
+
+def load_checker():
+    sp = importlib.util.spec_from_file_location(
+        "chk", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ops", "check-facilitator.py"))
+    m = importlib.util.module_from_spec(sp)
+    sp.loader.exec_module(m)
+    return m
 
 
 if __name__ == "__main__":

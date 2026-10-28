@@ -10,6 +10,8 @@ python3 facilitator.py --port 8402 --node https://rpc.nano.to --node <second nod
 
 | Route | Body | Answer |
 |---|---|---|
+| `GET /` | - | an index: every route and body, `holds_key: false`, `sends: false`, `source_sha256` |
+| `GET /source` | - | this file, text/plain, `X-Source-SHA256` header (the repository is private, #176) |
 | `GET /supported` | - | `{"kinds":[{"x402Version":1,"scheme":"exact","network":"nano:mainnet"}, ...v2]}` |
 | `POST /verify` | `{"paymentPayload":..., "paymentRequirements":...}` | `{"isValid":bool,"invalidReason":str\|null,"payer":"nano_..."}` |
 | `POST /settle` | same | `{"success":bool,"errorReason":...,"transaction":"<hash>","network":"nano:mainnet","payer":...}` |
@@ -25,6 +27,8 @@ does the same checks and then records the hash, so a hash settles once, across r
 What it does not do: it does not receive the funds into the seller's wallet. A Nano send is final when it is
 confirmed, but the payee's wallet still has to publish a receive block to spend it. That is the seller's own wallet,
 holding the seller's own key, and nothing here touches it.
+
+Hosting on the box: `drafts/box-nano-x402-facilitator.md`. Is it up, and is it main's code: `python3 ops/check-facilitator.py <url>`.
 
 Tests: `python3 specs/test_nano_x402_facilitator.py` (stub nodes, plus the HTTP interface on a local port).
 Measured live 2026-10-28 16:2x UTC against rpc.nano.to with public block 5EE71904...: correct payee and amount is

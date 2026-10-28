@@ -107,6 +107,38 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 176. The facilitator a seller asked for could not be read or trusted at its own URL, and nothing would say when it was up
+
+*partial (on `hunt/facilitator-serves-itself`, 2026-10-28; solved when `ops/check-facilitator.py` passes at the public URL and the inkassat0r4 reply is posted) · epistemic*
+
+**What blocked it.** #175's reply draft promises inkassat0r4 "the source is <PUBLIC SOURCE URL> if you would rather
+read it than trust it". There is no such URL: this repository is private, and the facilitator itself answered 404 at
+`/` and served only `/supported`, `/verify`, `/settle`. A seller who opens the root (13 clients a day already hit the
+404ing `/unstuck/api/` root, #76) would learn nothing, and could not check the code before pointing money at it.
+Hosting needed an owner step nobody had written down, and nothing measured whether it had happened, so the keeper
+could only repeat "not yet hosted" from memory.
+
+**Why it mattered.** inkassat0r4 said the gate is integration cost, and a keyless claim nobody can read is a trust
+cost on top. The moment the owner hosts it, the reply should go out the same day; that needs a measurement, not a guess.
+
+**How it was moved.** `facilitator.py` now answers `GET /` with an index (every route with its body shape,
+`holds_key: false`, `sends: false`, node count, quorum, `source_sha256`) and `GET /source` with its own file as
+text/plain plus an `X-Source-SHA256` header, both with CORS; an unknown path lists the routes. Hosting the file
+publishes its source, so the reply's two placeholders become one URL and `/source`. `ops/check-facilitator.py [URL]`
+reads the URL as a seller would (index, source hash against the index, header and main, `/supported`, a zero-hash
+`/verify` refused with a reason, CORS) and exits 0 hosted, 1 faulty, 2 not hosted. `drafts/box-nano-x402-facilitator.md`
+is the owner's five-minute step (systemd unit with no write access outside its own folder, Caddy `handle_path
+/x402/facilitator/*`). Two new laws in `specs/test_nano_x402_facilitator.py` (13 total).
+
+**What is still not solved.** Hosting itself is the owner's step; nothing published changed yet.
+
+**Evidence.**
+
+- ran 20:3x: `ops/check-facilitator.py` -> `NOT HOSTED ... answered 426` at `https://172-86-112-140.sslip.io/x402/facilitator`
+- ran 20:3x: facilitator on 127.0.0.1:8402 with `--node https://rpc.nano.to`, then `ops/check-facilitator.py
+  http://127.0.0.1:8402` -> every check ok, served source MATCHES main, zero hash `block_not_found` from the live node
+- ran: `python3 specs/test_nano_x402_facilitator.py` -> 13 OK
+
 ### 175. An x402 seller named the one thing that gates its Nano leg, a keyless drop-in facilitator, and none existed
 
 *partial (tool on `hunt/nano-x402-facilitator`, 2026-10-28; solved when it is hosted at a public URL and a seller points an accepts entry at it) · economic*

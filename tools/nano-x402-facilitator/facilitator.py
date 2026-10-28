@@ -26,6 +26,8 @@ Nodes that fail to answer are skipped; at least `--quorum` must answer, and any 
 node that disagrees makes the payment invalid.
 
 Interface (the shape x402 facilitators use):
+  GET  /          -> an index: every route, holds_key false, source_sha256
+  GET  /source    -> this file, text/plain (the repository is private; challenge #176)
   GET  /supported -> {"kinds":[{"x402Version":1,"scheme":"exact","network":"nano:mainnet"}]}
   POST /verify    {"paymentPayload":{...},"paymentRequirements":{...}}
                   -> {"isValid":bool,"invalidReason":str|null,"payer":str|null}
@@ -40,6 +42,7 @@ Run:  python3 facilitator.py --port 8402 --node https://rpc.nano.to --store rede
 
 import argparse
 import base64
+import hashlib
 import json
 import os
 import re
@@ -54,6 +57,10 @@ SCHEME = "exact"
 HASH_RE = re.compile(r"^[0-9A-Fa-f]{64}$")
 ADDR_RE = re.compile(r"^(nano|xrb)_[13][13456789abcdefghijkmnopqrstuwxyz]{59}$")
 UA = "Mozilla/5.0 (compatible; nano-x402-facilitator/1)"
+# The repository is private, so the only source a seller can read is the one this
+# server hands out (challenge #176): /source serves this very file, and / names its hash.
+SOURCE = open(os.path.abspath(__file__), "rb").read()
+SOURCE_SHA256 = hashlib.sha256(SOURCE).hexdigest()
 
 
 def node_rpc(url, body, timeout=10):
@@ -124,6 +131,30 @@ class Facilitator:
 
     def supported(self):
         return {"kinds": [{"x402Version": v, "scheme": SCHEME, "network": NETWORK} for v in (1, 2)]}
+
+    def index(self):
+        """What a stranger gets at the root: every route, what it holds, and its source."""
+        return {
+            "name": "nano-x402-facilitator",
+            "network": NETWORK,
+            "scheme": SCHEME,
+            "routes": {
+                "GET supported": "the kinds it verifies",
+                "POST verify": '{"paymentPayload":{"payload":{"hash":"<64 hex>"}},"paymentRequirements":'
+                               '{"scheme":"exact","network":"nano:mainnet","payTo":"nano_...",'
+                               '"amount":"<raw>","maxTimeoutSeconds":600}}',
+                "POST settle": "same body as verify; records the hash so it settles once",
+                "GET source": "this server's own source, text/plain",
+            },
+            "holds_key": False,
+            "sends": False,
+            "nodes": len(self.nodes),
+            "quorum": self.quorum,
+            "source_sha256": SOURCE_SHA256,
+            "note": "Valid only if every answering node says: confirmed send, to payTo, of exactly amount raw, "
+                    "first seen within maxTimeoutSeconds, never settled here before. It does not receive the "
+                    "funds; the payee's own wallet publishes the receive.",
+        }
 
     def _check(self, body):
         """(reason or None, hash, payer). Reads the nodes; never writes anything."""
@@ -217,14 +248,25 @@ def make_handler(fac):
             self.wfile.write(data)
 
         def do_GET(self):
-            if self.path.rstrip("/") == "/supported":
+            route = self.path.split("?", 1)[0].rstrip("/")
+            if route == "/supported":
                 return self._send(200, fac.supported())
-            self._send(404, {"error": "not found"})
+            if route == "":
+                return self._send(200, fac.index())
+            if route == "/source":
+                self.send_response(200)
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.send_header("X-Source-SHA256", SOURCE_SHA256)
+                self.send_header("Content-Length", str(len(SOURCE)))
+                self.end_headers()
+                return self.wfile.write(SOURCE)
+            self._send(404, {"error": "not found", "routes": ["/", "/supported", "/verify", "/settle", "/source"]})
 
         def do_POST(self):
             route = self.path.rstrip("/")
             if route not in ("/verify", "/settle"):
-                return self._send(404, {"error": "not found"})
+                return self._send(404, {"error": "not found", "routes": ["/", "/supported", "/verify", "/settle", "/source"]})
             try:
                 n = min(int(self.headers.get("Content-Length") or 0), 65536)
                 body = json.loads(self.rfile.read(n).decode() or "{}")

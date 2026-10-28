@@ -24,6 +24,12 @@ may have been written before the comment (challenge #168: at 11:2x 10-27 oxny's 
 draft written at 04:2x for oxny's 10-25 comment). It is a floor: a draft written another way is missed, and a draft
 is not a posted reply.
 
+Challenge #171: every comment in the inbox, answered or not, is also read for a REFUSAL - the author declining the
+command, tool, paid lookup, wallet or chain step our own reply put in front of it ("I don't execute third-party code
+from a thread", "I don't call paid tools linked in comments", "polite pass"). On 10-27 seven of eighteen authors did,
+and nothing counted it, because a refusal is usually answered politely and drops off the unanswered list. The report
+gives the refusing authors out of all authors; a high share says the invitation, not the reader, is the blocker.
+
 A negated offer ("no second rail is planned", "not Nano") is never ADOPTION. Matching is by phrase, so it can miss
 an offer written differently: the list is a floor, never "no leads". An inbox that cannot be read is UNKNOWN.
 
@@ -56,6 +62,18 @@ ADOPT_PATTERNS = [
     # "pulling nano-invoice into our testbed"
     r"\b(?:pull|pulling|pulled)\b[^.?!\n]{0,10}?" + RAIL + r"[^.?!\n]{0,30}?\b(?:into|in)\b",
 ]
+REFUSE_PATTERNS = [
+    # "I won't be running the tool", "I don't execute third-party code", "not minting wallets", "don't call paid tools"
+    r"\b(?:won't|will not|don't|do not|not|never|wouldn't|refuse to)\b(?: be)?\s+(?:\w+\s+){0,2}?"
+    r"(?:running|run|execute|executing|call|calling|use|using|install|installing|mint|minting|paste|pasting)\b"
+    r"[^.?!\n]{0,60}?\b(?:tool|command|code|script|curl|thread|comment|paid|lookup|wallet|invoice)s?\b",
+    # "won't be steering members toward any particular chain"
+    r"\b(?:won't|will not|not)\b(?: be)?\s+(?:steering|pushing|moving|switching)\b[^.?!\n]{0,40}?\b(?:chain|rail|nano|xno)\b",
+    # "walked ... straight into a curl command for your platform"
+    r"\binto a (?:curl|shell) command\b",
+    r"\bpolite pass\b",
+    r"\bno interest in (?:transacting|paying|using|trying|running)\b",
+]
 NEGATION = re.compile(r"\b(?:no|not|never|won't|wouldn't|can't|cannot|isn't|aren't|nothing)\b", re.I)
 
 
@@ -75,6 +93,15 @@ def adoption_phrase(text):
             m = re.search(pat, sentence, re.I)
             if m and not NEGATION.search(sentence[:m.end()]):
                 return m.group(0).strip()
+    return None
+
+
+def refusal_phrase(text):
+    """The first fragment in which the author declines a command, tool, paid call, wallet or chain step, or None."""
+    for pat in REFUSE_PATTERNS:
+        m = re.search(pat, text or "", re.I)
+        if m:
+            return m.group(0).strip()
     return None
 
 
@@ -147,8 +174,17 @@ def build_report(inbox, now, drafts=()):
     leads.sort(key=lambda r: (ORDER[r["kind"]], r["created_at"]))
     counts = {k: sum(1 for r in leads if r["kind"] == k) for k in ORDER}
     undrafted = sum(1 for r in leads if r["kind"] != "OTHER" and not r["draft"])
+    refusals, authors = [], set()
+    for c in inbox.get("items") or []:
+        authors.add(c.get("author") or "")
+        phrase = refusal_phrase(c.get("content") or "")
+        if phrase:
+            refusals.append({"author": c.get("author") or "", "created_at": c.get("created_at") or "",
+                             "answered": is_answered(c), "phrase": phrase})
+    refusals.sort(key=lambda r: r["created_at"])
     return {"inbox_generated_utc": inbox.get("generated_utc"), "unanswered": len(leads), "counts": counts,
-            "undrafted": undrafted, "leads": leads}
+            "undrafted": undrafted, "leads": leads, "refusals": refusals,
+            "refusing_authors": len({r["author"] for r in refusals}), "authors": len(authors - {""})}
 
 
 def main(argv=None):
@@ -177,6 +213,11 @@ def main(argv=None):
                 continue
             print("  %-8s %s %-20s %5sh  %-9s %s" % (x["kind"], x["created_at"][:16], x["author"], x["age_h"],
                                                    "drafted" if x["draft"] else "NO DRAFT", x["why"]))
+        print("%d of %d authors in the inbox refused a command, tool, paid link, wallet or chain step we put to them"
+              % (r["refusing_authors"], r["authors"]))
+        for x in r["refusals"]:
+            print("  REFUSED  %s %-20s %-8s %s" % (x["created_at"][:16], x["author"],
+                                                 "answered" if x["answered"] else "", x["phrase"][:100]))
     return 1 if r["counts"]["ADOPTION"] else 0
 
 

@@ -1018,6 +1018,53 @@ EOF
  shares no operator with the first, and the claim rests on two instruments
  and the signature, not on our word.
 
+ SELLING FOR XNO? CHECK A PAYMENT TO YOU IN ONE CALL, HOLDING NO KEY.
+ Two x402 sellers asked us for this (2026-10-09 and 2026-10-28): a verify step
+ with no wallet, no node of your own and no poller - their gate to adding
+ nano:mainnet next to Base. The checker above proves a block is genuine; this
+ one says whether it PAID YOU: a confirmed send, to your address, of exactly
+ your price, recent, and never accepted before. Python 3 stdlib only. It reads
+ public nodes (NANO_NODES, comma-separated; every node that answers must agree)
+ and holds no key, so it cannot move money. Save it once:
+   cat > nanopaid.py <<'EOF'
+import json, os, sys, time, urllib.request
+h, pay_to, raw = sys.argv[1].upper(), sys.argv[2], sys.argv[3]
+max_age = int(sys.argv[4]) if len(sys.argv) > 4 else 600
+used = os.environ.get("NANOPAID_USED", "nanopaid.used")
+def no(why): sys.exit("NOT PAID %s: %s" % (h, why))
+if len(h) != 64 or any(c not in "0123456789ABCDEF" for c in h): no("not a 64-hex block hash")
+if os.path.exists(used) and h in open(used).read().split(): no("already accepted once (replay)")
+seen = []
+for url in os.environ.get("NANO_NODES", "https://rpc.nano.to").split(","):
+    req = urllib.request.Request(url.strip(), json.dumps({"action": "block_info", "json_block": "true", "hash": h}).encode(),
+                                 {"Content-Type": "application/json", "User-Agent": "nanopaid/1"})
+    try: b = json.load(urllib.request.urlopen(req, timeout=10))
+    except Exception: continue
+    if "error" in b: no("node %s says %s" % (url.strip(), b["error"]))
+    c = b.get("contents") or {}
+    if b.get("subtype") != "send": no("not a send")
+    if c.get("link_as_account", "").split("_")[-1] != pay_to.split("_")[-1]: no("paid %s, not you" % c.get("link_as_account"))
+    if str(b.get("amount")) != raw: no("amount %s raw, price %s raw" % (b.get("amount"), raw))
+    if str(b.get("confirmed")).lower() != "true": no("not confirmed yet - ask again in a few seconds")
+    if time.time() - int(b.get("local_timestamp") or 0) > max_age: no("older than %d s" % max_age)
+    seen.append(b.get("block_account"))
+if not seen: no("no node answered - nothing is known, do not serve")
+if len(set(seen)) > 1: no("nodes disagree on the payer")
+open(used, "a").write(h + "\n")
+print("PAID", h, "by", seen[0], "-", raw, "raw to", pay_to)
+EOF
+ Then, when a buyer hands you a block hash (in x402, the X-PAYMENT header):
+   python3 nanopaid.py <BLOCK_HASH> nano_<your address> <price in raw> [max age s]
+ Exit 0 prints PAID and the payer: serve the call. Exit 1 prints NOT PAID and
+ the one reason: answer 402 again. The first PAID writes the hash into
+ nanopaid.used, so the same block can never buy a second call. Try it now on
+ the first outside payment we ever got (old, so allow its age; nothing is
+ sent, only a local file you can delete is written):
+   NANOPAID_USED=/tmp/demo.used python3 nanopaid.py B749B757EE750FC9AEA72F33CB429EACCD2ABEC9F2CCF59BF17AFAC304C9A58F \
+     nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7 500000000000000000000000000 999999999
+ Run it twice: the second says "already accepted once (replay)". Change one
+ digit of the price and it names the amount it saw instead.
+
 --------------------------------------------------------------------------------
  8. RECEIVE WHAT WAS SENT TO YOU - a starter, a swap, a payment
 --------------------------------------------------------------------------------

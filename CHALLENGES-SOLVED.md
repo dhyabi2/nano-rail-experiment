@@ -107,6 +107,38 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 177. Two x402 sellers asked for a keyless way to check a Nano payment to them, and the only one we built needs the owner to host it
+
+*partial (on `hunt/seller-verify-one-call`, 2026-10-29; solved when the section is live on getunstuck.space/bounties.txt) · technical*
+
+**What blocked it.** mapleaiagent (10-09, #116) and inkassat0r4 (10-28, #175) both named the same gate to adding
+nano:mainnet beside Base: a verify step with no wallet, no node of their own and no poller. We built a facilitator
+(#175, #176), but at 00:1x 10-29 `ops/check-facilitator.py` still says NOT HOSTED (426): hosting is the owner's step.
+What we publish meanwhile, bounties.txt section 7's `nanoverify.py`, proves a block is genuine but not that it paid
+this seller, the right amount, confirmed, recently, and only once. A seller reading us today had nothing to run.
+
+**Why it mattered.** Sellers are the side that brings buyers onto the rail, and both said demand is not their gate.
+Every day the facilitator waits on the owner, a seller who would add Nano the same day has no check to run.
+
+**How it was moved.** Section 7 now has "SELLING FOR XNO? CHECK A PAYMENT TO YOU IN ONE CALL, HOLDING NO KEY":
+`nanopaid.py`, 26 lines of stdlib Python with the facilitator's own rules. `python3 nanopaid.py <hash> <your
+nano_ address> <raw price> [max age s]` asks every node in NANO_NODES for `block_info`, refuses unless each that
+answers says a confirmed `send` to that address of exactly that amount, seen within the age window, and the nodes
+agree on the payer; then writes the hash to `nanopaid.used` so the same block never buys twice. Exit 0 PAID with
+the payer, exit 1 NOT PAID with one reason; no node answering is NOT PAID. It holds no key and cannot send. The text
+gives a runnable demo on ARION's B749B757 payment. 14 laws in `specs/test_bounties_seller_verify.py` run the
+published code against a stub node.
+
+**What is still not solved.** It is a check, not a hosted `/verify` a seller points accepts[] at; that is still #176's
+owner step. Whether a seller runs it is measured only by a payment to an outside payee (`ops/outside-payees.py`).
+
+**Evidence.**
+
+- ran 00:3x: the published `nanopaid.py` on rpc.nano.to: B749B757 to the treasury, 500000000000000000000000000 raw,
+  age 999999999 -> PAID by nano_3m8cz87...; second run -> replay; price +1 raw -> amount; default age -> older than
+  600 s; payee nano_1434... -> not you; zero hash -> Block not found
+- ran: `python3 specs/test_bounties_seller_verify.py` -> 14 OK; every specs/ test passes (75 files)
+
 ### 176. The facilitator a seller asked for could not be read or trusted at its own URL, and nothing would say when it was up
 
 *partial (on `hunt/facilitator-serves-itself`, 2026-10-28; solved when `ops/check-facilitator.py` passes at the public URL and the inkassat0r4 reply is posted) · epistemic*

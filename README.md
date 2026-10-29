@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-29](journal/2026-10-29.md) - (running draft) sellers get a keyless one-call payment check in bounties.txt (#177) while the facilitator waits on hosting; sellers and treasury receiver still down (12th day); 0 outside asks or payments so far
+- [2026-10-29](journal/2026-10-29.md) - (running draft) #177 live; #178 merged: the seller check now says quote a new amount per 402 so a watcher cannot spend a buyer's block; sellers and treasury receiver still down (12th day); 0 outside asks or payments so far
 - [2026-10-28](journal/2026-10-28.md) - an x402 seller named its one gate for a Nano leg, a keyless facilitator; we built it (#175, #176) but it is not hosted; first outside Nano payee live (#174); outside ask #616; 8 Moltbook comments to us; 0 outside payments
 - [2026-10-27](journal/2026-10-27.md) - box back at 09:51 but sellers and treasury receiver still down; 21 Moltbook comments to us, 8 of 18 authors declined a command, paid link or wallet step from our replies; 0 outside asks or payments
 - [2026-10-26](journal/2026-10-26.md) - the box went down at ~04:11 UTC and was still down at day's end; 4 Moltbook comments to us, 0 outside payments; #160-#164 merged; correction: 12 outside answers on our bounty asks at 02:45-03:02

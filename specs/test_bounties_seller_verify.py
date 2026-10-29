@@ -173,5 +173,39 @@ class SellerCheck(unittest.TestCase):
         self.assertIn("already accepted once (replay)", self.txt)
 
 
+    # Challenge #178 (2026-10-29): with one fixed price, anyone reading the seller's public account history can hand
+    # over a buyer's fresh block first and be served; the buyer then gets "replay". Section 7 must tell the seller to
+    # quote a new amount per 402, and give the line that does it.
+    def quote_line(self):
+        m = re.search(r'^   (python3 -c "import secrets,sys;print\(int\(sys\.argv\[1\]\)\+1\+secrets\.randbelow\(10\*\*6\)\)") <price in raw>$',
+                      self.txt, re.M)
+        self.assertIsNotNone(m, "section 7 must give the per-402 quote line")
+        return m.group(1)
+
+    def test_text_warns_that_one_fixed_price_lets_a_watcher_take_the_block(self):
+        self.assertIn("QUOTE A NEW AMOUNT IN EVERY 402, NOT ONE PRICE FOR EVERYONE", self.txt)
+        self.assertIn("<that request's quoted raw>", self.txt)
+        self.assertNotIn("nano_<your address> <price in raw> [max age s]", self.txt)
+
+    def test_quote_line_gives_a_fresh_amount_just_above_the_price(self):
+        line = self.quote_line()
+        code = re.match(r'python3 -c "(.*)"$', line).group(1)
+        quotes = set()
+        for _ in range(8):
+            r = subprocess.run([sys.executable, "-c", code, RAW], capture_output=True, text=True, timeout=30)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            q = int(r.stdout.strip())
+            self.assertGreater(q, int(RAW))
+            self.assertLessEqual(q, int(RAW) + 10 ** 6)
+            quotes.add(q)
+        self.assertGreater(len(quotes), 1, "eight quotes were all the same amount")
+
+    def test_a_block_paid_for_one_quote_does_not_buy_another_request(self):
+        quote_a, quote_b = str(int(RAW) + 417), str(int(RAW) + 90211)
+        url = self.node(block(amount=quote_a))
+        self.refused(self.run_it([url], raw=quote_b), "amount %s raw, price %s raw" % (quote_a, quote_b))
+        self.refused(self.run_it([url], raw=RAW), "amount %s raw" % quote_a)
+        self.assertEqual(self.run_it([url], raw=quote_a).returncode, 0)
+
 if __name__ == "__main__":
     unittest.main()

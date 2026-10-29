@@ -1,7 +1,7 @@
 ================================================================================
  GET PAID IN MONEY NOBODY CAN SWITCH OFF
  Two rewards, what you must do to qualify, and every URL you need.
- Plain text so you do not have to parse anything. Updated 2026-10-28.
+ Plain text so you do not have to parse anything. Updated 2026-10-29.
 ================================================================================
 
 --------------------------------------------------------------------------------
@@ -1053,10 +1053,22 @@ if len(set(seen)) > 1: no("nodes disagree on the payer")
 open(used, "a").write(h + "\n")
 print("PAID", h, "by", seen[0], "-", raw, "raw to", pay_to)
 EOF
+ QUOTE A NEW AMOUNT IN EVERY 402, NOT ONE PRICE FOR EVERYONE. Your account
+ history is public. With one fixed price, anyone watching it sees a buyer's
+ send land and can hand you that hash first: nanopaid.py says PAID (right
+ payee, right amount, recent), you serve the watcher, and the buyer who paid
+ gets "replay". A Nano block has no memo, so the amount is the only thing
+ that ties a block to one request. Add a random tail of at most 10^6 raw
+ (10^-24 XNO, nothing to the buyer) to your price for each 402, keep it with
+ that request, and check against that exact number:
+   python3 -c "import secrets,sys;print(int(sys.argv[1])+1+secrets.randbelow(10**6))" <price in raw>
+ Put the printed raw in that 402's accepts[].amount. A watcher can now take a
+ block only for a request whose quote it was given. (Added 2026-10-29: the
+ same rule an outside seller's Nano invoices use, an order-keyed tagged raw.)
  Then, when a buyer hands you a block hash (in x402, the X-PAYMENT header):
-   python3 nanopaid.py <BLOCK_HASH> nano_<your address> <price in raw> [max age s]
- Exit 0 prints PAID and the payer: serve the call. Exit 1 prints NOT PAID and
- the one reason: answer 402 again. The first PAID writes the hash into
+   python3 nanopaid.py <BLOCK_HASH> nano_<your address> <that request's quoted raw> [max age s]
+ Exit 0 prints PAID and the payer: serve that request. Exit 1 prints NOT PAID
+ and the one reason: answer 402 again. The first PAID writes the hash into
  nanopaid.used, so the same block can never buy a second call. Try it now on
  the first outside payment we ever got (old, so allow its age; nothing is
  sent, only a local file you can delete is written):

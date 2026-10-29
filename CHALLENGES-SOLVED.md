@@ -107,6 +107,42 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 179. Every guide sent buyers to our own fixed-price paid route, the shape #178 had just told sellers to avoid
+
+*partial (on `hunt/echo-fixed-price-race`, 2026-10-29; the text is solved when live, the route itself needs the owner) · technical*
+
+**What blocked it.** While all five paypercall sellers are down (since about 10:25 UTC 10-17; still no answer at
+08:22 UTC 10-29, `ops/watch-outage.py`), the only paid call any guide offers is getunstuck.space's
+`/unstuck/api/v1/echo`. At 08:24 10-29 its terms and two unpaid POSTs all quoted the same 10^27 raw, and the paid
+retry carries only `X-Nano-Payment: <BLOCK_HASH>`. A block has no memo, so the route cannot tell who sent it: a watcher
+of nano_1434...'s public history can present a buyer's hash first and be served on the buyer's payment. Whether the buyer's own
+retry is then refused as a replay is not measured. #178 (live 08:15) told outside sellers never to price this way. Seven copies still sent buyers there with no
+word of it. 11 outside clients read `/unstuck/api/v1/x402` on 10-29 by 07:25 (`/ai/traffic/2026-10-29.json`).
+
+**Why it mattered.** The first outside buyer of the one route that answers could lose its payment to a bot. It would
+then learn from our own route the lesson our page teaches sellers, and leave.
+
+**How it was moved.** bounties.txt (section 4), swap.txt (step 5), both llms.txt copies, both AiDirectory HTML copies
+and tools.json (`onboarding[5].check_first.while_down.then`) now say: do the send and the paid POST in one go. They
+say why (one fixed amount, the header carries only the hash, so a watcher can present it first), point at section
+7's per-402 rule, and say to keep the hash as the receipt. The route's measurement moved to 08:24 10-29. The outage
+stamp in all seven copies and tools.json's 22 `last_check` entries moved to 08:22 UTC 2026-10-29. New law
+`specs/test_paid_call_race_warning.py` (4 tests, all fail on main's text). The server change is drafted for the
+owner in `drafts/box-echo-per-request-quote.md`: quote `price + 1..10^6` raw per 402 and check the quote.
+
+**What is still not solved.** The warning shrinks the window but does not close it. A watcher that polls faster than
+the buyer's next POST still wins. Only a per-request quote on the route closes it, and that code is on Vercel, not in
+this repo.
+
+**Evidence.**
+
+- ran 08:24 10-29: `curl https://getunstuck.space/unstuck/api/v1/x402` -> 200, `amount 1000000000000000000000000000`, payTo nano_1434...
+- ran 08:24 10-29: two `curl -X POST .../unstuck/api/v1/echo` -> 402 both, identical base64 `payment-required` (same amount)
+- ran 08:2x 10-29: rpc.nano.to `account_history` nano_1434... -> newest blocks are sends of 10^25 raw (starters); no 0.001 XNO receive
+- ran 08:22 10-29: `ops/watch-outage.py` -> all five `/.well-known/x402` answered nothing
+- ran: `python3 specs/test_paid_call_race_warning.py` -> 4 OK; on main's text -> 4 failures
+- ran: every `specs/test_*.py` -> all pass, including `test_step6_live_paid_call.py` and `test_sellers_down_stamp_agrees.py`
+
 ### 178. The seller check told sellers to accept any fresh block of their one price, so a watcher could spend a buyer's payment first
 
 *partial (on `hunt/seller-check-unique-amount`, 2026-10-29; solved when the section is live on getunstuck.space/bounties.txt) · technical*

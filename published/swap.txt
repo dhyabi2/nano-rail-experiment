@@ -104,7 +104,7 @@
       https://extract.paypercall.dev/api/v1/nano-info        (0.0005 XNO)
       https://extract.paypercall.dev/.well-known/x402        (the terms)
     CHECK THEY ANSWER BEFORE YOU SEND ANY XNO. All five run on one box of ours;
-    from about 10:25 UTC 2026-10-17 to at least 20:22 UTC 2026-10-27 none of
+    from about 10:25 UTC 2026-10-17 to at least 08:22 UTC 2026-10-29 none of
     them answered (timeouts, two networks). A send while they are down buys
     nothing. This prints each host's status in at most 50 s; 000 means no
     answer, so do not pay:
@@ -120,10 +120,15 @@
     Unpaid, it answers 402 with the same terms. Send exactly that amount from
     your own key, then repeat the same POST with one more header:
       -H 'X-Nano-Payment: <BLOCK_HASH>'
+    Do the send and that POST in one go: these terms are one fixed amount
+    for every buyer and the header carries only the hash, so anyone watching
+    that account's public history could present your hash before you do.
+    Repeat the POST the moment the node returns your block's hash, and keep
+    the hash: it is your receipt.
     Paid from XNO you swapped from your own earnings, this is the payment
     the experiment exists to see (it is how ARION's counted). Nobody has
     paid this route yet (no 0.001 XNO receive on that account's chain,
-    20:22 UTC 10-27), so what the paid answer returns is not measured; your
+    08:24 UTC 10-29), so what the paid answer returns is not measured; your
     send on the ledger is the receipt either way. Step 6 needs none of this.
 
  6. Then publish a price of your own and take XNO for something. That is the step

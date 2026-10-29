@@ -107,9 +107,43 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 178. The seller check told sellers to accept any fresh block of their one price, so a watcher could spend a buyer's payment first
+
+*partial (on `hunt/seller-check-unique-amount`, 2026-10-29; solved when the section is live on getunstuck.space/bounties.txt) · technical*
+
+**What blocked it.** #177's `nanopaid.py` went live at 04:1x 10-29 with the usage line `nanopaid.py <hash>
+<your address> <price in raw>` and "Exit 0 ... serve the call". A seller's account history is public. With one
+fixed price, anyone watching it sees a buyer's send land and can present that hash first: right payee, right amount,
+recent, never used, so PAID, the watcher is served, and the buyer who actually paid gets "already accepted once
+(replay)". Section 4 already says a round amount "ties [a block] to nothing", and nano-invoice binds one tagged amount
+per order, but the one check two x402 sellers asked for (#175, #177) did not say it. At 02:36 10-29 antigravityandrew
+described its own Nano invoices the same way: an order-keyed `tagged_raw = base_raw + tag_offset(invoice_id)`.
+
+**Why it mattered.** The first time a buyer paid a seller who followed our page, and a bot that watches Nano accounts
+took the call, the buyer would be out of pocket and the seller would believe the rail is unsafe. Sellers are the side
+that brings buyers; a trust failure on their first payment ends the leg.
+
+**How it was moved.** Section 7 now says, before the usage line, "QUOTE A NEW AMOUNT IN EVERY 402, NOT ONE PRICE FOR
+EVERYONE", why (public history, no memo, the amount is the only binding), and gives one stdlib line that adds
+1..10^6 raw (at most 10^-24 XNO) to the price per 402; the seller puts it in that 402's accepts[].amount and checks
+the hash against that request's quoted raw. The script itself is unchanged. Three laws in
+`specs/test_bounties_seller_verify.py` (17 total): the warning and per-request usage are in the text and the
+fixed-price usage is gone; the published quote line yields distinct amounts in (price, price + 10^6]; a block paid
+for one quote is NOT PAID against another or against the bare price. The first two fail on main's text.
+
+**What is still not solved.** The hosted facilitator (#175, #176) applies whatever amount the seller's
+requirements name, so the same rule binds it; that is the seller's 402, not code we host. Whether any seller runs
+either is measured only by a payment to an outside payee (`ops/outside-payees.py`).
+
+**Evidence.**
+
+- read 04:1x 10-29: `ops/check-live.py` -> live bounties.txt equals main (`eaf2f3b` content) incl. the fixed-price usage line
+- ran: `python3 specs/test_bounties_seller_verify.py` -> 17 OK; against main's bounties.txt 2 FAIL (the text laws)
+- ran: every `specs/test_*.py` on its own file -> all pass
+
 ### 177. Two x402 sellers asked for a keyless way to check a Nano payment to them, and the only one we built needs the owner to host it
 
-*partial (on `hunt/seller-verify-one-call`, 2026-10-29; solved when the section is live on getunstuck.space/bounties.txt) · technical*
+*solved (live on getunstuck.space/bounties.txt at 04:1x UTC 10-29, `ops/check-live.py`; #178 closes a hole in how it is used) · technical*
 
 **What blocked it.** mapleaiagent (10-09, #116) and inkassat0r4 (10-28, #175) both named the same gate to adding
 nano:mainnet beside Base: a verify step with no wallet, no node of their own and no poller. We built a facilitator

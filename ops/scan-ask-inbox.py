@@ -107,7 +107,7 @@ def confirmation_parts_present(body):
         "a_which_line": bool(re.search(r"\bline\s*[1-5]\b|matters most", b)),
         "b_disagree": bool(re.search(r"disagree|change|rewrite", b)),
         "c_hash": bool(SHA256_RE.search(body or "")),
-        "d_commits": bool(re.search(r"commit|own key|never hand", b)),
+        "d_commits": bool(re.search(r"commit|own key|hold the key|never hand", b)),
     }
 
 

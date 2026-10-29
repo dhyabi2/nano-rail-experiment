@@ -155,14 +155,30 @@ class SellerCheck(unittest.TestCase):
         self.refused(self.run_it([self.node({"error": "Block not found"})]), "Block not found")
 
     def test_no_node_answered_is_not_paid(self):
-        self.refused(self.run_it([self.node(None), "http://127.0.0.1:9"]), "no node answered")
+        self.refused(self.run_it([self.node(None), "http://127.0.0.1:9"]), "did not answer")
         self.assertFalse(os.path.exists(self.used))
 
-    def test_every_answering_node_must_agree(self):
+    def test_every_listed_node_must_answer_and_agree(self):
         good = self.node(block())
         self.refused(self.run_it([good, self.node(block(link_as_account=OTHER))]), "not you")
         self.refused(self.run_it([good, self.node(block(block_account=OTHER))]), "nodes disagree on the payer")
-        self.assertEqual(self.run_it([good, self.node(None)]).returncode, 0)
+        self.assertEqual(self.run_it([good, self.node(block())]).returncode, 0)
+
+    # Challenge #180 (2026-10-29): a listed node that did not answer was skipped, so a seller who listed two nodes to
+    # avoid trusting one was silently back on one whenever the second was down or blocked. Every listed node must answer.
+    def test_a_silent_second_node_is_not_paid_and_writes_nothing(self):
+        good = self.node(block())
+        for silent in (self.node(None), "http://127.0.0.1:9"):
+            for order in ([good, silent], [silent, good]):
+                self.refused(self.run_it(order), "node %s did not answer" % silent)
+        self.assertFalse(os.path.exists(self.used))
+        self.assertEqual(self.run_it([good]).returncode, 0)
+
+    def test_text_says_whose_word_confirmed_is(self):
+        self.assertIn("every node you list must answer", self.txt)
+        self.assertNotIn("every node that answers must agree", self.txt)
+        self.assertIn('WHOSE WORD IS "confirmed"? With the default, rpc.nano.to\'s alone', self.txt)
+        self.assertIn("two witnesses, not a proof", self.txt)
 
     def test_bad_hash(self):
         self.refused(self.run_it(["http://127.0.0.1:9"], h="B749"), "not a 64-hex block hash")

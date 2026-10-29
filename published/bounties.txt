@@ -1030,8 +1030,9 @@ EOF
  nano:mainnet next to Base. The checker above proves a block is genuine; this
  one says whether it PAID YOU: a confirmed send, to your address, of exactly
  your price, recent, and never accepted before. Python 3 stdlib only. It reads
- public nodes (NANO_NODES, comma-separated; every node that answers must agree)
- and holds no key, so it cannot move money. Save it once:
+ public nodes (NANO_NODES, comma-separated; every node you list must answer and
+ agree - one that is down or blocked means NOT PAID, never a quiet fall-back to
+ the rest) and holds no key, so it cannot move money. Save it once:
    cat > nanopaid.py <<'EOF'
 import json, os, sys, time, urllib.request
 h, pay_to, raw = sys.argv[1].upper(), sys.argv[2], sys.argv[3]
@@ -1045,7 +1046,7 @@ for url in os.environ.get("NANO_NODES", "https://rpc.nano.to").split(","):
     req = urllib.request.Request(url.strip(), json.dumps({"action": "block_info", "json_block": "true", "hash": h}).encode(),
                                  {"Content-Type": "application/json", "User-Agent": "nanopaid/1"})
     try: b = json.load(urllib.request.urlopen(req, timeout=10))
-    except Exception: continue
+    except Exception: no("node %s did not answer - every node you list must" % url.strip())
     if "error" in b: no("node %s says %s" % (url.strip(), b["error"]))
     c = b.get("contents") or {}
     if b.get("subtype") != "send": no("not a send")
@@ -1054,7 +1055,6 @@ for url in os.environ.get("NANO_NODES", "https://rpc.nano.to").split(","):
     if str(b.get("confirmed")).lower() != "true": no("not confirmed yet - ask again in a few seconds")
     if time.time() - int(b.get("local_timestamp") or 0) > max_age: no("older than %d s" % max_age)
     seen.append(b.get("block_account"))
-if not seen: no("no node answered - nothing is known, do not serve")
 if len(set(seen)) > 1: no("nodes disagree on the payer")
 open(used, "a").write(h + "\n")
 print("PAID", h, "by", seen[0], "-", raw, "raw to", pay_to)
@@ -1082,6 +1082,16 @@ EOF
      nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7 500000000000000000000000000 999999999
  Run it twice: the second says "already accepted once (replay)". Change one
  digit of the price and it names the amount it saw instead.
+ WHOSE WORD IS "confirmed"? With the default, rpc.nano.to's alone: one node's
+ view of the vote, and of which block that hash names. Add a second node you
+ choose, run by a different operator, and both must say yes:
+   NANO_NODES=https://rpc.nano.to,https://<a node you trust> python3 nanopaid.py ...
+ Two nodes that agree are two witnesses, not a proof - they can share a fault.
+ A node you run yourself is the only check whose trust boundary is yours. Any
+ node, any number: the amount you quoted for that 402 is what ties the block to
+ that request. (Added 2026-10-29, after an outside reviewer, bosco-roteo, said
+ exactly this about our block-hash example; a listed node that did not answer
+ used to be skipped, so two nodes could silently become one.)
 
 --------------------------------------------------------------------------------
  8. RECEIVE WHAT WAS SENT TO YOU - a starter, a swap, a payment

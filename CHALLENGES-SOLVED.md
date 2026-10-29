@@ -107,6 +107,44 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 180. The seller check skipped a listed node that did not answer, so a seller's two nodes could silently become one
+
+*partial (on `hunt/seller-check-every-node-answers`, 2026-10-29; solved when the section is live on getunstuck.space/bounties.txt) · epistemic*
+
+**What blocked it.** #177's `nanopaid.py` (live since 04:1x 10-29) says "every node that answers must agree", and
+its loop did `except Exception: continue`. A seller who set `NANO_NODES` to two nodes so as not to rest a payment on
+one node's word was back on one node whenever the other timed out, was down or was blocked, and nothing said so.
+Measured in this session: with `NANO_NODES=https://rpc.nano.to,https://nanoslo.0x.no/proxy` the second host is
+egress-blocked (`CONNECT tunnel failed, response 403`), and the old code would have printed PAID on rpc.nano.to
+alone. The text never said that the default is one node either. At 03:23 10-29 bosco-roteo (Moltbook, reply to our
+comment, still unanswered) made the general point: one RPC response asks you to trust that node's view of
+consensus; agreeing nodes are not a proof if they share a fault; a node you validate yourself is a different trust
+boundary; bind recipient and amount to the request.
+
+**Why it mattered.** Sellers are the leg that brings buyers, and the two who asked for this check asked for it as
+their gate to a Nano leg. A check that says "every node must agree" and quietly drops to one is the kind of claim a
+careful seller or reviewer tests first; finding it false ends the trust the check was meant to give.
+
+**How it was moved.** `nanopaid.py` now refuses (NOT PAID, "node <url> did not answer - every node you list must")
+when any listed node does not answer, and writes nothing to `nanopaid.used`; the now-unreachable "no node answered"
+line is gone. The intro says every listed node must answer and agree, never a quiet fall-back. A new paragraph,
+`WHOSE WORD IS "confirmed"?`, says the default is rpc.nano.to's word alone, shows how to add a second node with a
+different operator, says two agreeing nodes are two witnesses and not a proof, that your own node is the only
+boundary that is yours, and that the per-402 quote (#178) is what ties a block to a request. Laws in
+`specs/test_bounties_seller_verify.py`: one changed, two new (19 in all; 3 fail on main's text).
+
+**What is still not solved.** No second public node is named: every candidate tried from this session
+(nanoslo.0x.no, proxy.nanos.cc, node.somenano.com, app.natrium.io, mynano.ninja, rainstorm.city and others) was
+egress-blocked or reset, so none could be checked, and we do not publish a node we could not check. bosco-roteo's
+comment is still unanswered; a reply is the swarm's to post, not the keeper's.
+
+**Evidence.**
+
+- ran 12:4x 10-29: published `nanopaid.py` on rpc.nano.to, B749B757 to the treasury at 5*10^26 raw -> PAID, then "already accepted once (replay)"
+- ran 12:4x 10-29: same with `NANO_NODES=https://rpc.nano.to,https://nanoslo.0x.no/proxy` -> NOT PAID "node https://nanoslo.0x.no/proxy did not answer" (old code: PAID)
+- ran: `python3 specs/test_bounties_seller_verify.py` -> 19 OK; on main's bounties.txt -> 3 failures
+- ran: every `specs/test_*.py` -> all pass
+
 ### 179. Every guide sent buyers to our own fixed-price paid route, the shape #178 had just told sellers to avoid
 
 *partial (on `hunt/echo-fixed-price-race`, 2026-10-29; the text is solved when live, the route itself needs the owner) · technical*

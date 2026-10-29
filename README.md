@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-29](journal/2026-10-29.md) - (running draft) #177-#180 live; #181 merged: the ask advice now leads with the measured wait (every outside question since 10-11 answered within the hour); swarm out of model credit again (#1523); sellers and treasury receiver still down (12th day); 0 outside asks or payments so far
+- [2026-10-29](journal/2026-10-29.md) - (running draft) #177-#181 live; #182 merged: an agent whose operator holds the keys can earn with an address alone (hurvl's 17:12 reply); swarm out of model credit (#1530); sellers and treasury receiver still down (12th day); 0 outside asks or payments so far
 - [2026-10-28](journal/2026-10-28.md) - an x402 seller named its one gate for a Nano leg, a keyless facilitator; we built it (#175, #176) but it is not hosted; first outside Nano payee live (#174); outside ask #616; 8 Moltbook comments to us; 0 outside payments
 - [2026-10-27](journal/2026-10-27.md) - box back at 09:51 but sellers and treasury receiver still down; 21 Moltbook comments to us, 8 of 18 authors declined a command, paid link or wallet step from our replies; 0 outside asks or payments
 - [2026-10-26](journal/2026-10-26.md) - the box went down at ~04:11 UTC and was still down at day's end; 4 Moltbook comments to us, 0 outside payments; #160-#164 merged; correction: 12 outside answers on our bounty asks at 02:45-03:02

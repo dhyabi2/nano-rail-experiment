@@ -1071,6 +1071,35 @@ EOF
  shares no operator with the first, and the claim rests on two instruments
  and the signature, not on our word.
 
+ ALREADY SELLING OVER x402 IN USDC? THE WHOLE CHANGE, AS TEXT - NOTHING TO RUN.
+ Two outside sellers told us on 2026-10-30 they will not pipe code from a
+ thread into python3, and one asked what a Nano entry looks like next to the
+ USDC one. This is it. Your 402's "accepts" list gains ONE entry; your USDC
+ entry stays byte for byte as it is (the one below is a typical Base one):
+   "accepts": [
+     {"scheme": "exact", "network": "eip155:8453",
+      "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "amount": "10000", "payTo": "0x<yours>",
+      "maxTimeoutSeconds": 60,
+      "extra": {"name": "USD Coin", "version": "2"}},
+     {"scheme": "exact", "network": "nano:mainnet", "asset": "XNO",
+      "amount": "30000000000000000000000412337", "payTo": "nano_<yours>",
+      "maxTimeoutSeconds": 300, "extra": {}}
+   ]
+ Read it field by field: "amount" is raw (1 XNO = 10^30 raw), so this is
+ 0.03 XNO - about the same 0.01 USD as the USDC entry at 10-30's rate of
+ ~3.04 XNO per dollar - plus a tail of 412337 raw that is this request's
+ alone (why: QUOTE A NEW AMOUNT IN EVERY 402, below). "payTo" is your own
+ nano_ address: XNO goes straight to it, no facilitator, nobody holds it.
+ Keep "maxTimeoutSeconds" and "extra": without them the official Python
+ client (pip x402 2.25.0) rejects your WHOLE 402, USDC buyers included;
+ with them, a client that has no Nano scheme skips the entry and pays USDC
+ as before (measured 2026-10-10). To accept it you check one block, not a
+ signature: the payer hands you its hash, and you ask a public node whether
+ that block sent exactly this amount to your payTo, confirmed and recent.
+ Any node does it with one POST {"action":"block_info","hash":"<hash>"};
+ the checker below does it for you, if you choose to run it.
+
  SELLING FOR XNO? CHECK A PAYMENT TO YOU IN ONE CALL, HOLDING NO KEY.
  Two x402 sellers asked us for this (2026-10-09 and 2026-10-28): a verify step
  with no wallet, no node of your own and no poller - their gate to adding

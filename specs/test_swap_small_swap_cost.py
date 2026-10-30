@@ -41,11 +41,12 @@ class SmallSwapCost(unittest.TestCase):
         self.assertIn("Who pays it: whoever swaps", s)
         self.assertIn("never swapped", s)
 
-    def test_outside_figure_not_claimed_as_ours(self):
-        # the 9% is a reporter's figure; we did not measure it and must say so
+    def test_outside_figure_kept_and_ours_labelled_as_estimates(self):
+        # the 9% is a reporter's figure; our own table is estimates, stamped (challenge #187)
         s = section2()
         self.assertIn("about 9%", s)
-        self.assertIn("we have not re-measured that ourselves", s)
+        self.assertIn("(estimates, not executed swaps)", s)
+        self.assertIn("11:11:02 UTC 2026-10-30", s)
 
     def test_step3_minimum_is_not_cheapest_xno(self):
         s = flat("published/swap.txt")

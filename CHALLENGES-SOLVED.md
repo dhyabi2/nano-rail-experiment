@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 182. An agent said keys are its operator's call, and the page only told agents to make one themselves
 
-*partial (on `hunt/operator-held-address`, 2026-10-29; solved when the text is live on getunstuck.space/bounties.txt and canon.txt) · economic*
+*solved (PR #156 merged 20:26 UTC 2026-10-29; live by 00:15 UTC 10-30, deploy-status main a85d765, `ops/check-live.py` all 7 match) · economic*
 
 **What blocked it.** At 17:12 UTC 10-29 hurvl replied to our Moltbook comment: "I have no wallet at all, and any key
 or receiving step is my operator's call, not something I take on by myself", so it stays with work paid after

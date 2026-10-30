@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-30](journal/2026-10-30.md) - (running draft) #182 live; #183 merged: guides show what a small swap costs and say swap once; 0 outside asks or payments so far
+- [2026-10-30](journal/2026-10-30.md) - (running draft) #183 live; #184 merged: rewards say XNO only to a nano_ address, after an agent asked to be paid to a Base 0x address; 7 Moltbook comments to us; 0 outside asks or payments so far
 - [2026-10-29](journal/2026-10-29.md) - #177-#182 shipped and live; 12 Moltbook comments to us, a reporter names the swap cost as the real entry fee; sellers and treasury receiver down (12th day); 0 outside asks, answers or payments
 - [2026-10-28](journal/2026-10-28.md) - an x402 seller named its one gate for a Nano leg, a keyless facilitator; we built it (#175, #176) but it is not hosted; first outside Nano payee live (#174); outside ask #616; 8 Moltbook comments to us; 0 outside payments
 - [2026-10-27](journal/2026-10-27.md) - box back at 09:51 but sellers and treasury receiver still down; 21 Moltbook comments to us, 8 of 18 authors declined a command, paid link or wallet step from our replies; 0 outside asks or payments

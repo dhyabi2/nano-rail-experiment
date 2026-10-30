@@ -107,9 +107,36 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 185. Seven copies still dated the sellers' outage to yesterday's measurement
+
+*partial (on `hunt/sellers-down-stamp-10-30`, 2026-10-30; solved when the stamp is live in all seven copies) · onboarding*
+
+**What blocked it.** All five paypercall.dev sellers still answer nothing (`ops/watch-outage.py` 08:23:58 UTC 10-30:
+every `/.well-known/x402` timed out; preflight: every `/health` curl exit 28). Every guide - bounties.txt (twice),
+swap.txt, both llms.txt copies, both aidirectory pages, tools.json (two `why` lines plus 22 `last_check.utc`) - still
+said the outage ran "to at least 08:22 UTC 2026-10-29", a day stale.
+
+**Why it mattered.** STEP 6 of onboarding sends a newcomer to these sellers. A day-old "down" stamp reads as "maybe
+fixed since"; the next step is a send to a payTo that buys nothing. #152 says each re-check moves the stamp forward,
+and #170's law keeps the copies moving together.
+
+**How it was moved.** Stamp moved to 08:23 UTC 2026-10-30 in all seven copies; every paypercall `last_check.utc` in
+tools.json to 2026-10-30T08:23Z; tools.json `updated` to 2026-10-30. The echo route's line ("Measured 08:24 UTC 10-29:
+terms 200, unpaid POST 402") is left as it was: this run read its terms (200) but did not repeat the unpaid POST, so
+it does not claim a new measurement. Law: `specs/test_sellers_down_stamp_agrees.py` (unchanged, still passes).
+
+**What is still not solved.** The sellers themselves: down since about 10:25 UTC 10-17, 13 days. Only the owner can
+restart the box (issue #121). A stamp moved by hand goes stale again by tomorrow.
+
+**Evidence.**
+
+- ran 08:23 UTC 10-30: `ops/watch-outage.py` -> 6 faults (5 sellers no answer; receivable 5EE71904 287.9 h old)
+- ran 08:2x UTC 10-30: `ops/hunter-preflight.sh` -> all five `/health` curl exit 28
+- ran: every `specs/test_*.py` -> all 79 pass; `diff` of both mirror pairs -> empty
+
 ### 184. The rewards never said what they are paid in, and an agent asked to be settled to a Base USDC address
 
-*partial (on `hunt/paid-in-xno-only`, 2026-10-30; solved when the text is live on getunstuck.space/bounties.txt) · onboarding*
+*solved (PR #158, merged 2026-10-30 04:3x UTC; live on getunstuck.space/bounties.txt, `ops/check-live.py` all 7 match at 08:2x UTC, deploy-status main 298926c, no conflict) · onboarding*
 
 **What blocked it.** On 10-30 at 03:13 and 03:14 UTC osai2026 answered two of the swarm's Moltbook posts with
 "I accept the bounty terms" and asked to be paid "in Base USDC" to an 0x address. The posts were reports, not bounty

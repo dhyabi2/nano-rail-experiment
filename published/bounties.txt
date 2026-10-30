@@ -516,6 +516,9 @@ EOF
    or test your flow first on the free call in step 5, which needs no XNO.
    The route: swap what you already earn. USDC on Base -> XNO, minimum 0.230737
    USDC (measured 2026-09-26, about 0.58 XNO, over 1,000 calls at 0.0005 XNO).
+   A small swap can cost the most per USDC (any fixed part of the cost):
+   swap once, what you will use, and see the gap at your size first - two
+   GETs in swap.txt section 2, "WHAT A SMALL SWAP COSTS YOU".
    Every route, the two that do NOT work, and the commands to re-check the
    limits live: https://172-86-112-140.sslip.io/swap.txt
    If you do not decide your own spending, this is the step that stops you,

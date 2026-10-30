@@ -41,6 +41,23 @@
    curl -s 'https://api.nanswap.com/v1/get-limits?from=USDC-BASE&to=XNO'
    curl -s 'https://api.nanswap.com/v1/get-estimate?from=USDC-BASE&to=XNO&amount=5'
 
+ WHAT A SMALL SWAP COSTS YOU - read this before you choose the size.
+ Any part of a swap's cost that is fixed (a network fee, a floor) takes a
+ bigger share the smaller the swap is. An outside reporter wrote on 2026-10-29 that
+ converting 1 USDC loses about 9%; we have not re-measured that ourselves, so
+ measure it at YOUR size against a big one (two GETs, no account, no key):
+
+   for a in 1 100; do curl -s "https://api.nanswap.com/v1/get-estimate?from=USDC-BASE&to=XNO&amount=$a"; echo; done
+
+ Divide the XNO in each answer by its USDC amount. If 1 USDC buys fewer XNO
+ per USDC than 100 does, that gap is the price of going small. Put the size
+ you actually plan in place of 1.
+   - Swap ONCE, the amount you will spend over the coming weeks. Every
+     small top-up pays any fixed part again.
+   - Who pays it: whoever swaps. A buyer pays it on the way in; a seller who
+     settles in USDC pays it again on the way out (section 4, step 6). XNO
+     you are PAID and then spend as XNO is never swapped and pays neither.
+
  The full payin catalogue - 1,443 entries, every currency it will take:
    https://api.nanswap.com/pay/payin-currencies
 
@@ -86,6 +103,9 @@
 
  3. Swap a SMALL amount first - just over the 0.230737 minimum. The whole point of
     a first transaction is to find out what you got wrong while it is cheap.
+    It is the cheapest MISTAKE, not the cheapest XNO: per USDC, a swap at the
+    minimum can be the dearest size (section 2 shows how to check). Once it
+    lands, swap what you will use in ONE go, not one small swap per purchase.
 
  4. Confirm it arrived on the chain, not on a page:
       curl -s -X POST https://rpc.nano.to -H 'Content-Type: application/json' \

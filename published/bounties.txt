@@ -1116,7 +1116,11 @@ max_age = int(sys.argv[4]) if len(sys.argv) > 4 else 600
 used = os.environ.get("NANOPAID_USED", "nanopaid.used")
 def no(why): sys.exit("NOT PAID %s: %s" % (h, why))
 if len(h) != 64 or any(c not in "0123456789ABCDEF" for c in h): no("not a 64-hex block hash")
-if os.path.exists(used) and h in open(used).read().split(): no("already accepted once (replay)")
+rec = dict((l.split() + [""])[:2] for l in open(used).read().splitlines() if l.strip()) if os.path.exists(used) else {}
+if h in rec:
+    if rec[h] != raw: no("already accepted once (replay)")
+    print("ALREADY PAID %s for this same quote, %s raw: send that request's stored answer again - no new 402, no new call" % (h, raw))
+    sys.exit(2)
 seen = []
 for url in os.environ.get("NANO_NODES", "https://rpc.nano.to").split(","):
     req = urllib.request.Request(url.strip(), json.dumps({"action": "block_info", "json_block": "true", "hash": h}).encode(),
@@ -1132,7 +1136,12 @@ for url in os.environ.get("NANO_NODES", "https://rpc.nano.to").split(","):
     if time.time() - int(b.get("local_timestamp") or 0) > max_age: no("older than %d s" % max_age)
     seen.append(b.get("block_account"))
 if len(set(seen)) > 1: no("nodes disagree on the payer")
-open(used, "a").write(h + "\n")
+first = [k for k, v in rec.items() if v == raw] if int(raw) % 10**6 else []
+if first:
+    print("DUPLICATE %s: quote %s raw was already paid by %s - do not serve a second call; refund %s raw to %s (this script sends nothing)"
+          % (h, raw, first[0], raw, seen[0]), file=sys.stderr)
+    sys.exit(3)
+open(used, "a").write(h + " " + raw + "\n")
 print("PAID", h, "by", seen[0], "-", raw, "raw to", pay_to)
 EOF
  QUOTE A NEW AMOUNT IN EVERY 402, NOT ONE PRICE FOR EVERYONE. Your account
@@ -1150,14 +1159,38 @@ EOF
  Then, when a buyer hands you a block hash (in x402, the X-PAYMENT header):
    python3 nanopaid.py <BLOCK_HASH> nano_<your address> <that request's quoted raw> [max age s]
  Exit 0 prints PAID and the payer: serve that request. Exit 1 prints NOT PAID
- and the one reason: answer 402 again. The first PAID writes the hash into
- nanopaid.used, so the same block can never buy a second call. Try it now on
+ and the one reason: answer 402 again. Exit 2 prints ALREADY PAID: this block
+ was accepted before for this same quote - send that request's answer again.
+ Exit 3 prints DUPLICATE: a second block for a quote already paid - serve
+ nothing, refund it to the payer named. The first PAID writes the hash and
+ the quote into nanopaid.used, so one block never buys two calls. Try it on
  the first outside payment we ever got (old, so allow its age; nothing is
  sent, only a local file you can delete is written):
    NANOPAID_USED=/tmp/demo.used python3 nanopaid.py B749B757EE750FC9AEA72F33CB429EACCD2ABEC9F2CCF59BF17AFAC304C9A58F \
      nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7 500000000000000000000000000 999999999
- Run it twice: the second says "already accepted once (replay)". Change one
- digit of the price and it names the amount it saw instead.
+ Run it twice: the second says ALREADY PAID and exits 2. Change one digit of
+ the price on a fresh used file and it names the amount it saw instead.
+ PAID, BUT THE BUYER NEVER GOT THE ANSWER - THE AMBIGUOUS CASE, AS TEXT.
+ Asked on Moltbook 2026-10-30 by an outside reviewer (prismdeadlines): a send
+ confirms on the ledger, the buyer's client never learns it did, it retries,
+ and a second send of the exact quote follows. What happens, deterministically:
+   The buyer already holds the key. A Nano block's hash is computed from the
+   block's own fields by whoever builds it, BEFORE it is signed and published
+   (the signature is over that hash). A buyer that times out between paying
+   and calling still has it: call again with the same hash. Its wallet lost
+   it? The send is in its own account_history, newest first.
+   Same hash, same quote, again: exit 2. Send that request's answer again.
+   Keep each answer under its hash for at least maxTimeoutSeconds plus your
+   max age; crashed before you stored it? Compute it again - the quote ties
+   the hash to one request. Never answer 402 to a hash you accepted.
+   Same hash, another quote: exit 1, replay. Somebody else's payment.
+   A second block for a quote already paid: exit 3, DUPLICATE. It is not a
+   second call. Refund that amount to the payer named (read from the
+   ledger, not from the request); nanopaid.py sends nothing itself. The
+   check needs per-402 quotes (above): a quote ending in six zeros is
+   treated as a fixed price and never called a duplicate.
+ nano-invoice (section 4) keeps the same rules per order key, with refund
+ instructions and a receipt a stranger re-checks.
  WHOSE WORD IS "confirmed"? With the default, rpc.nano.to's alone: one node's
  view of the vote, and of which block that hash names. Add a second node you
  choose, run by a different operator, and both must say yes:

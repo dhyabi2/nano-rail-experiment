@@ -120,12 +120,54 @@ class SellerCheck(unittest.TestCase):
         r = self.run_it([url])
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertEqual(r.stdout.strip(), "PAID %s by %s - %s raw to %s" % (H, PAYER, RAW, PAYEE))
-        self.refused(self.run_it([url]), "already accepted once (replay)")
+        self.already_paid(self.run_it([url]))
+        self.refused(self.run_it([url], raw=str(int(RAW) + 7)), "already accepted once (replay)")
+
+    def already_paid(self, r):
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertTrue(r.stdout.startswith("ALREADY PAID %s for this same quote, %s raw" % (H, RAW)), r.stdout)
+        self.assertIn("send that request's stored answer again", r.stdout)
 
     def test_lowercase_hash_is_the_same_payment(self):
         url = self.node(block())
         self.assertEqual(self.run_it([url], h=H.lower()).returncode, 0)
-        self.refused(self.run_it([url]), "replay")
+        self.already_paid(self.run_it([url]))
+
+    # Challenge #188 (2026-10-30): prismdeadlines asked on Moltbook what happens when a buyer's send confirms but its
+    # client never learns it, it retries with the same hash, and a second send of the exact quote follows. Before,
+    # the same hash got "replay" and a 402 - the buyer who paid was charged again. Now each case has its own exit.
+    def test_a_used_file_from_before_this_change_still_refuses_the_hash(self):
+        with open(self.used, "w") as f:
+            f.write(H + "\n")
+        self.refused(self.run_it([self.node(block())]), "already accepted once (replay)")
+
+    def test_a_second_block_for_a_paid_quote_is_a_duplicate_not_a_call(self):
+        quote, earlier = str(int(RAW) + 4242), "A" * 64
+        with open(self.used, "w") as f:
+            f.write(earlier + " " + quote + "\n")
+        url = self.node(block(amount=quote))
+        for _ in range(2):  # judged the same way every time, and never recorded as accepted
+            r = self.run_it([url], raw=quote)
+            self.assertEqual(r.returncode, 3, r.stdout + r.stderr)
+            self.assertEqual(r.stderr.strip(), "DUPLICATE %s: quote %s raw was already paid by %s - do not serve a second "
+                             "call; refund %s raw to %s (this script sends nothing)" % (H, quote, earlier, quote, PAYER))
+            self.assertNotIn("PAID " + H, r.stdout)
+        self.assertNotIn(H, open(self.used).read())
+
+    def test_a_fixed_price_is_never_called_a_duplicate(self):
+        with open(self.used, "w") as f:
+            f.write("A" * 64 + " " + RAW + "\n")
+        self.assertEqual(self.run_it([self.node(block())]).returncode, 0)
+
+    def test_text_answers_the_ambiguous_case_without_running_anything(self):
+        i = self.txt.index("PAID, BUT THE BUYER NEVER GOT THE ANSWER - THE AMBIGUOUS CASE, AS TEXT.")
+        sec = self.txt[i:self.txt.index("WHOSE WORD IS", i)]
+        for s in ("BEFORE it is signed and published", "call again with the same hash", "exit 2", "exit 1, replay",
+                  "exit 3, DUPLICATE", "Never answer 402 to a hash you accepted", "sends nothing itself"):
+            self.assertIn(s, " ".join(sec.split()), s)
+        self.assertNotRegex(sec, r"\n\s+(python3|curl|cat|node|pip) ")
+        for n in ("Exit 2 prints ALREADY PAID", "Exit 3 prints DUPLICATE"):
+            self.assertIn(n, self.txt)
 
     def test_xrb_prefix_is_the_same_payee(self):
         url = self.node(block(link_as_account="xrb_" + PAYEE[5:]))

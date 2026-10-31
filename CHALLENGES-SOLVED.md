@@ -107,6 +107,36 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 191. The keyless Nano facilitator took any Unicode digit as an amount, and dropped the connection on one
+
+*solved (PR on `hunt/facilitator-ascii-amount`, 2026-10-31; tool only, not hosted - nothing on the box to deploy) · technical*
+
+**What blocked it.** `tools/nano-x402-facilitator/facilitator.py` (#175, the gate an x402 seller named for a Nano
+leg) checked `paymentRequirements.amount` with `str.isdigit()`. That takes `"²"` (then `int()` raises, nothing
+catches it in `do_POST`, and the seller's request gets a dropped connection, no JSON) and `"١٠"` (Arabic-Indic 10,
+which `int()` reads as 10). `maxTimeoutSeconds` went straight into `int()`, so `"abc"` dropped the connection too, and
+a negative value silently made every payment `payment_too_old`. `"007"` was refused as `wrong_amount` though it is 7
+raw. Same defect our own answer to outside ask #617 (07:32 10-31) admitted in `xno_to_raw` of another repository.
+
+**Why it mattered.** A facilitator answers a seller's server, not a person: a dropped connection is logged as
+"facilitator down", and the seller's Nano leg looks broken for a reason it cannot read. Every refusal must be named.
+
+**How it was moved.** Amount and timeout are ASCII digits only (`^[0-9]{1,40}$`), canonicalised (`"007"` -> `"7"`);
+a bad timeout is `invalid_max_timeout`, refused before any node call; `/verify` and `/settle` answer 500 JSON
+`facilitator_error` instead of dropping the connection on anything unexpected. Three new laws in
+`specs/test_nano_x402_facilitator.py` (ASCII-only amount and timeout, leading zeros, HTTP never drops a malformed
+requirement); all three fail on the old tool; all 81 specs pass. Verification is unchanged: same payee, exact
+amount, confirmed, fresh, settled once; it still holds no key and sends nothing.
+
+**What is still not solved.** The facilitator is still not hosted anywhere (`ops/check-facilitator.py`), so no
+seller can point `accepts[]` at it yet. A behaviour change: `maxTimeoutSeconds: 0` is now refused (it used to
+mean 600).
+
+**Evidence.**
+
+- ran on main: `isdigit()` accepted `"²"`, `int("²")` -> ValueError in `_check`, uncaught in `do_POST`
+- ran: `python3 specs/test_nano_x402_facilitator.py` -> 16 OK; on the old tool 1 failure, 2 errors
+
 ### 190. The first outside Nano payee dropped out of our watch when its comment aged out of the inbox
 
 *solved (PR on `hunt/outside-payees-remembered`, 2026-10-31; ops tool, live on merge - nothing on the box to deploy) · epistemic*

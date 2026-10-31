@@ -17,7 +17,8 @@ python3 facilitator.py --port 8402 --node https://rpc.nano.to --node <second nod
 | `POST /settle` | same | `{"success":bool,"errorReason":...,"transaction":"<hash>","network":"nano:mainnet","payer":...}` |
 
 `paymentRequirements`: `scheme` `exact`, `network` `nano:mainnet`, `payTo` a nano_ address, `amount` (v2) or
-`maxAmountRequired` (v1) in raw, optional `maxTimeoutSeconds` (default 600). `paymentPayload`: the x402 payload
+`maxAmountRequired` (v1) in raw, optional `maxTimeoutSeconds` (default 600). Both are ASCII digits only (`"²"` or `"٣"` is
+`invalid_amount_required` / `invalid_max_timeout`, not a dropped connection); `"007"` is 7 raw. `paymentPayload`: the x402 payload
 with `payload.hash` (or `block_hash`), its base64 header form, or the bare 64-hex block hash.
 
 A payment is valid only if every node that answered `block_info` says it is a confirmed `send` to `payTo` of exactly

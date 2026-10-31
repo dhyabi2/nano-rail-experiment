@@ -103,6 +103,14 @@ class SellerCheck(unittest.TestCase):
         self.assertIn(why, r.stderr)
         self.assertNotIn("PAID " + H, r.stdout)
 
+    def unknown(self, r, why):
+        self.assertEqual(r.returncode, 5, r.stdout + r.stderr)
+        self.assertIn("UNKNOWN", r.stderr)
+        self.assertIn(why, r.stderr)
+        self.assertIn("do NOT answer 402", r.stderr)
+        self.assertNotIn("NOT PAID", r.stderr)
+        self.assertNotIn("PAID " + H, r.stdout)
+
     def test_stdlib_only_and_no_key(self):
         _, code = published_code()
         mods = set()
@@ -231,8 +239,10 @@ class SellerCheck(unittest.TestCase):
     def test_not_found(self):
         self.refused(self.run_it([self.node({"error": "Block not found"})]), "Block not found")
 
-    def test_no_node_answered_is_not_paid(self):
-        self.refused(self.run_it([self.node(None), "http://127.0.0.1:9"]), "did not answer")
+    # Challenge #193 (2026-10-31): a node that did not answer printed NOT PAID, exit 1 ("answer 402 again"), so a
+    # rate-limited or dead default node told every buyer who had paid to pay twice. It is UNKNOWN, exit 5.
+    def test_no_node_answered_is_unknown_not_unpaid(self):
+        self.unknown(self.run_it([self.node(None), "http://127.0.0.1:9"]), "did not answer")
         self.assertFalse(os.path.exists(self.used))
 
     def test_every_listed_node_must_answer_and_agree(self):
@@ -247,9 +257,41 @@ class SellerCheck(unittest.TestCase):
         good = self.node(block())
         for silent in (self.node(None), "http://127.0.0.1:9"):
             for order in ([good, silent], [silent, good]):
-                self.refused(self.run_it(order), "node %s did not answer" % silent)
+                self.unknown(self.run_it(order), "node %s did not answer" % silent)
         self.assertFalse(os.path.exists(self.used))
         self.assertEqual(self.run_it([good]).returncode, 0)
+
+    def test_rate_limited_or_erroring_node_is_unknown_and_writes_nothing(self):
+        good = self.node(block())
+        limit = self.node({"error": "api_key_required_for_heavy_usage", "message": "Free public RPC limit reached"})
+        for order in ([limit], [good, limit], [limit, good]):
+            self.unknown(self.run_it(order), "api_key_required_for_heavy_usage")
+        self.unknown(self.run_it([self.node(["not", "a", "block"])]), "sent no block_info reply")
+        self.assertFalse(os.path.exists(self.used))
+        self.assertEqual(self.run_it([good]).returncode, 0)
+
+    def test_http_429_is_unknown(self):
+        class H429(http.server.BaseHTTPRequestHandler):
+            def do_POST(self):
+                self.rfile.read(int(self.headers["Content-Length"]))
+                out = b'{"error":"Free public RPC limit reached"}'
+                self.send_response(429)
+                self.send_header("Content-Length", str(len(out)))
+                self.end_headers()
+                self.wfile.write(out)
+
+            def log_message(self, *a):
+                pass
+        srv = http.server.HTTPServer(("127.0.0.1", 0), H429)
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        self.servers.append(srv)
+        self.unknown(self.run_it(["http://127.0.0.1:%d" % srv.server_port]), "did not answer")
+
+    def test_text_says_a_down_node_is_unknown_not_a_402(self):
+        for s in ("Exit 5 prints UNKNOWN", "never with a 402", "means UNKNOWN, exit 5",
+                  "A NODE THAT IS DOWN IS NOT A PAYMENT THAT FAILED", "We still name no second node: we have measured none"):
+            self.assertIn(s, self.txt)
+        self.assertNotIn("one that is down or blocked means NOT PAID", self.txt)
 
     def test_text_says_whose_word_confirmed_is(self):
         self.assertIn("every node you list must answer", self.txt)

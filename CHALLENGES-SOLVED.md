@@ -107,6 +107,40 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 194. Our keyless facilitator answered "invalid" when its node was down or a send was unconfirmed, which an x402 seller turns into "pay again"
+
+*solved (PR on `hunt/facilitator-pending-not-402`, 2026-10-31; tool only, not hosted - nothing on the box to deploy) · flow*
+
+**What blocked it.** The keyless facilitator (`tools/nano-x402-facilitator/facilitator.py`, #175, the gate an x402
+seller asked for to add `nano:mainnet`) answered every outcome HTTP 200. When fewer than `--quorum` nodes answered it
+said `isValid:false, invalidReason: nodes_unreachable`; a send that exists but is not confirmed yet was
+`isValid:false, not_confirmed`. An x402 seller's middleware turns a 200 `isValid:false` into a fresh 402, so a node
+outage or a slow confirmation asked a buyer who had paid to pay again: the defect #189 fixed in bounties.txt
+(unconfirmed is PENDING) and #193 fixed in `nanopaid.py` (node down is UNKNOWN), still live in the facilitator.
+Two smaller holes in the same path: a reply that was not a dict was `node_answer_unreadable` and a 200 that was not
+a block_info reply (a quota notice without an `"error"` key) was `not_a_send` - both final refusals from a node that
+had said nothing about the payment, and either one vetoed a good answer from a second node.
+
+**Why it mattered.** The facilitator exists for one seller's Nano leg (inkassat0r4, 10-28). Its first bad-node minute
+would have shown up there as double charges, against the one buyer-facing promise the guides make.
+
+**How it was moved.** `nodes_unreachable` and `not_confirmed` are now HTTP 503 with `Retry-After: 5` and
+`"retryable": true` (body unchanged otherwise), on `/verify` and `/settle`; settle records nothing. A non-dict reply
+or a dict with neither `contents` nor `subtype` counts as a node that did not answer. A final refusal from any node
+(wrong amount, payee, too old...) still wins over a pending one, and still answers 200. The root index names the rule
+(`pending`); the docstring and README say it. Three new laws in `specs/test_nano_x402_facilitator.py`; all three fail
+on the old tool; all 82 spec files pass. Verification is otherwise unchanged; it still holds no key and sends nothing.
+
+**What is still not solved.** The facilitator is still not hosted (`ops/check-facilitator.py` 20:2x: the box answers
+426 at `/x402/facilitator/`), so no seller can use it yet. Whether a given x402 middleware fails on a 503 rather than
+retrying or answering 402 is per-library and was not measured here.
+
+**Evidence.**
+
+- old code: `if len(answers) < self.quorum: return "nodes_unreachable"`, then `self._send(200, out)` for every reason
+- ran: `python3 specs/test_nano_x402_facilitator.py` -> 19 OK; on the old tool 3 failures
+- ran: every `specs/test_*.py` -> 82 files, 0 failed
+
 ### 193. A node that did not answer made our seller check say NOT PAID, so a buyer who had paid was asked to pay again
 
 *solved (PR on `hunt/node-down-is-unknown`, 2026-10-31; live once the box deploys bounties.txt) · flow*

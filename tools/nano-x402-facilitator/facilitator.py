@@ -22,8 +22,15 @@ payment is a send block the buyer already signed and published, so "settle" is o
      the same payee cannot be claimed by someone else;
   5. this facilitator has not redeemed that hash before (a JSON file of redeemed hashes).
 
-Nodes that fail to answer are skipped; at least `--quorum` must answer, and any answering
-node that disagrees makes the payment invalid.
+Nodes that fail to answer (or answer something that is not a block_info reply) are skipped;
+at least `--quorum` must answer, and any answering node that disagrees makes the payment invalid.
+
+PENDING is not INVALID (challenge #194, after #189 and #193): when too few nodes answer
+(`nodes_unreachable`) or the send exists but is not confirmed yet (`not_confirmed`), the
+facilitator does not know the payment is bad. It answers HTTP 503 with `Retry-After` and
+`"retryable": true` instead of a 200 `isValid:false`, because an x402 seller turns a 200
+`isValid:false` into a fresh 402 and a buyer who already paid pays twice. A 503 makes a
+seller's middleware fail the request instead; the buyer retries with the same hash.
 
 Interface (the shape x402 facilitators use):
   GET  /          -> an index: every route, holds_key false, source_sha256
@@ -60,6 +67,8 @@ ADDR_RE = re.compile(r"^(nano|xrb)_[13][13456789abcdefghijkmnopqrstuwxyz]{59}$")
 UA = "Mozilla/5.0 (compatible; nano-x402-facilitator/1)"
 # The repository is private, so the only source a seller can read is the one this
 # server hands out (challenge #176): /source serves this very file, and / names its hash.
+RETRYABLE = ("nodes_unreachable", "not_confirmed")  # pending, not invalid: HTTP 503, never a 200 "pay again"
+RETRY_AFTER = "5"
 SOURCE = open(os.path.abspath(__file__), "rb").read()
 SOURCE_SHA256 = hashlib.sha256(SOURCE).hexdigest()
 
@@ -152,6 +161,9 @@ class Facilitator:
             "nodes": len(self.nodes),
             "quorum": self.quorum,
             "source_sha256": SOURCE_SHA256,
+            "pending": "nodes_unreachable and not_confirmed are answered HTTP 503 with Retry-After and "
+                       "retryable true: the payment is not known to be bad, so do not answer the buyer 402 "
+                       "(that makes a buyer who paid pay twice); fail the request and let them retry the same hash",
             "note": "Valid only if every answering node says: confirmed send, to payTo, of exactly amount raw, "
                     "first seen within maxTimeoutSeconds, never settled here before. It does not receive the "
                     "funds; the payee's own wallet publishes the receive.",
@@ -193,16 +205,23 @@ class Facilitator:
                 info = self.call(url, {"action": "block_info", "json_block": "true", "hash": h})
             except Exception:
                 continue
-            if isinstance(info, dict) and info.get("error"):
+            if not isinstance(info, dict):
+                continue  # not a block_info reply: this node did not answer, it did not say "unpaid"
+            if info.get("error"):
                 if "not found" in str(info["error"]).lower():
                     answers.append(("block_not_found", None))
                 continue
+            if "contents" not in info and "subtype" not in info:
+                continue  # a 200 that is not a block_info reply (a proxy page, a quota notice): no answer
             answers.append(self._judge(info, pay_to, amount, max_age))
         if len(answers) < self.quorum:
             return "nodes_unreachable", h, None
-        for reason, payer in answers:
-            if reason:
+        reasons = [(r, p) for r, p in answers if r]
+        for reason, payer in reasons:  # a final refusal (wrong payee, amount, too old...) wins
+            if reason not in RETRYABLE:
                 return reason, h, payer
+        for reason, payer in reasons:
+            return reason, h, payer
         payers = {p for _, p in answers}
         if len(payers) != 1:
             return "nodes_disagree", h, None
@@ -245,9 +264,11 @@ class Facilitator:
 
 def make_handler(fac):
     class Handler(BaseHTTPRequestHandler):
-        def _send(self, code, obj):
+        def _send(self, code, obj, retry=False):
             data = json.dumps(obj).encode()
             self.send_response(code)
+            if retry:
+                self.send_header("Retry-After", RETRY_AFTER)
             self.send_header("Content-Type", "application/json")
             self.send_header("Access-Control-Allow-Origin", "*")
             self.send_header("Content-Length", str(len(data)))
@@ -283,6 +304,10 @@ def make_handler(fac):
                 out = fac.verify(body) if route == "/verify" else fac.settle(body)
             except Exception:  # never a dropped connection: a seller must get an answer it can log
                 return self._send(500, {"error": "facilitator_error", "isValid": False, "success": False})
+            reason = out.get("invalidReason") or out.get("errorReason")
+            if reason in RETRYABLE:  # pending, not invalid: never a 200 a seller turns into "pay again"
+                out["retryable"] = True
+                return self._send(503, out, retry=True)
             self._send(200, out)
 
         def log_message(self, fmt, *args):

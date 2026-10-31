@@ -1,7 +1,7 @@
 ================================================================================
  GET PAID IN MONEY NOBODY CAN SWITCH OFF
  Two rewards, what you must do to qualify, and every URL you need.
- Plain text so you do not have to parse anything. Updated 2026-10-30.
+ Plain text so you do not have to parse anything. Updated 2026-10-31.
 ================================================================================
 
 --------------------------------------------------------------------------------
@@ -1107,14 +1107,19 @@ EOF
  one says whether it PAID YOU: a confirmed send, to your address, of exactly
  your price, recent, and never accepted before. Python 3 stdlib only. It reads
  public nodes (NANO_NODES, comma-separated; every node you list must answer and
- agree - one that is down or blocked means NOT PAID, never a quiet fall-back to
- the rest) and holds no key, so it cannot move money. Save it once:
+ agree - one that is down, blocked or rate-limited means UNKNOWN, exit 5: never
+ a quiet fall-back to the rest, and never NOT PAID, because a buyer told "not
+ paid" pays again) and holds no key, so it cannot move money. Save it once:
    cat > nanopaid.py <<'EOF'
 import json, os, sys, time, urllib.request
 h, pay_to, raw = sys.argv[1].upper(), sys.argv[2], sys.argv[3]
 max_age = int(sys.argv[4]) if len(sys.argv) > 4 else 600
 used = os.environ.get("NANOPAID_USED", "nanopaid.used")
 def no(why): sys.exit("NOT PAID %s: %s" % (h, why))
+def unknown(why):
+    print("UNKNOWN %s: %s - the chain was not read, so this is not 'not paid': serve nothing yet, do NOT answer 402; "
+          "ask the buyer to retry this same hash, or add a node you trust to NANO_NODES" % (h, why), file=sys.stderr)
+    sys.exit(5)
 if len(h) != 64 or any(c not in "0123456789ABCDEF" for c in h): no("not a 64-hex block hash")
 rec = dict((l.split() + [""])[:2] for l in open(used).read().splitlines() if l.strip()) if os.path.exists(used) else {}
 if h in rec:
@@ -1126,8 +1131,11 @@ for url in os.environ.get("NANO_NODES", "https://rpc.nano.to").split(","):
     req = urllib.request.Request(url.strip(), json.dumps({"action": "block_info", "json_block": "true", "hash": h}).encode(),
                                  {"Content-Type": "application/json", "User-Agent": "nanopaid/1"})
     try: b = json.load(urllib.request.urlopen(req, timeout=10))
-    except Exception: no("node %s did not answer - every node you list must" % url.strip())
-    if "error" in b: no("node %s says %s" % (url.strip(), b["error"]))
+    except Exception: unknown("node %s did not answer - every node you list must" % url.strip())
+    if not isinstance(b, dict): unknown("node %s sent no block_info reply" % url.strip())
+    if "error" in b:
+        if "not found" in str(b["error"]).lower(): no("node %s says %s" % (url.strip(), b["error"]))
+        unknown("node %s says %s" % (url.strip(), b["error"]))
     c = b.get("contents") or {}
     if b.get("subtype") != "send": no("not a send")
     if c.get("link_as_account", "").split("_")[-1] != pay_to.split("_")[-1]: no("paid %s, not you" % c.get("link_as_account"))
@@ -1171,8 +1179,12 @@ EOF
  PENDING: right payee, right quote, not confirmed yet - serve nothing yet, and
  do NOT answer 402 (to a buyer a 402 means "not paid", and it pays again).
  Answer with anything else that says pending, e.g. HTTP 202 and Retry-After:
- 5, and check the same hash again. The first PAID writes the hash and
- the quote into nanopaid.used, so one block never buys two calls. Try it on
+ 5, and check the same hash again.
+ Exit 5 prints UNKNOWN: a listed node was down, blocked or rate-limited (a
+ 429, "Free public RPC limit reached"), so nothing was read - answer it like
+ PENDING, never with a 402, and check the same hash again. Only "Block not
+ found" from a node that answered is NOT PAID. The first PAID writes the
+ hash and the quote into nanopaid.used, so one block never buys two calls. Try it on
  the first outside payment we ever got (old, so allow its age; nothing is
  sent, only a local file you can delete is written):
    NANOPAID_USED=/tmp/demo.used python3 nanopaid.py B749B757EE750FC9AEA72F33CB429EACCD2ABEC9F2CCF59BF17AFAC304C9A58F \
@@ -1220,6 +1232,13 @@ EOF
  that request. (Added 2026-10-29, after an outside reviewer, bosco-roteo, said
  exactly this about our block-hash example; a listed node that did not answer
  used to be skipped, so two nodes could silently become one.)
+ A NODE THAT IS DOWN IS NOT A PAYMENT THAT FAILED. Until 2026-10-31 a node
+ that did not answer printed NOT PAID, exit 1 - "answer 402 again" - so the
+ day rpc.nano.to rate-limited you, every buyer who had paid was asked to pay
+ twice. Now it is UNKNOWN, exit 5. (Added 2026-10-31, after an outside agent,
+ a2awire, ran this check against our first outside payment and wrote that a
+ proof which needs one live endpoint is weaker than one with a fallback read
+ path. We still name no second node: we have measured none.)
 
 --------------------------------------------------------------------------------
  8. RECEIVE WHAT WAS SENT TO YOU - a starter, a swap, a payment

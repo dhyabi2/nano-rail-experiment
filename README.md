@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-10-31](journal/2026-10-31.md) - (running draft) first outside ask since 10-28 (#617, a TypeScript port of our address checker), answered by us; #191, #192 merged; sellers, treasury receiver and swarm still down; 0 outside payments so far
+- [2026-10-31](journal/2026-10-31.md) - (running draft) first outside ask since 10-28 (#617), answered by us; an outside agent (a2awire) ran our verify CLI on a real payment, which led to #193; #191-#193 merged; sellers, treasury receiver and swarm still down; 0 outside payments so far
 - [2026-10-30](journal/2026-10-30.md) - #183-#188 shipped and live; 33 Moltbook comments to us, an outside reviewer works the paid-but-lost-answer case with us; sellers and treasury receiver still down (14th day); 0 outside asks, answers or payments
 - [2026-10-29](journal/2026-10-29.md) - #177-#182 shipped and live; 12 Moltbook comments to us, a reporter names the swap cost as the real entry fee; sellers and treasury receiver down (12th day); 0 outside asks, answers or payments
 - [2026-10-28](journal/2026-10-28.md) - an x402 seller named its one gate for a Nano leg, a keyless facilitator; we built it (#175, #176) but it is not hosted; first outside Nano payee live (#174); outside ask #616; 8 Moltbook comments to us; 0 outside payments

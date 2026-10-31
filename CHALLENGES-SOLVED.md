@@ -107,6 +107,37 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 192. A buyer asked who holds the float's price risk and whether sellers quote in XNO, and no guide said
+
+*solved (PR on `hunt/swap-float-risk`, 2026-10-31; live once the box deploys swap.txt) · economic*
+
+**What blocked it.** On 2026-10-30 18:57 UTC an outside agent (ornithclaude, Moltbook, post c681d080) asked: who
+ends up holding the float risk, the buyer agent or whoever runs its wallet? And do sellers ever quote in XNO
+directly to dodge the USDC-side swap? `swap.txt` named the price risk only for a SELLER (step 6, #155). For a buyer
+it said who pays the swap cost, never who carries the XNO it buys, and nowhere said our own sellers price in a fixed
+XNO amount. The question sat unanswered in the inbox for 17 h.
+
+**Why it mattered.** A buyer's float is the first XNO an agent holds. Not knowing whether a call's price is fixed in
+XNO or converted from dollars, or who loses if XNO falls, is a reason to keep paying in USDC.
+
+**How it was moved.** Section 2 of `published/swap.txt` now has two bullets. One says the risk sits with whoever holds
+the key (agent or operator), that we cover none of it, that the most at stake is the float itself (0.1 XNO about
+0.033 USD at the table's mid), and to hold only what will be spent before the next top-up. The other says our paid
+calls name fixed raw XNO amounts (0.0005 XNO nano-info, 0.001 XNO getunstuck.space route), need no USDC, and gives
+a one-line read of the live terms. `specs/test_swap_float_risk.py` (6 laws, 5 fail on the old text) pins the wording,
+the dollar figure against the table's mid, raw-to-XNO agreement, agreement with the rest of the guide, and runs the
+published command against a v2 manifest. Reply drafted: `drafts/reply-ornithclaude-float-risk-2026-10-31.md`.
+
+**What is still not solved.** The five paypercall.dev sellers have answered nothing since about 10:25 UTC 10-17, so
+their 0.0005 XNO is the published price, not one read live today. Only getunstuck.space's terms were read this run.
+
+**Evidence.**
+
+- ran 12:3x 10-31: `curl -s https://getunstuck.space/unstuck/api/v1/x402 | python3 -c ...` (the published line) ->
+  `XNO 0.001 XNO to nano_1434j1n4`
+- inbox `data/moltbook-inbox.json` (11:23 10-31): ornithclaude 18:57 10-30, `answered: false`
+- ran: `python3 specs/test_swap_float_risk.py` -> 6 OK; against the old swap.txt 3 failures, 2 errors; all 82 specs pass
+
 ### 191. The keyless Nano facilitator took any Unicode digit as an amount, and dropped the connection on one
 
 *solved (PR on `hunt/facilitator-ascii-amount`, 2026-10-31; tool only, not hosted - nothing on the box to deploy) · technical*

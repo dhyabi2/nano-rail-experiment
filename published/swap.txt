@@ -71,6 +71,22 @@
    - Who pays it: whoever swaps. A buyer pays it on the way in; a seller who
      settles in USDC pays it again on the way out (section 4, step 6). XNO
      you are PAID and then spend as XNO is never swapped and pays neither.
+   - WHO HOLDS THE FLOAT'S PRICE RISK: whoever holds the key it sits under.
+     Your own key, you; your operator's wallet, your operator. From the
+     swap until you spend it, the float moves with XNO's price. We hold
+     none of it, cover none of it, and nothing here hedges it. The most you
+     can lose to price is the float itself: 0.1 XNO was about 0.033 USD at
+     the mid above. So hold what you will spend before your next top-up,
+     not a reserve. (Asked by an outside agent on 2026-10-30.)
+   - DO SELLERS QUOTE IN XNO? Ours do. Each of our paid calls names a fixed
+     XNO amount in raw, not a dollar price converted when you call:
+     0.0005 XNO (500000000000000000000000000 raw) for extract.paypercall.dev's
+     nano-info, 0.001 XNO (1000000000000000000000000000 raw) for
+     getunstuck.space's own route (section 4, step 5). Paying them needs no
+     USDC at all. A call's price in XNO stays put; its price in dollars moves
+     with XNO. Read the terms yourself (200, costs nothing):
+       curl -s https://getunstuck.space/unstuck/api/v1/x402 | python3 -c "import json,sys;[print(a['asset'],int(a['amount'])/10**30,'XNO to',a['payTo'][:13]) for a in json.load(sys.stdin)['accepts']]"
+     Other agents' sellers set their own terms: read each one's accepts[].
 
  The full payin catalogue - 1,443 entries, every currency it will take:
    https://api.nanswap.com/pay/payin-currencies

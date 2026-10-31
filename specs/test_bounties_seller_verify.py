@@ -145,12 +145,15 @@ class SellerCheck(unittest.TestCase):
         quote, earlier = str(int(RAW) + 4242), "A" * 64
         with open(self.used, "w") as f:
             f.write(earlier + " " + quote + "\n")
-        url = self.node(block(amount=quote))
+        ts = int(time.time()) - 5
+        due = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts + 86400))
+        url = self.node(block(amount=quote, local_timestamp=str(ts)))
         for _ in range(2):  # judged the same way every time, and never recorded as accepted
             r = self.run_it([url], raw=quote)
             self.assertEqual(r.returncode, 3, r.stdout + r.stderr)
             self.assertEqual(r.stderr.strip(), "DUPLICATE %s: quote %s raw was already paid by %s - do not serve a second "
-                             "call; refund %s raw to %s (this script sends nothing)" % (H, quote, earlier, quote, PAYER))
+                             "call; refund %s raw to %s by %s, 24 h after this block's time (this script sends nothing)"
+                             % (H, quote, earlier, quote, PAYER, due))
             self.assertNotIn("PAID " + H, r.stdout)
         self.assertNotIn(H, open(self.used).read())
 
@@ -181,8 +184,40 @@ class SellerCheck(unittest.TestCase):
         self.refused(self.run_it([url], raw=str(int(RAW) + 1)), "amount %s raw, price" % RAW)
         self.refused(self.run_it([url], raw=str(int(RAW) - 1)), "amount %s raw, price" % RAW)
 
-    def test_unconfirmed(self):
-        self.refused(self.run_it([self.node(block(confirmed="false"))]), "not confirmed")
+    # Challenge #189 (2026-10-31): prismdeadlines (Moltbook, 10-30 20:19) - between a confirmed transfer and a delivered
+    # call a buyer needs a distinguishable pending state, not an error that looks like non-payment. An unconfirmed send
+    # used to be NOT PAID, exit 1, "answer 402 again": the buyer who had paid was told it had not.
+    def pending(self, r, raw=RAW):
+        self.assertEqual(r.returncode, 4, r.stdout + r.stderr)
+        self.assertEqual(r.stdout.strip(), "PENDING %s: pays you %s raw but is not confirmed yet - serve nothing yet, ask "
+                         "for no new payment; tell the buyer to retry with this same hash in a few seconds" % (H, raw))
+        self.assertNotIn("NOT PAID", r.stderr)
+
+    def test_unconfirmed_is_pending_not_unpaid_and_records_nothing(self):
+        self.pending(self.run_it([self.node(block(confirmed="false"))]))
+        self.assertFalse(os.path.exists(self.used))
+        r = self.run_it([self.node(block())])  # the same hash, once confirmed
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.already_paid(self.run_it([self.node(block())]))
+
+    def test_one_listed_node_not_confirmed_yet_is_pending(self):
+        good, slow = self.node(block()), self.node(block(confirmed="false"))
+        for order in ([good, slow], [slow, good]):
+            self.pending(self.run_it(order))
+        self.assertFalse(os.path.exists(self.used))
+
+    def test_unconfirmed_still_refused_for_the_wrong_payee_amount_or_age(self):
+        self.refused(self.run_it([self.node(block(confirmed="false", link_as_account=OTHER))]), "not you")
+        self.refused(self.run_it([self.node(block(confirmed="false"))], raw=str(int(RAW) + 1)), "amount")
+        self.refused(self.run_it([self.node(block(confirmed="false", local_timestamp="0"))]), "older than")
+
+    def test_text_says_pending_is_not_a_402_and_the_refund_has_a_deadline(self):
+        flat = " ".join(self.txt.split())
+        for s in ("Exit 4 prints PENDING", "do NOT answer 402", "Sent, not confirmed yet: exit 4, PENDING",
+                  "24 h after the duplicate block's own time", "a refund sent after the deadline still settles the duplicate",
+                  "Never treat overdue as final", "by the time it prints"):
+            self.assertIn(s, flat, s)
+        self.assertNotIn("not confirmed yet - ask again in a few seconds", self.txt)
 
     def test_not_a_send(self):
         self.refused(self.run_it([self.node(block(subtype="receive"))]), "not a send")

@@ -25,6 +25,12 @@ A payment is valid only if every node that answered `block_info` says it is a co
 `amount` raw, first seen within `maxTimeoutSeconds`, and this facilitator has never settled that hash. `/settle`
 does the same checks and then records the hash, so a hash settles once, across restarts.
 
+**Pending is not invalid (#194).** `nodes_unreachable` (fewer than `--quorum` nodes gave a block_info reply) and
+`not_confirmed` (the send exists, not confirmed yet) are answered **HTTP 503**, `Retry-After: 5`, with the usual body
+plus `"retryable": true`, and `/settle` records nothing. An x402 seller turns a 200 `isValid:false` into a fresh 402,
+and a 402 to a buyer who already paid is how one payment becomes two. Every other refusal (wrong payee, wrong amount,
+too old, not found, replay) stays a 200 with its reason; a final refusal from any node wins over a pending one.
+
 What it does not do: it does not receive the funds into the seller's wallet. A Nano send is final when it is
 confirmed, but the payee's wallet still has to publish a receive block to spend it. That is the seller's own wallet,
 holding the seller's own key, and nothing here touches it.

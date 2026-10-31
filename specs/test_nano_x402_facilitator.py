@@ -183,6 +183,62 @@ class Laws(unittest.TestCase):
         f, _ = make({"n1": OSError("down")})
         self.assertFalse(f.settle(body())["success"])
 
+    def test_a_node_that_said_nothing_usable_is_not_an_answer(self):
+        # challenge #194: a non-dict reply, or a 200 that is not a block_info reply (a quota
+        # notice without "error"), must not become not_a_send / node_answer_unreadable.
+        for junk in (["x"], "rate limited", {"message": "Free public RPC limit reached"}):
+            f, _ = make({"n1": junk})
+            self.assertEqual(f.verify(body())["invalidReason"], "nodes_unreachable", junk)
+            f, _ = make({"n1": junk, "n2": INFO})
+            self.assertTrue(f.verify(body())["isValid"], junk)
+
+    def test_a_final_refusal_wins_over_a_pending_one(self):
+        f, _ = make({"n1": dict(INFO, confirmed="false"), "n2": dict(INFO, amount="1")})
+        self.assertEqual(f.verify(body())["invalidReason"], "wrong_amount")
+        f, _ = make({"n1": dict(INFO, confirmed="false"), "n2": INFO})
+        self.assertEqual(f.verify(body())["invalidReason"], "not_confirmed")
+
+    def test_pending_is_a_503_never_a_200_that_asks_a_payer_to_pay_again(self):
+        # challenge #194 (after #189, #193): an x402 seller turns a 200 isValid:false into a new
+        # 402. Unreachable nodes and an unconfirmed send are not known to be unpaid, so the HTTP
+        # answer is 503 + Retry-After + retryable, and settle records nothing.
+        cases = [({"n1": OSError("down")}, "nodes_unreachable"),
+                 ({"n1": dict(INFO, confirmed="false")}, "not_confirmed")]
+        for answers, reason in cases:
+            f, _ = make(answers)
+            srv = fac.ThreadingHTTPServer(("127.0.0.1", 0), fac.make_handler(f))
+            threading.Thread(target=srv.serve_forever, daemon=True).start()
+            base = "http://127.0.0.1:%d" % srv.server_address[1]
+            opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+            try:
+                for route, key in (("/verify", "invalidReason"), ("/settle", "errorReason")):
+                    with self.assertRaises(urllib.error.HTTPError) as cm:
+                        opener.open(urllib.request.Request(base + route, data=json.dumps(body()).encode(),
+                                                           headers={"Content-Type": "application/json"}))
+                    e = cm.exception
+                    self.assertEqual(e.code, 503, (reason, route))
+                    self.assertEqual(e.headers.get("Retry-After"), fac.RETRY_AFTER)
+                    out = json.loads(e.read())
+                    self.assertEqual(out[key], reason)
+                    self.assertTrue(out["retryable"])
+                self.assertFalse(f.store.has(H))
+            finally:
+                srv.shutdown()
+                srv.server_close()
+        # a final refusal stays a 200 with a reason: the seller may answer that one 402
+        f, _ = make({"n1": dict(INFO, amount="1")})
+        srv = fac.ThreadingHTTPServer(("127.0.0.1", 0), fac.make_handler(f))
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        try:
+            opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+            r = opener.open(urllib.request.Request("http://127.0.0.1:%d/verify" % srv.server_address[1],
+                                                   data=json.dumps(body()).encode()))
+            self.assertEqual(r.status, 200)
+            self.assertEqual(json.loads(r.read())["invalidReason"], "wrong_amount")
+        finally:
+            srv.shutdown()
+            srv.server_close()
+
     def test_it_holds_no_key_and_sends_nothing(self):
         with open(PATH) as fh:
             src = fh.read()

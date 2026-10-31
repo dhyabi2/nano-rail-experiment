@@ -21,7 +21,12 @@ comment on the thread already named), and asks a public node about each one:
 
 An address with a bad checksum is listed BAD CHECKSUM and never queried: nothing should be sent to it.
 
-    python3 ops/outside-payees.py [--inbox PATH] [--json]
+Challenge #190. The inbox only holds the last ~48 hours, so on 10-31 the 10-28 comment had aged out and the first
+outside Nano payee silently left the report: "1 outside payee", and it was not antigravityandrew's. A payee once
+announced stays a payee. `ops/outside-payees.json` remembers every one ever found; it is read on every run, and
+`--record` adds the inbox's new ones to it (commit the file after). Rows say where they came from: `inbox` or `known`.
+
+    python3 ops/outside-payees.py [--inbox PATH] [--known PATH] [--record] [--json]
 
 Exit 0 when no outside payment to an outside payee is found, 1 when at least one is (the thing to journal),
 3 when the inbox cannot be read.
@@ -38,6 +43,7 @@ sys.path.insert(0, os.path.join(ROOT, "specs"))
 from nano_address import check_nano_address  # noqa: E402
 
 DEFAULT_INBOX = os.path.join(os.path.dirname(ROOT), "swarm-decisions", "data", "moltbook-inbox.json")
+DEFAULT_KNOWN = os.path.join(ROOT, "ops", "outside-payees.json")
 RPC = "https://rpc.nano.to"
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
 TREASURY = "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
@@ -51,13 +57,22 @@ def normal(addr):
     return "nano_" + addr.split("_", 1)[1]
 
 
-def find_payees(items):
-    """Outside addresses in outside comments, first mention wins. Our own comments' addresses are ours to drop."""
+def find_payees(items, known=()):
+    """Outside addresses in outside comments, first mention wins. Our own comments' addresses are ours to drop.
+
+    `known` are payees remembered from earlier inboxes; they stay listed after their comment leaves the inbox."""
     ours = set(OURS)
     for c in items:
         for key in ("our_comment", "post_ours_comment"):
             ours.update(normal(a) for a in ADDRESS.findall(c.get(key) or ""))
     seen = {}
+    for k in known:
+        a = normal(k.get("address") or "")
+        if a in ours or a in seen or not ADDRESS.fullmatch(a):
+            continue
+        seen[a] = {"address": a, "author": k.get("author") or "?", "created_at": k.get("created_at") or "",
+                   "comment_id": (k.get("comment_id") or "")[:8], "checksum_ok": check_nano_address(a),
+                   "source": "known"}
     for c in sorted(items, key=lambda c: c.get("created_at") or ""):
         for a in ADDRESS.findall(c.get("content") or ""):
             a = normal(a)
@@ -69,8 +84,30 @@ def find_payees(items):
                 "created_at": c.get("created_at") or "",
                 "comment_id": (c.get("comment_id") or "")[:8],
                 "checksum_ok": check_nano_address(a),
+                "source": "inbox",
             }
     return list(seen.values())
+
+
+def load_known(path):
+    """Remembered payees; a missing file is an empty memory, a broken one is an error (never silently empty)."""
+    if not os.path.exists(path):
+        return []
+    with open(path) as f:
+        return json.load(f)["payees"]
+
+
+def record(path, payees):
+    """Write every checksummed payee (known and new) back, oldest first; return how many were new."""
+    keep = [{k: p[k] for k in ("address", "author", "created_at", "comment_id")} for p in payees if p["checksum_ok"]]
+    keep.sort(key=lambda p: p["created_at"])
+    new = sum(1 for p in payees if p["checksum_ok"] and p.get("source") == "inbox")
+    with open(path, "w") as f:
+        json.dump({"rule": "Every nano_ address an outside agent named as its own payee in a Moltbook comment. "
+                           "Public addresses only. Written by ops/outside-payees.py --record (challenge #190).",
+                   "payees": keep}, f, indent=1)
+        f.write("\n")
+    return new
 
 
 def rpc(body):
@@ -113,9 +150,9 @@ def verdict(chain):
     return "UNOPENED"
 
 
-def build_report(items, call=rpc):
+def build_report(items, call=rpc, known=()):
     rows = []
-    for p in find_payees(items):
+    for p in find_payees(items, known):
         if not p["checksum_ok"]:
             rows.append(dict(p, state="BAD CHECKSUM", payments=[]))
             continue
@@ -133,6 +170,8 @@ def build_report(items, call=rpc):
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--inbox", default=DEFAULT_INBOX)
+    ap.add_argument("--known", default=DEFAULT_KNOWN)
+    ap.add_argument("--record", action="store_true", help="add the inbox's new payees to --known")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
     try:
@@ -142,7 +181,14 @@ def main(argv=None):
     except Exception as e:
         print(f"UNKNOWN: cannot read inbox {a.inbox}: {e}")
         return 3
-    rep = build_report(items)
+    try:
+        known = load_known(a.known)
+    except Exception as e:
+        print(f"UNKNOWN: cannot read remembered payees {a.known}: {e}")
+        return 3
+    if a.record:
+        print(f"recorded {record(a.known, find_payees(items, known))} new payee(s) in {a.known}")
+    rep = build_report(items, known=known)
     if a.json:
         print(json.dumps(rep, indent=1))
     else:
@@ -151,7 +197,7 @@ def main(argv=None):
               f"{rep['outside_paid']} paid by an outside account")
         for r in rep["payees"]:
             print(f"  {r['state']:<12} {r['address'][:14]}...{r['address'][-6:]}  {r['author']:<20} "
-                  f"{r['created_at'][:16]}  comment {r['comment_id']}")
+                  f"{r['created_at'][:16]}  comment {r['comment_id']}  ({r['source']})")
             for x in r["payments"]:
                 print(f"      {x['kind']:<10} {x['amount'] / RAW:.6f} XNO from {x['payer']} {x['source'][:14]}... "
                       f"block {x['hash'][:8]}")

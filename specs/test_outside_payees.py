@@ -82,6 +82,42 @@ class Laws(unittest.TestCase):
         rep = op.build_report(items, node())
         self.assertEqual([(r["author"], r["address"]) for r in rep["payees"]], [("first", SELLER)])
 
+    # challenge #190: a payee stays a payee after its comment leaves the 48 h inbox
+    def test_known_payee_read_after_comment_left_inbox(self):
+        known = [{"address": SELLER, "author": "antigravityandrew", "created_at": "2026-10-28T08:07",
+                  "comment_id": "7d5ddbfe"}]
+        rep = op.build_report([], node(received=[("CC" * 32, ARION)]), known=known)
+        self.assertEqual([(r["address"], r["source"]) for r in rep["payees"]], [(SELLER, "known")])
+        self.assertEqual(rep["outside_paid"], 1)
+
+    def test_known_never_duplicated_by_inbox(self):
+        known = [{"address": SELLER, "author": "antigravityandrew", "created_at": "2026-10-28T08:07"}]
+        rep = op.build_report([comment(SELLER, author="later", at="2026-10-31T00:00:00Z")], node(), known=known)
+        self.assertEqual([(r["author"], r["source"]) for r in rep["payees"]], [("antigravityandrew", "known")])
+
+    def test_record_remembers_new_payees_but_not_bad_ones(self):
+        import tempfile
+        path = os.path.join(tempfile.mkdtemp(), "known.json")
+        self.assertEqual(op.load_known(path), [])
+        new = op.record(path, op.find_payees([comment(SELLER), comment(BAD), comment(op.TREASURY)]))
+        self.assertEqual(new, 1)
+        self.assertEqual([p["address"] for p in op.load_known(path)], [SELLER])
+        self.assertEqual(op.record(path, op.find_payees([], op.load_known(path))), 0)
+        self.assertEqual([p["address"] for p in op.load_known(path)], [SELLER])
+
+    def test_broken_memory_is_unknown_not_empty(self):
+        import tempfile, io, contextlib
+        d = tempfile.mkdtemp()
+        inbox, known = os.path.join(d, "inbox.json"), os.path.join(d, "known.json")
+        open(inbox, "w").write('{"items": []}')
+        open(known, "w").write("{not json")
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(op.main(["--inbox", inbox, "--known", known]), 3)
+        self.assertIn("UNKNOWN", out.getvalue())
+
+    def test_committed_memory_holds_the_first_outside_payee(self):
+        self.assertIn(SELLER, [p["address"] for p in op.load_known(op.DEFAULT_KNOWN)])
+
 
 if __name__ == "__main__":
     unittest.main()

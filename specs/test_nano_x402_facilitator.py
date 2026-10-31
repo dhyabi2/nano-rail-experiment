@@ -126,6 +126,41 @@ class Laws(unittest.TestCase):
         f, nodes = make()
         self.assertEqual(f.verify(body({"payload": {"hash": "xyz"}}))["invalidReason"], "invalid_payload")
 
+    def test_only_ascii_digits_are_an_amount_and_a_timeout(self):
+        # challenge #191: str.isdigit() took "\u00b2" (int() then raised, the connection dropped) and
+        # "\u0663\u0660" (Arabic-Indic 30); a seller's malformed requirement must be a named refusal.
+        for req, reason in [({"amount": "\u00b2"}, "invalid_amount_required"),
+                            ({"amount": "\u0661\u0660"}, "invalid_amount_required"),
+                            ({"amount": " 10"}, "invalid_amount_required"),
+                            ({"amount": "1e30"}, "invalid_amount_required"),
+                            ({"maxTimeoutSeconds": "\u00b2"}, "invalid_max_timeout"),
+                            ({"maxTimeoutSeconds": "abc"}, "invalid_max_timeout"),
+                            ({"maxTimeoutSeconds": -5}, "invalid_max_timeout"),
+                            ({"maxTimeoutSeconds": True}, "invalid_max_timeout")]:
+            f, nodes = make()
+            self.assertEqual(f.verify(body(**req))["invalidReason"], reason, req)
+            self.assertEqual(nodes.calls, [], req)
+
+    def test_leading_zeros_name_the_same_amount(self):
+        f, _ = make()
+        self.assertTrue(f.verify(body(amount="000" + TEN))["isValid"])
+        f, _ = make()
+        self.assertTrue(f.verify(body(maxTimeoutSeconds="300"))["isValid"])
+
+    def test_http_never_drops_a_malformed_requirement(self):
+        f, _ = make()
+        srv = fac.ThreadingHTTPServer(("127.0.0.1", 0), fac.make_handler(f))
+        t = threading.Thread(target=srv.serve_forever, daemon=True)
+        t.start()
+        try:
+            url = "http://127.0.0.1:%d/verify" % srv.server_address[1]
+            data = json.dumps(body(amount="\u00b2")).encode()
+            r = urllib.request.urlopen(urllib.request.Request(url, data=data, method="POST"), timeout=5)
+            self.assertEqual(json.loads(r.read())["invalidReason"], "invalid_amount_required")
+        finally:
+            srv.shutdown()
+            srv.server_close()
+
     def test_v1_amount_field_and_every_payload_shape(self):
         r = dict(REQ)
         r["maxAmountRequired"] = r.pop("amount")

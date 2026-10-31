@@ -55,6 +55,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 NETWORK = "nano:mainnet"
 SCHEME = "exact"
 HASH_RE = re.compile(r"^[0-9A-Fa-f]{64}$")
+RAW_RE = re.compile(r"^[0-9]{1,40}$")  # ASCII digits only: str.isdigit() also takes "\u00b2" and "\u0663"
 ADDR_RE = re.compile(r"^(nano|xrb)_[13][13456789abcdefghijkmnopqrstuwxyz]{59}$")
 UA = "Mozilla/5.0 (compatible; nano-x402-facilitator/1)"
 # The repository is private, so the only source a seller can read is the one this
@@ -169,8 +170,15 @@ class Facilitator:
         if not isinstance(pay_to, str) or not ADDR_RE.match(pay_to):
             return "invalid_pay_to", None, None
         amount = str(req.get("amount", req.get("maxAmountRequired", "")))
-        if not amount.isdigit() or int(amount) <= 0:
+        if not RAW_RE.match(amount) or int(amount) <= 0:
             return "invalid_amount_required", None, None
+        amount = str(int(amount))  # "007" is 7 raw; the node answers "7"
+        max_age = req.get("maxTimeoutSeconds")
+        if max_age in (None, ""):
+            max_age = 600
+        elif isinstance(max_age, bool) or not RAW_RE.match(str(max_age)) or int(max_age) <= 0:
+            return "invalid_max_timeout", None, None
+        max_age = int(max_age)
         if isinstance(pay, dict) and pay.get("network", NETWORK) != NETWORK:
             return "invalid_network", None, None
         h = payment_hash(pay)
@@ -178,7 +186,6 @@ class Facilitator:
             return "invalid_payload", None, None
         if self.store.has(h):
             return "payment_already_redeemed", h, None
-        max_age = int(req.get("maxTimeoutSeconds") or 600)
 
         answers = []
         for url in self.nodes:
@@ -272,7 +279,11 @@ def make_handler(fac):
                 body = json.loads(self.rfile.read(n).decode() or "{}")
             except Exception:
                 return self._send(400, {"error": "body is not JSON"})
-            self._send(200, fac.verify(body) if route == "/verify" else fac.settle(body))
+            try:
+                out = fac.verify(body) if route == "/verify" else fac.settle(body)
+            except Exception:  # never a dropped connection: a seller must get an answer it can log
+                return self._send(500, {"error": "facilitator_error", "isValid": False, "success": False})
+            self._send(200, out)
 
         def log_message(self, fmt, *args):
             sys.stderr.write("%s %s\n" % (self.log_date_time_string(), fmt % args))

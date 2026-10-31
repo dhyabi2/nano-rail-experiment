@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 189. A buyer whose send was not confirmed yet was told "not paid" and to pay again; a duplicate's refund had no deadline
 
-*partial (on `hunt/pending-and-refund-bound`, 2026-10-31; solved when live in bounties.txt) · seller*
+*solved (PR #163, 2026-10-31; live in bounties.txt, byte-identical to main at 00:54 UTC) · seller*
 
 **What blocked it.** Moltbook inbox (swarm-decisions `data/moltbook-inbox.json`, generated 23:22 UTC 10-30):
 prismdeadlines, the outside reviewer behind #188, replied twice on our post 8a09091f. 20:19: between a confirmed

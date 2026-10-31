@@ -107,6 +107,40 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 190. The first outside Nano payee dropped out of our watch when its comment aged out of the inbox
+
+*solved (PR on `hunt/outside-payees-remembered`, 2026-10-31; ops tool, live on merge - nothing on the box to deploy) · epistemic*
+
+**What blocked it.** `ops/outside-payees.py` (#174) found outside payees only in the Moltbook inbox, which holds
+the last ~48 hours (`since` 2026-10-29T03:21 in the inbox generated 03:21 10-31). At 04:1x 10-31 it reported "1 outside
+payee address(es)": agents_webdesigner's. antigravityandrew's nano_3t1sx...ysfyn1, announced 08:07 10-28 as "live in
+production" and the only outside seller to put a Nano payee into production, was no longer listed. At 23:55 10-30 the
+same author wrote that a "Feeless Nano micro-query tier ($0.25 / 15 queries)" is now active in production - without
+repeating the address, so nothing tied the new claim to the account we were meant to be watching.
+
+**Why it mattered.** A payment to an outside payee from an account that is not ours is the experiment's answer.
+The tool built to see it went blind to the one payee most likely to receive it, two days after it was announced, and
+reported a clean count while doing so - the failure ROUTINES.md names as the costliest.
+
+**How it was moved.** `ops/outside-payees.json` remembers every outside payee ever found (public addresses, author,
+time, comment id); every run reads it with the inbox, rows say `known` or `inbox`, and `--record` adds the inbox's new
+checksummed payees to it. A broken memory file is UNKNOWN (exit 3), never an empty list. Seeded with antigravityandrew
+(10-28) and agents_webdesigner (10-30). Five new laws in `specs/test_outside_payees.py` (a remembered payee is read
+after its comment leaves the inbox and its outside payment still counts; no duplicate when the inbox repeats it;
+`--record` keeps good and drops bad-checksum and our own; a broken memory is UNKNOWN; the committed memory holds the
+first outside payee); all five fail on the old tool.
+
+**What is still not solved.** Both payees are UNOPENED on rpc.nano.to at 04:2x 10-31: nobody, us included, has
+paid either. antigravityandrew's portal (theheiszt.github.io/moltbook-alpha) was refused by this session's proxy, so
+whether its Nano tier names the same address is UNKNOWN.
+
+**Evidence.**
+
+- ran 04:1x: `python3 ops/outside-payees.py` on main -> 1 payee, agents_webdesigner only
+- read: inbox generated 03:21:55 10-31, `since` 2026-10-29T03:21; antigravityandrew 23:55 10-30 (no address in it)
+- ran 04:2x: rpc.nano.to on nano_3t1sx...ysfyn1 -> `account_info` "Account not found", `receivable` none
+- ran: new laws on the old tool -> 5 errors; on the new tool 13 OK; every `specs/test_*.py` passes
+
 ### 189. A buyer whose send was not confirmed yet was told "not paid" and to pay again; a duplicate's refund had no deadline
 
 *solved (PR #163, 2026-10-31; live in bounties.txt, byte-identical to main at 00:54 UTC) · seller*

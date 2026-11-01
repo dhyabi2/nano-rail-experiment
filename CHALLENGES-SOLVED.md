@@ -107,6 +107,40 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 198. Our one live paid route answers a wrong or unconfirmed hash with "Send 0.001 XNO" again, and the guide never said not to pay twice
+
+*solved once live (PR on `hunt/echo-402-not-pay-again`, 2026-11-01; live after the box deploys main) · onboarding*
+
+**What blocked it.** Probed 12:20 UTC 11-01 with no money moved: `POST https://getunstuck.space/unstuck/api/v1/echo`
+with `X-Nano-Payment` set to 64 zeros, with `PAYMENT-SIGNATURE` set to 64 zeros, and with the real hash of Unstuck's own
+last send (08D9724E, a block that pays nobody here) all came back 402 with the same body as a call with no header:
+`"status":"payment_required"`, `"message":"Send 0.001 XNO to the payTo address, then retry..."`. No reason, unlike the
+sellers (bounties.txt: a bad hash answers `payment_invalid` with the reason). bounties.txt told the buyer to repeat the
+POST "the moment the node returns your block's hash" - before confirmation, the likeliest moment for a refusal - and
+said nothing about what a refused hash looks like. Each 402 now also carries a fresh `quoteId`, documented nowhere.
+
+**Why it mattered.** This is the only paid call that answers (sellers down since 10-17), and it is the closest thing
+to a conversion today: `/ai/traffic/2026-11-01.json` (12:07) shows 13 outside clients reading its terms and 16 402s
+served. A buyer who pays, retries early or with a typo, and reads "Send 0.001 XNO" again is told by our own route to
+pay a second time.
+
+**How it was moved.** bounties.txt's "ONE PAID CALL OF OURS" block now says, after the race warning: a 402 after you
+have sent does not mean pay again; read your block with STEP 4's block_info (confirmed, link_as_account = payTo, exact
+raw); if all three hold, wait 10 s and repeat with the same hash (either header the 402 names). It also says the new
+`quoteId` does not tie a send to its buyer (same amount, nothing asks for it on the paid POST), so the race warning
+stands. Measured stamp moved to 12:20 UTC 11-01. Law: `specs/test_echo_402_not_pay_again.py` (4 tests; all fail on the
+old text).
+
+**What is still not solved.** The route itself should answer a refused hash with its reason (`payment_invalid`,
+not found / not confirmed / wrong payee / wrong amount) - the owner's, server-side. What a correct payment returns is
+still unmeasured: nobody has paid it.
+
+**Evidence.**
+
+- ran 12:20 UTC 11-01: three POSTs to /unstuck/api/v1/echo with a zero hash (both headers) and 08D9724E... -> 402, same message, quoteIds 21d79dfb..., bf227c4d..., 37ee715b...
+- ran 12:19 UTC 11-01: two unpaid POSTs -> 402, amount 10^27 raw both times, different quoteIds (ec7cb941..., 7a4a20f7...)
+- ran: every `specs/test_*.py` -> 85 files, 0 failed
+
 ### 197. STEP 6 opened with 24 sellers that have not answered for 15 days; the one paid call that answers was 15 lines below
 
 *solved once live (PR on `hunt/step6-lead-with-live-call`, 2026-11-01; live after the box deploys main) · onboarding*

@@ -579,10 +579,23 @@ EOF
    present your hash before you do - the shape section 7 tells sellers to
    avoid (quote a new amount per 402). Repeat the POST the moment the node
    returns your block's hash, and keep the hash: it is your receipt.
-   Measured 08:19 UTC 11-01: terms 200, unpaid POST 402, one fixed amount.
+   Measured 12:20 UTC 11-01: terms 200, unpaid POST 402, one fixed amount.
    Nobody has paid it yet (no 0.001 XNO receive on that account's chain),
    so what the paid answer returns is not measured; your send on the ledger
    is the receipt either way.
+   A 402 AFTER YOU HAVE SENT DOES NOT MEAN PAY AGAIN. This route gives no
+   reason when it refuses a hash: a made-up hash, and the real hash of a
+   send that did not pay it, both got the same 402 and the same "Send 0.001
+   XNO..." message as a call with no header at all (measured 12:20 UTC 11-01).
+   So if your paid POST comes back 402, never send a second time. Read your
+   own block with STEP 4's block_info: confirmed "true", link_as_account =
+   the payTo above, amount = exactly 1000000000000000000000000000. If all
+   three hold, you paid; wait 10 s and repeat the POST with the SAME hash
+   (in X-Nano-Payment, or PAYMENT-SIGNATURE, which the 402 also names). If
+   one fails, the send is what went wrong, not the call.
+   Each 402 also carries a new "quoteId". The amount stays the same and
+   nothing says the paid POST should carry it, so it does not tie your send
+   to you: the warning above still holds.
  HOW A CALL IS PAID - x402 on the Nano ledger, no facilitator, no signup:
    0. The first 5 calls a day from one IP are FREE on these same endpoints:
       call with no header and you get real data. Test here, with no XNO.

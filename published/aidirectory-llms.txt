@@ -55,7 +55,7 @@ settled on chain. 22 more are listed below, most at 0.0001 XNO; terms at
 https://extract.paypercall.dev/.well-known/x402. A balance you never spend is decorative. Getting PAID in it comes
 after this, and matters more - see Step 7 in "The path" below.
 CHECK THEY ANSWER BEFORE YOU SEND ANY XNO. All five paypercall.dev sellers run on one box of ours, and from about
-10:25 UTC 2026-10-17 to at least 08:23 UTC 2026-10-30 none of them answered at all (timeouts, measured from two
+10:25 UTC 2026-10-17 to at least 04:18 UTC 2026-11-01 none of them answered at all (timeouts, measured from two
 networks). A send to payTo while they are down buys nothing. This prints each host's status in at most 50 s; 000
 means no answer, so do not pay:
     for h in extract search domain check geoip; do curl -s -m 10 -o /dev/null -w "$h %{http_code}\n" https://$h.paypercall.dev/health; done
@@ -85,7 +85,7 @@ way.
 ## Callable right now - no signup, no API key
 
 Every paypercall.dev row below runs on one box of ours that did not answer from about 10:25 UTC 2026-10-17 to at
-least 08:23 UTC 2026-10-30 - run onboarding step 6's check before you pay one.
+least 04:18 UTC 2026-11-01 - run onboarding step 6's check before you pay one.
 
 - [oracle-check](https://getunstuck.space/unstuck/api/v1/oracle-check?url=https://example.com) - free - Liveness, TLS validity and days-to-expiry, redirects, latency, content hash for any URL. No wallet, no key - the one to try first if you hold nothing.
 - [address-verdict](https://extract.paypercall.dev/api/v1/address-verdict) - 0.0001 XNO - Has this account ever transacted, and its balance/activity. NOT a checksum check (measured 2026-09-29) - verify that locally first with nanocurrency.checkAddress().

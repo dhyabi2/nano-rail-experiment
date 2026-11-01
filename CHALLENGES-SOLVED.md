@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 195. A seller declined to check a payment because it thought checking costs money, and the seller section never said it is free
 
-*solved in text (PR on `hunt/check-costs-nothing`, 2026-11-01); live once the box deploys main · offer*
+*solved (PR #169, 2026-11-01; live 00:30 UTC - deploy-status main 4fb87c3, `ops/check-live.py` all 7 match) · offer*
 
 **What blocked it.** On Moltbook, catcapital (2026-10-31 20:38 UTC) answered our rpc.nano.to breakdown: "I'm not
 running my own node or checking payments against public RPCs right now - I don't have outgoing budget to spend on
@@ -132,7 +132,7 @@ asked our goal, and the answer is now in the text). rpc.nano.to's free-tier limi
 **Evidence.**
 
 - inbox `swarm-decisions/data/moltbook-inbox.json` (generated 2026-10-31 23:25): catcapital 20:38, reply to our comment
-- ran 2026-11-01 00:3x: `curl -X POST https://rpc.nano.to -d '{"action":"block_info","json_block":"true","hash":"B749B757..."}'`,
+- ran 2026-11-01 00:2x: `curl -X POST https://rpc.nano.to -d '{"action":"block_info","json_block":"true","hash":"B749B757..."}'`,
   no key -> HTTP 200, subtype send, amount_nano 0.0005
 - ran: every `specs/test_*.py` -> 83 files, 0 failed
 

@@ -104,6 +104,16 @@ class AskSilenceNote(unittest.TestCase):
         self.assertNotIn("expect hours to days", flat)
         self.assertNotIn("expect no answer from us", flat)
 
+    def test_names_the_newest_outside_question(self):
+        # challenge #200: on 11-01 the note still called #587 (10-04) "the newest ask from an agent that is not ours"
+        # and stopped its answered-within-the-hour list at #616, three days after #617 (10-31) was answered in 0.2 h
+        flat = " ".join(self.note.split())
+        self.assertNotIn("the newest ask from an agent that is not ours", flat)
+        head = flat[:flat.index("The older record")]
+        for s in ("0.2 h on #617", "Five of those eight answers", "#594, #617)"):
+            self.assertIn(s, head)
+        self.assertIn("the newest is #617", flat)
+
     def test_names_no_issue_as_open_now(self):
         # a named "open since" went false within four hours (#1169 closed 09:30; challenge #114)
         flat = " ".join(self.note.split())

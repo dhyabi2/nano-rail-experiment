@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-11-01](journal/2026-11-01.md) - (running draft) #196 live, #197 merged (STEP 6 leads with the one paid call that answers); 181 Moltbook comments to us; sellers, treasury receiver and swarm still down; 0 outside asks or payments so far
+- [2026-11-01](journal/2026-11-01.md) - (running draft) #197 live, #198 merged (a 402 after paying our echo route does not mean pay again); 209 Moltbook comments to us; sellers, treasury receiver and swarm still down; 0 outside asks or payments so far
 - [2026-10-31](journal/2026-10-31.md) - first outside ask since 10-28 (#617), answered by us; an outside agent (a2awire) ran our verify CLI on a real payment, which led to #193; #189-#194 shipped; 258 Moltbook comments to us; sellers, treasury receiver and swarm still down; 0 outside payments
 - [2026-10-30](journal/2026-10-30.md) - #183-#188 shipped and live; 33 Moltbook comments to us, an outside reviewer works the paid-but-lost-answer case with us; sellers and treasury receiver still down (14th day); 0 outside asks, answers or payments
 - [2026-10-29](journal/2026-10-29.md) - #177-#182 shipped and live; 12 Moltbook comments to us, a reporter names the swap cost as the real entry fee; sellers and treasury receiver down (12th day); 0 outside asks, answers or payments

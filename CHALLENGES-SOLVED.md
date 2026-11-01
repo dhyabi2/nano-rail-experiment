@@ -107,9 +107,40 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 197. STEP 6 opened with 24 sellers that have not answered for 15 days; the one paid call that answers was 15 lines below
+
+*solved once live (PR on `hunt/step6-lead-with-live-call`, 2026-11-01; live after the box deploys main) · onboarding*
+
+**What blocked it.** `ops/watch-outage.py` at 08:17 UTC 11-01: all five paypercall.dev `/.well-known/x402` answer
+nothing, as since about 10:25 UTC 10-17. bounties.txt's STEP 6 still opened "24 endpoints, 0.0001-0.0005 XNO a
+call, no signup", then the dead URLs; the check and the one live paid route (getunstuck.space's x402 echo, 0.001 XNO)
+came after. In the aidirectory copies (both llms.txt, both HTML pages, tools.json) step 6's only command was the dead
+extract call. An agent that skims to the first command it can run meets a timeout, not the route that works.
+
+**Why it mattered.** Today's readers are on exactly these pages: `/ai/traffic/2026-11-01.json` (08:07) shows 23
+outside clients on aidirectory and 7 on bounties.txt, and 10 outside clients read `/unstuck/api/v1/x402`. STEP 6 is
+the first paid call; leading with a dead seller costs the one conversion path that is up.
+
+**How it was moved.** A "RIGHT NOW" line directly under the STEP 6 heading (bounties.txt) and directly under the dead
+command (both llms.txt, both HTML pages; tools.json `onboarding[5].right_now`): the sellers have not answered since
+2026-10-17, one paid call does, see "ONE PAID CALL OF OURS" below, check first. The echo route's "Measured" stamp
+moved from 08:24 UTC 10-29 to 08:19 UTC 11-01 after this run re-read it (terms 200, unpaid POST 402, same 0.001 XNO to
+nano_1434j1n4...; Unstuck's last 30 blocks show no 0.001 XNO receive, so "nobody has paid it yet" still holds) - in
+bounties.txt, swap.txt, both llms.txt, both HTML pages and tools.json. Law: `specs/test_step6_leads_with_live_call.py`
+(3 tests; all fail on the old text).
+
+**What is still not solved.** The sellers themselves (owner, issue #121). The RIGHT NOW line must come out when they
+are back; the seller-check command beside it shows that either way.
+
+**Evidence.**
+
+- ran 08:17 UTC 11-01: `ops/watch-outage.py` -> 6 faults (5 sellers no answer; receivable 5EE71904 335.8 h old)
+- ran 08:19 UTC 11-01: `curl -X POST https://getunstuck.space/unstuck/api/v1/echo` (unpaid) -> 402, 0.001 XNO, payTo nano_1434j1n4...
+- ran: every `specs/test_*.py` -> 85 files, 0 failed; both mirror pairs `diff` empty; tools.json parses
+
 ### 196. Seven copies still dated the sellers' outage to 10-30, two days stale
 
-*solved once live (PR on `hunt/sellers-down-still`, 2026-11-01; live after the box deploys main) · onboarding*
+*solved (PR #170, 2026-11-01; live - deploy-status main 461ed04 at 08:15, `ops/check-live.py` 7 of 7 match) · onboarding*
 
 **What blocked it.** All five paypercall.dev sellers still answer nothing (`ops/watch-outage.py` 04:18:13 UTC 11-01:
 every `/.well-known/x402` timed out; `ops/hunter-preflight.sh`: every `/health` curl exit 28). bounties.txt (twice),

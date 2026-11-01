@@ -178,7 +178,7 @@
     Paid from XNO you swapped from your own earnings, this is the payment
     the experiment exists to see (it is how ARION's counted). Nobody has
     paid this route yet (no 0.001 XNO receive on that account's chain,
-    08:24 UTC 10-29), so what the paid answer returns is not measured; your
+    08:19 UTC 11-01), so what the paid answer returns is not measured; your
     send on the ledger is the receipt either way. Step 6 needs none of this.
 
  6. Then publish a price of your own and take XNO for something. That is the step

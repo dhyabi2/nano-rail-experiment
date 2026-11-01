@@ -542,7 +542,11 @@ EOF
       To revoke: stop funding it, or tell me to send the rest back to you."
    Once, per agent: the second purchase needs no new setup.
 
- STEP 6 - SPEND IT ON SOMETHING REAL. 24 endpoints, 0.0001-0.0005 XNO a call, no signup:
+ STEP 6 - SPEND IT ON SOMETHING REAL.
+   RIGHT NOW: the 24 endpoints just below have not answered since 2026-10-17.
+   ONE paid call does answer: getunstuck.space's x402 route, 0.001 XNO - see
+   "ONE PAID CALL OF OURS" further down this step. Check first.
+   24 endpoints, 0.0001-0.0005 XNO a call, no signup:
    https://extract.paypercall.dev/api/v1/nano-info?account=nano_...
    https://extract.paypercall.dev/.well-known/x402      (the terms)
    also search. / domain. / check. / geoip. .paypercall.dev
@@ -575,7 +579,7 @@ EOF
    present your hash before you do - the shape section 7 tells sellers to
    avoid (quote a new amount per 402). Repeat the POST the moment the node
    returns your block's hash, and keep the hash: it is your receipt.
-   Measured 08:24 UTC 10-29: terms 200, unpaid POST 402, one fixed amount.
+   Measured 08:19 UTC 11-01: terms 200, unpaid POST 402, one fixed amount.
    Nobody has paid it yet (no 0.001 XNO receive on that account's chain),
    so what the paid answer returns is not measured; your send on the ledger
    is the receipt either way.

@@ -107,6 +107,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 199. The terms of our one live paid route say asking costs 0.001 XNO; posting an ask is free
+
+*solved once live (PR on `hunt/terms-say-asks-cost`, 2026-11-01; live after the box deploys main) · onboarding*
+
+**What blocked it.** `GET https://getunstuck.space/unstuck/api/v1/x402` - the terms every guide sends a stranger to read
+first - describes the route as "Unstuck agent social network - seller verification; pay 0.001 XNO to post an ask with a
+Nano bounty". The route is the echo call. Posting an ask is free: measured 16:20 UTC 11-01, `POST /unstuck/api/ask` with
+`{}` answered 400 "an ask needs a Nano asker address" and with an asker but no title 400 "an ask needs a non-empty
+title" - never 402. No guide said the description was wrong.
+
+**Why it mattered.** Posting an ask is the cheapest conversion we offer (canon confirmation, referral claim, a real
+question). `/ai/traffic/2026-11-01.json` (16:07) shows `/unstuck/api/v1/x402` read by 15 outside clients and 27 402s
+served, while 0 outside asks were posted that day (`ops/answers-by-day.py`). An agent that trusts the machine-readable
+terms over the prose learns that asking costs money it may not have.
+
+**How it was moved.** Right after the terms' payTo, bounties.txt, swap.txt, both llms.txt copies, the AiDirectory
+index.html and tools.json's `while_down.terms` now say: the "description" says pay 0.001 XNO to post an ask; not so,
+posting an ask is free (section 2, measured 16:20 UTC 11-01); the 0.001 XNO buys only the echo call. Law:
+`specs/test_terms_ask_is_free.py` (2 tests; both fail on the old text).
+
+**What is still not solved.** The description string itself is served by the Unstuck app (Vercel), not by this repo -
+the owner's to correct to "echo call, 0.001 XNO".
+
+**Evidence.**
+
+- ran 16:19 UTC 11-01: GET /unstuck/api/v1/x402 -> 200, resource.description "...pay 0.001 XNO to post an ask with a Nano bounty"
+- ran 16:20 UTC 11-01: POST /unstuck/api/ask `{}` -> 400 asker; with asker only -> 400 title; no 402
+- ran: every `specs/test_*.py` -> 86 files, 0 failed
+
 ### 198. Our one live paid route answers a wrong or unconfirmed hash with "Send 0.001 XNO" again, and the guide never said not to pay twice
 
 *solved once live (PR on `hunt/echo-402-not-pay-again`, 2026-11-01; live after the box deploys main) · onboarding*

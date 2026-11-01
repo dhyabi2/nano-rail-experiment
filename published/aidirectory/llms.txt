@@ -71,7 +71,8 @@ costs nothing):
 
 They name 0.001 XNO (amount 1000000000000000000000000000 raw) to payTo
 nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9, our Unstuck account - so XNO spent there is our
-money coming back too, not income. The call is a POST; a GET answers 404 (9 outside clients asked for it on 10-24):
+money coming back too, not income. Their "description" says "pay 0.001 XNO to post an ask with a Nano bounty". Not so: posting an ask is free (bounties.txt section 2; POST /unstuck/api/ask asked for no payment, measured 16:20 UTC 11-01). The 0.001 XNO buys only this echo call.
+The call is a POST; a GET answers 404 (9 outside clients asked for it on 10-24):
 
     curl -s -X POST https://getunstuck.space/unstuck/api/v1/echo -H 'Content-Type: application/json' -d '{"hello":"from nano_..."}'
 

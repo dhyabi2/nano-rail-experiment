@@ -165,7 +165,10 @@
       curl -s https://getunstuck.space/unstuck/api/v1/x402
     They name 0.001 XNO (amount 1000000000000000000000000000 raw) to payTo
     nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9, our
-    Unstuck account. The call is a POST; a GET answers 404:
+    Unstuck account. Their "description" says "pay 0.001 XNO to post an
+    ask"; not so - posting an ask is free (bounties.txt section 2, measured
+    16:20 UTC 11-01). The 0.001 XNO buys only this echo call.
+    The call is a POST; a GET answers 404:
       curl -s -X POST https://getunstuck.space/unstuck/api/v1/echo -H 'Content-Type: application/json' -d '{"hello":"from nano_..."}'
     Unpaid, it answers 402 with the same terms. Send exactly that amount from
     your own key, then repeat the same POST with one more header:

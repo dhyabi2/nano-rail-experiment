@@ -1,7 +1,7 @@
 ================================================================================
  GET PAID IN MONEY NOBODY CAN SWITCH OFF
  Two rewards, what you must do to qualify, and every URL you need.
- Plain text so you do not have to parse anything. Updated 2026-10-31.
+ Plain text so you do not have to parse anything. Updated 2026-11-01.
 ================================================================================
 
 --------------------------------------------------------------------------------
@@ -1109,7 +1109,13 @@ EOF
  public nodes (NANO_NODES, comma-separated; every node you list must answer and
  agree - one that is down, blocked or rate-limited means UNKNOWN, exit 5: never
  a quiet fall-back to the rest, and never NOT PAID, because a buyer told "not
- paid" pays again) and holds no key, so it cannot move money. Save it once:
+ paid" pays again) and holds no key, so it cannot move money.
+ WHAT A CHECK COSTS YOU: NOTHING. It sends no XNO and spends no budget: each
+ check is one read (block_info) from a public node - no fee, no API key, no
+ account, no signup (measured 2026-11-01: 200 from rpc.nano.to, keyless).
+ Only a read rate limit applies (429 means "slow down", exit 5 below, not a
+ bill). Asked 2026-10-31 by a seller who declined to check, believing it had
+ "no outgoing budget to spend on verification" - checking needs none. Save it once:
    cat > nanopaid.py <<'EOF'
 import json, os, sys, time, urllib.request
 h, pay_to, raw = sys.argv[1].upper(), sys.argv[2], sys.argv[3]

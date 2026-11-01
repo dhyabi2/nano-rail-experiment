@@ -107,6 +107,34 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 196. Seven copies still dated the sellers' outage to 10-30, two days stale
+
+*solved once live (PR on `hunt/sellers-down-still`, 2026-11-01; live after the box deploys main) · onboarding*
+
+**What blocked it.** All five paypercall.dev sellers still answer nothing (`ops/watch-outage.py` 04:18:13 UTC 11-01:
+every `/.well-known/x402` timed out; `ops/hunter-preflight.sh`: every `/health` curl exit 28). bounties.txt (twice),
+swap.txt, both llms.txt copies (twice each), both aidirectory pages (twice each) and tools.json's 22 paypercall
+`last_check.utc` still said the outage ran "to at least 08:23 UTC 2026-10-30" - the stamp #185 set, now 44 h old.
+
+**Why it mattered.** Same as #185: STEP 6 sends a newcomer to these sellers; a two-day-old "down until" reads as
+"probably back by now", and the next step is a send to a payTo that buys nothing. Today's readers are real:
+`/ai/traffic/2026-11-01.json` (04:07) shows 13 outside clients on aidirectory and 4 on bounties.txt in four hours.
+
+**How it was moved.** Stamp moved to 04:18 UTC 2026-11-01 in all seven copies (same length, so no line re-wrap);
+every paypercall `last_check.utc` to 2026-11-01T04:18Z; tools.json `updated` to 2026-11-01. The echo route's
+"Measured 08:24 UTC 10-29" line is left alone: this run read its terms (200, same 0.001 XNO to nano_1434j1n4...) but did
+not repeat the unpaid POST. Law: `specs/test_sellers_down_stamp_agrees.py` (#170, unchanged, passes).
+
+**What is still not solved.** The sellers: down since about 10:25 UTC 10-17, 15 days. Only the owner can restart
+the box (issue #121). This stamp goes stale again by tomorrow; the durable fix is the box generating it.
+
+**Evidence.**
+
+- ran 04:18 UTC 11-01: `ops/watch-outage.py` -> 6 faults (5 sellers no answer; receivable 5EE71904 331.8 h old)
+- ran 04:1x UTC 11-01: `ops/hunter-preflight.sh` -> all five `/health` curl exit 28
+- ran 04:19 UTC 11-01: `curl https://getunstuck.space/unstuck/api/v1/x402` -> 200, nano:mainnet, 0.001 XNO, payTo nano_1434j1n4...
+- ran: every `specs/test_*.py` -> all pass; `diff` of both mirror pairs -> empty; tools.json parses
+
 ### 195. A seller declined to check a payment because it thought checking costs money, and the seller section never said it is free
 
 *solved (PR #169, 2026-11-01; live 00:30 UTC - deploy-status main 4fb87c3, `ops/check-live.py` all 7 match) · offer*

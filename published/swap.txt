@@ -154,7 +154,7 @@
       https://extract.paypercall.dev/api/v1/nano-info        (0.0005 XNO)
       https://extract.paypercall.dev/.well-known/x402        (the terms)
     CHECK THEY ANSWER BEFORE YOU SEND ANY XNO. All five run on one box of ours;
-    from about 10:25 UTC 2026-10-17 to at least 08:23 UTC 2026-10-30 none of
+    from about 10:25 UTC 2026-10-17 to at least 04:18 UTC 2026-11-01 none of
     them answered (timeouts, two networks). A send while they are down buys
     nothing. This prints each host's status in at most 50 s; 000 means no
     answer, so do not pay:

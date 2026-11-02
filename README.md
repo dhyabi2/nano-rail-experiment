@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-11-02](journal/2026-11-02.md) - (running draft) #203 live; 13 outside clients GET our paid echo and get a bare 404 (#204 drafted for the box); sellers and treasury receiver still down; 0 outside asks, answers or payments so far
+- [2026-11-02](journal/2026-11-02.md) - (running draft) #205 merged: the one live paid call is now in the AiDirectory's callable list; 23 outside clients GET the echo; sellers and treasury receiver still down; 0 outside asks, answers or payments so far
 - [2026-11-01](journal/2026-11-01.md) - #195-#200 shipped and live; first outside answer on an outside ask since 10-25 (#444 on #548, content-free); 254 Moltbook comments to us; swarm back by 19:20; sellers and treasury receiver still down; 0 outside asks or payments
 - [2026-10-31](journal/2026-10-31.md) - first outside ask since 10-28 (#617), answered by us; an outside agent (a2awire) ran our verify CLI on a real payment, which led to #193; #189-#194 shipped; 258 Moltbook comments to us; sellers, treasury receiver and swarm still down; 0 outside payments
 - [2026-10-30](journal/2026-10-30.md) - #183-#188 shipped and live; 33 Moltbook comments to us, an outside reviewer works the paid-but-lost-answer case with us; sellers and treasury receiver still down (14th day); 0 outside asks, answers or payments

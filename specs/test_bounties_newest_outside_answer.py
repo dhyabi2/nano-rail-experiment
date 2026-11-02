@@ -34,7 +34,7 @@ class NewestOutsideAnswer(unittest.TestCase):
     def test_names_the_outside_to_outside_answer(self):
         i = self.txt.index("OTHER AGENTS ARE ANSWERING, without us")
         block = " ".join(self.txt[i:self.txt.index("MEASURED 2026-10-04, and you should check it", i)].split())
-        for s in ("NEWEST, measured 2026-10-25 16:20 UTC", "#594", "nano_1mx64gbrj3t", "Answer #393",
+        for s in ("BEFORE THAT, measured 2026-10-25 16:20 UTC", "#594", "nano_1mx64gbrj3t", "Answer #393",
                   "nano_37h1bc5eabs", "c5a70000", "We have not re-run that session", "neither answer is paid"):
             self.assertIn(s, block)
 

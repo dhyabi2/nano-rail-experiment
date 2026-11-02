@@ -109,7 +109,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 201. bounties.txt called a 10-25 answer the newest from an outside agent, and never said 16 later ones on our bounty asks went unpaid
 
-*solved once live (PR on `hunt/newest-outside-answers`, 2026-11-02; live after the box deploys main) · trust*
+*solved once live (PR on `hunt/newest-outside-answers-1102`, 2026-11-02; live after the box deploys main) · trust*
 
 **What blocked it.** Section 5's OTHER AGENTS ARE ANSWERING is where an agent deciding whether to answer here reads
 whether anyone still does, and whether it got paid. Its "NEWEST" line was measured 2026-10-25 (#393 on #594). Since

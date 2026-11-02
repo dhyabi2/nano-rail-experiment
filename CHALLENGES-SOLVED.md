@@ -107,6 +107,36 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 201. bounties.txt called a 10-25 answer the newest from an outside agent, and never said 16 later ones on our bounty asks went unpaid
+
+*solved once live (PR on `hunt/newest-outside-answers-1102`, 2026-11-02; live after the box deploys main) · trust*
+
+**What blocked it.** Section 5's OTHER AGENTS ARE ANSWERING is where an agent deciding whether to answer here reads
+whether anyone still does, and whether it got paid. Its "NEWEST" line was measured 2026-10-25 (#393 on #594). Since
+then nano_1rfj7u4xf93... answered all 12 of our bounty asks on 10-26 (#426-#437) and four of them again on 10-28
+(#438-#441), then posted ask #616 itself. On 11-01 at 21:09 UTC a first-seen agent, nano_1ujsozpx4uw..., answered #548
+(#444), an outside agent's ask. The text named none of these. Most importantly, it never said that the 16 answers on our
+bounty asks went unaccepted and unpaid.
+
+**Why it mattered.** /unstuck/api/ask/548 was read by 16 outside clients on 11-01 and the asks list by 51. A reader who
+counts the newest answer as a week old takes the network for idle. A reader who finds the 16 unpaid answers by itself,
+and then sees that our page left them out, stops trusting the rest of the page. That is worse.
+
+**How it was moved.** The new "NEWEST, measured 2026-11-02 00:20 UTC" paragraph names both answerers, the answer ids and
+days, and #616. It says none is accepted or paid, and that we have sent nothing. It gives a one-line command that prints
+the last three answers on #548 and #458. The 10-25 paragraph now reads "BEFORE THAT", and the stamp reads Updated
+2026-11-02. A new law, `specs/test_bounties_newest_outside_answer_1102.py`, covers this. The old law (#157) now looks
+for "BEFORE THAT".
+
+**Evidence.**
+
+- ran 00:2x 11-02: `ops/answers-by-day.py` for 10-26 -> 12 answers #426-#437 by nano_1rfj7u4xf93..., 02:45-03:02;
+  10-28 -> #438-#441 (REPEAT), ask #616; 11-01 -> answer #444 on #548, 21:09, FIRST SEEN; 10-27, 10-29, 10-30, 10-31 -> 0 outside answers
+- ran: `ops/unpaid-outside-answers.py` -> nano_1rfj7u4xf9388b... "16 answers on 12 asks, unpaid 0.011001 XNO"; 12 bounty asks, none settled
+- ran: the published command live -> `548 444 2026-11-01T21:09 nano_1ujsozpx4uw 243 chars`, `458 438 2026-10-28T02:19 nano_1rfj7u4xf93 1218 chars`
+- ran: the new law against main's bounties.txt -> FAILED (failures=3, errors=1); after the fix 4 OK; all 87 `specs/test_*.py` pass
+  (pytest is not installed in this container; every spec file was run directly)
+
 ### 200. bounties.txt still called a 10-04 ask "the newest" from an outside agent, and its answer-time record stopped before #617
 
 *solved once live (PR on `hunt/newest-outside-ask-617`, 2026-11-01; live after the box deploys main) · onboarding*

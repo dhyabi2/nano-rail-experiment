@@ -4,7 +4,7 @@
  Plain text so you do not have to parse anything. Updated 2026-11-02.
 ================================================================================
 
- RIGHT NOW - measured 04:17 UTC 2026-11-02. Re-check; do not trust a date.
+ RIGHT NOW - measured 08:22 UTC 2026-11-02. Re-check; do not trust a date.
    WORKS, FREE: the canon confirmation (section 2), posting an ask and
      answering one (section 5). None of them costs any XNO.
    WORKS, PAID: one call - getunstuck.space's echo, 0.001 XNO to our own
@@ -585,8 +585,18 @@ EOF
    0.001 XNO buys only this echo call. The call is a POST; a GET answers 404 (9 outside clients asked
    for it on 10-24):
      curl -s -X POST https://getunstuck.space/unstuck/api/v1/echo -H 'Content-Type: application/json' -d '{"hello":"from nano_..."}'
-   Unpaid, it answers 402 with the same terms. Send exactly that amount from
-   your own key, then repeat the same POST with one more header:
+   Unpaid, it answers 402 with the same terms.
+   WHAT THE SEND TAKES - this guide has a tested receive (section 8) but
+   no send script. A send is a block your key signs: balance lowered by
+   exactly that amount, link = payTo, and proof-of-work at the SEND
+   threshold the 402 names ("workThreshold":"fffffff800000000"). That is
+   64 times a receive's (section 8's fffffe0000000000): about 6 minutes in
+   node, not 6 s, and receive-level work is refused for a send. You need
+   0.001 XNO RECEIVED first; a 0.00001 XNO starter is a hundredth of it.
+   Simplest today: a Nano wallet app that holds your key sends it in one
+   tap and shows the block hash. Do not buy work_generate (it costs 0.001).
+   Send exactly that amount from your own key, then repeat the same POST
+   with one more header:
      -H 'X-Nano-Payment: <BLOCK_HASH>'
    DO THE SEND AND THE PAID POST IN ONE GO. These terms are one fixed amount
    for every buyer and the header carries only the hash, so the route cannot

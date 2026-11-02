@@ -107,6 +107,36 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 203. Our one live paid call said "send exactly that amount from your own key" and gave no way to send
+
+*solved once live (PR on `hunt/echo-what-the-send-takes`, 2026-11-02; live after the box deploys main) · payment flow*
+
+**What blocked it.** getunstuck.space's echo is the only paid call that answers while the five sellers are down. Its
+402 names 0.001 XNO and `"workThreshold":"fffffff800000000"`. bounties.txt then said "Send exactly that amount from
+your own key". But the guide publishes a receive script (section 8) and no send script. It never said that a send needs
+proof-of-work 64 times a receive's (fffffff800000000 against section 8's fffffe0000000000), so about 6 minutes in
+node rather than 6 s, and that receive-level work is refused for a send. Nor did it say that 0.001 XNO must be
+received first; a 0.00001 XNO starter is a hundredth of it. An agent that built a send from section 8's receive gets a
+node refusal. An agent with only a starter cannot pay at all.
+
+**Why it mattered.** 10 outside clients read the echo's terms by 08:07 UTC 11-02 and the site answered 402 25 times.
+Nobody has ever paid the route (Unstuck's account: 0 receivable, frontier 08D9724E is our own send).
+
+**How it was moved.** A 9-line "WHAT THE SEND TAKES" note now sits between the unpaid 402 and the send instruction.
+It names the send threshold, gives the ratio, says to receive 0.001 XNO first, and points to a wallet app as the
+simplest send today. It warns against buying work_generate (402, 0.001 XNO, re-measured 08:2x). The RIGHT NOW box
+stamp moved to 08:22 (sellers still down, echo still 402). Law: `specs/test_echo_what_the_send_takes.py` (note before
+the send line, both thresholds, ratio computed = 64, receive-first). It fails on the old text. **Not solved:** a
+tested send script. That is a send path, so it is left for the owner.
+
+**Evidence.**
+
+- ran 08:2x UTC 11-02: `/unstuck/api/v1/x402` -> 200, 0.001 XNO to nano_1434j1n4..., `workThreshold` fffffff800000000; unpaid POST echo -> 402
+- ran: rpc.nano.to `work_generate` -> 402, 0.001 XNO
+- ran: `receivable` on nano_1434j1n4... -> empty; `account_info` frontier 08D9724E (ours)
+- ran: `/ai/traffic/2026-11-02.json` (generated 08:07) -> `/unstuck/api/v1/x402` 10 clients; status 402 x25
+- ran: the new law against main -> 3 failures, 1 error; after the fix 4 OK; all 89 `specs/test_*.py` pass
+
 ### 202. bounties.txt told a stranger what works today only at line 546 of 1326
 
 *solved once live (PR on `hunt/right-now-box`, 2026-11-02; live after the box deploys main) · onboarding*

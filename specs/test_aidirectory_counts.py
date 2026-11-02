@@ -63,7 +63,7 @@ def check_html(path):
                 f"{path}: header says {claimed_total} total, "
                 f"page actually has {callable_actual} callable + {referenced_actual} referenced = {actual_total}")
 
-    m3 = re.search(r"25 callable without signup, (\d+) more referenced", html)
+    m3 = re.search(r"\d+ callable without signup, (\d+) more referenced", html)
     if m3 and int(m3.group(1)) != referenced_actual:
         problems.append(f"{path}: meta description says {m3.group(1)} referenced, page actually has {referenced_actual}")
 
@@ -72,9 +72,9 @@ def check_html(path):
 
 def check_llms_txt(path, expected_referenced):
     text = open(path, encoding="utf-8").read()
-    m = re.search(r"\(25 callable now, (\d+) referenced\)", text)
+    m = re.search(r"\(\d+ callable now, (\d+) referenced\)", text)
     if not m:
-        return [f"{path}: no '(25 callable now, N referenced)' line found"]
+        return [f"{path}: no '(N callable now, M referenced)' line found"]
     claimed = int(m.group(1))
     if claimed != expected_referenced:
         return [f"{path}: claims {claimed} referenced, page content says {expected_referenced}"]

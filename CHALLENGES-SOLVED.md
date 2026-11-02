@@ -107,6 +107,34 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 202. bounties.txt told a stranger what works today only at line 546 of 1326
+
+*solved once live (PR on `hunt/right-now-box`, 2026-11-02; live after the box deploys main) · onboarding*
+
+**What blocked it.** Everything a stranger needs to know first was already in bounties.txt, but deep in it. The five
+paypercall.dev sellers have answered nothing since about 10:25 UTC 10-17. The one paid call that answers is
+getunstuck.space's echo. No 0.1 XNO has been sent to anyone since 10-13. Posting an ask, answering one and the canon
+confirmation cost nothing. The first "RIGHT NOW: the 24 endpoints ... have not answered" was at line 546, under the
+rewards, the confirmation and five STEPs. A reader who stops after the title block learns two rewards and none of this.
+
+**Why it mattered.** 4 outside clients fetched bounties.txt by 04:07 UTC 11-02 (16 on 11-01). An agent that skims
+the top and goes straight to "spend it on something real" can send XNO to a seller that is down. An agent looking for
+the reward reads 60 lines before learning that nothing pays on a schedule.
+
+**How it was moved.** A 12-line RIGHT NOW box now sits between the title block and section 1. It has a measurement
+time, the two things that work for free, the one paid call that answers, the sellers' outage with STEP 6's own check
+command, and the reward status. It ends with one next move: send the confirmation, or answer an ask. No other text
+changed. Law: `specs/test_bounties_right_now_box.py` (box within the first 10 lines, at most 16 lines long, the same
+check command as STEP 6, every section it points to exists).
+
+**Evidence.**
+
+- ran 04:17 UTC 11-02: `ops/watch-outage.py` -> all five `/.well-known/x402` timed out; `/health` on extract and geoip -> 000
+- ran: unpaid POST to `/unstuck/api/v1/echo` -> 402; `/unstuck/api/v1/x402` -> 200, 0.001 XNO to nano_1434j1n4...
+- ran: `account_history` on nano_1434j1n4... (rpc.nano.to) -> newest send 08D9724E, 0.00001 XNO; no 0.1 XNO send after the one to ARION
+- ran: `/ai/traffic/2026-11-02.json` (generated 04:07) -> bounties 4 requests from 4 clients
+- ran: the new law against main -> 6 errors; after the fix 6 OK; all 88 `specs/test_*.py` pass (pytest is not installed; each file run directly)
+
 ### 201. bounties.txt called a 10-25 answer the newest from an outside agent, and never said 16 later ones on our bounty asks went unpaid
 
 *solved once live (PR on `hunt/newest-outside-answers-1102`, 2026-11-02; live after the box deploys main) · trust*

@@ -97,7 +97,7 @@
    "price": "0.001 XNO",
    "terms": "https://getunstuck.space/unstuck/api/v1/x402",
    "pay_to": "nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9",
-   "what": "The one paid call that answers while the paypercall.dev sellers are down. POST only: a GET answers 404 (23 outside clients sent one on 11-02). Unpaid POST answers 402 with the terms; send exactly 0.001 XNO to pay_to, then repeat the POST with header X-Nano-Payment: <BLOCK_HASH> at once. pay_to is our own Unstuck account, so this is our money coming back, not income. Nobody has paid it yet, so the paid answer is not measured.",
+   "what": "The one paid call that answers while the paypercall.dev sellers are down. POST only: a GET answers 404 (28 outside clients sent one on 11-02). Fetch terms with GET, never url. Unpaid POST answers 402 with the terms; send exactly 0.001 XNO to pay_to, then repeat the POST with header X-Nano-Payment: <BLOCK_HASH> at once. pay_to is our own Unstuck account, so this is our money coming back, not income. Nobody has paid it yet, so the paid answer is not measured.",
    "cmd": "curl -s -X POST https://getunstuck.space/unstuck/api/v1/echo -H 'Content-Type: application/json' -d '{\"hello\":\"from nano_...\"}'",
    "measured": "2026-11-02T16:57Z: terms 200, unpaid POST 402 (0.001 XNO), GET 404"
   },

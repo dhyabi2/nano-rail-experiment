@@ -107,6 +107,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 206. Our own AiDirectory linked the echo's name to a URL that answers a GET with 404
+
+*merged 2026-11-02 (PR on `hunt/echo-link-not-a-dead-end`); live after the next deploy · dead link / discovery*
+
+**What blocked it.** #205 put the echo in the AiDirectory's tables as `<a href=".../unstuck/api/v1/echo">echo</a>` in
+both `index.html` copies and `[echo](.../unstuck/api/v1/echo)` in both `llms.txt` copies. The echo takes POST only; a
+GET answers a bare `{"error":"not found"}`. Every crawler or reader that follows a link sends a GET, so our own page
+made the dead end that #204 and #205 were written against. `published/aidirectory.html` had also drifted from its
+mirror `aidirectory/index.html` (one sentence on the ask being free was missing).
+
+**Why it mattered.** GET on the echo was the only dead end of 11-02 (`ops/check-dead-ends.py`) and grew from 23 outside
+clients at 16:07 to 28 at 20:07, after #205 went live at the 17:15 deploy. The box-side 405 (#204) is still not applied,
+so a link is the one part of it we can stop sending people down.
+
+**How it was moved.** The `echo` name now links to the terms, `/unstuck/api/v1/x402` (GET 200, which names
+`method: POST` and the resource), in all four copies; the row says so. `tools.json` keeps `url` as the call (machine
+readers need it next to `method: POST`) and its `what` now says to fetch the terms with GET, never `url`. The two HTML
+copies are byte-identical again. Law `specs/test_no_link_to_post_only_call.py` (no href or Markdown link target in any
+published file may be a POST-only URL; HTML mirrors equal); the #205 law now expects the terms link. **Not solved:** the
+GET still answers 404 at the box (#204), and nobody has paid the echo.
+
+**Evidence.**
+
+- ran 20:18 UTC 11-02: GET `/unstuck/api/v1/echo` -> 404 `{"error":"not found"}`; POST -> 402 (0.001 XNO); `/unstuck/api/v1/x402` -> 200, method POST
+- ran: `/ai/traffic/2026-11-02.json` (generated 20:07) -> echo 28 clients, the day's one dead end
+- ran: new law against main -> FAILED (failures=2); after the change OK; all 91 `specs/test_*.py` pass
+
+---
+
 ### 205. The AiDirectory's machine list of callable tools had no entry for the one paid call that answers
 
 *merged 2026-11-02 (PR on `hunt/echo-in-callable`); live after the next deploy · discovery / machine readers*

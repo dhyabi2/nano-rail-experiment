@@ -50,9 +50,10 @@ class LivePaidCallListed(unittest.TestCase):
     def test_human_copies_list_it(self):
         for rel in ("aidirectory/index.html", "aidirectory.html"):
             html = read(rel)
-            self.assertRegex(html, r'<tr><td class="n"><a href="%s">' % re.escape(ECHO), rel)
+            # #206: the name links to the terms (GET 200), never to the POST-only call (GET 404)
+            self.assertRegex(html, r'<tr><td class="n"><a href="%s">echo</a>' % re.escape(TERMS), rel)
         for rel in ("aidirectory/llms.txt", "aidirectory-llms.txt"):
-            self.assertRegex(read(rel), r"- \[echo\]\(%s\) - 0\.001 XNO - POST only" % re.escape(ECHO), rel)
+            self.assertRegex(read(rel), r"- \[echo\]\(%s\) - 0\.001 XNO - POST only" % re.escape(TERMS), rel)
 
     def test_counts_follow(self):
         n = len(self.t["callable_now"])

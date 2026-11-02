@@ -107,6 +107,36 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 205. The AiDirectory's machine list of callable tools had no entry for the one paid call that answers
+
+*merged 2026-11-02 (PR on `hunt/echo-in-callable`); live after the next deploy · discovery / machine readers*
+
+**What blocked it.** `/ai/tools.json` `callable_now` listed 25 tools: 3 free ones and 22 paid ones, every paid one a
+paypercall.dev seller that has not answered since about 10:25 UTC 10-17. The one paid call that does answer,
+getunstuck.space's x402 echo (0.001 XNO, POST only), appeared only inside onboarding step 6's prose and its `cmd`
+string. A program that iterates `callable_now` to pick a paid call found 22 dead ones and no live one, and no entry
+said which HTTP method its URL takes. The human tables (`/ai/`, `/ai/llms.txt`) had the same gap.
+
+**Why it mattered.** By 16:07 UTC 11-02, 23 outside clients sent GET to `/unstuck/api/v1/echo` and got 404 (13 at
+12:07), the second path of the day by clients after `/unstuck/api/asks`; aidirectory was read by 33 clients, more than
+bounties (9) and canon (15). The box-side 405 (#204) is a draft nobody has applied; this is the part a merge here puts live.
+
+**How it was moved.** `callable_now` gains an `echo` entry second (first paid) with `method: POST`, `terms`, `pay_to`
+(our Unstuck account, said to be our money coming back), the POST `cmd`, a `measured` stamp, and a `what` that says a
+GET answers 404 and to retry with `X-Nano-Payment`. Both `index.html` copies and both `llms.txt` copies get the same row.
+Counts move 25 -> 26 callable, 254 -> 255 total in every copy and flyer (bounties.txt, swap.txt, canon.html,
+register.txt); `specs/test_aidirectory_counts.py` no longer hard-codes 25. Law
+`specs/test_aidirectory_lists_live_paid_call.py` (5 tests; 2 errors and 3 failures against main). **Not solved:** the
+GET still answers 404 at the box (#204), and nobody has paid the echo.
+
+**Evidence.**
+
+- ran 16:57 UTC 11-02: GET `/unstuck/api/v1/echo` -> 404; unpaid POST -> 402, 0.001 XNO, payTo nano_1434j1n4...; `/unstuck/api/v1/x402` -> 200, method POST
+- ran: `/ai/traffic/2026-11-02.json` (generated 16:07) -> echo 23 clients, aidirectory 33, bounties 9, canon 15
+- ran: new law against main -> FAILED (failures=3, errors=2); after the change OK; all 90 `specs/test_*.py` pass
+
+---
+
 ### 204. Our one live paid route answers a GET with a bare "not found", and 13 outside clients asked for it in one morning
 
 *drafted for the box (PR on `hunt/echo-get-405`, 2026-11-02; needs the owner or swarm lead to apply) · dead end*

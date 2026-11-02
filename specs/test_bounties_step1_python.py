@@ -199,6 +199,100 @@ class Step1Python(unittest.TestCase):
         self.assertEqual(got.stdout.strip(), "same", got.stderr)
         self.assertIn("the exact export line the script prints last", " ".join(self.block.split()))
 
+    def run_shimmed(self, shim, *args, env=None):
+        # Runs the published script under a shim that replaces one os call, to reach failures a real disk rarely gives.
+        code = "import os\n" + shim + "\nexec(compile(open('nanokey.py').read(), 'nanokey.py', 'exec'))\n"
+        return subprocess.run([sys.executable, "-I", "-c", code, *args], cwd=self.dir, capture_output=True, text=True,
+                              env=env)
+
+    def assert_clean_refusal(self, r, target):
+        self.assertNotEqual(r.returncode, 0)
+        self.assertTrue(r.stderr.startswith("key_path_unwritable: " + target + ": "), r.stderr)
+        self.assertEqual(len(r.stderr.strip().splitlines()), 1, r.stderr)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertNotIn("nano_", r.stdout + r.stderr)
+        self.assertEqual(self.listing(), ["nanokey.py"])
+
+    def test_a_failed_close_leaves_no_seed_and_no_traceback(self):
+        # Review of #89 round 2: close() sat outside the cleanup, so a failed close left the seed file behind and the
+        # folder cleanup (rmdir of a folder that still held it) ended in a traceback.
+        target = os.path.join(self.dir, "x", "y", "nano-seed.txt")
+        shim = ("real = os.close\nopened = []\nro = os.open\n"
+                "def op(*a, **k):\n    fd = ro(*a, **k); opened.append(fd); return fd\n"
+                "def cl(fd):\n    real(fd)\n    if fd in opened: raise OSError(5, 'Input/output error')\n"
+                "os.open = op; os.close = cl")
+        self.assert_clean_refusal(self.run_shimmed(shim, target), target)
+
+    def test_a_short_write_still_puts_the_whole_seed_on_disk(self):
+        # os.write may write fewer bytes than asked; its return was ignored, so a short write printed an address whose
+        # seed was not all on disk. Simulated by a write that takes 5 bytes at a time.
+        target = os.path.join(self.dir, "nano-seed.txt")
+        r = self.run_shimmed("real = os.write\nos.write = lambda fd, b: real(fd, bytes(b[:5]))", target)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        seed = open(target).read()
+        self.assertRegex(seed, r"^[0-9A-F]{64}\n$")
+        self.assertNotIn(seed.strip(), r.stdout + r.stderr)
+        self.assertTrue(ADDR.match(r.stdout.splitlines()[0].split()[-1]))
+
+    def test_a_write_that_takes_nothing_is_refused_not_looped_on(self):
+        target = os.path.join(self.dir, "nano-seed.txt")
+        self.assert_clean_refusal(self.run_shimmed("os.write = lambda fd, b: 0", target), target)
+
+    def test_the_seed_is_fsynced_before_the_address_is_shown(self):
+        # A failing fsync proves fsync is called, and called before the address: no address, no file.
+        target = os.path.join(self.dir, "nano-seed.txt")
+        shim = "def fs(fd):\n    raise OSError(28, 'No space left on device')\nos.fsync = fs"
+        self.assert_clean_refusal(self.run_shimmed(shim, target), target)
+        self.assertIn("os.fsync(fd)", self.script)
+        self.assertLess(self.script.index("os.fsync(fd)"), self.script.index('print("ADDRESS'))
+
+    def test_windows_is_not_refused_for_the_666_its_fstat_always_reports(self):
+        # On Windows fstat reports 0o666 for any writable file, so the POSIX mode check refused every path there.
+        target = os.path.join(self.dir, "nano-seed.txt")
+        fake = ("real = os.fstat\n"
+                "def fake(fd):\n    st = real(fd)\n    return os.stat_result((st.st_mode | 0o066,) + tuple(st)[1:])\n"
+                "os.fstat = fake\n")
+        r = self.run_shimmed(fake + "os.name = 'nt'", target)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertTrue(ADDR.match(r.stdout.splitlines()[0].split()[-1]))
+        self.assertNotIn("mode 600", r.stdout)
+        self.assertNotIn(open(target).read().strip(), r.stdout + r.stderr)
+        # ...while the same report on POSIX is still refused.
+        os.unlink(target)
+        self.assert_clean_refusal(self.run_shimmed(fake, target), target)
+
+    def test_a_dangling_symlink_is_named_as_one(self):
+        # A symlink to nowhere at the path said "already exists - that is your wallet"; as a parent, "is a file".
+        link = os.path.join(self.dir, "nano-seed.txt")
+        os.symlink(os.path.join(self.dir, "nowhere"), link)
+        r = self.run_it(link)
+        self.assertTrue(r.stderr.startswith("key_path_unwritable: " + link + ": "), r.stderr)
+        self.assertIn("symlink", r.stderr)
+        self.assertIn("does not exist", r.stderr)
+        self.assertNotIn("that is your wallet", r.stderr)
+        self.assertNotIn("nano_", r.stdout + r.stderr)
+        self.assertFalse(os.path.exists(os.path.join(self.dir, "nowhere")))
+        os.unlink(link)
+        parent = os.path.join(self.dir, "keys")
+        os.symlink(os.path.join(self.dir, "gone"), parent)
+        target = os.path.join(parent, "nano-seed.txt")
+        r = self.run_it(target)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn(parent + " is a symlink to", r.stderr)
+        self.assertNotIn("is a file, not a folder", r.stderr)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertEqual(self.listing(), ["keys", "nanokey.py"])
+
+    def test_a_quoted_tilde_means_home_not_a_folder_named_tilde(self):
+        # `python3 nanokey.py '~/keys/nano-seed.txt'` (quoted, so the shell leaves ~ alone) made ./~/keys/.
+        home = os.path.join(self.dir, "home")
+        os.mkdir(home)
+        r = subprocess.run([sys.executable, "-I", "nanokey.py", "~/keys/nano-seed.txt"], cwd=self.dir,
+                           capture_output=True, text=True, env={**os.environ, "HOME": home})
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertTrue(os.path.isfile(os.path.join(home, "keys", "nano-seed.txt")))
+        self.assertFalse(os.path.exists(os.path.join(self.dir, "~")))
+
     def test_same_address_as_nanocurrency(self):
         if os.environ.get("NRE_OFFLINE") == "1" or not shutil.which("npm") or not shutil.which("node"):
             self.skipTest("node/npm not available (or NRE_OFFLINE=1)")

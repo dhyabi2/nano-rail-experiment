@@ -126,6 +126,79 @@ class Step1Python(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(self.dir, "nano-seed.txt")))
         self.assertIn("key_path_unwritable", " ".join(self.block.split()))
 
+    def listing(self):
+        out = []
+        for root, dirs, files in os.walk(self.dir):
+            out += [os.path.relpath(os.path.join(root, x), self.dir) for x in dirs + files]
+        return sorted(out)
+
+    def test_a_flag_is_never_taken_as_the_seed_path(self):
+        # Review of #89: any first argument but --test was the seed path, so `nanokey.py --help` wrote the wallet
+        # to ./--help. A flag is usage, never a file; nothing is written and no address is made.
+        r = self.run_it("--help")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("usage: python3 nanokey.py", r.stdout)
+        self.assertNotIn("nano_", r.stdout + r.stderr)
+        for args in (["-v"], ["--seed", "x"], ["--out=a.txt"], [os.path.join(self.dir, "a"), os.path.join(self.dir, "b")]):
+            r = self.run_it(*args)
+            self.assertNotEqual(r.returncode, 0, args)
+            self.assertIn("usage:", r.stderr, args)
+            self.assertNotIn("nano_", r.stdout + r.stderr)
+        self.assertEqual(self.listing(), ["nanokey.py"])
+
+    def test_every_missing_folder_is_made_700_not_only_the_last(self):
+        # os.makedirs(d, 0o700) gives 700 to the leaf only; its parents get 777 & ~umask (755 under umask 022).
+        target = os.path.join(self.dir, "a", "b", "c", "nano-seed.txt")
+        r = subprocess.run([sys.executable, "-I", "nanokey.py", target], cwd=self.dir, capture_output=True,
+                           text=True, preexec_fn=lambda: os.umask(0o022))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        for d in ("a", "a/b", "a/b/c"):
+            self.assertEqual(stat.S_IMODE(os.stat(os.path.join(self.dir, d)).st_mode), 0o700, d)
+
+    def test_errors_name_what_is_actually_wrong(self):
+        # A folder given as the path said "already exists - that is your wallet"; a parent that is a file said only
+        # "File exists".
+        r = self.run_it(self.dir)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertTrue(r.stderr.startswith("key_path_unwritable: " + self.dir + ": "), r.stderr)
+        self.assertIn("folder", r.stderr)
+        self.assertNotIn("that is your wallet", r.stderr)
+        blocker = os.path.join(self.dir, "a-file")
+        open(blocker, "w").close()
+        r = self.run_it(os.path.join(blocker, "keys", "nano-seed.txt"))
+        self.assertIn(blocker + " is a file, not a folder", r.stderr)
+        self.assertNotIn("File exists", r.stderr)
+        self.assertNotIn("nano_", r.stdout + r.stderr)
+
+    def test_a_disk_that_ignores_modes_leaves_no_seed_and_no_folders(self):
+        # vfat and some mounts accept O_CREAT 0600 and hand back a world-readable file. The script said "mode 600"
+        # anyway. Simulated by making fstat report 0644; the seed file and the folders made for it must be gone.
+        target = os.path.join(self.dir, "x", "y", "nano-seed.txt")
+        shim = ("import os\nreal = os.fstat\n"
+                "def fake(fd):\n    st = real(fd)\n    return os.stat_result((st.st_mode | 0o044,) + tuple(st)[1:])\n"
+                "os.fstat = fake\nexec(compile(open('nanokey.py').read(), 'nanokey.py', 'exec'))\n")
+        r = subprocess.run([sys.executable, "-I", "-c", shim, target], cwd=self.dir, capture_output=True, text=True)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertTrue(r.stderr.startswith("key_path_unwritable: " + target + ": "), r.stderr)
+        self.assertIn("ignores file modes", r.stderr)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertNotIn("nano_", r.stdout + r.stderr)
+        self.assertEqual(self.listing(), ["nanokey.py"])
+
+    def test_a_custom_path_is_carried_into_the_export_line(self):
+        # The page's `export NANO_SEED=$(cat nano-seed.txt)` assumed ./nano-seed.txt; with a path given it read
+        # nothing. The script prints the line for the path it actually wrote, quoted for the shell.
+        target = os.path.join(self.dir, "it's here", "nano-seed.txt")
+        r = self.run_it(target)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        line = r.stdout.strip().splitlines()[-1]
+        self.assertIn("export NANO_SEED=", line)
+        cmd = line.split("with:", 1)[1].strip()
+        got = subprocess.run(["sh", "-c", cmd + ' && [ "$NANO_SEED" = "$(cat "$1")" ] && echo same', "sh", target],
+                             capture_output=True, text=True)
+        self.assertEqual(got.stdout.strip(), "same", got.stderr)
+        self.assertIn("the exact export line the script prints last", " ".join(self.block.split()))
+
     def test_same_address_as_nanocurrency(self):
         if os.environ.get("NRE_OFFLINE") == "1" or not shutil.which("npm") or not shutil.which("node"):
             self.skipTest("node/npm not available (or NRE_OFFLINE=1)")

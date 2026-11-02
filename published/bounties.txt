@@ -249,29 +249,45 @@ def address(seed, i=0):  # Nano: secret = blake2b-256(seed || i), public = ed255
     return "nano_" + "".join(A[(n >> 5 * j) & 31] for j in range(59, -1, -1))
 if len(sys.argv) > 1 and sys.argv[1] == "--test":  # docs.nano.org published test vector: seed of 64 zeros, index 0
     print(address(bytes(32)) == "nano_3i1aq1cchnmbn9x5rsbap8b15akfh7wj7pwskuzi7ahz8oq6cobd99d4r3b7" and "OK test vector" or "FAIL"); sys.exit()
+USE = "usage: python3 nanokey.py [--test | /path/to/nano-seed.txt]"
+if len(sys.argv) > 1 and sys.argv[1] in ("-h", "--help"): print(USE); sys.exit()
+if len(sys.argv) > 2 or len(sys.argv) > 1 and sys.argv[1].startswith("-"):
+    sys.exit("not a seed path: %r - nothing was written. %s" % (" ".join(sys.argv[1:]), USE))
 path = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else "nano-seed.txt")
-if os.path.exists(path): sys.exit(path + " already exists - that is your wallet; not overwriting it")
-seed = secrets.token_bytes(32)
+def bad(why): sys.exit("key_path_unwritable: %s: %s. No file was left and no address was made."
+                       " Give a path you can write: python3 nanokey.py /abs/writable/dir/nano-seed.txt" % (path, why))
+if os.path.isdir(path): bad("that is a folder - give a file path inside it, e.g. " + os.path.join(path, "nano-seed.txt"))
+if os.path.lexists(path): sys.exit(path + " already exists - that is your wallet; not overwriting it")
+new = []; up = os.path.dirname(path)  # not `d`: that is the curve constant above
+while not os.path.isdir(up):
+    if os.path.lexists(up): bad(up + " is a file, not a folder")
+    new.append(up); up = os.path.dirname(up)
+seed = secrets.token_bytes(32); made = []
 try:
-    os.makedirs(os.path.dirname(path), 0o700, exist_ok=True)
+    for up in reversed(new): os.mkdir(up, 0o700); made.append(up)  # EVERY missing folder is 700
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    try: os.write(fd, seed.hex().upper().encode() + b"\n")
+    try:
+        os.write(fd, seed.hex().upper().encode() + b"\n")
+        m = os.fstat(fd).st_mode & 0o777  # vfat and some mounts ignore the 600 asked for
+        if m & 0o077: raise OSError(0, "this disk ignores file modes (got %o): others could read the seed" % m)
     except OSError: os.close(fd); os.unlink(path); raise
     os.close(fd)
 except OSError as e:
-    sys.exit("key_path_unwritable: %s: %s. No file was left and no address was made."
-             " Give a path you can write: python3 nanokey.py /abs/writable/dir/nano-seed.txt" % (path, e.strerror))
+    for up in reversed(made): os.rmdir(up)
+    bad(e.strerror)
 print("ADDRESS (safe to publish):", address(seed))
 print("SEED written to " + path + " (mode 600). NEVER post, paste or send it - not even to us.")
+print("Later steps read it with:  export NANO_SEED=$(cat '" + path.replace("'", "'\\''") + "')")
 EOF
    python3 nanokey.py --test   # must print "OK test vector" (docs.nano.org's
                                # published seed-of-zeros vector) before you trust it
    python3 nanokey.py          # ADDRESS (safe to publish): nano_...
    python3 nanokey.py /abs/writable/dir/nano-seed.txt   # same, at a path you
-                               # choose; missing folders are made mode 700
+                               # choose; each missing folder is made mode 700
    Tested 2026-10-08 against nanocurrency 2.x: same address from the same seed.
    The seed file is the 64-hex seed every Nano tool takes; later steps that ask
    for NANO_SEED can read it with  export NANO_SEED=$(cat nano-seed.txt)
+   - or, if you gave a path, the exact export line the script prints last.
    WHERE THE PYTHON PATH ENDS TODAY: making the address and posting it need
    no node. RECEIVING does: section 8's receive.js needs node + nanocurrency,
    and we publish no standard-library receive. No node? Post the address

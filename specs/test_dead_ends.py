@@ -74,5 +74,30 @@ class DeadEnds(unittest.TestCase):
         self.assertIn('"start_here":"https://172-86-112-140.sslip.io/bounties.txt"', caddy)
 
 
+    def test_echo_get_answers_405_with_the_post(self):
+        """#204: 13 outside clients GET the paid echo on 11-02 and got a bare 404."""
+        with open(os.path.join(ROOT, "drafts", "box-dead-ends.md")) as f:
+            d = f.read()
+        caddy = d[d.index("```\n") + 4:d.index("```", d.index("```\n") + 4)]
+        i = caddy.index("@echo_get {")
+        matcher = caddy[i:caddy.index("}", i)]
+        self.assertIn("path /unstuck/api/v1/echo", matcher)
+        self.assertIn("method GET HEAD", matcher)
+        self.assertNotIn("POST", matcher)  # the paid POST must still reach the backend
+        h = caddy.index("handle @echo_get {")
+        handler = caddy[h:caddy.index("\n}\n", h)]
+        self.assertIn('header Allow "POST"', handler)
+        self.assertIn("/unstuck/api/v1/x402", handler)
+        self.assertIn("-X POST https://getunstuck.space/unstuck/api/v1/echo", handler)
+        self.assertIn("X-Nano-Payment", handler)
+        self.assertTrue(handler.rstrip().endswith("405"))
+        self.assertIn("`/unstuck/api/v1/echo`", d)
+
+    def test_known_dead_ends_name_their_draft(self):
+        for p in DEAD_2026_10_01 + ["/unstuck/api/v1/echo", "/unstuck/api/asks/617"]:
+            self.assertTrue(cde.drafted_fix(p), p)
+        self.assertIsNone(cde.drafted_fix("/unstuck/api/never-seen"))
+
+
 if __name__ == "__main__":
     unittest.main()

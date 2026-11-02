@@ -41,6 +41,25 @@ NEVER_PROBE = [
 ]
 DEAD_STATUSES = {404, 410, 426}
 
+# Dead ends a box-side fix is already drafted for, so a run names the draft instead of re-finding them (#204).
+# Only the box can apply these; the keeper reports them until they are gone.
+DRAFTED = {
+    "/": "drafts/box-dead-ends.md (#76)",
+    "/canon.html": "drafts/box-dead-ends.md (#76)",
+    "/unstuck/api/": "drafts/box-dead-ends.md (#76)",
+    "/unstuck/api/ask": "drafts/box-dead-ends.md (#76)",
+    "/unstuck/api/v1/echo": "drafts/box-dead-ends.md (#204)",
+}
+
+
+def drafted_fix(path):
+    """The draft that already covers this dead end, or None (a new finding)."""
+    if path in DRAFTED:
+        return DRAFTED[path]
+    if re.fullmatch(r"/unstuck/api/asks/\d+", path):
+        return "drafts/box-dead-ends.md (#76)"
+    return None
+
 
 def is_dead(status):
     """A status a stranger reads as 'this does not exist' (or a broken server)."""
@@ -89,7 +108,8 @@ def main(argv):
                            "body": str(e)[:120]})
             continue
         report.append({"path": path, "clients": clients, "status": status,
-                       "verdict": "DEAD END" if is_dead(status) else "ok", "body": snippet.strip()[:60]})
+                       "verdict": "DEAD END" if is_dead(status) else "ok", "body": snippet.strip()[:60],
+                       "drafted": drafted_fix(path) if is_dead(status) else None})
     dead = [r for r in report if r["verdict"] == "DEAD END"]
     if "--json" in argv:
         print(json.dumps({"date": day, "generated_utc": traffic.get("generated_utc"), "paths": report}, indent=1))
@@ -97,7 +117,9 @@ def main(argv):
         print(f"traffic {day} generated {traffic.get('generated_utc')}; paths with >= {min_clients} outside clients")
         for r in report:
             print(f"{r['verdict']:9} {str(r['status']):4} {r['clients']:3} clients  {r['path']}"
-                  + (f"  -> {r['body']!r}" if r["verdict"] != "ok" else ""))
+                  + (f"  -> {r['body']!r}" if r["verdict"] != "ok" else "")
+                  + (f"  [fix drafted: {r['drafted']}]" if r.get("drafted") else
+                     ("  [NEW: no fix drafted]" if r["verdict"] == "DEAD END" else "")))
         print(f"{len(dead)} dead end(s), {sum(r['clients'] for r in dead)} client-path hits on them")
     if dead:
         return 1

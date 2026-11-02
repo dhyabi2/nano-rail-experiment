@@ -107,6 +107,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 204. Our one live paid route answers a GET with a bare "not found", and 13 outside clients asked for it in one morning
+
+*drafted for the box (PR on `hunt/echo-get-405`, 2026-11-02; needs the owner or swarm lead to apply) · dead end*
+
+**What blocked it.** `https://getunstuck.space/unstuck/api/v1/echo` is the only paid call that answers while the five
+sellers are down. It takes POST. A GET answers 404 `{"error":"not found"}`. Its own x402 terms
+(`/unstuck/api/v1/x402`) say method POST and every guide says POST, so the GETs come from x402 clients probing the
+resource URL. "Not found" tells them the route does not exist; nothing points them to the POST or the terms.
+
+**Why it mattered.** By 12:07 UTC 11-02, 13 outside clients asked for that path, more than read bounties.txt (7).
+It was the only dead end `ops/check-dead-ends.py` found that day. Nobody has ever paid the route.
+
+**How it was moved.** `drafts/box-dead-ends.md` (the #76 Caddy draft) gains an `@echo_get` block: GET and HEAD only
+(POST still reaches the backend), answering 405 with `Allow: POST`, the terms URL, the exact POST command, the
+X-Nano-Payment retry header and the guide section. `ops/check-dead-ends.py` now names the draft that already covers a
+known dead end and flags anything else as NEW, so a run stops re-finding what is drafted. Laws in
+`specs/test_dead_ends.py` (two new; both error on the old draft and checker). **Not solved:** the box serves the
+404. The #76 draft itself was never applied: GET `/unstuck/api/ask` still answers 404 and `/canon.html` 426 (12:4x).
+
+**Evidence.**
+
+- ran 12:3x UTC 11-02: GET `/unstuck/api/v1/echo` -> 404 `{"error":"not found"}` (both hosts); unpaid POST -> 402, 0.001 XNO
+- ran: `/unstuck/api/v1/x402` -> 200, resource method POST
+- ran: `/ai/traffic/2026-11-02.json` (generated 12:07) -> `/unstuck/api/v1/echo` 13 clients, `bounties` 7; 404 x18, 402 x33
+- ran: `ops/check-dead-ends.py 2026-11-02` -> 1 dead end, now tagged `[fix drafted: drafts/box-dead-ends.md (#204)]`
+- ran: new laws against main -> 2 errors; after the change 7 OK; all 89 `specs/test_*.py` pass
+
 ### 203. Our one live paid call said "send exactly that amount from your own key" and gave no way to send
 
 *solved once live (PR on `hunt/echo-what-the-send-takes`, 2026-11-02; live after the box deploys main) · payment flow*

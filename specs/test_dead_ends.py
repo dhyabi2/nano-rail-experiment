@@ -99,5 +99,29 @@ class DeadEnds(unittest.TestCase):
         self.assertIsNone(cde.drafted_fix("/unstuck/api/never-seen"))
 
 
+    # Challenge #208: the checker must not be the visitor it counts.
+    def test_listed_asks_are_not_probed(self):
+        self.assertEqual(cde.plan("/unstuck/api/ask/12", {1, 12, 618}, False), "listed")
+        self.assertEqual(cde.plan("/unstuck/api/ask/9999", {1, 12, 618}, False), "probe")
+        self.assertEqual(cde.plan("/unstuck/api/ask/12", None, False), "probe")  # list unreadable: probe
+
+    def test_drafted_dead_ends_probed_once_a_day(self):
+        import datetime as dt
+        utc = dt.timezone.utc
+        self.assertEqual(cde.plan("/unstuck/api/v1/echo", set(), False), "drafted")
+        self.assertEqual(cde.plan("/unstuck/api/v1/echo", set(), True), "probe")
+        self.assertTrue(cde.should_recheck([], dt.datetime(2026, 11, 3, 0, 20, tzinfo=utc)))
+        self.assertFalse(cde.should_recheck([], dt.datetime(2026, 11, 3, 4, 20, tzinfo=utc)))
+        self.assertTrue(cde.should_recheck(["--recheck"], dt.datetime(2026, 11, 3, 16, 0, tzinfo=utc)))
+
+    def test_our_own_files_never_probed(self):
+        self.assertEqual(cde.plan("/ai/traffic/deploy-status.json", None, True), "ours")
+        self.assertEqual(cde.plan("/ai/", None, True), "probe")
+
+    def test_drafted_still_counts_as_dead(self):
+        src = open(os.path.join(ROOT, "ops", "check-dead-ends.py")).read()
+        self.assertIn('if dead or any(r["verdict"] == "DRAFTED" for r in report):', src)
+
+
 if __name__ == "__main__":
     unittest.main()

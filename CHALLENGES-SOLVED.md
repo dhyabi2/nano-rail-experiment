@@ -107,6 +107,36 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 208. Our dead-end checker was a visitor to every path it checked, six times a day
+
+*merged 2026-11-03 (PR on `hunt/dead-end-probe-not-a-visitor`); a measurement fix in `ops/`, nothing to deploy · measurement*
+
+**What blocked it.** `ops/check-dead-ends.py` (#76) reads the day's traffic file and GETs every path with 3 or more
+outside clients. Each keeper run comes from a new cloud address and the box counts it as outside (#207's mark is not
+yet applied), so every run added about one "outside client" to every path it checked: 25 requests at 04:1x 11-03, 16
+of them `/unstuck/api/ask/<id>` pages and one the echo. A path that reached 3 clients stayed on the list partly because
+we kept visiting it. Shape two of this file's pattern again (#33, #207).
+
+**Why it mattered.** Duty 3 and our own guides quote these counts. The echo's "28 outside clients sent a GET on 11-02"
+(AiDirectory, tools.json) includes up to one client per keeper run that day, and the ask pages at 4-6 clients on 11-03
+include ours. A dead end that looks like it keeps growing is the reason a run picks a fix.
+
+**How it was moved.** The checker now sends the fewest requests the answer needs: one GET of `/unstuck/api/asks` (read
+every run anyway) settles every listed ask id without a request each; a dead end already drafted for the box is
+re-probed only in the 00-03 UTC run or with `--recheck`, and otherwise reported as DRAFTED (still exit 1);
+`/ai/traffic/*.json` is never probed. It prints how many probes of ours it sent. 04:2x 11-03: 7 probes instead of 25.
+Law: four new cases in `specs/test_dead_ends.py`. **Not solved:** past counts are not corrected, the 28 in the
+published echo row stays until the next text change, and the box still counts our mark as outside.
+
+**Evidence.**
+
+- ran 04:1x 11-03 (before): 24 candidate paths >= 3 clients + deploy-status.json, each GET once
+- ran 04:2x 11-03 (after): `--json` -> 24 paths: 16 "in /unstuck/api/asks, not probed", 1 drafted, 7 probed; exit 1 (echo DRAFTED)
+- ran: `/unstuck/api/asks` -> 56 asks, ids include 1-5, 11-13, 458-461, 610, 616-618 (the ask pages in today's top paths)
+- ran: all 92 `specs/test_*.py` pass
+
+---
+
 ### 207. Our own hourly probe was counted as outside readers of the canon, bounties and swap guides
 
 *merged 2026-11-03 (PR on `hunt/probes-say-ours`); our side done, the count is fixed only when the box applies

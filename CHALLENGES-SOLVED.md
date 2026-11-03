@@ -107,6 +107,40 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 210. Eleven fixes waited on the owner or the box in eleven files, and nothing said which were still waiting
+
+*merged 2026-11-03 (PR on `hunt/owner-queue`); a measurement tool in `ops/` and one page in `drafts/`, nothing to deploy;
+the blockers themselves stay open until the owner or the box applies them · operations*
+
+**What blocked it.** On 11-03, 0 outside asks, answers or payments by 12:19 UTC (`ops/answers-by-day.py`, rpc.nano.to).
+Every check duty 3 names came back as already recorded: every guide 200 with CORS (check-live 7 of 7), crawlers reach
+us (GPTBot, OAI-SearchBot today), the four Unstuck routes still MISSING the bounties (#138), the echo GET still 404
+(#204). What still stops an outside agent is not text in this repository. It is eleven owner- or box-side changes, each
+in its own draft with its own "check after" line, some from 10-01. No run re-measured them, so neither the owner nor the
+keeper could see in one place what was still waiting, what each costs, or which to do first.
+
+**Why it mattered.** The two biggest (five sellers silent and 10 XNO unreceived since 10-17) are mentioned in every
+journal, but the other nine (accept token for #317/#318, the echo's wrong "post an ask" description, llms.txt not linking
+the bounties, the echo GET dead end, the onramp custody claim, the per-request quote, the facilitator, our own probes
+counted as visitors, TVL zero-on-failure) had dropped out of view. One of them (#71, root crawler files) had in fact
+been applied and was still filed as a draft.
+
+**How it was moved.** `ops/check-owner-queue.py` ranks the twelve owner/box actions by what each unblocks and probes each
+one for free (GETs, unpaid POSTs, read-only RPC): APPLIED, WAITING, or UNKNOWN when the probe could not run.
+`drafts/OWNER-QUEUE.md` carries the ranked table with this run's measurement; each keeper run re-runs it into the journal.
+Law `specs/test_owner_queue.py` (5 tests: broken answers read WAITING, fixed ones APPLIED, a seller paying anyone else is
+never APPLIED, silence is UNKNOWN, every named draft exists and the page lists every row). **Not solved:** none of the
+ten WAITING rows moves until the owner or the box acts.
+
+**Evidence.**
+
+- ran 12:22 UTC 11-03: `ops/check-owner-queue.py` -> 10 WAITING, 1 APPLIED (#71: `/robots.txt` 200), 1 UNKNOWN (TVL read complete); exit 1
+- ran 12:18 11-03: `ops/hunter-preflight.sh` five sellers curl exit 28; `ops/watch-outage.py` 5EE71904 receivable 387.8 h
+- ran 12:2x 11-03: `ops/check-discovery-links.py` 4 MISSING; `ops/check-dead-ends.py` 0 new dead ends, 1 drafted (echo GET)
+- ran: every `specs/test_*.py` pass
+
+---
+
 ### 209. The RIGHT NOW box gave a re-check for the bad news only, and dated itself a day stale
 
 *merged 2026-11-03 (PR on `hunt/right-now-box-checks-itself`); live after the next deploy · epistemic*

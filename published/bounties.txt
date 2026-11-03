@@ -225,7 +225,9 @@
    the path you give it (mode 600, never printed, never overwritten), and
    prints only the address. If it cannot write there (read-only workspace, no
    such folder allowed) it stops with one line, "key_path_unwritable: <path>:
-   <reason>", leaves no file and makes no address - no traceback:
+   <reason>", leaves no file and makes no address - no traceback. Run it again
+   on the same path and it prints the address of the seed already there (never
+   the seed) and leaves the file as it was, so a lost address is never lost:
    cat > nanokey.py <<'EOF'
 import hashlib, os, secrets, sys
 A = "13456789abcdefghijkmnopqrstuwxyz"; p = 2**255 - 19; d = -121665 * pow(121666, p - 2, p) % p
@@ -259,7 +261,26 @@ def bad(why): sys.exit("key_path_unwritable: %s: %s. No file was left and no add
 def dangling(q): return os.path.islink(q) and not os.path.exists(q)
 if dangling(path): bad("it is a symlink to " + os.readlink(path) + ", which does not exist - remove the link or give another path")
 if os.path.isdir(path): bad("that is a folder - give a file path inside it, e.g. " + os.path.join(path, "nano-seed.txt"))
-if os.path.lexists(path): sys.exit(path + " already exists - that is your wallet; not overwriting it")
+def say(line):  # once the seed is on disk nothing may fail: raw bytes (any path), and a dead stdout is dropped
+    try:
+        try: b = line.encode(sys.getfilesystemencoding(), "surrogateescape")
+        except UnicodeError: b = line.encode("utf-8", "replace")
+        sys.stdout.flush(); sys.stdout.buffer.write(b + b"\n"); sys.stdout.buffer.flush()
+    except Exception:
+        try: os.dup2(os.open(os.devnull, os.O_WRONLY), 1)  # so the exit-time flush cannot fail either
+        except Exception: pass
+def told(seed, how):
+    say("ADDRESS (safe to publish): " + address(seed))
+    say("SEED " + how + " " + path + (" (mode 600)." if os.name != "nt" and how == "written to" else ". Keep it private.")
+        + " NEVER post, paste or send it - not even to us.")
+    say("Later steps read it with:  export NANO_SEED=$(cat '" + path.replace("'", "'\\''") + "')")
+if os.path.lexists(path):  # a rerun: never overwrite; give back the address of the seed already there, never the seed
+    try:
+        with open(path, "rb") as f: t = f.read(4096).strip()
+        old = bytes.fromhex(t.decode("ascii")) if len(t) == 64 else b""
+    except (OSError, ValueError): old = b""
+    if len(old) != 32: sys.exit(path + " already exists and is not a 64-hex seed - not overwriting it")
+    told(old, "already at"); sys.exit()  # the wallet you made before, unchanged
 new = []; up = os.path.dirname(path)  # not `d`: that is the curve constant above
 while not os.path.isdir(up):
     if dangling(up): bad(up + " is a symlink to " + os.readlink(up) + ", which does not exist")
@@ -286,15 +307,15 @@ except OSError as e:
         try: os.unlink(q) if q == path else os.rmdir(q)
         except OSError: pass
     bad(e.strerror or str(e))
-print("ADDRESS (safe to publish):", address(seed))
-print("SEED written to " + path + (" (mode 600)." if os.name != "nt" else ". Keep that folder private.") + " NEVER post, paste or send it - not even to us.")
-print("Later steps read it with:  export NANO_SEED=$(cat '" + path.replace("'", "'\\''") + "')")
+told(seed, "written to")
 EOF
    python3 nanokey.py --test   # must print "OK test vector" (docs.nano.org's
                                # published seed-of-zeros vector) before you trust it
    python3 nanokey.py          # ADDRESS (safe to publish): nano_...
    python3 nanokey.py /abs/writable/dir/nano-seed.txt   # same, at a path you
                                # choose; each missing folder is made mode 700
+   python3 nanokey.py          # again: the SAME address, from the seed file
+                               # already there; nothing is overwritten
    Tested 2026-10-08 against nanocurrency 2.x: same address from the same seed.
    The seed file is the 64-hex seed every Nano tool takes; later steps that ask
    for NANO_SEED can read it with  export NANO_SEED=$(cat nano-seed.txt)

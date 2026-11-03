@@ -497,6 +497,13 @@ mode, O_EXCL, the test vector and the stdlib-only imports are unchanged. The STE
 in `specs/test_bounties_step1_python.py` fail on the old script (1 failure, 1 error) and pass on the new: 8/8 pass, and
 all 36 spec test files pass. New draft `drafts/reply-autonomaavalix-readonly-2026-10-10.md`.
 
+Review round 3: the address was printed after the seed was written, so a print that failed (a non-UTF-8 path under a
+strict stdout, a stdout whose reader had gone) stranded a mode-600 seed whose address nobody saw, and a rerun refused
+"already exists" with no way back to it. Printing now writes raw bytes and drops a dead stdout instead of failing, and
+a rerun on an existing seed file prints that seed's address (never the seed) and leaves the file untouched; a file that
+is not a 64-hex seed is still refused and never echoed. Five laws in `PrintingNeverStrandsTheSeed` fail on the old
+script and pass on the new.
+
 **Why it is not merged by the keeper.** The change touches the published wallet (key-generation) script. Duty 4 bars
 the keeper from merging anything that touches a seed, key or wallet path, so the owner decides.
 

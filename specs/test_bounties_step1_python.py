@@ -93,8 +93,12 @@ class Step1Python(unittest.TestCase):
         self.assertTrue(ADDR.match(r.stdout.splitlines()[0].split()[-1]))
         before = open(path).read()
         r2 = self.run_it()
-        self.assertNotEqual(r2.returncode, 0)
+        # Review of #89 round 3: a rerun refused with nothing, so an address lost to a failed print was lost for good.
+        # It now gives back the SAME address from the seed already there, and still never overwrites or prints it.
+        self.assertEqual(r2.returncode, 0, r2.stderr)
         self.assertEqual(open(path).read(), before, "a second run overwrote the wallet")
+        self.assertEqual(r2.stdout.splitlines()[0], r.stdout.splitlines()[0], "a rerun gave a different address")
+        self.assertNotIn(seed, r2.stdout + r2.stderr)
 
     def test_unwritable_path_fails_in_one_line_and_leaves_nothing(self):
         # Challenge #118: autonomaavalix (Moltbook, 2026-10-10 00:31 UTC) runs the flow under read-only gates with an
@@ -244,7 +248,7 @@ class Step1Python(unittest.TestCase):
         shim = "def fs(fd):\n    raise OSError(28, 'No space left on device')\nos.fsync = fs"
         self.assert_clean_refusal(self.run_shimmed(shim, target), target)
         self.assertIn("os.fsync(fd)", self.script)
-        self.assertLess(self.script.index("os.fsync(fd)"), self.script.index('print("ADDRESS'))
+        self.assertLess(self.script.index("os.fsync(fd)"), self.script.index('told(seed, "written to")'))
 
     def test_windows_is_not_refused_for_the_666_its_fstat_always_reports(self):
         # On Windows fstat reports 0o666 for any writable file, so the POSIX mode check refused every path there.
@@ -310,6 +314,105 @@ class Step1Python(unittest.TestCase):
         exec(compile(self.script.split("if len(sys.argv) > 1")[0], "nanokey", "exec"), ns)
         mine = ns["address"](bytes.fromhex(seed))
         self.assertEqual(mine, node)
+
+class PrintingNeverStrandsTheSeed(unittest.TestCase):
+    """Review of #89 round 3: the seed is written (mode 600) BEFORE the address is printed. A print that then failed -
+    a non-UTF-8 path under a strict stdout (UnicodeEncodeError), a stdout whose reader has gone (BrokenPipeError) -
+    ended the run with a traceback and no address, and a rerun refused "already exists" with no way back to it. Now
+    the printing cannot fail, and a rerun gives back the address of the seed already there, never the seed."""
+
+    def setUp(self):
+        self.block, self.script = published_script()
+        self.dir = tempfile.mkdtemp()
+        with open(os.path.join(self.dir, "nanokey.py"), "w") as f:
+            f.write(self.script)
+
+    def tearDown(self):
+        shutil.rmtree(self.dir, ignore_errors=True)
+
+    def run_bytes(self, *args, env=None, **kw):
+        return subprocess.run([sys.executable, "-I", "nanokey.py", *args], cwd=self.dir, capture_output=True,
+                              env=env, **kw)
+
+    def seed_at(self, path):
+        with open(path, "rb") as f:
+            return f.read().strip()
+
+    def test_a_non_utf8_path_under_a_strict_stdout_still_prints_the_address(self):
+        if sys.platform.startswith(("win", "darwin")):
+            self.skipTest("needs a filesystem that takes arbitrary bytes in names")
+        bdir = os.fsencode(self.dir)
+        target = bdir + b"/k\xff\xfe/nano-seed.txt"
+        # A strict stdout, as under a UTF-8 locale or PYTHONIOENCODING=utf-8:strict (-I ignores the env, so set it here).
+        code = ("import sys\nsys.stdout.reconfigure(encoding='utf-8', errors='strict')\n"
+                "exec(compile(open('nanokey.py').read(), 'nanokey.py', 'exec'))\n")
+        r = subprocess.run([sys.executable, "-I", "-c", code, target], cwd=self.dir, capture_output=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertNotIn(b"Traceback", r.stderr)
+        lines = r.stdout.splitlines()
+        self.assertTrue(ADDR.match(lines[0].split()[-1].decode()), r.stdout)
+        self.assertIn(target, r.stdout, "the path printed is not the path written")
+        seed = self.seed_at(target)
+        self.assertNotIn(seed, r.stdout + r.stderr)
+        # the printed export line reads back the very seed that was written
+        cmd = lines[-1].split(b"with:", 1)[1].strip()
+        got = subprocess.run([b"sh", b"-c", cmd + b' && [ "$NANO_SEED" = "$(cat "$1")" ] && echo same', b"sh", target],
+                             capture_output=True)
+        self.assertEqual(got.stdout.strip(), b"same", got.stderr)
+
+    def test_a_stdout_nobody_reads_is_not_a_failure(self):
+        target = os.path.join(self.dir, "nano-seed.txt")
+        rfd, wfd = os.pipe()
+        os.close(rfd)  # the reader is gone before the script writes: every write is EPIPE
+        try:
+            r = subprocess.run([sys.executable, "-I", "nanokey.py", target], cwd=self.dir, stdout=wfd,
+                               stderr=subprocess.PIPE)
+        finally:
+            os.close(wfd)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertNotIn(b"Traceback", r.stderr)
+        self.assertNotIn(b"Exception ignored", r.stderr)
+        self.assertRegex(self.seed_at(target), rb"^[0-9A-F]{64}$")
+
+    def test_a_rerun_gives_back_the_address_of_the_seed_already_there(self):
+        target = os.path.join(self.dir, "keys", "nano-seed.txt")
+        first = self.run_bytes(target, text=True)
+        self.assertEqual(first.returncode, 0, first.stderr)
+        before = self.seed_at(target)
+        again = self.run_bytes(target, text=True)
+        self.assertEqual(again.returncode, 0, again.stderr)
+        self.assertEqual(again.stdout.splitlines()[0], first.stdout.splitlines()[0])
+        self.assertIn("already at " + target, again.stdout)
+        self.assertNotIn("mode 600", again.stdout, "the rerun did not check the mode, so it must not claim one")
+        self.assertEqual(self.seed_at(target), before, "the rerun touched the wallet")
+        self.assertNotIn(before.decode(), again.stdout + again.stderr)
+        self.assertIn("prints the address of the seed already there", " ".join(self.block.split()))
+
+    def test_a_rerun_derives_the_address_from_the_file_not_from_anything_new(self):
+        # A known throwaway seed (the docs.nano.org all-zero vector), so the address is checkable without printing it.
+        target = os.path.join(self.dir, "nano-seed.txt")
+        with open(target, "w") as f:
+            f.write("0" * 64 + "\n")
+        os.chmod(target, 0o600)
+        r = self.run_bytes(target, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(r.stdout.splitlines()[0].split()[-1],
+                         "nano_3i1aq1cchnmbn9x5rsbap8b15akfh7wj7pwskuzi7ahz8oq6cobd99d4r3b7")
+        self.assertNotIn("0" * 64, r.stdout + r.stderr)
+
+    def test_a_file_that_is_not_a_seed_is_refused_and_never_echoed(self):
+        target = os.path.join(self.dir, "nano-seed.txt")
+        secret_ish = "not a seed but private: " + "Q" * 40
+        with open(target, "w") as f:
+            f.write(secret_ish)
+        r = self.run_bytes(target, text=True)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("already exists and is not a 64-hex seed", r.stderr)
+        self.assertNotIn("Q" * 10, r.stdout + r.stderr)
+        self.assertNotIn("nano_", r.stdout + r.stderr)
+        self.assertNotIn("Traceback", r.stderr)
+        with open(target) as f:
+            self.assertEqual(f.read(), secret_ish)
 
 
 if __name__ == "__main__":

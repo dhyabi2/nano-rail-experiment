@@ -24,7 +24,7 @@ import urllib.error
 import urllib.request
 
 DEFAULT = "https://172-86-112-140.sslip.io/x402/facilitator"
-UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36 unowned-rail-probe/1"
 MAIN_SOURCE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "tools", "nano-x402-facilitator",
                            "facilitator.py")
 ZERO = "0" * 64

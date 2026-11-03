@@ -31,6 +31,8 @@ import urllib.request
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "specs"))
 from nano_address import check_nano_address  # noqa: E402
 
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36 unowned-rail-probe/1"
+
 API = "https://getunstuck.space/unstuck/api"
 RAW_PER_XNO = 10 ** 30
 
@@ -55,7 +57,7 @@ KNOWN_OUTSIDE = {
 
 
 def fetch(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (keeper unpaid-outside-answers)"})
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=20) as r:
         return json.load(r)
 

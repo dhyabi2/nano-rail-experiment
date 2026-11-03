@@ -31,6 +31,8 @@ import time
 import urllib.error
 import urllib.request
 
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36 unowned-rail-probe/1"
+
 ASKS_URL = os.environ.get("UNSTUCK_ASKS_URL", "https://getunstuck.space/unstuck/api/asks")
 TREASURY = os.environ.get(
     "TREASURY_ACCOUNT",
@@ -60,7 +62,7 @@ def gate_log(text=None):
 
 
 def fetch(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "hunter-ask-scan/1"})
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=20) as r:
         return json.load(r)
 

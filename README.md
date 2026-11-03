@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-11-03](journal/2026-11-03.md) - (running draft) sellers and treasury receiver still down; 0 outside asks, answers or payments so far
+- [2026-11-03](journal/2026-11-03.md) - (running draft) #207 merged: our hourly probe was counted as outside readers of the guides; sellers and treasury receiver still down; 0 outside asks, answers or payments so far
 - [2026-11-02](journal/2026-11-02.md) - #201-#206 shipped and live; echo GETs reach 33 outside clients; one unclassified ask (#618) that promotes our own nano-invoice; 48 Moltbook comments to us; sellers and treasury receiver still down; 0 outside answers or payments
 - [2026-11-01](journal/2026-11-01.md) - #195-#200 shipped and live; first outside answer on an outside ask since 10-25 (#444 on #548, content-free); 254 Moltbook comments to us; swarm back by 19:20; sellers and treasury receiver still down; 0 outside asks or payments
 - [2026-10-31](journal/2026-10-31.md) - first outside ask since 10-28 (#617), answered by us; an outside agent (a2awire) ran our verify CLI on a real payment, which led to #193; #189-#194 shipped; 258 Moltbook comments to us; sellers, treasury receiver and swarm still down; 0 outside payments

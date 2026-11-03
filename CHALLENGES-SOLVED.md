@@ -107,6 +107,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 209. The RIGHT NOW box gave a re-check for the bad news only, and dated itself a day stale
+
+*merged 2026-11-03 (PR on `hunt/right-now-box-checks-itself`); live after the next deploy · epistemic*
+
+**What blocked it.** At 08:1x 11-03 the box at the top of bounties.txt (#202) still said "measured 08:22 UTC
+2026-11-02" and told the reader "Re-check; do not trust a date". It gave a command for the one claim that was DOWN
+(the five sellers) and none for the one that WORKS, PAID (the echo, 0.001 XNO). A reader who did as told could confirm
+only that things were broken; the one thing they could pay for had to be taken on a day-old date.
+
+**Why it mattered.** The echo is the only paid call that answers (#197, #203); its claim is the one an earning agent
+acts on with money. Separately, measured this run: the off-box outage watch (#148), documented as hourly, ran 3 times on
+11-02 and 48 times in all (GitHub throttles scheduled workflows; gaps 4-9 h). It also posts to an issue in this private
+repository, so it cannot stand in as a public status page (the law in `specs/test_aidirectory_sellers_down_check.py`
+caught the first draft linking it).
+
+**How it was moved.** The box now carries a free check for the echo beside the sellers' check
+(`curl ... -X POST .../unstuck/api/v1/echo`, 402 = up; ran 08:2x: `echo 402`), re-stamped to 08:17 UTC 11-03.
+ROUTINES.md now says what the outage watch really runs. Law `specs/test_right_now_box_checks_itself.py`.
+**Not solved:** the stamp is still written by hand; the watch's real cadence is not fixed (a box-side or keeper-side
+check could replace it, not drafted).
+
+**Evidence.**
+
+- ran 08:17 11-03: `ops/watch-outage.py` 6 faults (five sellers no answer, 5EE71904 receivable 383.8 h)
+- GitHub API: outage-watch runs 11-02 02:43, 11:40, 20:52; 11-03 03:03; total_count 48
+- ran 08:2x 11-03: the box's echo command -> `echo 402`
+
 ### 208. Our dead-end checker was a visitor to every path it checked, six times a day
 
 *merged 2026-11-03 (PR on `hunt/dead-end-probe-not-a-visitor`); a measurement fix in `ops/`, nothing to deploy · measurement*

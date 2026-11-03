@@ -10,6 +10,8 @@ outage-watch.yml, hourly), so it fails loudly when the box does.
 It checks only what the keeper's alert list names as critical:
   - every published guide and the asks API answer 200 (and the .txt guides as text/plain);
   - every paid endpoint's /.well-known/x402 names the treasury as its only payee and accepts XNO;
+  - the one paid call the guides say WORKS (getunstuck.space's echo, challenge #212) publishes its terms, at both
+    manifest URLs, as JSON that names our Unstuck account as its only payee and accepts XNO;
   - the treasury holds at least 9.0 XNO and has nothing receivable for longer than an hour.
 It reads only: GETs on public URLs, and the read-only RPC calls account_info, receivable and blocks_info.
 
@@ -45,6 +47,14 @@ PAGES = [
     ("https://172-86-112-140.sslip.io/ai/traffic/deploy-status.json", "application/json"),
 ]
 SELLERS = ["extract", "search", "domain", "check", "geoip"]
+# Challenge #212: the five sellers above have been down since 10-17, so every guide sends a stranger to the echo
+# instead (bounties.txt RIGHT NOW box, STEP 6). Its terms were in no check. It pays our Unstuck account, not the
+# treasury (bounties.txt: "0.001 XNO to our own Unstuck account").
+UNSTUCK = "nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9"
+LIVE_CALL_MANIFESTS = [
+    "https://getunstuck.space/.well-known/x402",
+    "https://getunstuck.space/unstuck/api/v1/x402",
+]
 
 
 def http_get(url, timeout=20):
@@ -111,6 +121,29 @@ def check_manifest(seller, get=http_get):
     return None
 
 
+def check_live_call(url, get=http_get):
+    """The echo's terms: 200, served as application/json, one payee (our Unstuck account), XNO accepted."""
+    status, ctype, body = get(url)
+    if status != 200:
+        return "%s answered %s" % (url, status or "nothing (timeout or reset)")
+    try:
+        doc = json.loads(body)
+    except ValueError:
+        return "%s is not JSON" % url
+    payees, assets = set(), set()
+    payees_and_assets(doc, payees, assets)
+    if not payees:
+        return "%s names no payTo" % url
+    others = sorted(p for p in payees if p != UNSTUCK)
+    if others:
+        return "%s pays someone other than our Unstuck account: %s" % (url, ", ".join(others))
+    if not any(a.upper() == "XNO" or a.lower().startswith("nano") for a in assets):
+        return "%s does not accept XNO (assets/networks named: %s)" % (url, ", ".join(sorted(assets)) or "none")
+    if not ctype.lower().startswith("application/json"):
+        return "%s is served as %r, not application/json (a client that checks the type before parsing sees no terms)" % (url, ctype)
+    return None
+
+
 def check_treasury(call=rpc, now=time.time):
     faults = []
     try:
@@ -136,6 +169,7 @@ def check_treasury(call=rpc, now=time.time):
 def run(get=http_get, call=rpc, now=time.time):
     faults = [f for f in (check_page(u, c, get) for u, c in PAGES) if f]
     faults += [f for f in (check_manifest(s, get) for s in SELLERS) if f]
+    faults += [f for f in (check_live_call(u, get) for u in LIVE_CALL_MANIFESTS) if f]
     faults += check_treasury(call, now)
     return faults
 

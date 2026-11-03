@@ -24,6 +24,11 @@ GOOD_MANIFEST = json.dumps({"x402Version": 2, "resources": [{"resource": "/v1/ex
      "payTo": wo.TREASURY}]}]}).encode()
 
 
+ECHO_MANIFEST = json.dumps({"x402Version": 2, "accepts": [
+    {"scheme": "exact", "network": "nano:mainnet", "asset": "XNO", "amount": "1000000000000000000000000000",
+     "payTo": wo.UNSTUCK}], "resource": {"url": "https://getunstuck.space/unstuck/api/v1/echo", "method": "POST"}}).encode()
+
+
 def ctype_for(url):
     if url.endswith(".txt"):
         return "text/plain; charset=utf-8"
@@ -33,6 +38,8 @@ def ctype_for(url):
 
 
 def healthy_get(url):
+    if url in wo.LIVE_CALL_MANIFESTS:
+        return 200, "application/json", ECHO_MANIFEST
     if url.endswith("/.well-known/x402"):
         return 200, "application/json", GOOD_MANIFEST
     return 200, ctype_for(url), b"ok"
@@ -62,7 +69,7 @@ class WatchOutage(unittest.TestCase):
 
     def test_the_10_17_outage_is_loud(self):
         faults = wo.run(outage_get, chain(receivable=["5EE71904AA"], ts=NOW - 5 * 86400), lambda: NOW)
-        self.assertEqual(len(faults), len(wo.PAGES) + len(wo.SELLERS) + 1)
+        self.assertEqual(len(faults), len(wo.PAGES) + len(wo.SELLERS) + len(wo.LIVE_CALL_MANIFESTS) + 1)
         self.assertTrue(any("502" in f and "bounties.txt" in f for f in faults))
         self.assertTrue(any("5EE71904" in f and "120.0 hours" in f for f in faults))
 
@@ -93,6 +100,30 @@ class WatchOutage(unittest.TestCase):
         self.assertIn("no payTo", wo.check_manifest("extract", lambda u: (200, "", b'{"accepts": []}')))
         self.assertIn("not JSON", wo.check_manifest("extract", lambda u: (200, "", b"<html>")))
 
+    # challenge #212: the one paid call the guides say works was in no check
+    def test_live_paid_call_is_watched(self):
+        self.assertIn("https://getunstuck.space/.well-known/x402", wo.LIVE_CALL_MANIFESTS)
+        self.assertIn("https://getunstuck.space/unstuck/api/v1/x402", wo.LIVE_CALL_MANIFESTS)
+        bounties = open(os.path.join(ROOT, "published", "bounties.txt")).read()
+        self.assertIn(wo.UNSTUCK, bounties)  # the payee the guide names is the payee we hold it to
+        for u in wo.LIVE_CALL_MANIFESTS:
+            self.assertIsNone(wo.check_live_call(u, healthy_get))
+
+    def test_live_call_served_as_octet_stream_is_a_fault(self):
+        # what getunstuck.space/.well-known/x402 returned at 20:19 UTC 11-03
+        f = wo.check_live_call(wo.LIVE_CALL_MANIFESTS[0], lambda u: (200, "application/octet-stream", ECHO_MANIFEST))
+        self.assertIn("application/octet-stream", f)
+        self.assertIn("not application/json", f)
+
+    def test_live_call_paying_the_treasury_or_another_is_a_fault(self):
+        # the echo pays the Unstuck account; a manifest naming anyone else (even the treasury) changed under us
+        for other in (wo.TREASURY.encode(), b"nano_3someoneelse"):
+            m = ECHO_MANIFEST.replace(wo.UNSTUCK.encode(), other)
+            self.assertIn("other than our Unstuck account", wo.check_live_call(wo.LIVE_CALL_MANIFESTS[1], lambda u: (200, "application/json", m)))
+        usdc = ECHO_MANIFEST.replace(b'"XNO"', b'"USDC"').replace(b"nano:mainnet", b"eip155:8453")
+        self.assertIn("does not accept XNO", wo.check_live_call(wo.LIVE_CALL_MANIFESTS[1], lambda u: (200, "application/json", usdc)))
+        self.assertIn("answered nothing", wo.check_live_call(wo.LIVE_CALL_MANIFESTS[1], lambda u: (0, "", b"")))
+
     def test_txt_guide_served_as_html_is_a_fault(self):
         f = wo.check_page("https://getunstuck.space/bounties.txt", "text/plain", lambda u: (200, "text/html", b""))
         self.assertIn("text/plain", f)
@@ -121,7 +152,7 @@ Latest run: https://github.com/dhyabi2/nano-rail-experiment/actions/runs/4025540
     def test_box_down_under_an_open_seller_issue_is_new(self):
         faults = wo.run(outage_get, chain(receivable=["5EE71904AA"], ts=NOW - int(187.9 * 3600)), lambda: NOW)
         new = wo.new_faults(self.BODY_0142, faults)
-        self.assertEqual(len(new), len(wo.PAGES))
+        self.assertEqual(len(new), len(wo.PAGES) + len(wo.LIVE_CALL_MANIFESTS))
         self.assertTrue(all("getunstuck.space" in f or "sslip.io" in f for f in new))
 
     def test_same_faults_with_an_older_receivable_are_not_new(self):

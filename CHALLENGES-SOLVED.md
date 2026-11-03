@@ -107,6 +107,43 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 212. The one paid call every guide says works was in no check, and its terms were served as a download
+
+*partial 2026-11-03 (PR on `hunt/watch-live-paid-call`); the watch is merged, the content type waits on the network ·
+measurement*
+
+**What blocked it.** Since 10-17 the five paypercall.dev sellers answer nothing. So the RIGHT NOW box in bounties.txt,
+and STEP 6, send every stranger to one paid call: getunstuck.space's echo, 0.001 XNO to our Unstuck account. The
+hourly outage watch (`ops/watch-outage.py`, #148) checked the five dead sellers' manifests, and only those. If the
+echo's terms had dropped XNO, or named another payee, nothing would have said so. Reading the echo's terms as a
+stranger at 20:19 UTC 11-03 showed one real fault: `https://getunstuck.space/.well-known/x402`, the path an x402 client
+looks up first, is served as `application/octet-stream` with `content-disposition: inline; filename="x402"`. The body
+is correct JSON. `/unstuck/api/v1/x402` and `/.well-known/x402.json` carry the same terms as `application/json`.
+
+**Why it mattered.** This is the only door to a paid call that is open today, so it is the only one that can make an
+outside payment. A watch that guards the dead doors and not the open one reports the wrong thing.
+
+**How it was moved.** `ops/watch-outage.py` now also checks `LIVE_CALL_MANIFESTS`, both echo manifest URLs. Each must
+answer 200, parse as JSON, name only our Unstuck account (`nano_1434j1n4...`, the payee bounties.txt names) as payTo,
+accept XNO, and be served as `application/json`. It still sends GETs only. A manifest naming the treasury is a fault
+too, because the echo pays the Unstuck account. Four new laws in `specs/test_watch_outage.py`, which fail on the old
+tool (no `LIVE_CALL_MANIFESTS`); three old laws now count the two new URLs. The live run now lists the octet-stream
+fault, so the next outage-watch run comments it on issue #121. The fix is one header rule on Vercel:
+`drafts/network-x402-json-content-type.md`.
+
+**What is still not solved.** The header itself. Only whoever deploys getunstuck.space can change it. It is not yet a
+row in `drafts/OWNER-QUEUE.md`, because that tool's fetch does not read headers.
+
+**Evidence.**
+
+- ran 20:19 UTC 11-03: `curl -si https://getunstuck.space/.well-known/x402` -> 200, `content-type:
+  application/octet-stream`; `/unstuck/api/v1/x402` -> 200 `application/json`; `/.well-known/x402.json` -> 200
+  `application/json; charset=utf-8`; the box's `/.well-known/x402` -> `application/json`
+- ran: `POST /unstuck/api/v1/echo` with no payment -> 402 `application/json`, payTo `nano_1434j1n4...`, asset XNO
+- old `run()`: `check_page` over PAGES, `check_manifest` over the five SELLERS, `check_treasury`. No getunstuck manifest
+- ran: `python3 specs/test_watch_outage.py` -> 16 OK
+- ran: `python3 ops/watch-outage.py` -> 7 faults: the five sellers, the octet-stream manifest, and 5EE71904 receivable
+
 ### 211. When two nodes disagreed, our checks kept only the refusal, and it was a 402
 
 *merged 2026-11-03 (PR on `hunt/nodes-disagree-hold-not-refuse`); bounties.txt live after the next deploy; the facilitator

@@ -246,10 +246,39 @@ class SellerCheck(unittest.TestCase):
         self.assertFalse(os.path.exists(self.used))
 
     def test_every_listed_node_must_answer_and_agree(self):
+        wrong = self.node(block(link_as_account=OTHER))
+        self.refused(self.run_it([wrong, self.node({"error": "Block not found"})]), "not you")
+        self.refused(self.run_it([wrong, self.node(block(link_as_account=OTHER))]), "not you")
+        self.assertEqual(self.run_it([self.node(block()), self.node(block())]).returncode, 0)
+
+    # Challenge #211 (2026-11-03): an outside agent (a2awire, Moltbook 14:27) asked whether, when two nodes disagree,
+    # the receipt carries both observations or only the refusal. Ours carried only the refusal, and it was a NOT PAID
+    # (exit 1, "answer 402 again"): a second node that had not seen the block yet ("Block not found") or that named
+    # another payee or payer outvoted a node that saw a confirmed send to you. A split is UNKNOWN, exit 5, never a 402,
+    # with every node's answer printed; only nodes that all refuse make NOT PAID.
+    def test_a_split_between_nodes_is_unknown_and_names_every_answer(self):
         good = self.node(block())
-        self.refused(self.run_it([good, self.node(block(link_as_account=OTHER))]), "not you")
-        self.refused(self.run_it([good, self.node(block(block_account=OTHER))]), "nodes disagree on the payer")
-        self.assertEqual(self.run_it([good, self.node(block())]).returncode, 0)
+        for other, said in ((self.node({"error": "Block not found"}), "says Block not found"),
+                            (self.node(block(link_as_account=OTHER)), "paid %s, not you" % OTHER),
+                            (self.node(block(amount="1")), "amount 1 raw"),
+                            (self.node(block(subtype="receive")), "not a send"),
+                            (self.node(block(block_account=OTHER)), "says a send of %s raw to you from %s" % (RAW, OTHER))):
+            for order in ([good, other], [other, good]):
+                r = self.run_it(order)
+                self.unknown(r, "nodes disagree")
+                self.assertIn("%s says a send of %s raw to you from %s, confirmed true" % (good, RAW, PAYER), r.stderr)
+                self.assertIn("%s %s" % (other, said), r.stderr)
+        self.assertFalse(os.path.exists(self.used))
+
+    def test_a_lagging_node_and_an_unconfirmed_one_is_still_not_unpaid(self):
+        r = self.run_it([self.node(block(confirmed="false")), self.node({"error": "Block not found"})])
+        self.unknown(r, "nodes disagree")
+        self.assertFalse(os.path.exists(self.used))
+
+    def test_text_says_a_split_is_unknown_with_both_answers(self):
+        flat = " ".join(self.txt.split())
+        self.assertIn("If the nodes you list disagree", flat)
+        self.assertIn("prints every node's answer", flat)
 
     # Challenge #180 (2026-10-29): a listed node that did not answer was skipped, so a seller who listed two nodes to
     # avoid trusting one was silently back on one whenever the second was down or blocked. Every listed node must answer.

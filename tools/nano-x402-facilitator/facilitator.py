@@ -23,7 +23,14 @@ payment is a send block the buyer already signed and published, so "settle" is o
   5. this facilitator has not redeemed that hash before (a JSON file of redeemed hashes).
 
 Nodes that fail to answer (or answer something that is not a block_info reply) are skipped;
-at least `--quorum` must answer, and any answering node that disagrees makes the payment invalid.
+at least `--quorum` must answer. Nodes that all refuse make the payment invalid.
+
+A SPLIT IS NOT A REFUSAL (challenge #211): when one node saw a send to payTo of the amount and
+another has not seen the block yet, or names another payee, amount or payer, the answer is
+`nodes_disagree` (HTTP 503, retryable), never a 200 `isValid:false` that a seller turns into
+"pay again". Every verify and settle answer carries `observations`: each node's own verdict
+(by host only, never the URL's path or query, which may hold an API key), so a dispute record
+keeps both sides, not only the refusal.
 
 PENDING is not INVALID (challenge #194, after #189 and #193): when too few nodes answer
 (`nodes_unreachable`) or the send exists but is not confirmed yet (`not_confirmed`), the
@@ -56,6 +63,7 @@ import re
 import sys
 import threading
 import time
+import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -67,7 +75,7 @@ ADDR_RE = re.compile(r"^(nano|xrb)_[13][13456789abcdefghijkmnopqrstuwxyz]{59}$")
 UA = "Mozilla/5.0 (compatible; nano-x402-facilitator/1)"
 # The repository is private, so the only source a seller can read is the one this
 # server hands out (challenge #176): /source serves this very file, and / names its hash.
-RETRYABLE = ("nodes_unreachable", "not_confirmed")  # pending, not invalid: HTTP 503, never a 200 "pay again"
+RETRYABLE = ("nodes_unreachable", "not_confirmed", "nodes_disagree")  # pending, not invalid: HTTP 503, never a 200 "pay again"
 RETRY_AFTER = "5"
 SOURCE = open(os.path.abspath(__file__), "rb").read()
 SOURCE_SHA256 = hashlib.sha256(SOURCE).hexdigest()
@@ -78,6 +86,15 @@ def node_rpc(url, body, timeout=10):
                                  headers={"Content-Type": "application/json", "User-Agent": UA})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode())
+
+
+def node_label(url, i):
+    """A node's name in an answer: its host only. The path or query of a node URL may hold an API key."""
+    try:
+        host = urllib.parse.urlsplit(str(url)).hostname
+    except ValueError:
+        host = None
+    return host or "node%d" % (i + 1)
 
 
 def payment_hash(payload):
@@ -161,7 +178,7 @@ class Facilitator:
             "nodes": len(self.nodes),
             "quorum": self.quorum,
             "source_sha256": SOURCE_SHA256,
-            "pending": "nodes_unreachable and not_confirmed are answered HTTP 503 with Retry-After and "
+            "pending": "nodes_unreachable, not_confirmed and nodes_disagree are answered HTTP 503 with Retry-After and "
                        "retryable true: the payment is not known to be bad, so do not answer the buyer 402 "
                        "(that makes a buyer who paid pay twice); fail the request and let them retry the same hash",
             "note": "Valid only if every answering node says: confirmed send, to payTo, of exactly amount raw, "
@@ -169,8 +186,10 @@ class Facilitator:
                     "funds; the payee's own wallet publishes the receive.",
         }
 
-    def _check(self, body):
-        """(reason or None, hash, payer). Reads the nodes; never writes anything."""
+    def _check(self, body, obs=None):
+        """(reason or None, hash, payer). Reads the nodes; never writes anything.
+        Each node's own verdict is appended to `obs`, one list per request (challenge #211)."""
+        obs = [] if obs is None else obs
         body = body if isinstance(body, dict) else {}
         req = body.get("paymentRequirements") or {}
         pay = body.get("paymentPayload")
@@ -200,22 +219,28 @@ class Facilitator:
             return "payment_already_redeemed", h, None
 
         answers = []
-        for url in self.nodes:
+        for i, url in enumerate(self.nodes):
+            seen = None
             try:
                 info = self.call(url, {"action": "block_info", "json_block": "true", "hash": h})
             except Exception:
-                continue
+                info = None
             if not isinstance(info, dict):
-                continue  # not a block_info reply: this node did not answer, it did not say "unpaid"
-            if info.get("error"):
+                pass  # not a block_info reply: this node did not answer, it did not say "unpaid"
+            elif info.get("error"):
                 if "not found" in str(info["error"]).lower():
-                    answers.append(("block_not_found", None))
-                continue
-            if "contents" not in info and "subtype" not in info:
-                continue  # a 200 that is not a block_info reply (a proxy page, a quota notice): no answer
-            answers.append(self._judge(info, pay_to, amount, max_age))
+                    seen = ("block_not_found", None)
+            elif "contents" in info or "subtype" in info:  # else a proxy page or quota notice: no answer
+                seen = self._judge(info, pay_to, amount, max_age)
+            if seen:
+                answers.append(seen)
+            obs.append({"node": node_label(url, i), "answer": (seen[0] or "valid") if seen else "no_answer",
+                        "payer": seen[1] if seen else None})
         if len(answers) < self.quorum:
             return "nodes_unreachable", h, None
+        good = [p for r, p in answers if r in (None, "not_confirmed")]  # saw a send to payTo of the amount
+        if good and (len(good) < len(answers) or len(set(good)) > 1):
+            return "nodes_disagree", h, None  # one may lag or lie: hold, never refuse (observations keep both)
         reasons = [(r, p) for r, p in answers if r]
         for reason, payer in reasons:  # a final refusal (wrong payee, amount, too old...) wins
             if reason not in RETRYABLE:
@@ -251,15 +276,17 @@ class Facilitator:
         return None, payer
 
     def verify(self, body):
-        reason, _, payer = self._check(body)
-        return {"isValid": reason is None, "invalidReason": reason, "payer": payer}
+        obs = []
+        reason, _, payer = self._check(body, obs)
+        return {"isValid": reason is None, "invalidReason": reason, "payer": payer, "observations": obs}
 
     def settle(self, body):
-        reason, h, payer = self._check(body)
+        obs = []
+        reason, h, payer = self._check(body, obs)
         if reason is None and not self.store.claim(h):
             reason = "payment_already_redeemed"
         return {"success": reason is None, "errorReason": reason, "transaction": h or "",
-                "network": NETWORK, "payer": payer}
+                "network": NETWORK, "payer": payer, "observations": obs}
 
 
 def make_handler(fac):

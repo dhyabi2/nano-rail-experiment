@@ -71,7 +71,8 @@ def make(answers=None, quorum=1, store=None, now=SEEN + 30):
 class Laws(unittest.TestCase):
     def test_a_good_payment_verifies_and_names_the_payer(self):
         f, nodes = make()
-        self.assertEqual(f.verify(body()), {"isValid": True, "invalidReason": None, "payer": PAYER})
+        self.assertEqual(f.verify(body()), {"isValid": True, "invalidReason": None, "payer": PAYER,
+                                            "observations": [{"node": "node1", "answer": "valid", "payer": PAYER}]})
         self.assertEqual(nodes.calls[0][1], {"action": "block_info", "json_block": "true", "hash": H})
 
     def test_settle_succeeds_once_and_a_replay_fails(self):
@@ -170,10 +171,40 @@ class Laws(unittest.TestCase):
             self.assertTrue(f.verify({"paymentPayload": pay, "paymentRequirements": r})["isValid"], pay)
 
     def test_every_answering_node_must_agree(self):
-        f, _ = make({"n1": INFO, "n2": dict(INFO, amount="1")})
+        f, _ = make({"n1": dict(INFO, amount="1"), "n2": {"error": "Block not found"}})
         self.assertEqual(f.verify(body())["invalidReason"], "wrong_amount")
-        f, _ = make({"n1": INFO, "n2": {"error": "Block not found"}})
+        f, _ = make({"n1": {"error": "Block not found"}, "n2": {"error": "Block not found"}})
         self.assertEqual(f.verify(body())["invalidReason"], "block_not_found")
+        f, _ = make({"n1": INFO, "n2": INFO})
+        self.assertTrue(f.verify(body())["isValid"])
+
+    # Challenge #211 (2026-11-03): an outside agent (a2awire) asked whether, when two nodes disagree, the receipt
+    # carries both observations or only the refusal. Ours answered only the refusal, as a 200 isValid:false (a seller
+    # turns that into a new 402): a lagging node's "Block not found" outvoted a node that saw the confirmed send.
+    def test_a_split_is_nodes_disagree_and_keeps_every_observation(self):
+        others = [({"error": "Block not found"}, "block_not_found"), (dict(INFO, amount="1"), "wrong_amount"),
+                  (dict(INFO, contents=dict(INFO["contents"], link_as_account=PAYER)), "wrong_payee"),
+                  (dict(INFO, block_account=TREASURY, contents=dict(INFO["contents"], account=TREASURY)), "valid")]
+        for good in (INFO, dict(INFO, confirmed="false")):
+            for other, said in others:
+                for order in (("n1", "n2"), ("n2", "n1")):
+                    f, _ = make(dict(zip(order, (good, other))))
+                    for out, key in ((f.verify(body()), "invalidReason"), (f.settle(body()), "errorReason")):
+                        self.assertEqual(out[key], "nodes_disagree", (good, said, order))
+                        answers = sorted(o["answer"] for o in out["observations"])
+                        self.assertEqual(len(answers), 2)
+                        self.assertIn(said, answers)
+                        self.assertIn("valid" if good is INFO else "not_confirmed", answers)
+                    self.assertFalse(f.store.has(H))
+        self.assertIn("nodes_disagree", fac.RETRYABLE)  # HTTP 503 + Retry-After, never a 200 "pay again"
+
+    def test_an_observation_names_a_node_by_host_never_its_key(self):
+        f, _ = make({"https://u:pw@node.example:7076/rpc?key=SECRET": INFO, "n2": OSError("down")})
+        obs = f.verify(body())["observations"]
+        self.assertEqual(obs, [{"node": "node.example", "answer": "valid", "payer": PAYER},
+                               {"node": "node2", "answer": "no_answer", "payer": None}])
+        self.assertNotIn("SECRET", json.dumps(obs))
+        self.assertNotIn("pw", json.dumps(obs))
 
     def test_quorum_counts_only_nodes_that_answered(self):
         f, _ = make({"n1": INFO, "n2": OSError("down")}, quorum=2)
@@ -193,7 +224,7 @@ class Laws(unittest.TestCase):
             self.assertTrue(f.verify(body())["isValid"], junk)
 
     def test_a_final_refusal_wins_over_a_pending_one(self):
-        f, _ = make({"n1": dict(INFO, confirmed="false"), "n2": dict(INFO, amount="1")})
+        f, _ = make({"n1": dict(INFO, amount="1", confirmed="false"), "n2": dict(INFO, amount="1")})
         self.assertEqual(f.verify(body())["invalidReason"], "wrong_amount")
         f, _ = make({"n1": dict(INFO, confirmed="false"), "n2": INFO})
         self.assertEqual(f.verify(body())["invalidReason"], "not_confirmed")

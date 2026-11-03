@@ -29,7 +29,13 @@ does the same checks and then records the hash, so a hash settles once, across r
 `not_confirmed` (the send exists, not confirmed yet) are answered **HTTP 503**, `Retry-After: 5`, with the usual body
 plus `"retryable": true`, and `/settle` records nothing. An x402 seller turns a 200 `isValid:false` into a fresh 402,
 and a 402 to a buyer who already paid is how one payment becomes two. Every other refusal (wrong payee, wrong amount,
-too old, not found, replay) stays a 200 with its reason; a final refusal from any node wins over a pending one.
+too old, not found, replay) stays a 200 with its reason when every answering node refuses.
+
+**A split is not a refusal (#211).** When one node saw a send to `payTo` of the amount (confirmed or not) and another
+has not seen the block, or names another payee, amount or payer, the answer is `nodes_disagree`: HTTP 503, retryable,
+like pending. Every `/verify` and `/settle` answer carries `observations`, one entry per node in order:
+`{"node": <host only>, "answer": "valid" | <reason> | "no_answer", "payer": ...}`, so a dispute record keeps both
+sides. A node is named by its host only; a URL's path or query (where an API key may sit) never appears.
 
 What it does not do: it does not receive the funds into the seller's wallet. A Nano send is final when it is
 confirmed, but the payee's wallet still has to publish a receive block to spend it. That is the seller's own wallet,

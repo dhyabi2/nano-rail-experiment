@@ -1179,7 +1179,7 @@ max_age = int(sys.argv[4]) if len(sys.argv) > 4 else 600
 used = os.environ.get("NANOPAID_USED", "nanopaid.used")
 def no(why): sys.exit("NOT PAID %s: %s" % (h, why))
 def unknown(why):
-    print("UNKNOWN %s: %s - the chain was not read, so this is not 'not paid': serve nothing yet, do NOT answer 402; "
+    print("UNKNOWN %s: %s - so this is not 'not paid': serve nothing yet, do NOT answer 402; "
           "ask the buyer to retry this same hash, or add a node you trust to NANO_NODES" % (h, why), file=sys.stderr)
     sys.exit(5)
 if len(h) != 64 or any(c not in "0123456789ABCDEF" for c in h): no("not a 64-hex block hash")
@@ -1188,24 +1188,28 @@ if h in rec:
     if rec[h] != raw: no("already accepted once (replay)")
     print("ALREADY PAID %s for this same quote, %s raw: send that request's stored answer again - no new 402, no new call" % (h, raw))
     sys.exit(2)
-seen, when, pending = [], [], False
-for url in os.environ.get("NANO_NODES", "https://rpc.nano.to").split(","):
-    req = urllib.request.Request(url.strip(), json.dumps({"action": "block_info", "json_block": "true", "hash": h}).encode(),
+seen, when, pending, said = [], [], False, []
+for url in [u.strip() for u in os.environ.get("NANO_NODES", "https://rpc.nano.to").split(",")]:
+    req = urllib.request.Request(url, json.dumps({"action": "block_info", "json_block": "true", "hash": h}).encode(),
                                  {"Content-Type": "application/json", "User-Agent": "nanopaid/1"})
     try: b = json.load(urllib.request.urlopen(req, timeout=10))
-    except Exception: unknown("node %s did not answer - every node you list must" % url.strip())
-    if not isinstance(b, dict): unknown("node %s sent no block_info reply" % url.strip())
+    except Exception: unknown("node %s did not answer - every node you list must" % url)
+    if not isinstance(b, dict): unknown("node %s sent no block_info reply" % url)
     if "error" in b:
-        if "not found" in str(b["error"]).lower(): no("node %s says %s" % (url.strip(), b["error"]))
-        unknown("node %s says %s" % (url.strip(), b["error"]))
+        if "not found" in str(b["error"]).lower(): said.append((url, "says %s" % b["error"])); continue
+        unknown("node %s says %s, so the chain was not read" % (url, b["error"]))
     c = b.get("contents") or {}
-    if b.get("subtype") != "send": no("not a send")
-    if c.get("link_as_account", "").split("_")[-1] != pay_to.split("_")[-1]: no("paid %s, not you" % c.get("link_as_account"))
-    if str(b.get("amount")) != raw: no("amount %s raw, price %s raw" % (b.get("amount"), raw))
-    if time.time() - int(b.get("local_timestamp") or 0) > max_age: no("older than %d s" % max_age)
+    why = ("not a send" if b.get("subtype") != "send" else
+           "paid %s, not you" % c.get("link_as_account") if c.get("link_as_account", "").split("_")[-1] != pay_to.split("_")[-1] else
+           "amount %s raw, price %s raw" % (b.get("amount"), raw) if str(b.get("amount")) != raw else
+           "older than %d s" % max_age if time.time() - int(b.get("local_timestamp") or 0) > max_age else None)
+    said.append((url, why or "says a send of %s raw to you from %s, confirmed %s" % (raw, b.get("block_account"), b.get("confirmed"))))
+    if why: continue
     if str(b.get("confirmed")).lower() != "true": pending = True
     seen.append(b.get("block_account")); when.append(int(b.get("local_timestamp")))
-if len(set(seen)) > 1: no("nodes disagree on the payer")
+if not seen: no("; ".join(sorted(set(w for _, w in said))))
+if len(seen) < len(said) or len(set(seen)) > 1:
+    unknown("nodes disagree: " + "; ".join("%s %s" % s for s in said) + " (one may lag or lie; both answers kept)")
 if pending:
     print("PENDING %s: pays you %s raw but is not confirmed yet - serve nothing yet, ask for no new payment; "
           "tell the buyer to retry with this same hash in a few seconds" % (h, raw))
@@ -1244,8 +1248,15 @@ EOF
  5, and check the same hash again.
  Exit 5 prints UNKNOWN: a listed node was down, blocked or rate-limited (a
  429, "Free public RPC limit reached"), so nothing was read - answer it like
- PENDING, never with a 402, and check the same hash again. Only "Block not
- found" from a node that answered is NOT PAID. The first PAID writes the
+ PENDING, never with a 402, and check the same hash again. If the nodes you
+ list disagree - one saw a send to you and another has not seen the block
+ yet, or names another payee, amount or payer - that is exit 5 too: it
+ prints every node's answer on one line (keep it: that line is your dispute
+ record), and a lagging node usually agrees seconds later. Only "Block not
+ found" from every node, or a refusal from every node, is NOT PAID. (Added
+ 2026-11-03 after an outside agent, a2awire, asked whether our receipt keeps
+ both observations or only the refusal: it kept only the refusal, as a 402.)
+ The first PAID writes the
  hash and the quote into nanopaid.used, so one block never buys two calls. Try it on
  the first outside payment we ever got (old, so allow its age; nothing is
  sent, only a local file you can delete is written):

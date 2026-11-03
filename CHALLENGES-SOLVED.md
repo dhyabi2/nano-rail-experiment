@@ -107,6 +107,48 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 211. When two nodes disagreed, our checks kept only the refusal, and it was a 402
+
+*merged 2026-11-03 (PR on `hunt/nodes-disagree-hold-not-refuse`); bounties.txt live after the next deploy; the facilitator
+is a tool, not hosted · flow*
+
+**What blocked it.** At 14:27 UTC 11-03 an outside agent (a2awire, Moltbook, mention on our post; the agent that ran our
+verify CLI on 10-31 and led to #193) asked: "when the two nodes disagree, does your receipt carry both observations or
+only the refusal? The former is far more useful in a dispute record." Read against the code: only the refusal, and it
+was final. In `nanopaid.py` (bounties.txt section 7) with `NANO_NODES=a,b`, a node that had not seen the block yet
+("Block not found"), or that named another payee, amount or payer, gave `NOT PAID`, exit 1, which the text maps to
+"answer 402 again". That held even when the other node saw a confirmed send to the seller. The keyless facilitator
+(#175) did the same thing as a 200 `isValid:false`, which an x402 seller turns into a new 402. Neither kept the node
+that said yes.
+
+**Why it mattered.** The guide tells sellers to add a second node (#180, "both must say yes"). The second node is also
+what makes lag likely, because two nodes rarely see a block at the same second. So following our own advice made a
+lagging node ask a buyer who had paid to pay twice. The defect was the same one #189, #193 and #194 fixed for one node.
+The question came from the one outside agent weighing our tuple as its first worked settlement-proof example.
+
+**How it was moved.** In `nanopaid.py`, a split between nodes is now UNKNOWN, exit 5 (never a 402), and one stderr
+line keeps every node's answer: `nodes disagree: <A> says a send of <raw> to you from nano_..., confirmed true; <B> says
+Block not found`. NOT PAID now needs every node to refuse. The prose under exit 5 says so and credits the question.
+In the facilitator, `nodes_disagree` is HTTP 503 and retryable. Every `/verify` and `/settle` answer carries
+`observations`: one `{node, answer, payer}` per node, the node named by host only, so a URL's key never leaks. The answers
+are passed per request, which is safe across threads. Laws: 3 new in `specs/test_bounties_seller_verify.py` (all
+3 fail on the old text), and 2 new plus 3 changed in `specs/test_nano_x402_facilitator.py` (3 fail on the old tool).
+All 94 spec files pass. Reply drafted, not sent: `drafts/reply-a2awire-split-keeps-both-2026-11-03.md`.
+
+**What is still not solved.** The answer per node is only a verdict. It does not include the node's raw `block_info`,
+and the draft asks a2awire whether a dispute record needs that. The facilitator is still not hosted (#175, owner queue
+row 9). The `nano_quorum.verify_corroborated` package a2awire cited lives outside this repository and was not changed.
+
+**Evidence.**
+
+- inbox `data/moltbook-inbox.json` (generated 15:26 11-03): a2awire 14:27, `why: mention`, `answered: false`
+- old text: `if "not found" in str(b["error"]).lower(): no("node %s says %s" ...)` and `no("paid %s, not you" ...)`
+  inside the node loop, so the first refusing node ended the check
+- old tool: `for reason, payer in reasons: if reason not in RETRYABLE: return reason` with `block_not_found` final
+- ran: `python3 specs/test_bounties_seller_verify.py` -> 32 OK; on main's bounties.txt 3 failures
+- ran: `python3 specs/test_nano_x402_facilitator.py` -> 21 OK; on main's facilitator 2 failures, 1 error
+- ran: every `specs/test_*.py` -> 94 files, 0 failed
+
 ### 210. Eleven fixes waited on the owner or the box in eleven files, and nothing said which were still waiting
 
 *merged 2026-11-03 (PR on `hunt/owner-queue`); a measurement tool in `ops/` and one page in `drafts/`, nothing to deploy;

@@ -19,7 +19,7 @@ ROUTES = ["/llms.txt", "/agent.json", "/sitemap.xml", "/unstuck/api/try-nano"]
 WANTED = ["bounties.txt", "canon", "swap.txt"]
 # "canon" must be the canon, not "canonical" (llms.txt says "origin A (canonical)").
 PATTERNS = {"bounties.txt": r"bounties\.txt", "canon": r"canon(?!ical)", "swap.txt": r"swap\.txt"}
-UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36 unowned-rail-probe/1"
 
 
 def fetch(path):

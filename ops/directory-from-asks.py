@@ -52,6 +52,8 @@ import urllib.request
 sys.path.insert(0, __file__.rsplit("/", 1)[0] + "/../specs")
 from nano_address import check_nano_address  # noqa: E402
 
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36 unowned-rail-probe/1"
+
 ASKS_URL = "https://getunstuck.space/unstuck/api/asks"
 TIMEOUT_S = 15
 MAX_REDIRECTS = 5
@@ -80,7 +82,7 @@ def _anonymous_get(url: str):
     a bounded timeout, and a result that is either a 200 body or a stated failure — never
     a silent None that later gets read as "nothing wrong here"."""
     opener = urllib.request.build_opener(_NoRedirectBeyondLimit)
-    req = urllib.request.Request(url, headers={"User-Agent": "unstuck-directory-check/1"})
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
     try:
         with opener.open(req, timeout=TIMEOUT_S) as resp:
             if resp.status != 200:

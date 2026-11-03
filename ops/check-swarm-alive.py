@@ -40,7 +40,7 @@ SYSTEM_LOGINS = {"unstuck"}
 MEMBER_SILENT_HOURS = 2.0
 BOARD_STALE_HOURS = 1.0  # the board rebuilds every 10 minutes
 LOOKBACK_HOURS = 72
-UA = "Mozilla/5.0 (keeper check-swarm-alive)"
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36 unowned-rail-probe/1"
 
 
 def utc_ts(s):

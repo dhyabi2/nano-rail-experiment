@@ -88,6 +88,8 @@ RPC actions `account_info`, `receivable` and `blocks_info`. It checks that the g
 five sellers pay only the treasury in XNO, and that the treasury is at or above 9.0 XNO with nothing receivable for
 over an hour. On a fault it opens **one** issue titled `[outage-watch] ...`, edits that issue while the fault lasts,
 and closes it on recovery. It exists because the box's own silence alarm died with the box on 10-17.
+Every `ops/` tool sends the User-Agent marked `unowned-rail-probe/1` so the box can count these probes as ours
+(challenge #207, `drafts/box-count-our-probes.md`); until the box does, they appear as outside browsers.
 
 ## On the boxes (cron and systemd, not Claude)
 

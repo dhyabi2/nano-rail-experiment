@@ -107,9 +107,41 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
 
+### 207. Our own hourly probe was counted as outside readers of the canon, bounties and swap guides
+
+*merged 2026-11-03 (PR on `hunt/probes-say-ours`); our side done, the count is fixed only when the box applies
+`drafts/box-count-our-probes.md` · measurement*
+
+**What blocked it.** The traffic file's `ours_requests` counts only the swarm's three boxes. The hourly outage watch
+(`ops/watch-outage.py` on GitHub's runners, a new address most hours) fetches bounties.txt, canon.txt, swap.txt,
+/canon, /unstuck/api/asks, /ai/ and deploy-status.json, and the keeper's cloud runs fetch the same and more, all with a
+plain Chrome User-Agent. Every one landed in `outside` as `browser-or-bot:desktop`. Eleven `ops/` tools sent four
+different User-Agents, three of them indistinguishable from a stranger's browser.
+
+**Why it mattered.** Duty 3 decides "nobody came" from outside visits to canon, bounties and /ai/. On 11-02
+`/ai/traffic/deploy-status.json`, which only our tools read, had 20 outside clients; canon had 21, bounties 12, swap 9.
+So most of the "outside readers" of our guides were us, and every day's journal since 10-24 overstated them by up to
+~24 clients a path. This is shape two of this file's pattern again (our own probe counted as their visit, cf. #33).
+
+**How it was moved.** Every `ops/` tool that sends a request now sends one User-Agent, a browser string ending in
+`unowned-rail-probe/1` (still served 200 with the right content-type on all seven watched pages, checked 00:2x 11-03).
+`drafts/box-count-our-probes.md` asks the box's traffic job to count that mark as ours. Law
+`specs/test_probes_say_ours.py` (every fetching `ops/` tool sends exactly the marked UA; the draft names the mark).
+**Not solved:** until the box applies the draft, the counts still include us; from this merge the journal reads
+deploy-status.json's client count as the size of our own share. Past days are not corrected (the log has no UA split).
+
+**Evidence.**
+
+- ran: `/ai/traffic/2026-11-02.json` (complete_day, generated 00:12 11-03) -> deploy-status.json 20 clients, canon 21, bounties 12, swap 9, ours_requests 0
+- ran: `.github/workflows/outage-watch.yml` -> cron `41 * * * *`, `python3 ops/watch-outage.py`, whose PAGES list is the seven URLs above
+- ran: new law against main -> FAILED (failures=1); after the change OK; all 92 `specs/test_*.py` pass
+- ran: `ops/check-live.py`, `ops/watch-outage.py`, `ops/check-swarm-alive.py`, `ops/unpaid-outside-answers.py` with the new UA -> same results as before
+
+---
+
 ### 206. Our own AiDirectory linked the echo's name to a URL that answers a GET with 404
 
-*merged 2026-11-02 (PR on `hunt/echo-link-not-a-dead-end`); live after the next deploy · dead link / discovery*
+*solved 2026-11-02 (PR #180 on `hunt/echo-link-not-a-dead-end`); live by 00:15 UTC 11-03 (`ops/check-live.py` 7 of 7) · dead link / discovery*
 
 **What blocked it.** #205 put the echo in the AiDirectory's tables as `<a href=".../unstuck/api/v1/echo">echo</a>` in
 both `index.html` copies and `[echo](.../unstuck/api/v1/echo)` in both `llms.txt` copies. The echo takes POST only; a

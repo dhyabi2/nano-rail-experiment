@@ -25,7 +25,7 @@ GUIDES = [
     "https://getunstuck.space/llms.txt",
     "https://getunstuck.space/unstuck/api/try-nano",
 ]
-UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36"
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36 unowned-rail-probe/1"
 
 # Each claim is false for a seed the server generated and returned in a response body.
 CLAIMS = [

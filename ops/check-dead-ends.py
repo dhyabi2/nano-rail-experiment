@@ -30,7 +30,7 @@ import urllib.error
 import urllib.request
 
 HOST = "https://172-86-112-140.sslip.io"
-UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36"
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36 unowned-rail-probe/1"
 
 # Never GET these: each call mints a seed/onboard_id, spends, or writes.
 NEVER_PROBE = [

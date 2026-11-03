@@ -20,7 +20,7 @@ import sys
 import urllib.error
 import urllib.request
 
-UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36"
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36 unowned-rail-probe/1"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BOX = "https://172-86-112-140.sslip.io"
 DEPLOY_STATUS = BOX + "/ai/traffic/deploy-status.json"

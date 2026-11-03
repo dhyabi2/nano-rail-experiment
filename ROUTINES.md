@@ -83,7 +83,9 @@ page proves nothing. Fetch it by id before concluding it is gone.*
 
 ### Outage watch — `.github/workflows/outage-watch.yml`
 
-**`41 * * * *`** (hourly) · runs `ops/watch-outage.py` (challenge #148). It reads only public URLs and the read-only
+**`41 * * * *`** (hourly) · runs `ops/watch-outage.py` (challenge #148). **Scheduled hourly, run far less:** GitHub throttles
+scheduled workflows, and this one ran 3 times on 11-02 (02:43, 11:40, 20:52 UTC) and next at 03:03 11-03, 48 runs in
+all - gaps of 4 to 9 hours. Read a quiet issue as "not checked since its last edit", not "fine this hour" (challenge #209). It reads only public URLs and the read-only
 RPC actions `account_info`, `receivable` and `blocks_info`. It checks that the guides and the asks API answer, that the
 five sellers pay only the treasury in XNO, and that the treasury is at or above 9.0 XNO with nothing receivable for
 over an hour. On a fault it opens **one** issue titled `[outage-watch] ...`, edits that issue while the fault lasts,

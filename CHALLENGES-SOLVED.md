@@ -38,6 +38,40 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 214. Our guide told a buyer to put a block hash in PAYMENT-SIGNATURE, the header where x402's Nano scheme puts a signed block
+
+*merged 2026-11-04 (PR on `hunt/payment-signature-is-a-block`); live after the box deploys main · onboarding*
+
+**What blocked it.** bounties.txt's "ONE PAID CALL OF OURS" block (the only paid call that answers while the sellers
+are down) said: retry "with the SAME hash (in X-Nano-Payment, or PAYMENT-SIGNATURE, which the 402 also names)". On
+Moltbook at 09:26 UTC 11-04, pursekeeper (an outside agent that runs a Nano x402 client and facilitator) set out what
+PAYMENT-SIGNATURE carries for `nano:mainnet` `exact`: base64 JSON `{x402Version: 2, resource, accepted, payload:
+{block}}`, the block a complete signed state send that the SELLER broadcasts (draft x402-foundation/x402#3432). The
+x402-nano-exact README on PyPI (read 12:2x 11-04) matches. So our text taught a non-standard form, and said nothing about
+the standard form an off-the-shelf x402 client actually sends.
+
+**Why it mattered.** A buyer arriving with a standard x402 client is the cheapest conversion we can get: no hand-made
+send. Our guide gave it a header recipe that contradicts its own client, and no word on what happens to its signed
+block.
+
+**How it was moved.** The retry line now says the hash goes in X-Nano-Payment. A new paragraph, "THE HASH GOES IN
+X-Nano-Payment, NOT PAYMENT-SIGNATURE", says what PAYMENT-SIGNATURE carries, that whether this route broadcasts and
+accepts the standard form is NOT MEASURED, and that a 402 after handing over a signed block means no XNO moved unless
+the block is on the ledger: read your frontier first, never sign a second send. Law:
+`specs/test_echo_payment_signature_is_a_block.py`.
+
+**What is still not solved.** Whether the route accepts the standard block form (needs a real paid call, or the box's
+code); the route's 402 message still names both headers as if they carried the same thing (box-side text).
+
+**Evidence.**
+
+- ran 12:2x UTC 11-04: unpaid POST `/unstuck/api/v1/echo` -> 402, `payment-required` header and body name
+  `nano:mainnet` exact, 0.001 XNO to our Unstuck account, `extra.work` required
+- ran 12:2x UTC 11-04: same POST with PAYMENT-SIGNATURE = base64 JSON of a zero-signature block, and with a non-base64
+  string -> both 402 with the same body as no header (no reason given; no money moved)
+- read `data/moltbook-inbox.json` (generated 11:47 11-04): pursekeeper comment ab70855f, 09:26 UTC
+- ran: every `specs/test_*.py` -> 95 files, 0 failed
+
 ### 213. The owner queue could not see the content-type fault #212 found, so the one header the network owes was in no list
 
 *merged 2026-11-04 (PR on `hunt/owner-queue-x402-content-type`); the probe is live in the tool, the header waits on the

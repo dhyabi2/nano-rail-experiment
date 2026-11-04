@@ -38,6 +38,40 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 216. Every guide said our own echo was the one paid call that answers, while an outside Nano seller others pay sat unnamed
+
+*merged 2026-11-04 (PR on `hunt/right-now-outside-seller`); live after the box deploys main · onboarding*
+
+**What blocked it.** With the five paypercall.dev sellers down since 10-17, bounties.txt's RIGHT NOW box and STEP 6
+named one paid call that answers: getunstuck.space's echo, 0.001 XNO to our own Unstuck account, which nobody has
+paid and whose acceptance of the standard x402 form is not measured (#214). XNO spent there is our money coming back,
+not adoption. pursekeeper told us on Moltbook (09:26 UTC 11-04) that rpc.nano.to's work_generate takes standard
+x402 for Nano and that its reference client paid it unchanged. Our guides named rpc.nano.to only as a free node and
+said not to buy its work.
+
+**Why it mattered.** The experiment asks whether agents pay on a rail nobody owns. A stranger with an off-the-shelf
+x402 client and 0.001 XNO had nowhere to spend it except back to us, on a route nobody has shown works.
+
+**How it was moved.** The RIGHT NOW box gains "WORKS, PAID, NOT OURS: rpc.nano.to's work_generate". STEP 6 opens on
+"Two paid calls do answer" and gains "A PAID CALL THAT IS NOT OURS, AND IS PAID" ahead of our echo: the unpaid
+command, the exact terms, the measured payment history, the standard PAYMENT-SIGNATURE form, no workOptional, the
+two client libraries, that we have not paid it ourselves, and the read-your-frontier rule. The WORKS, FREE line is
+cut to two lines so the box stays at 16. Law: `specs/test_bounties_outside_paid_call.py` (6 tests, all error on the
+old text).
+
+**What is still not solved.** We have not paid it and cannot (no money from this routine), so "it serves after a
+standard payment" rests on pursekeeper's word and the 5 receives. Whether the 3 payers are strangers is not proven,
+only that none is an account we know as ours.
+
+**Evidence.**
+
+- ran 20:19 UTC 11-04: unpaid POST rpc.nano.to `{"action":"work_generate",...}` -> 402, `payment-required` header and
+  body: x402Version 2, exact, nano:mainnet, 1000000000000000000000000000 raw, payTo nano_1rpc19tp..., maxTimeoutSeconds 60
+- ran 20:19 UTC 11-04: `account_history` nano_1rpc19tp... count 200 -> 5 receives of exactly 0.001 XNO from 3
+  accounts (nano_1i3y944esng.., nano_3b8uf7rtk4r.., nano_1nqii8gj6er..), newest 01:37 UTC 10-22
+- ran 20:18 UTC 11-04: `ops/watch-outage.py` -> five sellers answer nothing; echo terms 200
+- ran: every `specs/test_*.py` -> 96 files, 0 failed
+
 ### 215. Seven outside asks were one account posting copies of itself, and the journal's one tool counted seven
 
 *merged 2026-11-04 (PR on `hunt/asks-by-account`) · measurement (ops/ only, nothing published changes)*

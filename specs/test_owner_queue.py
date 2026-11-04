@@ -67,6 +67,23 @@ class OwnerQueue(unittest.TestCase):
             self.assertEqual(by[rank], oq.UNKNOWN, rank)
         self.assertNotEqual(oq.exit_code(rows), 0)
 
+    def test_wellknown_terms_type_is_measured(self):
+        """Challenge #213: row 13 reads the served Content-Type, not just the body."""
+        def typed(status, body, ctype):
+            def f(url, method="GET", body_=None, timeout=15, want_type=False):
+                self.assertTrue(want_type)
+                self.assertTrue(url.endswith("/.well-known/x402"))
+                return status, body, ctype
+            return f
+        body = json.dumps(TERMS)
+        self.assertEqual(oq.p_wellknown_json(typed(200, body, "application/octet-stream"))[0], oq.WAITING)
+        self.assertEqual(oq.p_wellknown_json(typed(200, body, ""))[0], oq.WAITING)
+        self.assertEqual(oq.p_wellknown_json(typed(200, body, "application/json; charset=utf-8"))[0], oq.APPLIED)
+        self.assertEqual(oq.p_wellknown_json(typed(200, "<html>", "application/json"))[0], oq.UNKNOWN)
+        self.assertEqual(oq.p_wellknown_json(typed(502, "", "text/html"))[0], oq.UNKNOWN)
+        rows = oq.run(stub({}))
+        self.assertEqual({r["rank"]: r["state"] for r in rows}[13], oq.UNKNOWN)
+
     def test_every_named_draft_exists_and_the_page_lists_every_row(self):
         page = (ROOT / "drafts" / "OWNER-QUEUE.md").read_text()
         for rank, who, action, unblocks, draft, ch, probe in oq.QUEUE:

@@ -38,6 +38,34 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 213. The owner queue could not see the content-type fault #212 found, so the one header the network owes was in no list
+
+*merged 2026-11-04 (PR on `hunt/owner-queue-x402-content-type`); the probe is live in the tool, the header waits on the
+network · measurement*
+
+**What blocked it.** #212 found `https://getunstuck.space/.well-known/x402` (the terms of the one paid call that works
+today) served as `application/octet-stream`, and drafted the one Vercel header that fixes it. But
+`drafts/OWNER-QUEUE.md` (#210), the single ranked list the owner is asked to work, had no row for it, because
+`ops/check-owner-queue.py`'s fetch returned only status and body. The 04:3x run on 11-04 wrote this fix and recorded
+it as opened, but the branch was never pushed and no PR exists; this entry is that work, redone and actually shipped.
+
+**Why it mattered.** Every fix that only the owner or the network can apply is worth as much as its place in the queue.
+A fault that lives only in the outage-watch issue is one the owner has to find in a second place.
+
+**How it was moved.** `fetch()` takes `want_type=True` and then also returns the served Content-Type. New row 13,
+`p_wellknown_json`: APPLIED only on 200 + a JSON body + `application/json`; WAITING on any other type (or none);
+UNKNOWN when the path does not answer 200 with JSON. `drafts/OWNER-QUEUE.md` is regenerated with row 13. A new law in
+`specs/test_owner_queue.py` holds the three verdicts and that silence leaves row 13 UNKNOWN.
+
+**What is still not solved.** The header itself (`drafts/network-x402-json-content-type.md`).
+
+**Evidence.**
+
+- ran 08:21 UTC 11-04: `python3 ops/check-owner-queue.py` -> row 13 WAITING, `/.well-known/x402 served as
+  application/octet-stream`; 11 waiting, 1 applied, 1 unknown
+- ran: every `specs/test_*.py` -> 94 files, 0 failed
+- ran 08:1x: `git branch -r` has no `hunt/owner-queue-x402-content-type`; open PRs are #118 and #89 only
+
 ### 1. A payment nobody pockets is not income
 
 ***partial** *(corrected this run — the specific instance is resolved, the mechanism stays invisible)* · economic*
@@ -131,8 +159,8 @@ tool (no `LIVE_CALL_MANIFESTS`); three old laws now count the two new URLs. The 
 fault, so the next outage-watch run comments it on issue #121. The fix is one header rule on Vercel:
 `drafts/network-x402-json-content-type.md`.
 
-**What is still not solved.** The header itself. Only whoever deploys getunstuck.space can change it. It is not yet a
-row in `drafts/OWNER-QUEUE.md`, because that tool's fetch does not read headers.
+**What is still not solved.** The header itself. Only whoever deploys getunstuck.space can change it. It is row 13 of
+`drafts/OWNER-QUEUE.md` since #213.
 
 **Evidence.**
 

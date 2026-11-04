@@ -9,7 +9,7 @@ keeper run re-runs it and copies the result into that day's journal. UNKNOWN mea
 
 Also waiting on the owner, not probed: PR #89 and PR #118 (seed and wallet paths, which the keeper may not merge).
 
-| # | state | who | action | unblocks | measured 12:23 UTC 2026-11-03 | draft |
+| # | state | who | action | unblocks | measured 08:22 UTC 2026-11-04 | draft |
 |---|---|---|---|---|---|---|
 | 1 | **WAITING** | owner | restart the five paid sellers | every paid call but the echo; STEP 6 of every guide | 0 of 5 sellers' /.well-known/x402 answered | `drafts/owner-box-down-2026-10-23.md` (#197) |
 | 2 | **WAITING** | owner | restart the treasury auto-receive | a payment to us is income only once received | 1 block(s) receivable: 5EE71904 | `drafts/owner-box-down-2026-10-23.md` (#148) |
@@ -23,3 +23,4 @@ Also waiting on the owner, not probed: PR #89 and PR #118 (seed and wallet paths
 | 10 | **WAITING** | box | count our probes as ours in the traffic file | an honest 'did anybody come' every day | ours_requests 0 although our probes ran today | `drafts/box-count-our-probes.md` (#207) |
 | 11 | **UNKNOWN** | box | publish a failed TVL read as null, not 0 | a true TVL number | read was complete; the fault only shows on a failed read | `drafts/box-tvl-unknown-not-zero.md` (#97) |
 | 12 | **APPLIED** | box | serve robots.txt, llms.txt, sitemap at the box root | crawlers finding /ai/ | /robots.txt -> 200 | `drafts/box-root-crawler-files.md` (#71) |
+| 13 | **WAITING** | network | serve /.well-known/x402 as JSON | x402 clients reading the one live paid call's terms | /.well-known/x402 served as application/octet-stream | `drafts/network-x402-json-content-type.md` (#212) |

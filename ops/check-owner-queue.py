@@ -34,16 +34,18 @@ ROOT = Path(__file__).resolve().parent.parent
 APPLIED, WAITING, UNKNOWN = "APPLIED", "WAITING", "UNKNOWN"
 
 
-def fetch(url, method="GET", body=None, timeout=15):
-    """(status, text) for any HTTP answer; raises OSError when nothing answered."""
+def fetch(url, method="GET", body=None, timeout=15, want_type=False):
+    """(status, text) for any HTTP answer, or (status, text, content_type) with want_type; raises OSError when nothing
+    answered."""
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(url, data=data, method=method,
                                  headers={"User-Agent": UA, "Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
-            return r.status, r.read(400000).decode("utf-8", "replace")
+            out = (r.status, r.read(400000).decode("utf-8", "replace"), r.headers.get("Content-Type", ""))
     except urllib.error.HTTPError as e:
-        return e.code, e.read(400000).decode("utf-8", "replace")
+        out = (e.code, e.read(400000).decode("utf-8", "replace"), e.headers.get("Content-Type", ""))
+    return out if want_type else out[:2]
 
 
 def _json(text):
@@ -178,6 +180,18 @@ def p_root_crawler(f):
     return (APPLIED, "/robots.txt -> 200") if st == 200 else (WAITING, "/robots.txt -> %s" % st)
 
 
+def p_wellknown_json(f):
+    """Challenge #213: the one live paid call's terms at the path x402 clients look up first must be served as JSON.
+    The body was right on 11-03 but came back application/octet-stream (a download, not terms)."""
+    st, t, ctype = f(GU + "/.well-known/x402", want_type=True)
+    if st != 200 or _json(t) is None:
+        return UNKNOWN, "/.well-known/x402 http %s, body JSON %s" % (st, _json(t) is not None)
+    ctype = (ctype or "").split(";")[0].strip().lower()
+    if ctype == "application/json":
+        return APPLIED, "/.well-known/x402 served as application/json"
+    return WAITING, "/.well-known/x402 served as %s" % (ctype or "no content-type")
+
+
 # rank, who, action, what it unblocks, draft, challenge, probe
 QUEUE = [
     (1, "owner", "restart the five paid sellers", "every paid call but the echo; STEP 6 of every guide",
@@ -204,6 +218,8 @@ QUEUE = [
      "drafts/box-tvl-unknown-not-zero.md", "#97", p_tvl),
     (12, "box", "serve robots.txt, llms.txt, sitemap at the box root", "crawlers finding /ai/",
      "drafts/box-root-crawler-files.md", "#71", p_root_crawler),
+    (13, "network", "serve /.well-known/x402 as JSON", "x402 clients reading the one live paid call's terms",
+     "drafts/network-x402-json-content-type.md", "#212", p_wellknown_json),
 ]
 
 

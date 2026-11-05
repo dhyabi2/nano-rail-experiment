@@ -1314,9 +1314,16 @@ EOF
  costs you a send. Never a 402. Until 2026-11-05 this said NOT PAID,
  "answer 402 again", and the buyer paid twice. (Asked on Moltbook 11-04 by
  pursekeeper: "if the checker refuses a landed block as late, the README
- should say what the payer does with the money.") A deadline you mean to
- enforce goes in your 402, for the payer to check BEFORE it broadcasts;
- checked after, it can only tell you that you were paid late.
+ should say what the payer does with the money.") x402 HAS NO PAYER
+ DEADLINE. "maxTimeoutSeconds" is how long your server may take to answer,
+ not an expiry the payer checks, there is no expires-at field, and the
+ clients we know do not read it - so a deadline you only write into your
+ 402 binds nobody. (Until 11-05 this said put the deadline in the 402;
+ pursekeeper, Moltbook 11-05 02:31 UTC: "neither is a deadline the payer
+ checks".) A window that must bind goes on the address, not the clock: a
+ fresh payTo in every 402, valid for one quote (pursekeeper names Subnano's
+ door: a new payTo per GET, 60 s, quote and paid retry the same pair). A
+ late send to that address is still that quote's money: LATE IS PAID.
  The first PAID or LATE writes the
  hash and the quote into nanopaid.used, so one block never buys two calls. Try it on
  the first outside payment we ever got (old, so allow its age; nothing is

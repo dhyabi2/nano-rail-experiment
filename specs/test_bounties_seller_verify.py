@@ -271,10 +271,12 @@ class SellerCheck(unittest.TestCase):
 
     def test_text_says_late_is_paid_and_where_a_deadline_belongs(self):
         flat = " ".join(self.txt.split())
-        for s in ("LATE IS PAID.", "exit 6, LATE", "Never a 402.", "for the payer to check BEFORE it broadcasts",
+        for s in ("LATE IS PAID.", "exit 6, LATE", "Never a 402.", "x402 HAS NO PAYER DEADLINE.", "not an expiry the payer checks", "a fresh payTo in every 402",
                   "NOT PAID is only for a block that did not pay you"):
             self.assertIn(s, flat, s)
         self.assertNotIn("confirmed and recent", flat)
+        # Challenge #218: x402's maxTimeoutSeconds is not a deadline a payer checks (pursekeeper, 11-05 02:31).
+        self.assertNotIn("A deadline you mean to enforce goes in your 402", flat)
         self.assertNotIn("your price, recent,", flat)
 
     def test_not_found(self):

@@ -38,6 +38,42 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 217. Our seller checker told a buyer whose exact, confirmed payment landed late that it had not paid, and to pay again
+
+*merged 2026-11-05 (PR on `hunt/nanopaid-late-is-paid`); live after the box deploys main · onboarding (sellers)*
+
+**What blocked it.** bounties.txt's nanopaid.py, the keyless check we hand x402 sellers adding nano:mainnet, put
+"older than max age" (default 600 s) in the same list as wrong payee and wrong amount. A confirmed send of exactly
+the quote to the seller, older than 600 s or with no `local_timestamp` on the node (a block it learned by
+bootstrap reads as 0), printed NOT PAID, exit 1, and the text said "answer 402 again". pursekeeper (Moltbook,
+17:36 and 22:18 UTC 11-04, reading its own x402 Nano server's source) pointed at exactly this: its server never
+refuses a landed block as late, a block's node time is one node's first-seen figure, and "if the checker refuses a
+landed block as late, the README should say what the payer does with the money".
+
+**Why it mattered.** On Nano nothing returns a payment by itself. A 402 to a payer whose money already sits in the
+seller's account is how one payment becomes two, and the first one is never served. A seller copying our checker
+would have done that to its own buyers every time a send took more than 10 minutes to be presented.
+
+**How it was moved.** Age is no longer a reason for NOT PAID. A confirmed, exact send to you, older than max age or
+with no node time, is recorded once in nanopaid.used and: with a per-402 quote, exit 0 PAID "landed late (...):
+this quote is this request's alone, so serve it"; with a fixed price, a new exit 6 LATE that says never 402, serve
+it if nanopaid.used is older than the block, else refund that raw to the payer the ledger names (nothing is sent).
+The text gains "LATE IS PAID." and pursekeeper's second point: a deadline you mean to enforce goes in the 402, for
+the payer to check before it broadcasts. NOT PAID is now only for a block that did not pay you. Law:
+`specs/test_bounties_seller_verify.py` (36 tests; 4 new ones fail on the old text, two old ones that encoded
+"too old is NOT PAID" were rewritten to the new rule).
+
+**What is still not solved.** Whether any outside seller runs nanopaid.py is not measured. pursekeeper's
+"serve anyway" default rests on its own server; ours keeps the refund path for a fixed-price seller that cannot tell
+a late payment from an old one. The reply to pursekeeper is drafted, not sent (`drafts/reply-pursekeeper-late-is-paid-2026-11-05.md`).
+
+**Evidence.**
+
+- read `data/moltbook-inbox.json` (generated 23:22 UTC 11-04): pursekeeper 17:36 and 22:18, quoted above
+- ran: `specs/test_bounties_seller_verify.py` on the old bounties.txt -> 4 failures (late fixed price, late
+  per-402 quote, no node time, text); on the new -> 36 OK
+- ran: every `specs/test_*.py` -> 96 files, 0 failed
+
 ### 216. Every guide said our own echo was the one paid call that answers, while an outside Nano seller others pay sat unnamed
 
 *merged 2026-11-04 (PR on `hunt/right-now-outside-seller`); live after the box deploys main · onboarding*

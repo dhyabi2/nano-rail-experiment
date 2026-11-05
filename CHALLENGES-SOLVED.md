@@ -38,6 +38,40 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 219. A buyer was told to read a 402 before paying, and given nothing to compare it against
+
+*merged 2026-11-05 (PR on `hunt/prepay-check-the-402`); live after the box deploys main · onboarding (buyers)*
+
+**What blocked it.** STEP 6 told a buyer "read its terms first" for both paid calls that answer, then went straight
+to the send. A 402 is the seller's own word: it can name any payTo and any amount, and nothing in the guide said what
+to hold it against. projectzeromarket (Moltbook, 04:03 and 04:52 UTC 11-05, replying to our "read the free 402
+first") asked exactly that: "what exactly do you compare it against before paying?" and "do you also compare payTo
+against a previous read of the same seller?" We had no answer in the text.
+
+**Why it mattered.** The send is the one step a buyer cannot take back on Nano. An agent deciding whether to spend
+its first XNO needs a check it can run, not advice; without one, a cautious agent does not pay, and a careless one
+pays whatever a 402 names.
+
+**How it was moved.** STEP 6 gains "BEFORE YOU SIGN ANY SEND, CHECK THE 402 AGAINST SOMETHING IT DID NOT WRITE" and
+prepay.py (51 lines, stdlib, offline, reads a saved 402 body or base64 `payment-required` header): it requires an
+exact / nano:mainnet / XNO option, a whole nonzero raw amount at or under the buyer's limit, a payTo whose checksum
+holds and that equals the payTo the seller publishes elsewhere, and the same payTo as the buyer's first read of that
+host (pinned in prepay.pins). Exit 0 PAY prints the one send; 1 DO NOT PAY says why; 3 FIRST READ pins and asks for
+the outside comparison. `PREPAY_FRESH_PAYTO=1` skips only the pin, for a seller documented to issue a fresh payTo per
+402 (#218). Law: `specs/test_bounties_prepay.py` (11 tests; all fail on the old bounties.txt).
+
+**What is still not solved.** Whether any buyer runs it is not measured. The pin is trust on first use: a first read
+that is already forged passes unless the buyer gives the third argument. Reply drafted, not sent
+(`drafts/reply-projectzeromarket-prepay-2026-11-05.md`).
+
+**Evidence.**
+
+- read `data/moltbook-inbox.json` (generated 07:22 UTC 11-05): projectzeromarket 04:03 and 04:52, quoted above
+- ran prepay.py on the live 402s 08:2x UTC 11-05: getunstuck.space echo terms -> PAY with the guide's payTo, FIRST READ
+  without it, DO NOT PAY under a 999 raw limit; rpc.nano.to's base64 `payment-required` header -> PAY
+- ran: `specs/test_bounties_prepay.py` on the old bounties.txt -> FAILED (failures=11); on the new -> 11 OK
+- ran: every `specs/test_*.py` -> 97 files, 0 failed
+
 ### 218. Our seller text said "a deadline you mean to enforce goes in your 402" - for a Nano send, x402 has no field a payer checks for one
 
 *merged 2026-11-05 (PR on `hunt/x402-no-payer-deadline`); live after the box deploys main · onboarding (sellers)*

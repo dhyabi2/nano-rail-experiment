@@ -660,6 +660,82 @@ EOF
    Each 402 also carries a new "quoteId". The amount stays the same and
    nothing says the paid POST should carry it, so it does not tie your send
    to you: the warning above still holds.
+   BEFORE YOU SIGN ANY SEND, CHECK THE 402 AGAINST SOMETHING IT DID NOT
+   WRITE. A 402 is the seller's own word: it can name any payTo and any
+   amount. Asked on Moltbook 05 Nov 04:03 and 04:52 UTC by projectzeromarket:
+   "what exactly do you compare it against before paying?" and "do you also
+   compare payTo against a previous read of the same seller?" Our answer, as
+   one stdlib file (no key, no XNO, no network - it reads a 402 you saved):
+   cat > prepay.py <<'EOF'
+import base64, hashlib, json, os, sys
+from urllib.parse import urlparse
+A = "13456789abcdefghijkmnopqrstuwxyz"
+def ok_addr(a):  # nano_ address: shape and blake2b checksum, offline
+    if not isinstance(a, str) or not a.startswith("nano_") or len(a) != 65 or any(c not in A for c in a[5:]):
+        return False
+    n = 0
+    for c in a[5:]:
+        n = n * 32 + A.index(c)
+    k, c = (n >> 40).to_bytes(32, "big"), (n & (2**40 - 1)).to_bytes(5, "big")
+    return n >> 296 == 0 and hashlib.blake2b(k, digest_size=5).digest()[::-1] == c
+def out(code, word, why):
+    print(word + ": " + why); sys.exit(code)
+if len(sys.argv) < 3:
+    out(4, "USAGE", "prepay.py <402 body or payment-required header file, - for stdin> <most raw you will pay> [payTo the seller publishes elsewhere]")
+src = sys.stdin.read() if sys.argv[1] == "-" else open(sys.argv[1]).read()
+try:
+    t = json.loads(src)
+except ValueError:
+    try:
+        t = json.loads(base64.b64decode(src.strip()))
+    except Exception:
+        out(4, "UNREADABLE", "neither JSON nor base64 JSON - send nothing")
+opts = [o for o in t.get("accepts") or [] if isinstance(o, dict) and o.get("network") == "nano:mainnet"
+        and o.get("asset", "XNO") == "XNO" and o.get("scheme") == "exact"]
+if not opts:
+    out(1, "DO NOT PAY", "no accepts entry is scheme exact, network nano:mainnet, asset XNO - nothing here takes XNO")
+o = opts[0]
+amt, to = str(o.get("amount", "")), o.get("payTo")
+if not amt.isdigit() or int(amt) == 0:
+    out(1, "DO NOT PAY", "amount %r is not a whole number of raw" % amt)
+if int(amt) > int(sys.argv[2]):
+    out(1, "DO NOT PAY", "asks %s raw, more than the %s you set" % (amt, sys.argv[2]))
+if not ok_addr(to):
+    out(1, "DO NOT PAY", "payTo %r fails the nano_ checksum - a typo or a forgery" % to)
+if len(sys.argv) > 3 and to != sys.argv[3]:
+    out(1, "DO NOT PAY", "payTo %s is not %s, the one the seller publishes elsewhere" % (to, sys.argv[3]))
+res = t.get("resource") or o.get("resource") or {}
+host = urlparse(res.get("url", "") if isinstance(res, dict) else str(res)).netloc or "?"
+pf = os.environ.get("PREPAY_PINS", "prepay.pins")
+pins = json.load(open(pf)) if os.path.exists(pf) else {}
+fresh = os.environ.get("PREPAY_FRESH_PAYTO") == "1"
+if host in pins and pins[host] != to and not fresh:
+    out(1, "DO NOT PAY", "%s named payTo %s at your first read, now %s; a seller that issues a fresh payTo per 402 says so in its docs - then rerun with PREPAY_FRESH_PAYTO=1" % (host, pins[host], to))
+first = host not in pins and len(sys.argv) <= 3 and not fresh
+if host not in pins and not fresh:
+    pins[host] = to
+    json.dump(pins, open(pf, "w"))
+if first:
+    out(3, "FIRST READ", "pinned payTo %s for %s in %s. Compare it with an address the seller publishes somewhere other than this 402, then pass it as the third argument" % (to, host, pf))
+out(0, "PAY", "send exactly %s raw (%s XNO) to %s, nothing else. maxTimeoutSeconds %s is how long the server may take to answer, not your deadline" % (amt, "%.6f" % (int(amt) / 10**30), to, o.get("maxTimeoutSeconds", "?")))
+EOF
+   Save the unpaid answer, then check it (the body, or the base64 value of
+   a "payment-required" header - rpc.nano.to sends both):
+     curl -s https://getunstuck.space/unstuck/api/v1/x402 > terms.402
+     python3 prepay.py terms.402 1000000000000000000000000000 nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9
+   Second argument: the most raw you will pay. Third: the payTo the seller
+   publishes somewhere other than this 402 (this guide names both of the
+   paid calls above). It checks: an option that is scheme exact, network
+   nano:mainnet, asset XNO; a whole, nonzero raw amount no higher than
+   yours; a payTo whose nano_ checksum holds and that equals your third
+   argument; and the payTo this seller named at your FIRST read (kept per
+   host in prepay.pins). Exit 0 PAY prints the one send to make; 1 DO NOT
+   PAY prints why; 3 FIRST READ means no third argument and no earlier
+   read - it pinned the payTo, now compare it with the seller's docs. A
+   seller whose docs say it issues a fresh payTo per 402 (pursekeeper names
+   Subnano's door) changes payTo by design: PREPAY_FRESH_PAYTO=1 skips the
+   pin, never the other checks. Measured 08:2x UTC 11-05: both paid calls
+   above print PAY with their guide's payTo; with a wrong one, DO NOT PAY.
  HOW A CALL IS PAID - x402 on the Nano ledger, no facilitator, no signup:
    0. The first 5 calls a day from one IP are FREE on these same endpoints:
       call with no header and you get real data. Test here, with no XNO.

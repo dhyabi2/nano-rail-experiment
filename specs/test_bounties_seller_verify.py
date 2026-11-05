@@ -214,10 +214,10 @@ class SellerCheck(unittest.TestCase):
             self.pending(self.run_it(order))
         self.assertFalse(os.path.exists(self.used))
 
-    def test_unconfirmed_still_refused_for_the_wrong_payee_amount_or_age(self):
+    def test_unconfirmed_still_refused_for_the_wrong_payee_or_amount_and_pending_whatever_its_age(self):
         self.refused(self.run_it([self.node(block(confirmed="false", link_as_account=OTHER))]), "not you")
         self.refused(self.run_it([self.node(block(confirmed="false"))], raw=str(int(RAW) + 1)), "amount")
-        self.refused(self.run_it([self.node(block(confirmed="false", local_timestamp="0"))]), "older than")
+        self.pending(self.run_it([self.node(block(confirmed="false", local_timestamp="0"))]))
 
     def test_text_says_pending_is_not_a_402_and_the_refund_has_a_deadline(self):
         flat = " ".join(self.txt.split())
@@ -230,11 +230,52 @@ class SellerCheck(unittest.TestCase):
     def test_not_a_send(self):
         self.refused(self.run_it([self.node(block(subtype="receive"))]), "not a send")
 
-    def test_too_old_and_unknown_age(self):
+    # Challenge #217 (2026-11-05): pursekeeper (Moltbook, 11-04 17:36) - "if the checker refuses a landed block as late,
+    # the README should say what the payer does with the money." A confirmed send of exactly the quote to the seller,
+    # older than max age or with no node time, was NOT PAID, exit 1, "answer 402 again": the buyer paid twice, and the
+    # first payment stayed with the seller. Late is now paid, never a 402.
+    def late(self, r, why):
+        self.assertEqual(r.returncode, 6, r.stdout + r.stderr)
+        self.assertTrue(r.stderr.startswith("LATE %s: a confirmed send of exactly %s raw to you from %s (" % (H, RAW, PAYER)),
+                        r.stderr)
+        self.assertIn(why, r.stderr)
+        self.assertIn("do NOT answer 402", r.stderr)
+        self.assertIn("refund %s raw to %s" % (RAW, PAYER), r.stderr)
+        self.assertNotIn("NOT PAID", r.stderr)
+        self.assertNotIn("PAID " + H, r.stdout)
+
+    def test_a_late_fixed_price_payment_is_late_not_unpaid(self):
         old = block(local_timestamp=str(int(time.time()) - 700))
-        self.refused(self.run_it([self.node(old)]), "older than 600 s")
-        self.refused(self.run_it([self.node(block(local_timestamp="0"))]), "older than")
-        self.assertEqual(self.run_it([self.node(old)], "3600").returncode, 0)
+        self.late(self.run_it([self.node(old)]), "s old, past 600 s")
+        self.already_paid(self.run_it([self.node(old)]))  # recorded: one block never buys two calls
+        self.assertEqual(open(self.used).read(), H + " " + RAW + "\n")
+
+    def test_no_node_time_is_late_not_unpaid(self):
+        self.late(self.run_it([self.node(block(local_timestamp="0"))]), "no time on this node")
+        os.remove(self.used)
+        nots = dict(block()); nots.pop("local_timestamp")
+        self.late(self.run_it([self.node(nots)]), "no time on this node")
+
+    def test_a_late_per_402_quote_is_paid_and_says_late(self):
+        quote = str(int(RAW) + 4242)
+        r = self.run_it([self.node(block(amount=quote, local_timestamp=str(int(time.time()) - 700)))], raw=quote)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertTrue(r.stdout.startswith("PAID %s by %s - %s raw to %s - landed late (" % (H, PAYER, quote, PAYEE)), r.stdout)
+        self.assertIn("serve it", r.stdout)
+
+    def test_max_age_still_moves_the_line(self):
+        old = block(local_timestamp=str(int(time.time()) - 700))
+        r = self.run_it([self.node(old)], "3600")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertNotIn("late", r.stdout)
+
+    def test_text_says_late_is_paid_and_where_a_deadline_belongs(self):
+        flat = " ".join(self.txt.split())
+        for s in ("LATE IS PAID.", "exit 6, LATE", "Never a 402.", "for the payer to check BEFORE it broadcasts",
+                  "NOT PAID is only for a block that did not pay you"):
+            self.assertIn(s, flat, s)
+        self.assertNotIn("confirmed and recent", flat)
+        self.assertNotIn("your price, recent,", flat)
 
     def test_not_found(self):
         self.refused(self.run_it([self.node({"error": "Block not found"})]), "Block not found")

@@ -49,7 +49,7 @@ class PythonPathEnd(unittest.TestCase):
 
     def test_step1_says_where_the_python_path_ends(self):
         # challenge #146: the Python path no longer ends at receive - nano-seed.txt has a stdlib receive
-        for s in ("WHERE THE PYTHON PATH ENDS TODAY", "RECEIVING nano-seed.txt needs no node either now",
+        for s in ("WHERE THE PYTHON PATH ENDS TODAY", "RECEIVING nano-seed.txt needs no Node.js either now",
                   "RECEIVE nano-seed.txt WITH THE STANDARD LIBRARY", "waits RECEIVABLE",
                   "the sender cannot pull it back"):
             self.assertIn(s, self.step1)

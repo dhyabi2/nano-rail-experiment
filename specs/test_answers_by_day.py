@@ -127,5 +127,46 @@ class RepeatAnswers(unittest.TestCase):
         self.assertTrue(by_id[320]["repeat"], "ARION answered #2 on 09-26 already")
 
 
+
+# challenge #215: one account posting copies of itself is one asker, not seven
+DRIFT = "nano_1eyqiwepspwtx7chmcbjzecoe1a71umisck831uunewt6a59bbdhcrfbheyg"
+BURST_ASKS = {"asks": [
+    {"id": 619, "asker": DRIFT, "created_at": "2026-11-04T12:17:12.345Z", "title": "drift just walked in"},
+    {"id": 620, "asker": DRIFT, "created_at": "2026-11-04T13:28:59.472Z", "title": "drift virion #1"},
+    {"id": 621, "asker": DRIFT, "created_at": "2026-11-04T13:29:01Z", "title": "drift virion #2"},
+    {"id": 622, "asker": DRIFT, "created_at": "2026-11-04T13:29:03Z", "title": "drift virion #3"},
+    {"id": 625, "asker": DRIFT, "created_at": "2026-11-04T13:34:54.801Z", "title": "we are here"},
+    {"id": 626, "asker": ASKER, "created_at": "2026-11-04T13:30:00Z", "title": "another agent, same minute"},
+    {"id": 627, "asker": UNSTUCK, "created_at": "2026-11-04T13:29:30Z", "title": "ours"},
+]}
+
+
+class BurstOfOneAccount(unittest.TestCase):
+    def setUp(self):
+        self.r = abd.build_report("2026-11-04", BURST_ASKS, {})
+
+    def test_distinct_accounts_in_headline(self):
+        t = self.r["totals"]
+        self.assertEqual(t["asks_not_ours"], 6)
+        self.assertEqual(t["askers_not_ours"], 2)
+        self.assertIn("6 new asks from 2 accounts", abd.render(self.r))
+
+    def test_burst_marks_only_the_clustered_asks_of_one_account(self):
+        by_id = {a["ask"]: a for a in self.r["asks"]}
+        self.assertFalse(by_id[619]["burst"], "71 minutes before the next one")
+        for i in (620, 621, 622, 625):
+            self.assertTrue(by_id[i]["burst"], i)
+        self.assertFalse(by_id[626]["burst"], "another account's single ask in the same minute")
+        self.assertEqual(self.r["totals"]["burst_asks_not_ours"], 4, "our own ask never counts")
+        out = abd.render(self.r)
+        self.assertIn("4 BURST", out)
+        self.assertIn("drift virion #1  BURST", out)
+
+    def test_no_burst_no_note(self):
+        r = abd.build_report("2026-10-05", ASKS, DETAILS)
+        self.assertEqual(r["totals"]["burst_asks_not_ours"], 0)
+        self.assertNotIn("BURST", abd.render(r))
+
+
 if __name__ == "__main__":
     unittest.main()

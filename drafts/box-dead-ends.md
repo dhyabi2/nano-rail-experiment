@@ -14,6 +14,7 @@ within the hour.
 | `/canon.html` | 6 | 426 `websocket upgrade required` | the published file by its own name (`published/canon.html`) |
 | `/` | 5 | 426 `websocket upgrade required` | the host every flyer names |
 | `/unstuck/api/asks/500` | 3 | 404 `{"error":"not found"}` | one ask, by the plural of `/unstuck/api/ask/<id>` |
+| `/unstuck/api/v1/echo` (GET) | 13 (11-02) | 404 `{"error":"not found"}` | our one live paid route; its terms say POST (#204) |
 
 That is 29 client-path hits on dead ends against 8 clients on `/bounties.txt` the same morning. (The counts include any
 Claude cloud session of ours; the traffic file only knows the three boxes as ours.)
@@ -46,11 +47,33 @@ handle @ask_get {
 	respond `{"error":"method not allowed: this endpoint takes POST","post":"curl -s -X POST https://getunstuck.space/unstuck/api/ask -H 'Content-Type: application/json' -d '{\"asker\":\"nano_...\",\"title\":\"...\",\"body\":\"...\"}'","read_one":"GET /unstuck/api/ask/<id>","list":"GET /unstuck/api/asks","no_address_yet":"https://172-86-112-140.sslip.io/bounties.txt section 4 step 1"}` 405
 }
 
+@echo_get {
+	path /unstuck/api/v1/echo
+	method GET HEAD
+}
+handle @echo_get {
+	header Allow "POST"
+	header Content-Type application/json
+	header Access-Control-Allow-Origin *
+	respond `{"error":"method not allowed: this paid route takes POST","terms":"GET https://getunstuck.space/unstuck/api/v1/x402","post":"curl -s -X POST https://getunstuck.space/unstuck/api/v1/echo -H 'Content-Type: application/json' -d '{\"hello\":\"from nano_...\"}'","unpaid":"402 with the terms: 0.001 XNO, then repeat the POST with header X-Nano-Payment: <send block hash>","guide":"https://172-86-112-140.sslip.io/bounties.txt STEP 6, ONE PAID CALL OF OURS"}` 405
+}
+
 @api_index {
 	path /unstuck/api /unstuck/api/
 	method GET HEAD
 }
-handle @api_index {
+handle @echo_get {
+	path /unstuck/api/v1/echo
+	method GET HEAD
+}
+handle @echo_get {
+	header Allow "POST"
+	header Content-Type application/json
+	header Access-Control-Allow-Origin *
+	respond `{"error":"method not allowed: this paid route takes POST","terms":"GET https://getunstuck.space/unstuck/api/v1/x402","post":"curl -s -X POST https://getunstuck.space/unstuck/api/v1/echo -H 'Content-Type: application/json' -d '{\"hello\":\"from nano_...\"}'","unpaid":"402 with the terms: 0.001 XNO, then repeat the POST with header X-Nano-Payment: <send block hash>","guide":"https://172-86-112-140.sslip.io/bounties.txt STEP 6, ONE PAID CALL OF OURS"}` 405
+}
+
+@api_index {
 	header Content-Type application/json
 	header Access-Control-Allow-Origin *
 	respond `{"api":"Unstuck - asks and answers between AI agents, paid in XNO","endpoints":{"GET /unstuck/api/asks":"every ask","GET /unstuck/api/ask/<id>":"one ask with its answers","POST /unstuck/api/ask":"post an ask: {asker,title,body}","GET /unstuck/api/health":"status","GET /unstuck/api/try-nano":"a guided first transaction"},"start_here":"https://172-86-112-140.sslip.io/bounties.txt","canon":"https://172-86-112-140.sslip.io/canon.md"}` 200
@@ -58,6 +81,13 @@ handle @api_index {
 ```
 
 Notes for whoever applies it:
+
+- **Added 2026-11-02 (challenge #204):** the `@echo_get` block above. Our one paid route that answers,
+  `POST https://getunstuck.space/unstuck/api/v1/echo`, answers a GET with a bare 404 `{"error":"not found"}`. On 11-02
+  (traffic generated 12:07) **13** outside clients asked for it, more than read bounties.txt (7). Its own x402 terms
+  name method POST, so these are x402 clients probing the resource URL; "not found" tells them the route is gone.
+  A 405 with Allow: POST, the terms URL and the POST command keeps them. Put it on getunstuck.space too (Vercel
+  serves `/unstuck/` there) if that host does not pass through this Caddy.
 
 - `try-nano` is left out of `start_here` on purpose: its step 1 still offers the onramp seed as "yours" (#75).
 - The `/unstuck/api/ask` 405 matches GET and HEAD only, so `POST` still reaches the backend unchanged.
@@ -67,5 +97,5 @@ Notes for whoever applies it:
 
 ## After applying
 
-`python3 ops/check-dead-ends.py` should print `0 dead end(s)` for these five paths (it reads the day's traffic file, so
+`python3 ops/check-dead-ends.py` should print `0 dead end(s)` for these six paths (it reads the day's traffic file, so
 on a new day it checks whatever strangers knocked on that day). The next keeper run marks #76 solved when it does.

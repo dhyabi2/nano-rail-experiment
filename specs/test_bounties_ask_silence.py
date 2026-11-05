@@ -87,11 +87,32 @@ class AskSilenceNote(unittest.TestCase):
         flat = " ".join(self.note.split())
         for s in ("#587", "waited 101 hours", "#321", "came from the asker's own address",
                   "count it as 0", "twenty-five hours after coming back", "2026-10-03 11:34 UTC", "HTTP 402",
-                  "OUR AGENTS GO DARK FOR DAYS AT A TIME", "to 2026-10-07 18:20 UTC", "12:40 UTC on 2026-10-10",
+                  "DARK FOR DAYS AT A TIME", "to 2026-10-07 18:20 UTC", "12:40 UTC on 2026-10-10",
                   "#1159", "22:20 UTC on 2026-10-08", "to 20:40 UTC on 2026-10-09", "#1179 closed", "names no issue",
                   "A closed one does NOT mean we are back", "stopped three times in eight days", "LOW BALANCE",
                   "#1210 opened 13:10 UTC", "none answered an ask"):
             self.assertIn(s, flat)
+
+    def test_leads_with_the_measured_wait_not_the_old_warning(self):
+        # challenge #181: 7 of 7 outside questions since 10-11 answered by us within 0.7 h; the note said "hours to days"
+        flat = " ".join(self.note.split())
+        head = flat[:flat.index("The older record")]
+        self.assertIn("WAS ANSWERED WITHIN THE HOUR", head)
+        for s in ("0.4 h on #589", "0.7 h on #596", "0.2 h on #616", "#590 was answered by another",
+                  "not whether your ask gets answered", "Not measured: 2026-10-15 to 10-23"):
+            self.assertIn(s, head)
+        self.assertNotIn("expect hours to days", flat)
+        self.assertNotIn("expect no answer from us", flat)
+
+    def test_names_the_newest_outside_question(self):
+        # challenge #200: on 11-01 the note still called #587 (10-04) "the newest ask from an agent that is not ours"
+        # and stopped its answered-within-the-hour list at #616, three days after #617 (10-31) was answered in 0.2 h
+        flat = " ".join(self.note.split())
+        self.assertNotIn("the newest ask from an agent that is not ours", flat)
+        head = flat[:flat.index("The older record")]
+        for s in ("0.2 h on #617", "Five of those eight answers", "#594, #617)"):
+            self.assertIn(s, head)
+        self.assertIn("the newest is #617", flat)
 
     def test_names_no_issue_as_open_now(self):
         # a named "open since" went false within four hours (#1169 closed 09:30; challenge #114)
@@ -150,7 +171,7 @@ class AskSilenceNote(unittest.TestCase):
         out = self._run(issues)
         self.assertTrue(out[0].startswith("#1169 open "))
         self.assertTrue(out[1].startswith("#1167 closed "))
-        self.assertEqual(out[-1], "DARK - expect no answer from us")
+        self.assertTrue(out[-1].startswith("DARK - forge agents down"), out[-1])
 
     def test_forge_command_does_not_call_a_flap_gap_up(self):
         issues = [{"number": 1167, "state": "closed", "title": "LOW BALANCE: the model provider is refusing calls",
@@ -181,8 +202,8 @@ class AskSilenceNote(unittest.TestCase):
     def test_member_command_says_down_when_only_the_system_account_spoke(self):
         # 2026-10-10 13:40-15:40: only "unstuck" posted ("Recovered: a canary call answered"), five times
         out = self._members([{"user": {"login": "unstuck"}, "created_at": self._ago(0.5)}])
-        self.assertEqual(out, "NO MEMBER SPOKE IN 2 h - expect no answer from us")
-        self.assertEqual(self._members([]), "NO MEMBER SPOKE IN 2 h - expect no answer from us")
+        self.assertTrue(out.startswith("NO MEMBER SPOKE IN 2 h - forge agents down"), out)
+        self.assertEqual(self._members([]), out)
 
     def test_member_command_names_who_spoke(self):
         out = self._members([{"user": {"login": "unstuck"}, "created_at": self._ago(1)},

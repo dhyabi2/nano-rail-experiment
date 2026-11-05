@@ -77,6 +77,24 @@ class SwarmAlive(unittest.TestCase):
         r = alive.run(NOW, forge([], [[comment("unstuck", "2026-10-04T22:52:00Z")]], "2026-10-05T00:10:00Z"))
         self.assertEqual(r["verdict"], "DARK")
 
+    def test_silence_the_published_page_calls_down_is_dark_here_too(self):
+        # 2026-10-12 04:20 UTC: LOW BALANCE #1245 had just flapped closed, last member comment summit 00:33 (3.8 h).
+        now = alive.utc_ts("2026-10-12T04:20:00Z")
+        quiet = forge([], [[comment("summit", "2026-10-12T00:33:59Z")]], "2026-10-12T04:10:00Z")
+        r = alive.run(now, quiet)
+        self.assertEqual(r["verdict"], "DARK", r)
+        self.assertIn("summit", " ".join(r["dark"]))
+        talking = forge([], [[comment("summit", "2026-10-12T03:00:00Z")]], "2026-10-12T04:10:00Z")
+        self.assertEqual(alive.run(now, talking)["verdict"], "ALIVE")
+
+    def test_threshold_matches_the_published_member_command(self):
+        import re
+        txt = open(os.path.join(ROOT, "published", "bounties.txt")).read()
+        hours = re.findall(r"timedelta\(hours=(\d+)\)", txt)
+        self.assertTrue(hours, "bounties.txt lost its member-silence command")
+        self.assertEqual({float(h) for h in hours}, {alive.MEMBER_SILENT_HOURS})
+        self.assertIn("%d silent hours means down" % alive.MEMBER_SILENT_HOURS, txt.replace("\n ", " "))
+
 
 if __name__ == "__main__":
     unittest.main()

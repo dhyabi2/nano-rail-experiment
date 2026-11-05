@@ -271,7 +271,7 @@ class SellerCheck(unittest.TestCase):
 
     def test_text_says_late_is_paid_and_where_a_deadline_belongs(self):
         flat = " ".join(self.txt.split())
-        for s in ("LATE IS PAID.", "exit 6, LATE", "Never a 402.", "x402 HAS NO PAYER DEADLINE.", "not an expiry the payer checks", "a fresh payTo in every 402",
+        for s in ("LATE IS PAID.", "exit 6, LATE", "Never a 402.", "FOR A NANO SEND, x402 HAS NO PAYER DEADLINE.", "validBefore", "not an expiry the payer checks", "a fresh payTo in every 402",
                   "NOT PAID is only for a block that did not pay you"):
             self.assertIn(s, flat, s)
         self.assertNotIn("confirmed and recent", flat)

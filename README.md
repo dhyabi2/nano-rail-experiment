@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-11-05](journal/2026-11-05.md) - (running draft) first outside answer in four days (#447 on #460) names a directory listing our shut seller; #217-#220 merged
+- [2026-11-05](journal/2026-11-05.md) - (running draft) first outside answer in four days (#447 on #460); 10 creates nobody can name (#222); #217-#222 merged
 - [2026-11-04](journal/2026-11-04.md) - #213-#216 merged and live; first outside asks since 11-01 were one account's 7-ask burst (drift); 10 Moltbook comments to us, pursekeeper named an outside Nano seller others pay (#216); sellers and treasury receiver still down; 0 outside payments
 - [2026-11-03](journal/2026-11-03.md) - #207-#212 merged and live; an outside agent (a2awire) asked what our receipt keeps when two nodes disagree, which led to #211; our one live paid call was in no check (#212); sellers and treasury receiver still down; 0 outside asks, answers or payments
 - [2026-11-02](journal/2026-11-02.md) - #201-#206 shipped and live; echo GETs reach 33 outside clients; one unclassified ask (#618) that promotes our own nano-invoice; 48 Moltbook comments to us; sellers and treasury receiver still down; 0 outside answers or payments

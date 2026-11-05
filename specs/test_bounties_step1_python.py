@@ -16,6 +16,7 @@ Run: python3 specs/test_bounties_step1_python.py
 import os
 import re
 import shutil
+import signal
 import stat
 import subprocess
 import sys
@@ -266,6 +267,71 @@ class Step1Python(unittest.TestCase):
         shim = ("import signal\nreal = os.write\n"
                 "def w(fd, b):\n    n = real(fd, bytes(b[:5]))\n    os.kill(os.getpid(), signal.SIGTERM)\n    return n\n"
                 "os.write = w")
+        self.assert_interrupted_cleanly(self.run_shimmed(shim, target), target)
+
+    def test_a_signal_while_the_handlers_are_put_back_is_cleaned_up(self):
+        # Break review of #89 at 83b13df: the handlers were reset AFTER the try, so a SIGHUP landing between the end of
+        # the try and the reset gave a Stop traceback. Here the SIGHUP is sent at the moment SIGTERM is put back.
+        if not hasattr(signal, "SIGHUP"):
+            self.skipTest("no SIGHUP on this platform")
+        target = os.path.join(self.dir, "x", "nano-seed.txt")
+        shim = ("import signal\nreal = signal.signal\nsent = []\n"
+                "def sig(s, h):\n"
+                "    if s == signal.SIGTERM and h is signal.SIG_DFL and not sent:\n"
+                "        sent.append(1); os.kill(os.getpid(), signal.SIGHUP)\n"
+                "    return real(s, h)\n"
+                "signal.signal = sig")
+        r = self.run_shimmed(shim, target)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertIn("interrupted", r.stderr)
+        self.assert_interrupted_cleanly(r, target)
+
+    def run_with_handlers(self, setup, *args):
+        # Runs the script after `setup`, then reports (on stderr) the SIGTERM/SIGHUP handlers it left behind.
+        code = ("import os, signal, sys\n" + setup + "\n"
+                "try: exec(compile(open('nanokey.py').read(), 'nanokey.py', 'exec'))\n"
+                "except SystemExit: pass\n"
+                "h = lambda s: {signal.SIG_IGN: 'IGN', signal.SIG_DFL: 'DFL'}.get(signal.getsignal(s),"
+                " getattr(signal.getsignal(s), '__name__', '?'))\n"
+                "sys.stderr.write('LEFT TERM=%s HUP=%s\\n' % (h(signal.SIGTERM), h(signal.SIGHUP)))\n")
+        return subprocess.run([sys.executable, "-I", "-c", code, *args], cwd=self.dir, capture_output=True, text=True)
+
+    def test_the_handlers_found_are_put_back_not_reset_to_default(self):
+        # Review of #89 at 83b13df: the handlers were reset to SIG_DFL, undoing nohup (SIGHUP ignored) or a caller's own.
+        if not hasattr(signal, "SIGHUP"):
+            self.skipTest("no SIGHUP on this platform")
+        target = os.path.join(self.dir, "nano-seed.txt")
+        r = self.run_with_handlers("def mine(n, f): pass\nsignal.signal(signal.SIGTERM, mine)\n"
+                                   "signal.signal(signal.SIGHUP, signal.SIG_IGN)", target)
+        self.assertIn("LEFT TERM=mine HUP=IGN", r.stderr)
+        with open(target) as f:
+            self.assertRegex(f.read(), r"^[0-9A-F]{64}\n$")
+
+    def test_under_nohup_a_hangup_mid_write_is_still_ignored(self):
+        # nohup ignores SIGHUP so the job outlives the terminal; the script must not turn a hangup into an abort.
+        if not hasattr(signal, "SIGHUP"):
+            self.skipTest("no SIGHUP on this platform")
+        target = os.path.join(self.dir, "nano-seed.txt")
+        setup = ("signal.signal(signal.SIGHUP, signal.SIG_IGN)\nreal = os.write\n"
+                 "def w(fd, b):\n    n = real(fd, bytes(b[:5])); os.kill(os.getpid(), signal.SIGHUP); return n\n"
+                 "os.write = w")
+        r = self.run_with_handlers(setup, target)
+        self.assertNotIn("interrupted", r.stderr)
+        self.assertTrue(r.stdout and ADDR.match(r.stdout.splitlines()[0].split()[-1]), r.stdout + r.stderr)
+        with open(target) as f:
+            self.assertRegex(f.read(), r"^[0-9A-F]{64}\n$")
+        self.assertIn("HUP=IGN", r.stderr)
+
+    def test_a_signal_during_the_create_is_held_until_it_is_recorded(self):
+        # Review of #89: a signal landing just after os.open/os.mkdir returned but before mine=True/made.append ran
+        # left an empty seed file or folder behind. The create and its record now run with the signals blocked.
+        if not hasattr(signal, "pthread_sigmask"):
+            self.skipTest("no pthread_sigmask on this platform")
+        target = os.path.join(self.dir, "x", "nano-seed.txt")
+        shim = ("import signal\nro = os.open\n"
+                "def op(p, *a, **k):\n    fd = ro(p, *a, **k)\n"
+                "    if p.endswith('nano-seed.txt'): os.kill(os.getpid(), signal.SIGTERM)\n    return fd\n"
+                "os.open = op")
         self.assert_interrupted_cleanly(self.run_shimmed(shim, target), target)
 
     def test_a_write_that_takes_nothing_is_refused_not_looped_on(self):

@@ -28,6 +28,7 @@ import datetime
 import importlib.util
 import json
 import os
+import re
 import sys
 import urllib.request
 
@@ -55,14 +56,45 @@ def fetch_json(url):
         return json.load(r)
 
 
+DAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+class Unknown(Exception):
+    """A source answered in a shape we cannot read: the result is UNKNOWN, never a count of zero."""
+
+
+def _count(value, what):
+    if isinstance(value, bool) or not isinstance(value, (int, str)):
+        raise Unknown(f"{what} is {value!r}, not a count")
+    try:
+        n = int(value)
+    except ValueError:
+        raise Unknown(f"{what} is {value!r}, not a count")
+    if n < 0:
+        raise Unknown(f"{what} is {n}, a negative count")
+    return n
+
+
 def build(day, traffic, answers_report):
-    """traffic: the day's /ai/traffic file. answers_report: answers-by-day.build_report(...) for the same day."""
-    creates = int((traffic.get("status") or {}).get("201", 0))
-    t = answers_report["totals"]
-    named = int(t["asks"]) + int(t["answers"])  # ours included: our posts get a 201 too
+    """traffic: the day's /ai/traffic file. answers_report: answers-by-day.build_report(...) for the same day.
+
+    Raises Unknown when the traffic file has no `status` table (missing, renamed, not an object) or a count is not
+    an integer: a confident "0 creates" from a file we could not read is the one wrong answer this tool can give.
+    A status table without a "201" key is a day with no creates (0)."""
+    if not isinstance(traffic, dict):
+        raise Unknown(f"traffic file is a {type(traffic).__name__}, not an object")
+    status = traffic.get("status")
+    if not isinstance(status, dict):
+        raise Unknown(f"traffic file has no status table (status={status!r})")
+    creates = _count(status.get("201", 0), 'status["201"]')
+    t = answers_report.get("totals") if isinstance(answers_report, dict) else None
+    if not isinstance(t, dict):
+        raise Unknown("answers report has no totals")
+    asks, answers = _count(t.get("asks"), "totals.asks"), _count(t.get("answers"), "totals.answers")
+    named = asks + answers  # ours included: our posts get a 201 too
     unexplained = max(0, creates - named)
     return {"day": day, "traffic_generated": traffic.get("generated_utc"), "complete_day": bool(traffic.get("complete_day")),
-            "creates_201": creates, "asks": int(t["asks"]), "answers": int(t["answers"]), "named": named,
+            "creates_201": creates, "asks": asks, "answers": answers, "named": named,
             "unexplained": unexplained, "more_named_than_created": named > creates,
             "possible_creators": CREATORS if unexplained else []}
 
@@ -88,6 +120,9 @@ def main():
     ap.add_argument("day", nargs="?", default=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d"))
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args()
+    if not DAY.match(args.day):
+        print(f"UNKNOWN: day {args.day!r} is not YYYY-MM-DD. Nothing is measured - not zero.", file=sys.stderr)
+        sys.exit(2)
     abd = _load_abd()
     try:
         traffic = fetch_json(TRAFFIC % args.day)
@@ -96,7 +131,11 @@ def main():
     except (OSError, ValueError) as e:
         print(f"UNKNOWN: could not read a source ({e}). Nothing is measured - not zero.", file=sys.stderr)
         sys.exit(2)
-    r = build(args.day, traffic, abd.build_report(args.day, asks_doc, details))
+    try:
+        r = build(args.day, traffic, abd.build_report(args.day, asks_doc, details))
+    except Unknown as e:
+        print(f"UNKNOWN: {e}. Nothing is measured - not zero.", file=sys.stderr)
+        sys.exit(2)
     print(json.dumps(r, indent=1) if args.json else render(r))
 
 

@@ -54,9 +54,35 @@ class CreatesByDay(unittest.TestCase):
         self.assertIn("(partial day)", out)
         self.assertIn("partial or missed", out)
 
-    def test_missing_status_is_zero_creates_not_a_crash(self):
-        r = cbd.build("2026-11-06", {"generated_utc": None, "complete_day": False}, report(0, 0))
+    def test_missing_status_is_unknown_not_zero(self):
+        # A file with no status table was not read; "0 creates" from it is a confident false zero.
+        with self.assertRaises(cbd.Unknown):
+            cbd.build("2026-11-06", {"generated_utc": None, "complete_day": False}, report(0, 0))
+
+    def test_renamed_or_non_object_status_is_unknown(self):
+        for bad in ({"statuses": {"201": 3}}, {"status": ["201", 3]}, {"status": None}):
+            with self.assertRaises(cbd.Unknown, msg=bad):
+                cbd.build("2026-11-06", bad, report(0, 0))
+
+    def test_non_int_201_is_unknown_not_a_traceback(self):
+        for bad in (None, "many", 1.5, True, -1):
+            with self.assertRaises(cbd.Unknown, msg=repr(bad)):
+                cbd.build("2026-11-06", {"status": {"201": bad}}, report(0, 0))
+
+    def test_list_traffic_file_is_unknown_not_attribute_error(self):
+        with self.assertRaises(cbd.Unknown):
+            cbd.build("2026-11-06", [{"201": 3}], report(0, 0))
+
+    def test_status_without_201_is_a_day_with_no_creates(self):
+        r = cbd.build("2026-11-06", {"status": {"200": 40}}, report(0, 0))
         self.assertEqual(r["creates_201"], 0)
+
+    def test_bad_day_exits_2_before_any_fetch(self):
+        import subprocess, sys
+        p = subprocess.run([sys.executable, os.path.join(ROOT, "ops", "creates-by-day.py"), "2026-11-03/../deploy-status"],
+                           capture_output=True, text=True, timeout=30)
+        self.assertEqual(p.returncode, 2)
+        self.assertIn("UNKNOWN", p.stderr)
 
 
 if __name__ == "__main__":

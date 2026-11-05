@@ -227,9 +227,11 @@
    such folder allowed) it stops with one line, "key_path_unwritable: <path>:
    <reason>", leaves no file and makes no address - no traceback. Run it again
    on the same path and it prints the address of the seed already there (never
-   the seed) and leaves the file as it was, so a lost address is never lost:
+   the seed) and leaves the file as it was, so a lost address is never lost.
+   Stopped mid-write (Ctrl-C, SIGTERM) it removes the half-written file, so a
+   rerun is never refused by it:
    cat > nanokey.py <<'EOF'
-import hashlib, os, secrets, sys
+import hashlib, os, secrets, signal, sys
 A = "13456789abcdefghijkmnopqrstuwxyz"; p = 2**255 - 19; d = -121665 * pow(121666, p - 2, p) % p
 def add(P, Q):
     t = d * P[0] * Q[0] * P[1] * Q[1] % p
@@ -287,6 +289,10 @@ while not os.path.isdir(up):
     if os.path.lexists(up): bad(up + " is a file, not a folder")
     new.append(up); up = os.path.dirname(up)
 seed = secrets.token_bytes(32); made = []; fd = None; mine = False
+class Stop(BaseException): pass  # SIGTERM/SIGHUP would kill us mid-write with no cleanup: make them an exception
+def stop(n, _): raise Stop(n)
+SIGS = [getattr(signal, s) for s in ("SIGINT", "SIGTERM", "SIGHUP") if hasattr(signal, s)]
+for s in SIGS[1:]: signal.signal(s, stop)
 try:
     for up in reversed(new): os.mkdir(up, 0o700); made.append(up)  # EVERY missing folder is 700
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600); mine = True
@@ -299,14 +305,18 @@ try:
     m = os.fstat(fd).st_mode & 0o777  # vfat and some mounts ignore the 600 asked for; Windows always says 666
     if os.name != "nt" and m & 0o077: raise OSError(0, "this disk ignores file modes (got %o): others could read the seed" % m)
     f, fd = fd, None; os.close(f)  # never closed twice: a failed close may already have freed it
-except OSError as e:
+except BaseException as e:  # ANY stop mid-write (an error, Ctrl-C, SIGTERM) leaves no partial seed and no folders
+    for s in SIGS: signal.signal(s, signal.SIG_IGN)  # a second Ctrl-C cannot cut the cleanup short
     if fd is not None:
         try: os.close(fd)
         except OSError: pass
     for q in ([path] if mine else []) + made[::-1]:
         try: os.unlink(q) if q == path else os.rmdir(q)
         except OSError: pass
-    bad(e.strerror or str(e))
+    if isinstance(e, OSError): bad(e.strerror or str(e))
+    if not isinstance(e, (Stop, KeyboardInterrupt)): raise
+    sys.exit("interrupted: no seed file was left at %s and no address was made. Run it again." % path)
+for s in SIGS[1:]: signal.signal(s, signal.SIG_DFL)
 told(seed, "written to")
 EOF
    python3 nanokey.py --test   # must print "OK test vector" (docs.nano.org's

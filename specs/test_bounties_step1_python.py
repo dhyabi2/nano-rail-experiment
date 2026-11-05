@@ -74,7 +74,7 @@ class Step1Python(unittest.TestCase):
 
     def test_stdlib_only(self):
         mods = set(re.findall(r"^import (.*)$", self.script, re.M)[0].replace(" ", "").split(","))
-        self.assertEqual(mods, {"hashlib", "os", "secrets", "sys"})
+        self.assertEqual(mods, {"hashlib", "os", "secrets", "signal", "sys"})
         self.assertNotIn("from ", self.script)
 
     def test_passes_the_published_test_vector(self):
@@ -237,6 +237,36 @@ class Step1Python(unittest.TestCase):
         self.assertRegex(seed, r"^[0-9A-F]{64}\n$")
         self.assertNotIn(seed.strip(), r.stdout + r.stderr)
         self.assertTrue(ADDR.match(r.stdout.splitlines()[0].split()[-1]))
+
+    def assert_interrupted_cleanly(self, r, target):
+        self.assertNotEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertNotIn("nano_", r.stdout + r.stderr)
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertFalse(os.path.lexists(target), "an interrupted write left a partial seed file")
+        self.assertEqual(self.listing(), ["nanokey.py"])
+        # The next run is not refused by a leftover: it makes the wallet.
+        r2 = self.run_it(target)
+        self.assertEqual(r2.returncode, 0, r2.stderr)
+        self.assertRegex(open(target).read(), r"^[0-9A-F]{64}\n$")
+
+    def test_ctrl_c_mid_write_leaves_no_partial_seed(self):
+        # Review of #89 round 4: only OSError cleaned up, so a Ctrl-C (KeyboardInterrupt) after the first bytes left
+        # an empty or partial mode-600 file that every later run refused as "not a 64-hex seed".
+        target = os.path.join(self.dir, "x", "y", "nano-seed.txt")
+        shim = ("real = os.write\n"
+                "def w(fd, b):\n    real(fd, bytes(b[:5]))\n    raise KeyboardInterrupt\n"
+                "os.write = w")
+        self.assert_interrupted_cleanly(self.run_shimmed(shim, target), target)
+
+    @unittest.skipIf(os.name == "nt", "SIGTERM cannot be delivered to oneself mid-call on Windows")
+    def test_sigterm_mid_write_leaves_no_partial_seed(self):
+        # SIGTERM's default action kills the process with no Python cleanup at all; the script must catch it while
+        # the seed is being written and remove what it made.
+        target = os.path.join(self.dir, "x", "nano-seed.txt")
+        shim = ("import signal\nreal = os.write\n"
+                "def w(fd, b):\n    n = real(fd, bytes(b[:5]))\n    os.kill(os.getpid(), signal.SIGTERM)\n    return n\n"
+                "os.write = w")
+        self.assert_interrupted_cleanly(self.run_shimmed(shim, target), target)
 
     def test_a_write_that_takes_nothing_is_refused_not_looped_on(self):
         target = os.path.join(self.dir, "nano-seed.txt")

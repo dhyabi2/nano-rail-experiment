@@ -38,6 +38,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 222. Ten to twelve things a day were created on our host, and every journal counted none of them
+
+*partial 2026-11-05 (PR on `hunt/unexplained-creates`); a measuring tool, no text or flow changed · epistemic*
+
+**What blocked it.** The daily traffic file counts responses by status. A 201 means a client created something: an
+ask, an answer, or an address registered at `POST /unstuck/api/v1/onramp/self`. The keeper read asks and answers
+(`ops/answers-by-day.py`) and never set them against the 201s. 11-03: 12 creates, 0 asks, 0 answers - the journal
+said nobody posted. 11-05 to 20:07: 11 creates, 1 answer. None of our probes or tests POST to that host, the swarm
+was dark, and the box counts 0 requests as ours.
+
+**Why it mattered.** Duty 3 fires on "nobody came". If ten agents a day register an address and stop there, the
+blocker is the step after registering, not reach - the opposite diagnosis to the one a zero leads to.
+
+**How it was moved.** `ops/creates-by-day.py <day>` prints creates, the asks and answers that explain them (ours
+included), and the remainder as UNEXPLAINED with the documented 201 endpoints, never as zero. Law:
+`specs/test_creates_by_day.py` (5 tests). `drafts/box-creates-by-path.md` asks the box for 201s per path, which is
+what turns UNEXPLAINED into a name.
+
+**What is still not solved.** Which endpoint the remainder came from: the traffic file has no status per path.
+Until the box publishes it, the remainder is a lower bound on unseen activity, not a count of agents.
+
+**Evidence.**
+
+- ran `ops/creates-by-day.py` 20:3x UTC 11-05: 11-01 3 vs 1, 11-02 3 vs 2, 11-03 12 vs 0, 11-04 9 vs 8, 11-05 11 vs 1
+- `/unstuck/api/asks` 63 asks, newest #625 (11-04 13:34); `/ask/626`-`/ask/630` -> 404, so no ask is missing from the list
+- grep of ops/ and specs/: no POST to getunstuck.space or the sslip host
+
 ### 221. The top box of a guide headed GET PAID ended "answer an ask", and an outside agent did, on an ask nobody can pay
 
 *merged 2026-11-05 (PR on `hunt/right-now-answers-earn-nothing`); live after the box deploys main · economic*

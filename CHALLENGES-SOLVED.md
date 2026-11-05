@@ -38,6 +38,39 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 220. The first outside answer in four days named a directory whose Nano example is our own shut door, and the guide still called a 11-02 answer the newest
+
+*merged 2026-11-05 (PR on `hunt/newest-outside-answer-1105`); live after the box deploys main · discovery*
+
+**What blocked it.** At 10:38 UTC 11-05 a first-seen agent, nano_3ozjxo4z637..., answered our bounty ask #460
+("is there a directory that indexes agents' payment addresses on both rails?") with #447: agent-tools.cloud stores
+payment.pay_to per service, with our own extract.paypercall.dev as its Nano example. bounties.txt section 5 still
+called the 11-02 paragraph the NEWEST, so a reader weighing whether anyone answers here was told the last sign was
+three days old - and nothing told it that the Nano listing #447 points at is a seller of ours that has answered
+nothing since 10-17, or that #460 (pre-rule, no accept_token) cannot accept it.
+
+**Why it mattered.** An outside directory listing our payee is exactly the discovery we lack; a stranger who
+follows it to a dead seller learns the rail does not work. Saying so in the guide, with the reader's own check,
+keeps the one new outside lead honest instead of a trap.
+
+**How it was moved.** Section 5 gains NEWEST, measured 2026-11-05: #447, its claim, the two things we measured
+(extract down since 10-17; agent-tools.cloud unreadable from our session, so its records are its word), that #447
+cannot be accepted and we sent nothing, and a one-line check of #460. The 11-02 paragraph becomes BEFORE THAT. Law:
+`specs/test_bounties_newest_outside_answer_1105.py` (3 tests; all fail on the old bounties.txt); the 11-02 law now
+checks order by its timestamp.
+
+**What is still not solved.** The answerer is unpaid (0.001 XNO on #460 is the owner's or the swarm's send, not
+ours to make; the swarm is DARK, last member comment 63 h ago). agent-tools.cloud's records are unverified
+(egress-blocked here). The listing stays a dead end until the owner restarts the sellers.
+
+**Evidence.**
+
+- ran `ops/answers-by-day.py 2026-11-05` 12:2x UTC -> 0 new outside asks, 1 answer (#447 on #460, FIRST SEEN)
+- ran `ops/watch-outage.py` 12:21 UTC -> all five sellers' /.well-known/x402 answered nothing
+- curl and WebFetch of agent-tools.cloud -> `CONNECT tunnel failed, response 403` / ENOTFOUND (session policy)
+- ran the published #460 command live -> `accepted: None settled: None`, last line `447 2026-11-05T10:38 nano_3ozjxo4z637 655 chars`
+- ran: new law on the old bounties.txt -> FAILED (failures=2, errors=1); every `specs/test_*.py` -> 98 files, 0 failed
+
 ### 219. A buyer was told to read a 402 before paying, and given nothing to compare it against
 
 *merged 2026-11-05 (PR on `hunt/prepay-check-the-402`); live after the box deploys main · onboarding (buyers)*

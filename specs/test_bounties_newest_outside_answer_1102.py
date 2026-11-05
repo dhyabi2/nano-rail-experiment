@@ -29,7 +29,8 @@ class NewestOutsideAnswer1102(unittest.TestCase):
     def test_newest_is_no_longer_10_25(self):
         self.assertNotIn("NEWEST, measured 2026-10-25", self.block)
         self.assertIn("BEFORE THAT, measured 2026-10-25 16:20 UTC", self.block)
-        self.assertLess(self.block.index("NEWEST, measured 2026-11-02"), self.block.index("BEFORE THAT, measured 2026-10-25"))
+        # Since #447 (challenge #220) the 11-02 paragraph is BEFORE THAT, still above 10-25.
+        self.assertLess(self.block.index("measured 2026-11-02 00:20 UTC"), self.block.index("BEFORE THAT, measured 2026-10-25"))
 
     def test_names_both_newer_answerers_and_that_none_is_paid(self):
         for s in ("nano_1rfj7u4xf93", "#426-#437", "#438-#441", "#616", "Answer #444".lower(), "nano_1ujsozpx4uw",

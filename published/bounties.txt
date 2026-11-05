@@ -382,10 +382,11 @@
    such folder allowed) it stops with one line, "key_path_unwritable: <path>:
    <reason>", leaves no file and makes no address - no traceback. Run it again
    on the same path and it prints the address of the seed already there (never
-   the seed) and leaves the file as it was, so a lost address is never lost.
+   the seed) and leaves the file as it was, so a lost address is never lost
+   (exit 0; if others can read that file it warns and gives the chmod line).
    Stopped mid-write (Ctrl-C, SIGTERM) it removes the half-written file, so a
-   rerun is never refused by it; it puts back the signal handlers it found, so
-   under nohup a hangup stays ignored:
+   rerun is never refused by it; it puts back the signal handlers and signal
+   mask it found, so under nohup a hangup stays ignored:
    cat > nanokey.py <<'EOF'
 import hashlib, os, secrets, signal, sys
 A = "13456789abcdefghijkmnopqrstuwxyz"; p = 2**255 - 19; d = -121665 * pow(121666, p - 2, p) % p
@@ -415,7 +416,7 @@ if len(sys.argv) > 2 or len(sys.argv) > 1 and sys.argv[1].startswith("-"):
     sys.exit("not a seed path: %r - nothing was written. %s" % (" ".join(sys.argv[1:]), USE))
 path = os.path.abspath(os.path.expanduser(sys.argv[1] if len(sys.argv) > 1 else "nano-seed.txt"))  # a quoted ~ too
 def bad(why): sys.exit("key_path_unwritable: %s: %s. No file was left and no address was made."
-                       " Give a path you can write: python3 nanokey.py /abs/writable/dir/nano-seed.txt" % (path, why))
+                       " Give a path you can write: python3 nanokey.py <writable-dir>/nano-seed.txt" % (path, why))
 def dangling(q): return os.path.islink(q) and not os.path.exists(q)
 if dangling(path): bad("it is a symlink to " + os.readlink(path) + ", which does not exist - remove the link or give another path")
 if os.path.isdir(path): bad("that is a folder - give a file path inside it, e.g. " + os.path.join(path, "nano-seed.txt"))
@@ -431,14 +432,28 @@ def told(seed, how):
     say("ADDRESS (safe to publish): " + address(seed))
     say("SEED " + how + " " + path + (" (mode 600)." if os.name != "nt" and how == "written to" else ". Keep it private.")
         + " NEVER post, paste or send it - not even to us.")
-    say("Later steps read it with:  export NANO_SEED=$(cat '" + path.replace("'", "'\\''") + "')")
+    if os.name == "nt": say("Later steps read it with (PowerShell):  $env:NANO_SEED = (Get-Content -LiteralPath '"
+                            + path.replace("'", "''") + "' -TotalCount 1)")
+    else: say("Later steps (sh, bash, zsh) read it with:  export NANO_SEED=$(cat " + shq(path) + ")")
+def shq(s): return "'" + s.replace("'", "'\\''") + "'"
 if os.path.lexists(path):  # a rerun: never overwrite; give back the address of the seed already there, never the seed
-    try:
-        with open(path, "rb") as f: t = f.read(4096).strip()
+    reg = False; m = 0
+    try:  # O_NONBLOCK and a regular-file check: a FIFO or device at the path cannot hang the rerun
+        f = os.open(path, os.O_RDONLY | getattr(os, "O_NONBLOCK", 0) | getattr(os, "O_BINARY", 0))
+        try:
+            st = os.fstat(f); reg = st.st_mode & 0o170000 == 0o100000; m = st.st_mode & 0o777
+            t = os.read(f, 4096).strip() if reg else b""
+        finally: os.close(f)
         old = bytes.fromhex(t.decode("ascii")) if len(t) == 64 else b""
     except (OSError, ValueError): old = b""
-    if len(old) != 32: sys.exit(path + " already exists and is not a 64-hex seed - not overwriting it")
-    told(old, "already at"); sys.exit()  # the wallet you made before, unchanged
+    if len(old) != 32: sys.exit(path + " already exists and is not " + ("a 64-hex seed" if reg else "a regular file")
+                                + " - not overwriting it")
+    told(old, "already at")  # the wallet you made before, unchanged; exit 0 as for a new one
+    if os.name != "nt" and m & 0o077:
+        try: sys.stderr.write("WARNING: %s is mode %o - others on this machine can read this seed. Fix it with:"
+                              "  chmod 600 %s\n" % (path, m, shq(path)))
+        except Exception: pass
+    sys.exit()
 new = []; up = os.path.dirname(path)  # not `d`: that is the curve constant above
 while not os.path.isdir(up):
     if dangling(up): bad(up + " is a symlink to " + os.readlink(up) + ", which does not exist")
@@ -446,17 +461,23 @@ while not os.path.isdir(up):
     new.append(up); up = os.path.dirname(up)
 seed = secrets.token_bytes(32); made = []; fd = None; mine = False
 class Stop(BaseException): pass  # SIGTERM/SIGHUP would kill us mid-write with no cleanup: make them an exception
-def stop(n, _): raise Stop(n)
+done = []  # set by the first stop and first thing in cleanup: a second signal then cannot cut the cleanup short
+def stop(n, _):
+    if not done: done.append(n); raise Stop(n)
 SIGS = [getattr(signal, s) for s in ("SIGINT", "SIGTERM", "SIGHUP") if hasattr(signal, s)]
-was = {s: signal.getsignal(s) for s in SIGS[1:]}  # put back as found: under nohup SIGHUP stays ignored
+was = {s: signal.getsignal(s) for s in SIGS}  # put back as found: under nohup SIGHUP stays ignored
+def setsig(s, h):
+    try: signal.signal(s, h)
+    except ValueError: pass  # not the main thread: Python runs signal handlers only there, so none can land here
 hold = getattr(signal, "pthread_sigmask", None)  # POSIX: no signal lands between a create and its record
+old = None  # the caller's signal mask, put back as found (a SIGTERM the caller holds stays held)
 try:  # the handlers go in and come back out INSIDE the try: a signal at any point is cleaned up below
-    for s in SIGS[1:]:
-        if was[s] is not signal.SIG_IGN: signal.signal(s, stop)
-    if hold: hold(signal.SIG_BLOCK, SIGS)
+    for s in SIGS:
+        if was[s] is not signal.SIG_IGN: setsig(s, stop)
+    if hold: old = hold(signal.SIG_BLOCK, SIGS)
     for up in reversed(new): os.mkdir(up, 0o700); made.append(up)  # EVERY missing folder is 700
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600); mine = True
-    if hold: hold(signal.SIG_UNBLOCK, SIGS)
+    if hold: hold(signal.SIG_SETMASK, old)
     left = seed.hex().upper().encode() + b"\n"
     while left:  # os.write may write fewer bytes than asked: the whole seed is on disk or nothing is
         n = os.write(fd, left)
@@ -466,10 +487,12 @@ try:  # the handlers go in and come back out INSIDE the try: a signal at any poi
     m = os.fstat(fd).st_mode & 0o777  # vfat and some mounts ignore the 600 asked for; Windows always says 666
     if os.name != "nt" and m & 0o077: raise OSError(0, "this disk ignores file modes (got %o): others could read the seed" % m)
     f, fd = fd, None; os.close(f)  # never closed twice: a failed close may already have freed it
-    for s in SIGS[1:]: signal.signal(s, signal.SIG_DFL if was[s] is None else was[s])
+    for s in SIGS: setsig(s, signal.SIG_DFL if was[s] is None else was[s])
 except BaseException as e:  # ANY stop mid-write (an error, Ctrl-C, SIGTERM) leaves no partial seed and no folders
-    for s in SIGS: signal.signal(s, signal.SIG_IGN)  # a second Ctrl-C cannot cut the cleanup short
-    if hold: hold(signal.SIG_UNBLOCK, SIGS)  # (now ignored: whatever was held is dropped)
+    done.append(0)  # after this a signal that still reaches stop() is a no-op
+    now = hold(signal.SIG_BLOCK, SIGS) if hold else None
+    for s in SIGS: setsig(s, signal.SIG_IGN)  # a second Ctrl-C cannot cut the cleanup short
+    if hold: hold(signal.SIG_SETMASK, now if old is None else old)  # (now ignored: whatever was held is dropped)
     if fd is not None:
         try: os.close(fd)
         except OSError: pass
@@ -484,10 +507,11 @@ EOF
    python3 nanokey.py --test   # must print "OK test vector" (docs.nano.org's
                                # published seed-of-zeros vector) before you trust it
    python3 nanokey.py          # ADDRESS (safe to publish): nano_...
-   python3 nanokey.py /abs/writable/dir/nano-seed.txt   # same, at a path you
+   python3 nanokey.py <writable-dir>/nano-seed.txt   # same, at a path you
                                # choose; each missing folder is made mode 700
    python3 nanokey.py          # again: the SAME address, from the seed file
-                               # already there; nothing is overwritten
+                               # already there, exit 0; nothing is overwritten
+                               # (a file there that is not a seed: exit 1)
    Tested 2026-10-08 against nanocurrency 2.x: same address from the same seed.
    The seed file is the 64-hex seed every Nano tool takes; later steps that ask
    for NANO_SEED can read it with  export NANO_SEED=$(cat nano-seed.txt)

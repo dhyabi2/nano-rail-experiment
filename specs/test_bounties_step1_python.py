@@ -393,6 +393,117 @@ class Step1Python(unittest.TestCase):
         self.assertTrue(os.path.isfile(os.path.join(home, "keys", "nano-seed.txt")))
         self.assertFalse(os.path.exists(os.path.join(self.dir, "~")))
 
+    # Review of #89 at 5376993 (run 215), fix round 3.
+    def test_a_signal_the_caller_holds_stays_held_not_turned_into_an_abort(self):
+        # SIG_UNBLOCK after the create unblocked a SIGTERM the CALLER had blocked (and left pending): the run aborted.
+        # The mask is now put back as found, so the caller's held SIGTERM stays held and the wallet is made.
+        if not hasattr(signal, "pthread_sigmask"):
+            self.skipTest("no pthread_sigmask on this platform")
+        target = os.path.join(self.dir, "nano-seed.txt")
+        code = ("import os, signal, sys\nsignal.pthread_sigmask(signal.SIG_BLOCK, [signal.SIGTERM])\n"
+                "os.kill(os.getpid(), signal.SIGTERM)\n"
+                "try: exec(compile(open('nanokey.py').read(), 'nanokey.py', 'exec'))\n"
+                "except SystemExit: pass\n"
+                "sys.stderr.write('HELD=%s PENDING=%s\\n' % (signal.SIGTERM in signal.pthread_sigmask(signal.SIG_BLOCK, []),"
+                " signal.SIGTERM in signal.sigpending()))\n")
+        r = subprocess.run([sys.executable, "-I", "-c", code, target], cwd=self.dir, capture_output=True, text=True)
+        self.assertNotIn("interrupted", r.stderr)
+        self.assertIn("HELD=True PENDING=True", r.stderr)
+        self.assertTrue(r.stdout and ADDR.match(r.stdout.splitlines()[0].split()[-1]), r.stdout + r.stderr)
+        with open(target) as f:
+            self.assertRegex(f.read(), r"^[0-9A-F]{64}\n$")
+
+    def test_a_second_signal_during_the_cleanup_cannot_cut_it_short(self):
+        # A SIGTERM (or Ctrl-C) landing at the start of the cleanup, after a first SIGTERM, escaped it: a traceback and
+        # the half-written seed file and its folder left behind.
+        for second in ("SIGTERM", "SIGINT"):
+            target = os.path.join(self.dir, "x", "nano-seed.txt")
+            shim = ("import signal\nreal = os.write\nrs = signal.signal\nwrote = []\n"
+                    "def w(fd, b):\n    n = real(fd, bytes(b[:5])); wrote.append(1)\n"
+                    "    os.kill(os.getpid(), signal.SIGTERM); return n\n"
+                    "def sig(s, h):\n"
+                    "    if h is signal.SIG_IGN and wrote and len(wrote) == 1:\n"
+                    "        wrote.append(2); os.kill(os.getpid(), signal.%s)\n"
+                    "    return rs(s, h)\n"
+                    "os.write = w; signal.signal = sig" % second)
+            r = self.run_shimmed(shim, target)
+            self.assertNotIn("Traceback", r.stderr, second)
+            self.assertIn("interrupted", r.stderr, second)
+            self.assert_interrupted_cleanly(r, target)
+            shutil.rmtree(os.path.join(self.dir, "x"))
+
+    @unittest.skipUnless(hasattr(os, "mkfifo"), "no FIFOs on this platform")
+    def test_a_fifo_at_the_path_is_refused_not_hung_on(self):
+        target = os.path.join(self.dir, "nano-seed.txt")
+        os.mkfifo(target)
+        r = subprocess.run([sys.executable, "-I", "nanokey.py", target], cwd=self.dir, capture_output=True,
+                           text=True, timeout=30)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("already exists and is not a regular file", r.stderr)
+        self.assertNotIn("nano_", r.stdout + r.stderr)
+
+    @unittest.skipIf(os.name == "nt", "POSIX modes")
+    def test_a_world_readable_seed_already_there_is_warned_about(self):
+        target = os.path.join(self.dir, "nano-seed.txt")
+        with open(target, "w") as f:
+            f.write("0" * 64 + "\n")
+        os.chmod(target, 0o644)
+        r = self.run_it(target)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("WARNING: " + target + " is mode 644", r.stderr)
+        self.assertIn("chmod 600 '" + target + "'", r.stderr)
+        self.assertNotIn("0" * 64, r.stdout + r.stderr)
+        self.assertEqual(stat.S_IMODE(os.stat(target).st_mode), 0o644, "the rerun promises to leave the file as it was")
+        os.chmod(target, 0o600)
+        self.assertNotIn("WARNING", self.run_it(target).stderr)
+
+    def test_the_rerun_exit_codes_are_on_the_page(self):
+        # A rerun used to exit 1 ("already exists"); it now exits 0 with the address. Scripts that relied on the 1 read
+        # it here.
+        flat = " ".join(self.block.split())
+        self.assertIn("(exit 0; if others can read that file it warns", flat)
+        self.assertIn("(a file there that is not a seed: exit 1)", flat)
+        target = os.path.join(self.dir, "nano-seed.txt")
+        with open(target, "w") as f:
+            f.write("nope\n")
+        self.assertEqual(self.run_it(target).returncode, 1)
+
+    def test_the_placeholder_path_is_not_a_runnable_path(self):
+        # `/abs/writable/dir/nano-seed.txt` is a real path: pasted as root it made /abs/writable/dir with a seed in it.
+        self.assertNotIn("/abs/", self.block)
+        self.assertIn("python3 nanokey.py <writable-dir>/nano-seed.txt", self.block)
+        r = self.run_it(self.dir)
+        self.assertIn("python3 nanokey.py <writable-dir>/nano-seed.txt", r.stderr)
+        self.assertNotIn("/abs/", r.stderr)
+
+    def test_the_export_line_names_its_shell_and_windows_gets_powershell(self):
+        target = os.path.join(self.dir, "it's here", "nano-seed.txt")
+        r = self.run_it(target)
+        self.assertIn("Later steps (sh, bash, zsh) read it with:", r.stdout.splitlines()[-1])
+        shutil.rmtree(os.path.dirname(target))
+        r = self.run_shimmed("os.name = 'nt'", target)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        last = r.stdout.splitlines()[-1]
+        self.assertNotIn("export", last)
+        self.assertIn("$env:NANO_SEED = (Get-Content -LiteralPath '" + target.replace("'", "''") + "' -TotalCount 1)",
+                      last)
+
+    def test_run_off_the_main_thread_it_still_makes_the_wallet(self):
+        # signal.signal raises ValueError off the main thread; the run ended in a traceback (with nothing on disk).
+        target = os.path.join(self.dir, "nano-seed.txt")
+        code = ("import sys, threading\nout = []\n"
+                "def go():\n"
+                "    try: exec(compile(open('nanokey.py').read(), 'nanokey.py', 'exec'), {'__name__': '__main__'})\n"
+                "    except SystemExit as e: out.append(e.code)\n"
+                "    except BaseException as e: out.append(repr(e))\n"
+                "t = threading.Thread(target=go); t.start(); t.join()\n"
+                "sys.stderr.write('RESULT=%r\\n' % out)\n")
+        r = subprocess.run([sys.executable, "-I", "-c", code, target], cwd=self.dir, capture_output=True, text=True)
+        self.assertIn("RESULT=[]", r.stderr)  # it ran to the end: no exception, not even SystemExit
+        self.assertTrue(r.stdout and ADDR.match(r.stdout.splitlines()[0].split()[-1]), r.stdout + r.stderr)
+        with open(target) as f:
+            self.assertRegex(f.read(), r"^[0-9A-F]{64}\n$")
+
     def test_same_address_as_nanocurrency(self):
         if os.environ.get("NRE_OFFLINE") == "1" or not shutil.which("npm") or not shutil.which("node"):
             self.skipTest("node/npm not available (or NRE_OFFLINE=1)")

@@ -80,7 +80,7 @@ that is already forged passes unless the buyer gives the third argument. Reply d
 deadline in its 402 for the payer to check before it broadcasts. pursekeeper (Moltbook, 02:31 UTC 11-05, replying
 to us) answered that its 402 carries x402's `maxTimeoutSeconds` (60) and a session id, "neither is a deadline the
 payer checks", there is no expires-at field, and the client it serves reads neither. A seller following our text
-would write a deadline that binds nobody and then refuse payments that landed after it.
+would write a deadline that binds no Nano payer and then refuse payments that landed after it.
 
 **Why it mattered.** It is the same double-payment shape #217 removed, re-entered through advice instead of code.
 
@@ -93,14 +93,14 @@ quote was paid, and a late send to that address is still LATE IS PAID. Law: `spe
 (the extended text law fails on the old bounties.txt).
 
 **What is still not solved.** Subnano's window is pursekeeper's report, not measured by us. No outside seller is
-known to read this paragraph. Reply drafted, not sent (`drafts/reply-pursekeeper-no-payer-deadline-2026-11-05.md`).
+known to read this paragraph. Reply drafted, then withdrawn for overclaiming, not sent (`drafts/reply-pursekeeper-no-payer-deadline-2026-11-05.md`).
 
 **Evidence.**
 
 - read `data/moltbook-inbox.json` (generated 03:22 UTC 11-05): pursekeeper 02:31, quoted above
 - ran: the new `specs/test_bounties_seller_verify.py` on the old bounties.txt -> FAILED (failures=1)
 - ran 2026-11-05, after the Nano-send scoping fix (no CI runs these): `python3 specs/test_bounties_seller_verify.py`
-  -> "Ran 36 tests ... OK"; each `specs/test_*.py` run as `python3 <file>` -> 96 files, 0 failed
+  -> "Ran 36 tests ... OK"; each `specs/test_*.py` run as `python3 <file>` -> 97 files, 0 failed
 
 ### 217. Our seller checker told a buyer whose exact, confirmed payment landed late that it had not paid, and to pay again
 

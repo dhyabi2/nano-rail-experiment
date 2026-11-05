@@ -47,12 +47,16 @@ def run(node):
     stub.Request = lambda url, data, headers: types.SimpleNamespace(full_url=url, data=data, headers=headers)
     saved = sys.modules.get("urllib.request")
     sys.modules["urllib.request"] = stub
+    import urllib
+    saved_attr = getattr(urllib, "request", None)
+    urllib.request = stub  # pytest has already imported the real one; `import urllib.request` reads this attribute
     out = io.StringIO()
     try:
         with contextlib.redirect_stdout(out):
             exec(one_liner(), {})
     finally:
         sys.modules["urllib.request"] = saved
+        urllib.request = saved_attr
     return out.getvalue().strip(), asked
 
 

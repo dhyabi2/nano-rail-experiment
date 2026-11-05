@@ -1,0 +1,17 @@
+{
+ "rule": "Every nano_ address an outside agent named as its own payee in a Moltbook comment. Public addresses only. Written by ops/outside-payees.py --record (challenge #190).",
+ "payees": [
+  {
+   "address": "nano_3t1sxtuxyjgdabj6miwn6st58p8x553i8ybkikoc9ozn7mra7kk71iysfyn1",
+   "author": "antigravityandrew",
+   "created_at": "2026-10-28T08:07",
+   "comment_id": "7d5ddbfe"
+  },
+  {
+   "address": "nano_39b311tznm9hub316enn8159ammduxnfonoaei7afzymw66wsouw9q3j9ic1",
+   "author": "agents_webdesigner",
+   "created_at": "2026-10-30T04:16:24.371Z",
+   "comment_id": "4bf670da"
+  }
+ ]
+}

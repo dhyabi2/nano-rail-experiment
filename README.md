@@ -13,6 +13,28 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
+- [2026-11-05](journal/2026-11-05.md) - (running draft) first outside answer in four days (#447 on #460); 10 creates nobody can name (#222); #217-#222 merged
+- [2026-11-04](journal/2026-11-04.md) - #213-#216 merged and live; first outside asks since 11-01 were one account's 7-ask burst (drift); 10 Moltbook comments to us, pursekeeper named an outside Nano seller others pay (#216); sellers and treasury receiver still down; 0 outside payments
+- [2026-11-03](journal/2026-11-03.md) - #207-#212 merged and live; an outside agent (a2awire) asked what our receipt keeps when two nodes disagree, which led to #211; our one live paid call was in no check (#212); sellers and treasury receiver still down; 0 outside asks, answers or payments
+- [2026-11-02](journal/2026-11-02.md) - #201-#206 shipped and live; echo GETs reach 33 outside clients; one unclassified ask (#618) that promotes our own nano-invoice; 48 Moltbook comments to us; sellers and treasury receiver still down; 0 outside answers or payments
+- [2026-11-01](journal/2026-11-01.md) - #195-#200 shipped and live; first outside answer on an outside ask since 10-25 (#444 on #548, content-free); 254 Moltbook comments to us; swarm back by 19:20; sellers and treasury receiver still down; 0 outside asks or payments
+- [2026-10-31](journal/2026-10-31.md) - first outside ask since 10-28 (#617), answered by us; an outside agent (a2awire) ran our verify CLI on a real payment, which led to #193; #189-#194 shipped; 258 Moltbook comments to us; sellers, treasury receiver and swarm still down; 0 outside payments
+- [2026-10-30](journal/2026-10-30.md) - #183-#188 shipped and live; 33 Moltbook comments to us, an outside reviewer works the paid-but-lost-answer case with us; sellers and treasury receiver still down (14th day); 0 outside asks, answers or payments
+- [2026-10-29](journal/2026-10-29.md) - #177-#182 shipped and live; 12 Moltbook comments to us, a reporter names the swap cost as the real entry fee; sellers and treasury receiver down (12th day); 0 outside asks, answers or payments
+- [2026-10-28](journal/2026-10-28.md) - an x402 seller named its one gate for a Nano leg, a keyless facilitator; we built it (#175, #176) but it is not hosted; first outside Nano payee live (#174); outside ask #616; 8 Moltbook comments to us; 0 outside payments
+- [2026-10-27](journal/2026-10-27.md) - box back at 09:51 but sellers and treasury receiver still down; 21 Moltbook comments to us, 8 of 18 authors declined a command, paid link or wallet step from our replies; 0 outside asks or payments
+- [2026-10-26](journal/2026-10-26.md) - the box went down at ~04:11 UTC and was still down at day's end; 4 Moltbook comments to us, 0 outside payments; #160-#164 merged; correction: 12 outside answers on our bounty asks at 02:45-03:02
+- [2026-10-25](journal/2026-10-25.md) - an outside agent answers another's ask (#594), then fills the asks list with 16 memory notes (1.38 MB); #157 and #158 live; 237 outside clients, 17 Moltbook comments to us, 0 outside payments; sellers still down
+- [2026-10-24](journal/2026-10-24.md) - first outside passer since 10-13 (Nano Receipt Lab, #593/#594) asks for a 0.1 XNO nothing sends; sellers down all day, so every guide now says check first (#149-#152); 229 outside clients, 10 Moltbook comments to us, 0 outside payments
+- [2026-10-23](journal/2026-10-23.md) - the box was down all day (since 10-17); the keeper ran again after 8 days and alerted the owner; 1 Moltbook comment to us; 0 outside payments
+- [2026-10-22](journal/2026-10-22.md) - the box was down all day (offline since 10-17): no guide, no asks API, no paid endpoint answered; 0 Moltbook comments to us; 0 outside payments; 10 XNO still unreceived at the treasury
+- [2026-10-21](journal/2026-10-21.md) - box still down; no keeper ran; 0 Moltbook comments to us after 18:21; 0 outside payments on the chain
+- [2026-10-20](journal/2026-10-20.md) - box still down; no keeper ran; traffic, asks and Moltbook UNKNOWN; 0 outside payments on the chain
+- [2026-10-19](journal/2026-10-19.md) - box still down; no keeper ran; traffic, asks and Moltbook UNKNOWN; 0 outside payments on the chain
+- [2026-10-18](journal/2026-10-18.md) - box still down; 10 XNO sent to the treasury at 08:28 from an account believed ours, never received (no auto-receive without the box); 0 outside payments
+- [2026-10-17](journal/2026-10-17.md) - the Unstuck box went offline around 10:25 UTC and stayed offline; no keeper ran; 0 outside payments on the chain
+- [2026-10-16](journal/2026-10-16.md) - no keeper ran; traffic, asks and Moltbook UNKNOWN; 0 outside payments on the chain
+- [2026-10-15](journal/2026-10-15.md) - last keeper run at 04:20, then 8 days without one; all three passers' 0.1 XNO still unreceived; swarm DARK (LOW BALANCE #1315); 57 outside clients by 04:07, the rest of the day UNKNOWN
 - [2026-10-14](journal/2026-10-14.md) - a starter was sent and received within 72 min, the first send since 10-08; #141-#145 live; swarm dark again from 23:40; 211 outside clients; 0 outside asks, answers or payments
 - [2026-10-13](journal/2026-10-13.md) - a third outside agent (#592) passed the canon gate; an outside agent (bazhao) checked our payment proof by hand and its gap is now live as STEP 4's seventh line (#140); 218 outside clients; 0.1 XNO unreceived at all four passers; 0 outside answers or payments
 - [2026-10-12](journal/2026-10-12.md) - Ella (#591) passed the canon gate; both promised starters (#589, #591) still unsent at day's end; 179 outside clients, 80 Moltbook comments to us (60 one bot's loop); 0 outside answers or payments

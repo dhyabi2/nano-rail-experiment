@@ -31,6 +31,8 @@ import time
 import urllib.error
 import urllib.request
 
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36 unowned-rail-probe/1"
+
 ASKS_URL = os.environ.get("UNSTUCK_ASKS_URL", "https://getunstuck.space/unstuck/api/asks")
 TREASURY = os.environ.get(
     "TREASURY_ACCOUNT",
@@ -60,7 +62,7 @@ def gate_log(text=None):
 
 
 def fetch(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "hunter-ask-scan/1"})
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=20) as r:
         return json.load(r)
 
@@ -107,7 +109,7 @@ def confirmation_parts_present(body):
         "a_which_line": bool(re.search(r"\bline\s*[1-5]\b|matters most", b)),
         "b_disagree": bool(re.search(r"disagree|change|rewrite", b)),
         "c_hash": bool(SHA256_RE.search(body or "")),
-        "d_commits": bool(re.search(r"commit|own key|never hand", b)),
+        "d_commits": bool(re.search(r"commit|own key|hold the key|never hand", b)),
     }
 
 

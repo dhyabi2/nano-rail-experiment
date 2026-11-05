@@ -25,6 +25,13 @@ Challenge #128. On 2026-10-11 the tool printed "44 answers" not ours. 42 came fr
 is not 44 answers. A REPEAT is an answer by an answerer who had already answered that same ask
 (on any day). Repeats are listed and counted apart, and the headline gives the distinct asks answered.
 
+Challenge #215. On 2026-11-04 the tool printed "7 new asks" not ours. All seven came from one address
+(drift, nano_1eyqiwepspw...): one opener at 12:17, then "drift virion #1".."#5" inside one minute at
+13:28-13:29 ("genome replica ready to propagate"), then "we are here" at 13:34. One agent posting copies
+of itself is one outside asker, not seven. The headline now gives the distinct accounts behind the asks,
+and an ask is BURST when its account posted BURST_MIN or more asks within BURST_WINDOW_S of each other:
+listed and counted apart, never read as separate demand.
+
 Read-only GETs against a public API. A fetch that fails makes the whole result UNKNOWN, never zero.
 
     python3 ops/answers-by-day.py                 today (UTC)
@@ -56,6 +63,36 @@ def fetch(url, tries=3):
         except OSError:
             if i == tries - 1:
                 raise
+
+
+BURST_MIN = 3  # asks from one account ...
+BURST_WINDOW_S = 600  # ... within ten minutes of each other
+
+
+def _ts(at):
+    try:
+        return datetime.datetime.fromisoformat(at.replace("Z", "+00:00")).timestamp()
+    except ValueError:
+        return None
+
+
+def mark_bursts(asks):
+    """Set a["burst"] on every ask whose account posted BURST_MIN+ asks inside one BURST_WINDOW_S window."""
+    by_who = {}
+    for a in asks:
+        a["burst"] = False
+        if a["asker"] and _ts(a["at"]) is not None:
+            by_who.setdefault(a["asker"], []).append(a)
+    for rows in by_who.values():
+        rows.sort(key=lambda r: r["at"])
+        times = [_ts(r["at"]) for r in rows]
+        for i in range(len(rows)):
+            j = i
+            while j + 1 < len(rows) and times[j + 1] - times[i] <= BURST_WINDOW_S:
+                j += 1
+            if j - i + 1 >= BURST_MIN:
+                for r in rows[i:j + 1]:
+                    r["burst"] = True
 
 
 def kind_of(who):
@@ -93,9 +130,12 @@ def build_report(day, asks_doc, details):
             for a in asks_doc.get("asks", []) if (a.get("created_at") or "").startswith(day)]
     answers.sort(key=lambda a: a["at"])
     asks.sort(key=lambda a: a["at"])
+    mark_bursts(asks)
     not_ours = lambda rows: [r for r in rows if r["kind"] != "ours" and not r.get("self")]
     return {"day": day, "asks_read": len(details),
             "totals": {"asks": len(asks), "asks_not_ours": len(not_ours(asks)),
+                       "askers_not_ours": len({a["asker"] for a in not_ours(asks)}),
+                       "burst_asks_not_ours": sum(1 for a in not_ours(asks) if a["burst"]),
                        "answers": len(answers), "answers_not_ours": len(not_ours(answers)),
                        "first_seen": sum(1 for a in answers if a["first_seen"]),
                        "self_answers": sum(1 for a in answers if a["self"] and a["kind"] != "ours"),
@@ -106,7 +146,12 @@ def build_report(day, asks_doc, details):
 
 def render(report):
     t = report["totals"]
-    lines = [f"{report['day']}: read {report['asks_read']} asks. Not ours: {t['asks_not_ours']} new asks, "
+    lines = [f"{report['day']}: read {report['asks_read']} asks. Not ours: {t['asks_not_ours']} new asks"
+             + (f" from {t['askers_not_ours']} account{'s' if t['askers_not_ours'] != 1 else ''}"
+                + (f" ({t['burst_asks_not_ours']} BURST: {BURST_MIN}+ from one account within "
+                   f"{BURST_WINDOW_S // 60} min, not separate demand)" if t["burst_asks_not_ours"] else "")
+                if t["asks_not_ours"] else "")
+             + ", "
              f"{t['answers_not_ours']} answers ({t['first_seen']} from a first-seen answerer"
              + (f"; {t['repeats_not_ours']} REPEAT an answer the same agent already gave on the same ask, "
                 f"so {t['asks_answered_not_ours']} distinct agent-ask pairs" if t["repeats_not_ours"] else "") + ")"
@@ -115,7 +160,8 @@ def render(report):
              f"Ours: {t['asks'] - t['asks_not_ours']} asks, {t['answers'] - t['answers_not_ours'] - t['self_answers']} answers.", ""]
     for a in report["asks"]:
         if a["kind"] != "ours":
-            lines.append(f"ASK    {a['kind'].upper():12} #{a['ask']:<4} {a['at'][11:16]}  {a['asker'][:16]}...  {a['title']}")
+            lines.append(f"ASK    {a['kind'].upper():12} #{a['ask']:<4} {a['at'][11:16]}  {a['asker'][:16]}...  "
+                         f"{a['title']}{'  BURST' if a['burst'] else ''}")
     for a in report["answers"]:
         if a["kind"] != "ours":
             new = "  SELF (the asker's own address)" if a["self"] else ("  FIRST SEEN" if a["first_seen"] else

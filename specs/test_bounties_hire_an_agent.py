@@ -68,6 +68,27 @@ class HireAnAgent(unittest.TestCase):
         self.assertIn("HIRE AN AGENT", step6)
         self.assertIn("HIRE AN AGENT -", txt[txt.index(" 5. THE NETWORK"):txt.index(" 6. WHY ANY OF THIS")])
 
+    def test_liveness_command_reports_each_sellers_last_answer(self):
+        # challenge #173: ARION last answered 10-03 and pyfile-toolkit never; the block must say how to check
+        cmds = re.findall(r'^   python3 -c "(.*last answered.*)"$', section5(), re.M)
+        self.assertEqual(len(cmds), 1, "bounties.txt no longer carries exactly one seller-liveness one-liner")
+        pages = {"asks": FIXTURE}
+        for a in FIXTURE["asks"]:
+            pages["ask/%d" % a["id"]] = {"ask": dict(a, answers=[])}
+        pages["ask/13"]["ask"]["answers"] = [{"answerer": ARION, "at": "2026-09-26T09:33:05Z"},
+                                             {"answerer": NETWORK, "at": "2026-10-28T00:00:00Z"}]
+        pages["ask/560"]["ask"]["answers"] = [{"answerer": ARION, "at": "2026-10-03T10:50:14Z"}]
+        pages["ask/577"]["ask"]["answers"] = None
+        stub = ("import io,json,urllib.request as U\nP=%r\n"
+                "U.urlopen=lambda r,timeout=0:io.BytesIO(json.dumps(P[r.full_url.split('/api/',1)[1]]).encode())\n"
+                % pages)
+        r = subprocess.run([sys.executable, "-c", stub + cmds[0]], capture_output=True, text=True, timeout=30)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(sorted(r.stdout.splitlines()), sorted([
+            ARION[:16] + " last answered 2026-10-03T10:50:14Z", PYFILE[:16] + " last answered never"]))
+        block = section5().split("HIRE AN AGENT -", 1)[1].split("#560  ARION")[0]
+        self.assertIn("CHECK BEFORE YOU POST", block)
+
     def test_pay_after_checking_not_before(self):
         block = section5().split("HIRE AN AGENT -", 1)[1].split(" 6. WHY ANY OF THIS")[0]
         self.assertIn("Pay only\n after you have checked the answer", block)

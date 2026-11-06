@@ -99,6 +99,12 @@ def ask_ids(asks_doc):
     asks = asks_doc["asks"]
     if not isinstance(asks, list):
         raise Unknown(f"asks list has asks={asks!r:.80}, not a list")
+    counts = asks_doc.get("counts")
+    if isinstance(counts, dict) and "total" in counts:
+        # A list shorter than its own total is truncated: the missing asks' answers would be silent zeros.
+        total = _count(counts["total"], "asks counts.total")
+        if total != len(asks):
+            raise Unknown(f"asks list has {len(asks)} asks but counts.total={total} (truncated list)")
     ids = []
     for a in asks:
         if not isinstance(a, dict) or isinstance(a.get("id"), bool) or not isinstance(a.get("id"), int):
@@ -110,6 +116,23 @@ def ask_ids(asks_doc):
     return ids
 
 
+def answers_of(i, ask, seen):
+    """The answers of one ask object, or Unknown. `answers` must be a list of objects with integer ids:
+    {"error": "rate limited"} inside "ask" is a failed read, not 0 answers. `seen` holds every answer id read so far;
+    an id listed twice (on this ask or another) would be counted twice."""
+    answers = ask.get("answers")
+    if not isinstance(answers, list):
+        raise Unknown(f"ask {i} has answers={answers!r:.80}, not a list")
+    for a in answers:
+        aid = a.get("id") if isinstance(a, dict) else None
+        if isinstance(aid, bool) or not isinstance(aid, int):
+            raise Unknown(f"ask {i} has an answer {a!r:.80} without an integer id")
+        if aid in seen:
+            raise Unknown(f"answer id {aid} is listed more than once")
+        seen.add(aid)
+    return answers
+
+
 def build(day, traffic, answers_report):
     """traffic: the day's /ai/traffic file. answers_report: answers-by-day.build_report(...) for the same day.
 
@@ -118,6 +141,8 @@ def build(day, traffic, answers_report):
     A status table without a "201" key is a day with no creates (0)."""
     if not isinstance(traffic, dict):
         raise Unknown(f"traffic file is a {type(traffic).__name__}, not an object")
+    if "date" in traffic and traffic["date"] != day:
+        raise Unknown(f"traffic file is dated {traffic['date']!r:.40}, not {day}")
     status = traffic.get("status")
     if not isinstance(status, dict):
         raise Unknown(f"traffic file has no status table (status={status!r})")
@@ -164,13 +189,14 @@ def main():
     try:
         traffic = fetch_json(TRAFFIC % args.day)
         asks_doc = abd.fetch(f"{abd.API}/asks")
-        details = {}
+        details, seen_answers = {}, set()
         for i in ask_ids(asks_doc):
             doc = abd.fetch(f"{abd.API}/ask/{i}")
             # Required, like "asks": an error document without "ask" is a failed read, never an empty ask.
             ask = doc.get("ask") if isinstance(doc, dict) else None
             if not isinstance(ask, dict):
                 raise Unknown(f"ask {i} has no ask object ({doc!r:.80})")
+            answers_of(i, ask, seen_answers)
             details[i] = ask
     except Unknown as e:
         print(f"UNKNOWN: {e}. Nothing is measured - not zero.", file=sys.stderr)

@@ -229,6 +229,49 @@ class ReviewFindings(unittest.TestCase):
         code, err, _ = run_main(["--json", "2026-11-03"], traffic_doc=GOOD, asks_doc={"asks": []})
         self.assertEqual(code, 0, err)
 
+    def test_ask_without_answers_list_is_unknown_not_zero(self):
+        for ask in ({"error": "rate limited"}, {}, {"answers": None}, {"answers": {}}, {"answers": 0}, {"answers": ""}):
+            code, err, _ = run_main(["2026-11-03"], traffic_doc=GOOD, asks_doc={"asks": [{"id": 1}]}, ask_doc={"ask": ask})
+            self.assertEqual(code, 2, repr(ask))
+            self.assertIn("UNKNOWN", err, repr(ask))
+
+    def test_duplicate_answer_ids_are_unknown(self):
+        a = {"id": 7, "answerer": "x", "at": "2026-11-03T01:00:00Z", "body": "b"}
+        code, err, _ = run_main(["2026-11-03"], traffic_doc=GOOD, asks_doc={"asks": [{"id": 1}]},
+                                ask_doc={"ask": {"answers": [a, a, a]}})
+        self.assertEqual(code, 2)
+        self.assertIn("UNKNOWN", err)
+        # The same answer id on two different asks is also counted twice.
+        code, err, _ = run_main(["2026-11-03"], traffic_doc=GOOD, asks_doc={"asks": [{"id": 1}, {"id": 2}]},
+                                ask_doc={"ask": {"answers": [a]}})
+        self.assertEqual(code, 2)
+
+    def test_answers_list_still_measures(self):
+        a = {"id": 7, "answerer": "x", "at": "2026-11-03T01:00:00Z", "body": "b"}
+        code, err, _ = run_main(["2026-11-03"], traffic_doc=GOOD, asks_doc={"asks": [{"id": 1}]},
+                                ask_doc={"ask": {"answers": [a]}})
+        self.assertEqual(code, 0, err)
+        code, err, _ = run_main(["2026-11-03"], traffic_doc=GOOD, asks_doc={"asks": [{"id": 1}]},
+                                ask_doc={"ask": {"answers": []}})
+        self.assertEqual(code, 0, err)
+
+    def test_traffic_file_for_another_day_is_unknown(self):
+        with self.assertRaises(cbd.Unknown):
+            cbd.build("2026-11-03", {"date": "2026-11-01", "status": {"201": 3}}, report(0, 0))
+        self.assertEqual(cbd.build("2026-11-03", {"date": "2026-11-03", "status": {"201": 3}}, report(0, 0))["creates_201"], 3)
+        code, err, _ = run_main(["2026-11-03"], traffic_doc=dict(GOOD, date="2026-11-01"), asks_doc={"asks": []})
+        self.assertEqual(code, 2)
+        self.assertIn("UNKNOWN", err)
+
+    def test_truncated_asks_list_is_unknown(self):
+        for counts in ({"total": 5}, {"total": "1"}, {"total": -1}):
+            with self.assertRaises(cbd.Unknown, msg=repr(counts)):
+                cbd.ask_ids({"asks": [{"id": 1}], "counts": counts})
+        self.assertEqual(cbd.ask_ids({"asks": [{"id": 1}], "counts": {"total": 1}}), [1])
+        code, err, _ = run_main(["2026-11-03"], traffic_doc=GOOD, asks_doc={"asks": [], "counts": {"total": 12}})
+        self.assertEqual(code, 2)
+        self.assertIn("UNKNOWN", err)
+
 
 if __name__ == "__main__":
     unittest.main()

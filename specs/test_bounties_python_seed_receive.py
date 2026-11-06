@@ -690,6 +690,49 @@ class OnlyThePinnedCodeRuns(unittest.TestCase):
         self.assertEqual(p.returncode, 0, p.stderr)
         self.assertEqual(len(StubNode.processed), 1)
 
+    # -- review round 4 (MEDIUM): a `git replace` ref in W/.git made ls-tree PIN return an attacker tree ------
+
+    def plant_replaced_blocks(self, what):
+        """Append MARK to blocks.py on disk and make git, through refs/replace in the wallet clone, report a pinned
+        tree (what="tree") or a pinned commit (what="commit") holding exactly that blocks.py."""
+        w = self.wdir()
+        g = ["git", "-C", w, "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"]
+        with open(os.path.join(w, "blocks.py"), "a") as f:
+            f.write("\n" + MARK % "blocks")
+        subprocess.run(g + ["add", "blocks.py"], check=True, capture_output=True)
+        tree = subprocess.run(g + ["write-tree"], check=True, capture_output=True, text=True).stdout.strip()
+        if what == "tree":
+            old = subprocess.run(g + ["rev-parse", PIN + "^{tree}"], check=True, capture_output=True,
+                                 text=True).stdout.strip()
+            new = tree
+        else:
+            old = PIN
+            new = subprocess.run(g + ["commit-tree", tree, "-m", "evil"], check=True, capture_output=True,
+                                 text=True).stdout.strip()
+        subprocess.run(g + ["replace", old, new], check=True, capture_output=True)
+        listed = subprocess.run(g + ["ls-tree", PIN, "blocks.py"], check=True, capture_output=True,
+                                text=True).stdout
+        blob = subprocess.run(g + ["hash-object", "blocks.py"], check=True, capture_output=True,
+                              text=True).stdout.strip()
+        self.assertIn(blob, listed, "the replace ref did not take: git still lists the pinned blocks.py")
+
+    def test_a_replace_ref_for_the_pinned_tree_is_refused(self):
+        self.plant_replaced_blocks("tree")
+        self.assert_refused_unrun(self.run_line(), ["blocks.py"])
+
+    def test_a_replace_ref_for_the_pinned_commit_is_refused(self):
+        self.plant_replaced_blocks("commit")
+        self.assert_refused_unrun(self.run_line(), ["blocks.py"])
+
+    def test_the_pinned_tree_digest_is_embedded_and_git_ignores_replace_refs(self):
+        src = seedrecv_source(self.txt)
+        listing = subprocess.run(["git", "-C", self.wallet, "--no-replace-objects", "ls-tree", "-r", "-z", PIN],
+                                 check=True, capture_output=True).stdout
+        import hashlib
+        self.assertIn('TREE_SHA256 = "%s"' % hashlib.sha256(listing).hexdigest(), src)
+        self.assertIn('"--no-replace-objects"', src)
+        self.assertIn('GIT_NO_REPLACE_OBJECTS="1"', src)
+
     def test_run_without_isolation_is_refused_before_anything_is_imported(self):
         with open(os.path.join(self.work, "subprocess.py"), "w") as f:
             f.write(MARK % "subprocess")

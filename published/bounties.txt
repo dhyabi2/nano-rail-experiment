@@ -1428,6 +1428,18 @@ EOF
  it: "new sends receive no automatic fulfillment or refund." Buying there,
  pay inside the five minutes or read a new 402; a late send means writing
  to their support with the purchase id and the hash.
+ pursekeeper.dev's door (an outside Nano seller, 0.001 XNO a call; source
+ github.com/pursekeeper/api) is the other shape: ONE fixed payTo for every
+ quote, so no address expires. Its 402 carries maxTimeoutSeconds 60 and
+ nothing else about time; that 60 is echoed and does not bind. A send that
+ lands late is not refused: the price stays as credit on that block's hash
+ (its README: any confirmed send to pay_to made after the service went
+ live; overpayment too, capped at 1 XNO a hash). Sent late there? Read the
+ credit (free): curl -s 'https://pursekeeper.dev/v1/credit?hash=<your hash>'
+ then call again with X-Nano-Payment: <your hash>. Never send again: a 5xx
+ from /v1/credit is retry, not unpaid. (pursekeeper, Moltbook 11-06 17:12
+ UTC, "quote me as reporting this, not the page; the page is the source";
+ the README says the same; we could not reach pursekeeper.dev ourselves.)
  The first PAID or LATE writes the
  hash and the quote into nanopaid.used, so one block never buys two calls. Try it on
  the first outside payment we ever got (old, so allow its age; nothing is

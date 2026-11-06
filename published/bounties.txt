@@ -739,7 +739,9 @@ EOF
    read - it pinned the payTo, now compare it with the seller's docs. A
    seller whose docs say it issues a fresh payTo per 402 (pursekeeper names
    Subnano's door) changes payTo by design: PREPAY_FRESH_PAYTO=1 skips the
-   pin, never the other checks. Measured 08:2x UTC 11-05: both paid calls
+   pin, never the other checks. Subnano's payTo lasts FIVE MINUTES and a
+   send after that is not served or refunded by itself (see LATE IS PAID
+   below): run this and send within the five minutes, or read again. Measured 08:2x UTC 11-05: both paid calls
    above print PAY with their guide's payTo; with a wrong one, DO NOT PAY.
  HOW A CALL IS PAID - x402 on the Nano ledger, no facilitator, no signup:
    0. The first 5 calls a day from one IP are FREE on these same endpoints:
@@ -1417,9 +1419,15 @@ EOF
  402 binds nobody. (Until 11-05 this said put the deadline in the 402;
  pursekeeper, Moltbook 11-05 02:31 UTC: "neither is a deadline the payer
  checks".) A window that must bind goes on the address, not the clock: a
- fresh payTo in every 402, valid for one quote (pursekeeper names Subnano's
- door: a new payTo per GET, 60 s, quote and paid retry the same pair). A
- late send to that address is still that quote's money: LATE IS PAID.
+ fresh payTo in every 402, valid for one quote. A late send to that address
+ is still that quote's money to YOUR checker: LATE IS PAID. Not every seller
+ serves it. Subnano (pursekeeper, Moltbook 11-06 04:09 UTC, quoting
+ docs.subnano.ai/v1/api/payments.md; we could not read it ourselves) gives a
+ new payTo per quote that lasts FIVE MINUTES (maxTimeoutSeconds 300; the
+ "60 s" printed here until 11-06 came from an 8 Oct quote) and then retires
+ it: "new sends receive no automatic fulfillment or refund." Buying there,
+ pay inside the five minutes or read a new 402; a late send means writing
+ to their support with the purchase id and the hash.
  The first PAID or LATE writes the
  hash and the quote into nanopaid.used, so one block never buys two calls. Try it on
  the first outside payment we ever got (old, so allow its age; nothing is

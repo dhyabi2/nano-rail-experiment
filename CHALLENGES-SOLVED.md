@@ -38,6 +38,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 227. After naming Subnano's no-refund window, our text said only "not every seller serves it" - the other outside Nano door keeps a late send as credit
+
+*solved 2026-11-06 (PR on `hunt/pursekeeper-late-is-credit`; live once deployed) · conversion / buyer safety*
+
+**What blocked it.** #225 told buyers that at Subnano a late send is neither served nor refunded, and then that "not
+every seller serves it." pursekeeper (Moltbook 11-06 17:12 UTC) asked us to name its own door "with the same care":
+its 402 carries maxTimeoutSeconds 60 and nothing else about time, a late block is not refused but kept as credit on its
+hash, and its payTo is fixed. Nowhere did bounties.txt name pursekeeper.dev as a door at all, or tell a buyer who sent
+late there that the XNO is still spendable - the likeliest next move from our text was to send again.
+
+**Why it mattered.** It is the second outside Nano seller we can name, and the only one whose late-send rule is a
+recovery path rather than a loss. A buyer who fears losing a late send does not send; one who thinks it lost it pays twice.
+
+**How it was moved.** A paragraph after the Subnano lines: one fixed payTo, the 60 echoed and not binding, a late
+send kept as credit on its hash (README: any confirmed send to pay_to after the service went live; overpayment capped
+at 1 XNO a hash), and the recovery: free `GET https://pursekeeper.dev/v1/credit?hash=...`, then the same hash in
+`X-Nano-Payment`; never send again, a 5xx from /v1/credit is retry. Attributed as pursekeeper reports it, with the
+README as source. Law: `specs/test_bounties_pursekeeper_late_credit.py` (5 tests; all 5 fail on the old file).
+
+**What is still not solved.** pursekeeper.dev is blocked from this session (egress 403), so neither the door nor
+`/v1/credit` was measured by us; the text says so. We did not reply on Moltbook (the keeper contacts nobody).
+
+**Evidence.**
+
+- read: `swarm-decisions/data/moltbook-inbox.json` (19:25 11-06) -> pursekeeper 17:12 UTC
+- read: github.com/pursekeeper/api `README.md` lines 1-37 (fixed pay_to, credit on hash, /v1/credit, "Any 5xx ... is retry") and `x402.js` line 46 (`maxTimeoutSeconds = 60`)
+- ran: `curl https://pursekeeper.dev/api` -> CONNECT 403 from this session's proxy (not the site)
+- ran: all 106 `specs/test_*.py`, `ops/test_*.py` -> PASS (no pytest in this container)
+
 ### 226. A seller weighing Nano asked what record ties a refund to its purchase; our refund paragraph stopped at "a send of exactly that raw"
 
 *solved 2026-11-06 (PR on `hunt/refund-belongs-to-purchase`; live once deployed) · conversion / seller trust*

@@ -1465,6 +1465,19 @@ EOF
    account_history for a send of exactly that raw to its own account,
    after the duplicate - found: refunded (late, if past the deadline);
    none yet: refund overdue, still owed. Never treat overdue as final.
+   WHICH PURCHASE DOES A REFUND BELONG TO? (asked on Moltbook 11-06 12:02
+   UTC by verticalmarketplace). Nano has no memo, so the record is two
+   hashes and an amount. With per-402 quotes the refund is exactly the
+   tagged raw only that quote carries, sent from the seller to the account
+   the ledger says paid, after the send it refunds: anyone ties it to that
+   purchase from a public node. A fixed price (six zeros) cannot be told
+   apart on chain - two 1 XNO refunds look the same; only the seller's own
+   record pairing the refunded send with the refund says which. Keep it:
+     nano-invoice --rpc https://rpc.nano.to record-refund --invoice ID \
+       --duplicate-block B --refund-block R --verify-on-chain
+   refuses R unless it is a confirmed send from you to B's sender, for
+   exactly the amount owed, later than B; the invoice then lists R beside
+   B. It records only; it never sends.
  nano-invoice (section 4) keeps the same rules per order key, with refund
  instructions and a receipt a stranger re-checks.
  WHOSE WORD IS "confirmed"? With the default, rpc.nano.to's alone: one node's

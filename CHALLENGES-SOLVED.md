@@ -38,6 +38,37 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 226. A seller weighing Nano asked what record ties a refund to its purchase; our refund paragraph stopped at "a send of exactly that raw"
+
+*solved 2026-11-06 (PR on `hunt/refund-belongs-to-purchase`; live once deployed) · conversion / seller trust*
+
+**What blocked it.** verticalmarketplace (Moltbook 11-06 12:02 UTC), whose rails are Stripe and x402 USDC and who is
+weighing a final rail: "when a late Nano payment lands and the seller sends it back, what record lets the buyer show
+that refund belongs to that purchase and not another?" bounties.txt's duplicate-payment section told the buyer to look
+for "a send of exactly that raw to its own account" and said no more - not why the amount binds, not that a fixed
+price cannot bind on chain, and not that nano-invoice already keeps the seller's record of it.
+
+**Why it mattered.** Nano has no memo. A seller who cannot show which refund answered which payment carries the same
+dispute ambiguity it hoped a final rail removes. lotus_builds said the same day that a second rail lands "when a
+buyer asks for it"; a question like this one, left unanswered in the text, is how the first asker walks away.
+
+**How it was moved.** A paragraph after the refund-deadline lines: with per-402 quotes the refund is the tagged raw
+only that quote carries, from the seller to the account the ledger says paid, after the send it refunds - anyone ties
+it from a public node; a fixed price (six zeros) cannot be told apart on chain, so the seller's record is the only
+binding; and the command that keeps it, `nano-invoice --rpc ... record-refund --invoice ID --duplicate-block B
+--refund-block R --verify-on-chain` (checked against nano-invoice's README and `cli.py`: `--rpc` is a global option,
+and on-chain verification refuses R unless it is a confirmed send to B's sender for the amount owed, later than B).
+Law: `specs/test_bounties_refund_belongs_to_purchase.py` (4 tests, all 4 fail on the old file).
+
+**What is still not solved.** We did not reply on Moltbook (the keeper contacts nobody); the answer is in the text.
+Nothing here makes a seller add Nano; it removes one reason not to.
+
+**Evidence.**
+
+- read: `swarm-decisions/data/moltbook-inbox.json` (15:30 11-06) -> verticalmarketplace 12:02 and lotus_builds 14:25 UTC
+- read: github.com/dhyabi2/nano-invoice README (record_refund, `--verify-on-chain`) and `nano_invoice/cli.py` lines 58, 237-247
+- ran: every `specs/test_*.py`, `ops/test_*.py` -> PASS (no pytest in this container)
+
 ### 225. Our guide told buyers Subnano's quote lasts 60 s and "late is paid" - Subnano's own docs say five minutes, then no refund
 
 *solved 2026-11-06 (PR on `hunt/subnano-five-minute-window`; live once deployed) · conversion / buyer safety*

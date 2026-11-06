@@ -25,6 +25,7 @@ Read-only GETs. A source that fails makes the result UNKNOWN (exit 2), never zer
 """
 import argparse
 import datetime
+import http.client
 import importlib.util
 import json
 import os
@@ -56,7 +57,20 @@ def fetch_json(url):
         return json.load(r)
 
 
-DAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+DAY = re.compile(r"\d{4}-\d{2}-\d{2}", re.ASCII)
+
+
+def valid_day(day):
+    """True only for an exact ASCII YYYY-MM-DD that is a real calendar date. fullmatch, not `$`: `$` lets a
+    trailing newline through and urllib then raises InvalidURL. re.ASCII: \\d would otherwise accept other
+    scripts' digits. fromisoformat refuses 2026-02-30 and 0000-99-99."""
+    if not isinstance(day, str) or not DAY.fullmatch(day):
+        return False
+    try:
+        datetime.date.fromisoformat(day)
+    except ValueError:
+        return False
+    return True
 
 
 class Unknown(Exception):
@@ -64,15 +78,30 @@ class Unknown(Exception):
 
 
 def _count(value, what):
-    if isinstance(value, bool) or not isinstance(value, (int, str)):
+    """A count is a JSON integer >= 0 and nothing else. Strings are refused, because int() reads " 3\\n", "1_0"
+    and Arabic-Indic digits as numbers a JSON writer never meant; bool is refused although it is an int subclass.
+    No upper bound: any non-negative integer is a well-formed count, and a cap would be a guess that turns a
+    real (if alarming) number into UNKNOWN."""
+    if isinstance(value, bool) or not isinstance(value, int):
         raise Unknown(f"{what} is {value!r}, not a count")
-    try:
-        n = int(value)
-    except ValueError:
-        raise Unknown(f"{what} is {value!r}, not a count")
-    if n < 0:
-        raise Unknown(f"{what} is {n}, a negative count")
-    return n
+    if value < 0:
+        raise Unknown(f"{what} is {value}, a negative count")
+    return value
+
+
+def ask_ids(asks_doc):
+    """The ask ids of GET /asks, or Unknown if the document is not {"asks": [{"id": <int>, ...}, ...]}."""
+    if not isinstance(asks_doc, dict):
+        raise Unknown(f"asks list is a {type(asks_doc).__name__}, not an object")
+    asks = asks_doc.get("asks", [])
+    if not isinstance(asks, list):
+        raise Unknown(f"asks list has asks={asks!r:.80}, not a list")
+    ids = []
+    for a in asks:
+        if not isinstance(a, dict) or isinstance(a.get("id"), bool) or not isinstance(a.get("id"), int):
+            raise Unknown(f"asks list has an entry {a!r:.80} without an integer id")
+        ids.append(a["id"])
+    return ids
 
 
 def build(day, traffic, answers_report):
@@ -93,7 +122,9 @@ def build(day, traffic, answers_report):
     asks, answers = _count(t.get("asks"), "totals.asks"), _count(t.get("answers"), "totals.answers")
     named = asks + answers  # ours included: our posts get a 201 too
     unexplained = max(0, creates - named)
-    return {"day": day, "traffic_generated": traffic.get("generated_utc"), "complete_day": bool(traffic.get("complete_day")),
+    # complete_day counts as complete only when it is literally true: "false", 1, null or a missing key are a
+    # partial day. Saying "partial" of a complete day costs a caveat; the reverse would hide missing requests.
+    return {"day": day, "traffic_generated": traffic.get("generated_utc"), "complete_day": traffic.get("complete_day") is True,
             "creates_201": creates, "asks": asks, "answers": answers, "named": named,
             "unexplained": unexplained, "more_named_than_created": named > creates,
             "possible_creators": CREATORS if unexplained else []}
@@ -120,21 +151,35 @@ def main():
     ap.add_argument("day", nargs="?", default=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d"))
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args()
-    if not DAY.match(args.day):
+    if not valid_day(args.day):
         print(f"UNKNOWN: day {args.day!r} is not YYYY-MM-DD. Nothing is measured - not zero.", file=sys.stderr)
         sys.exit(2)
     abd = _load_abd()
     try:
         traffic = fetch_json(TRAFFIC % args.day)
         asks_doc = abd.fetch(f"{abd.API}/asks")
-        details = {int(a["id"]): abd.fetch(f"{abd.API}/ask/{a['id']}").get("ask", {}) for a in asks_doc.get("asks", [])}
-    except (OSError, ValueError) as e:
-        print(f"UNKNOWN: could not read a source ({e}). Nothing is measured - not zero.", file=sys.stderr)
+        details = {}
+        for i in ask_ids(asks_doc):
+            doc = abd.fetch(f"{abd.API}/ask/{i}")
+            ask = doc.get("ask", {}) if isinstance(doc, dict) else None
+            if not isinstance(ask, dict):
+                raise Unknown(f"ask {i} is not an object")
+            details[i] = ask
+    except Unknown as e:
+        print(f"UNKNOWN: {e}. Nothing is measured - not zero.", file=sys.stderr)
+        sys.exit(2)
+    except (OSError, ValueError, http.client.HTTPException, RecursionError) as e:
+        print(f"UNKNOWN: could not read a source ({type(e).__name__}: {e!s:.200}). Nothing is measured - not zero.",
+              file=sys.stderr)
         sys.exit(2)
     try:
         r = build(args.day, traffic, abd.build_report(args.day, asks_doc, details))
     except Unknown as e:
         print(f"UNKNOWN: {e}. Nothing is measured - not zero.", file=sys.stderr)
+        sys.exit(2)
+    except (TypeError, ValueError, KeyError, AttributeError, RecursionError) as e:
+        # build_report assumes the network's shapes; an answer that is not an object, say, lands here.
+        print(f"UNKNOWN: a source has a shape this tool cannot read ({type(e).__name__}: {e!s:.200}). Nothing is measured - not zero.", file=sys.stderr)
         sys.exit(2)
     print(json.dumps(r, indent=1) if args.json else render(r))
 

@@ -85,5 +85,116 @@ class CreatesByDay(unittest.TestCase):
         self.assertIn("UNKNOWN", p.stderr)
 
 
+def run_main(argv, traffic_doc=None, asks_doc=None, ask_doc=None, traffic_exc=None):
+    """Run cbd.main() with every fetch stubbed (never the live service). Returns (exit code, stderr, fetched urls)."""
+    import contextlib, io, sys, types
+    fetched = []
+    real_abd = cbd._load_abd()
+
+    def fetch_json(url):
+        fetched.append(url)
+        if traffic_exc is not None:
+            raise traffic_exc
+        return traffic_doc
+
+    def abd_fetch(url):
+        fetched.append(url)
+        return asks_doc if url.endswith("/asks") else ask_doc
+
+    fake = types.SimpleNamespace(API="https://stub.invalid/api", fetch=abd_fetch, build_report=real_abd.build_report)
+    old = (cbd.fetch_json, cbd._load_abd, sys.argv)
+    cbd.fetch_json, cbd._load_abd, sys.argv = fetch_json, (lambda: fake), ["creates-by-day.py"] + argv
+    err, out = io.StringIO(), io.StringIO()
+    code = 0
+    try:
+        with contextlib.redirect_stderr(err), contextlib.redirect_stdout(out):
+            cbd.main()
+    except SystemExit as e:
+        code = e.code
+    finally:
+        cbd.fetch_json, cbd._load_abd, sys.argv = old
+    return code, err.getvalue(), fetched
+
+
+GOOD = {"generated_utc": "x", "complete_day": True, "status": {"201": 1}}
+
+
+class ReviewFindings(unittest.TestCase):
+    def test_trailing_newline_and_bad_days_refused_before_any_fetch(self):
+        for day in ("2026-11-03\n", "2026-11-0\u0663", "\u0662\u0660\u0662\u0666-11-03", "2026-02-30", "0000-99-99",
+                    "2026-13-01", " 2026-11-03"):
+            code, err, fetched = run_main([day], traffic_doc=GOOD, asks_doc={"asks": []})
+            self.assertEqual(code, 2, repr(day))
+            self.assertIn("UNKNOWN", err, repr(day))
+            self.assertEqual(fetched, [], repr(day))
+
+    def test_good_day_still_measures(self):
+        code, err, fetched = run_main(["2026-11-03"], traffic_doc=GOOD, asks_doc={"asks": []})
+        self.assertEqual(code, 0, err)
+        self.assertTrue(fetched)
+
+    def test_http_exception_in_fetch_is_unknown_exit_2(self):
+        import http.client
+        for exc in (http.client.InvalidURL("bad"), http.client.RemoteDisconnected("gone"), http.client.IncompleteRead(b"")):
+            code, err, _ = run_main(["2026-11-03"], traffic_exc=exc)
+            self.assertEqual(code, 2, repr(exc))
+            self.assertIn("UNKNOWN", err)
+            self.assertNotIn("Traceback", err)
+
+    def test_recursion_error_in_fetch_is_unknown_exit_2(self):
+        code, err, _ = run_main(["2026-11-03"], traffic_exc=RecursionError("deep"))
+        self.assertEqual(code, 2)
+        self.assertIn("UNKNOWN", err)
+
+    def test_really_deep_json_is_unknown_exit_2(self):
+        import json
+        deep = "[" * 200000 + "]" * 200000
+
+        def exc():
+            try:
+                json.loads(deep)
+            except RecursionError as e:
+                return e
+        e = exc()
+        if e is None:
+            self.skipTest("this json build has no recursion limit")
+        code, err, _ = run_main(["2026-11-03"], traffic_exc=e)
+        self.assertEqual(code, 2)
+
+    def test_string_counts_are_unknown(self):
+        for bad in ("3", "\u0663", "1_0", " 3\n", 3.0, [3]):
+            with self.assertRaises(cbd.Unknown, msg=repr(bad)):
+                cbd.build("2026-11-06", {"status": {"201": bad}}, report(0, 0))
+            with self.assertRaises(cbd.Unknown, msg=repr(bad)):
+                cbd.build("2026-11-06", {"status": {"201": 1}}, report(bad, 0))
+
+    def test_real_ints_are_counts(self):
+        r = cbd.build("2026-11-06", {"status": {"201": 0}}, report(0, 0))
+        self.assertEqual(r["creates_201"], 0)
+        with self.assertRaises(cbd.Unknown):
+            cbd.build("2026-11-06", {"status": {"201": 1}}, report(False, 0))
+
+    def test_complete_day_must_be_literally_true(self):
+        for odd in ("false", "no", 1, "true", [True], None):
+            r = cbd.build("2026-11-06", {"complete_day": odd, "status": {"201": 1}}, report(1, 0))
+            self.assertFalse(r["complete_day"], repr(odd))
+            self.assertIn("(partial day)", cbd.render(r))
+        self.assertTrue(cbd.build("2026-11-06", {"complete_day": True, "status": {}}, report(0, 0))["complete_day"])
+
+    def test_odd_asks_shapes_are_unknown_exit_2(self):
+        for doc in ([], [{"id": 1}], {"asks": [{"x": 1}]}, {"asks": "abc"}, {"asks": [1]}, {"asks": [{"id": "1/../x"}]},
+                    {"asks": [{"id": True}]}, {"asks": None}, "abc", None):
+            code, err, _ = run_main(["2026-11-03"], traffic_doc=GOOD, asks_doc=doc, ask_doc={"ask": {}})
+            self.assertEqual(code, 2, repr(doc))
+            self.assertIn("UNKNOWN", err, repr(doc))
+
+    def test_odd_ask_detail_shapes_are_unknown_exit_2(self):
+        for detail in ([], "abc", {"ask": "abc"}, {"ask": {"answers": "abc"}}, {"ask": {"answers": [1]}},
+                       {"ask": {"answers": [{"at": 5}]}}):
+            code, err, _ = run_main(["2026-11-03"], traffic_doc=GOOD, asks_doc={"asks": [{"id": 1}]}, ask_doc=detail)
+            self.assertEqual(code, 2, repr(detail))
+            self.assertIn("UNKNOWN", err, repr(detail))
+
+
 if __name__ == "__main__":
     unittest.main()

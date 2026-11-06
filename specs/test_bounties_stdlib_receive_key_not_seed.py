@@ -14,7 +14,7 @@ class StdlibReceiveKeyNotSeed(unittest.TestCase):
         with open(os.path.join(ROOT, "published", "bounties.txt")) as f:
             txt = f.read()
         i = txt.index("WHERE THE PYTHON PATH ENDS TODAY")
-        self.step1 = " ".join(txt[i:i + 14000].split())
+        self.step1 = " ".join(txt[i:txt.index("The seed IS the wallet", i)].split())  # STEP 1 to its end
         j = txt.index(" 8. RECEIVE WHAT WAS SENT TO YOU")
         self.s8 = " ".join(txt[j:j + 800].split())
         self.txt = " ".join(txt.split())

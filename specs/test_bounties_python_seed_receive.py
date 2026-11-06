@@ -156,7 +156,7 @@ class PageText(unittest.TestCase):
     def setUp(self):
         self.txt = page()
         i = self.txt.index("WHERE THE PYTHON PATH ENDS TODAY")
-        self.step1 = " ".join(self.txt[i:i + 12000].split())
+        self.step1 = " ".join(self.txt[i:i + 16000].split())
 
     def test_one_pinned_git_line_and_two_run_lines(self):
         g = git_lines(self.txt)
@@ -210,6 +210,13 @@ class PageText(unittest.TestCase):
         self.assertIn("if you moved it, put its path wherever this page says nano-seed.txt", lead)
         self.assertIn("your seed file's path in place of nano-seed.txt if you moved it", self.step1)
         self.assertIn("drop --seed-file nano-seed.txt and export NANO_SEED as above", self.step1)
+
+    def test_names_a_way_without_git(self):
+        # review round 3 (LOW): the no-git / no-Python fallback is said again
+        self.assertIn("No git or no Python 3 here? Post the address anyway: copy nano-seed.txt (nothing else) to a"
+                      " machine with node and use section 8's receive.js, or import the 64-hex seed into a Nano wallet"
+                      " you already trust.", self.step1)
+        self.assertIn("(ignored ones too, .pyc included)", self.step1)
 
     def test_section8_points_no_node_readers_to_it(self):
         j = self.txt.index(" 8. RECEIVE WHAT WAS SENT TO YOU")
@@ -455,13 +462,13 @@ class OpenedAccount(unittest.TestCase):
         if getattr(cls, "cloned", False) is True:
             shutil.rmtree(os.path.dirname(cls.wallet), ignore_errors=True)
 
-    def run_against(self, reported, dry=False, forged=False, address=None, rep=None):
+    def run_against(self, reported, dry=False, forged=False, address=None, rep=None, **env_extra):
         OpenedStub.reported, OpenedStub.forged, OpenedStub.frontier = reported, forged, self.frontier
         OpenedStub.reported_rep = rep
         OpenedStub.seen, OpenedStub.processed = [], []
         srv = http.server.HTTPServer(("127.0.0.1", 0), OpenedStub)
         threading.Thread(target=srv.serve_forever, daemon=True).start()
-        env = clean_env(NANO_NODE_URL="http://127.0.0.1:%d" % srv.server_address[1])
+        env = clean_env(NANO_NODE_URL="http://127.0.0.1:%d" % srv.server_address[1], **env_extra)
         try:
             return subprocess.run(published_argv(self.dry_line if dry else self.real_line, address or self.address),
                                   cwd=self.work, env=env, capture_output=True, text=True, timeout=600)
@@ -495,6 +502,14 @@ class OpenedAccount(unittest.TestCase):
         self.assertIn("refused", p.stderr)
         self.assertIn("representative", p.stderr)
         self.assertNotIn("Traceback", p.stderr)
+
+    def test_a_representative_from_the_environment_is_named_not_blamed_on_the_node(self):
+        # review round 3 (LOW): with NANO_WALLET_REPRESENTATIVE set the refusal says so instead of "the node"
+        p = self.run_against(HELD_RAW, NANO_WALLET_REPRESENTATIVE=BURN)
+        self.assertEqual(OpenedStub.processed, [])
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("NANO_WALLET_REPRESENTATIVE (unset it)", p.stderr)
+        self.assertNotIn("the node named", p.stderr)
 
     def test_an_honest_node_gets_a_receive_on_top_of_the_frontier(self):
         p = self.run_against(HELD_RAW)
@@ -597,6 +612,84 @@ class OnlyThePinnedCodeRuns(unittest.TestCase):
         self.assertNotEqual(p.returncode, 0)
         self.assertIn("refused", p.stderr)
 
+    # -- review round 3 (MEDIUM): ignored, excluded and index-hidden files; git config that runs code ----------
+
+    def wdir(self):
+        return os.path.join(self.work, "nano-wallet-xno")
+
+    def plant_pyc(self, rel, name):
+        import py_compile
+        src = os.path.join(self.work, "payload-%s.py" % name)
+        with open(src, "w") as f:
+            f.write(MARK.replace("os.path.dirname(os.path.abspath(__file__))", repr(self.work)) % name)
+        dst = os.path.join(self.wdir(), rel)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        py_compile.compile(src, cfile=dst, doraise=True)
+        os.remove(src)
+
+    def assert_refused_unrun(self, p, names):
+        self.assertEqual(self.ran(self.work) + self.ran(self.wdir()), [], "planted code ran with the seed")
+        self.assertNotEqual(p.returncode, 0, p.stdout)
+        self.assertIn("refused", p.stderr)
+        self.assertNotIn("Traceback", p.stderr)
+        self.assertEqual(StubNode.processed, [])
+        for n in names:
+            self.assertIn(n, p.stderr)
+
+    def test_an_ignored_sourceless_json_pyc_is_refused(self):
+        self.plant_pyc("json.pyc", "json")
+        self.assert_refused_unrun(self.run_line(), ["json.pyc", "remove it or re-clone"])
+
+    def test_an_ignored_multiprocessing_pyc_is_refused(self):
+        self.plant_pyc("multiprocessing.pyc", "multiprocessing")
+        self.assert_refused_unrun(self.run_line(), ["multiprocessing.pyc"])
+
+    def test_a_stray_pycache_is_named(self):
+        self.plant_pyc(os.path.join("__pycache__", "blocks.cpython-311.pyc"), "pycache")
+        self.assert_refused_unrun(self.run_line(), ["__pycache__", "remove it or re-clone"])
+
+    def test_a_skip_worktree_change_is_refused(self):
+        subprocess.run(["git", "-C", self.wdir(), "update-index", "--skip-worktree", "payments.py"], check=True)
+        with open(os.path.join(self.wdir(), "payments.py"), "a") as f:
+            f.write("\n" + MARK % "payments")
+        self.assert_refused_unrun(self.run_line(), [])
+
+    def test_an_assume_unchanged_change_is_refused(self):
+        subprocess.run(["git", "-C", self.wdir(), "update-index", "--assume-unchanged", "blocks.py"], check=True)
+        with open(os.path.join(self.wdir(), "blocks.py"), "a") as f:
+            f.write("\n" + MARK % "blocks")
+        self.assert_refused_unrun(self.run_line(), [])
+
+    def test_an_info_excluded_extra_file_is_refused(self):
+        with open(os.path.join(self.wdir(), ".git", "info", "exclude"), "a") as f:
+            f.write("\nextra_mod.py\n")
+        with open(os.path.join(self.wdir(), "extra_mod.py"), "w") as f:
+            f.write(MARK % "extra")
+        self.assert_refused_unrun(self.run_line(), ["extra_mod.py"])
+
+    def test_git_config_code_never_runs_and_never_sees_the_seed(self):
+        spy = os.path.join(self.work, "spy.sh")
+        with open(spy, "w") as f:
+            f.write("#!/bin/sh\nenv > '%s'\nexit 1\n" % os.path.join(self.work, "RAN-fsmonitor"))
+        os.chmod(spy, 0o755)
+        subprocess.run(["git", "-C", self.wdir(), "config", "core.fsmonitor", spy], check=True)
+        with open(os.path.join(self.work, "nano-seed.txt")) as f:
+            seed = f.read().strip()
+        argv = [t for t in published_argv(self.line, self.address) if t not in ("--seed-file", "nano-seed.txt")]
+        StubNode.processed = []
+        srv = http.server.HTTPServer(("127.0.0.1", 0), StubNode)
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        try:
+            p = subprocess.run(argv, cwd=self.work, capture_output=True, text=True, timeout=600,
+                               env=clean_env(NANO_NODE_URL="http://127.0.0.1:%d" % srv.server_address[1],
+                                             NANO_SEED=seed))
+        finally:
+            srv.shutdown()
+            srv.server_close()
+        self.assertEqual(self.ran(self.work), [], "the wallet's core.fsmonitor ran")
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertEqual(len(StubNode.processed), 1)
+
     def test_run_without_isolation_is_refused_before_anything_is_imported(self):
         with open(os.path.join(self.work, "subprocess.py"), "w") as f:
             f.write(MARK % "subprocess")
@@ -668,6 +761,19 @@ class GitLine(unittest.TestCase):
         subprocess.run(outer + ["commit", "-q", "--allow-empty", "-m", "the reader's own repo"], check=True)
         before = self.head(d)
         os.mkdir(os.path.join(d, "nano-wallet-xno"))
+        p = self.bash(d)
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("move that folder away", p.stderr)
+        self.assertEqual(self.head(d), before, "the git line acted on the enclosing repository")
+
+    def test_an_empty_dot_git_inside_another_repo_stops(self):
+        # review round 3 (LOW): `test -d nano-wallet-xno/.git` passed an empty .git and acted on the enclosing repo
+        d = self.folder()
+        outer = ["git", "-C", d, "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"]
+        subprocess.run(outer[:3] + ["init", "-q"], check=True)
+        subprocess.run(outer + ["commit", "-q", "--allow-empty", "-m", "the reader's own repo"], check=True)
+        before = self.head(d)
+        os.makedirs(os.path.join(d, "nano-wallet-xno", ".git"))
         p = self.bash(d)
         self.assertNotEqual(p.returncode, 0)
         self.assertIn("move that folder away", p.stderr)

@@ -499,14 +499,16 @@ too, by fetching the commit by SHA - to commit 6420e935, and a short `seedrecv.p
 YOUR_ADDRESS --seed-file nano-seed.txt` (or with NANO_SEED set). It derives index 0's key from the seed in memory
 with the wallet's own `private_key_from_seed`, receives in the `receive-only` profile (send not registered), finds
 receive-threshold work locally when the node refuses it, and prints the address first. Before it signs it refuses
-if: the seed is not the given address's; the wallet folder is not at the pin or `git status --porcelain` shows any
-change; any loaded module comes from outside that folder and the standard library (-I -S keeps the seed's folder,
+if: the seed is not the given address's; the wallet folder is not at the pin, any of its files differs byte for
+byte from the pinned tree (`git ls-tree -r`, hashed by the script itself), or it holds any entry not in that tree -
+ignored, excluded, skip-worktree and .pyc included; git runs with no user/system config, hooks or fsmonitor and
+never sees NANO_SEED; any loaded module comes from outside that folder and the standard library (-I -S keeps the seed's folder,
 PYTHONPATH and site-packages off the path; no .pyc is read from the wallet folder); and, on an opened account, the
 new balance is not above the frontier block's (block_info, contents hashed back to the frontier) or the
 representative is not that block's. NANO_WALLET_KEY_FILE is dropped from the wallet's environment; every error is
 one line. `--dry-run` prints the signed blocks with placeholder work and a summary that says `would_receive`. No new
 crypto; a missing seed file is an error, not a new key. The #142 warnings about the thread line stay, and section 8
-points no-node readers to it. `specs/test_bounties_python_seed_receive.py` (30 laws) runs the exact published lines
+points no-node readers to it. `specs/test_bounties_python_seed_receive.py` (40 laws) runs the exact published lines
 against stub nodes and the exact git line against a local stand-in for GitHub. Two older laws (#142, #110) were
 updated to the new truth.
 
@@ -520,7 +522,7 @@ the owner's call (same rule as PR #89). It has not broadcast a block on mainnet,
 - `nano-wallet-xno@6420e935` `ed25519_blake2b.py:108 private_key_from_seed`, `keystore.py:70 KeyStore.put`,
   `nanonode.py:323 work_generate` (local fallback for receive/open only)
 - ran: `python3 -m unittest specs.test_bounties_python_seed_receive` -> 10 OK (fresh clone, 10.8 s); after two
-  reviews of #118, 30 OK (NANO_WALLET_XNO_DIR at 6420e935)
+  reviews of #118, 30 OK; after the third, 40 OK (NANO_WALLET_XNO_DIR at 6420e935)
 - ran 2026-11-06, read-only: rpc.nano.to block_info DC297D7B... json_block=true -> state block whose contents
   recompute to DC297D7B... with `blocks.block_hash` (representative nano_1banexkc...); no key, no send
 

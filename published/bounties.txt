@@ -427,10 +427,10 @@ EOF
    and pinned to one commit, so you can read it before you run it. This line
    fetches it, or moves a clone you already have (a --depth 1 one too) to
    that commit; running it twice is safe:
-   test -e nano-wallet-xno || git clone -q https://github.com/dhyabi2/nano-wallet-xno; if test -d nano-wallet-xno/.git; then git -C nano-wallet-xno cat-file -e 6420e935816c6984e916305465ff22a3e63498bb 2>/dev/null || git -C nano-wallet-xno fetch -q --depth 1 origin 6420e935816c6984e916305465ff22a3e63498bb; git -C nano-wallet-xno checkout -q 6420e935816c6984e916305465ff22a3e63498bb; else echo "nano-wallet-xno is not a git clone (or the clone failed): move that folder away, then run this line again" >&2; false; fi
+   test -e nano-wallet-xno || git clone -q https://github.com/dhyabi2/nano-wallet-xno; if test -d nano-wallet-xno && test "$(git -C nano-wallet-xno rev-parse --show-toplevel 2>/dev/null)" = "$(cd nano-wallet-xno && pwd -P)"; then git -C nano-wallet-xno cat-file -e 6420e935816c6984e916305465ff22a3e63498bb 2>/dev/null || git -C nano-wallet-xno fetch -q --depth 1 origin 6420e935816c6984e916305465ff22a3e63498bb; git -C nano-wallet-xno checkout -q 6420e935816c6984e916305465ff22a3e63498bb; else echo "nano-wallet-xno is not a git clone (or the clone failed): move that folder away, then run this line again" >&2; false; fi
    cat > seedrecv.py <<'EOF'
 import os, sys
-sys.dont_write_bytecode = True
+SEED_ENV = os.environ.pop("NANO_SEED", None); sys.dont_write_bytecode = True  # no child process ever sees NANO_SEED
 USE = "usage: python3 -I -S seedrecv.py YOUR_ADDRESS (--seed-file PATH | NANO_SEED set) [--wallet DIR] [--dry-run]"
 if not (sys.flags.isolated and sys.flags.no_site): sys.exit("refused: run it as  " + USE[7:] + "  (-I -S: no module from this folder, PYTHONPATH or site-packages)")
 PIN = "6420e935816c6984e916305465ff22a3e63498bb"; opt = {"--seed-file": None, "--wallet": os.path.join(os.path.dirname(os.path.realpath(__file__)), "nano-wallet-xno")}
@@ -443,17 +443,37 @@ while av:
     else: pos.append(x)
 if len(pos) != 1: sys.exit(USE + "   (YOUR_ADDRESS: the ADDRESS nanokey.py printed)")
 W = os.path.realpath(opt["--wallet"]); FIX = "fix: move %s away, then run the git line on this page again" % W
-import subprocess, sysconfig, tempfile
+import hashlib, subprocess, sysconfig, tempfile
+GENV = {k: v for k, v in os.environ.items() if not k.startswith(("NANO_", "GIT_"))}
+GENV.update(GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull)  # git runs no hook, fsmonitor or user config
 def git(*a):
-    try: return subprocess.run(["git", "-C", W, *a], capture_output=True, text=True)
-    except OSError as e: sys.exit("refused: cannot run git (%s). Nothing was signed." % e)
+    try: return subprocess.run(["git", "-c", "core.fsmonitor=false", "-c", "core.hooksPath=" + os.devnull, "-c",
+                                "core.untrackedCache=false", "-C", W, *a], capture_output=True, text=True, env=GENV)
+    except OSError as e: sys.exit("refused: cannot run git (%s). Nothing was signed. No git? See the line after this script." % e)
 if git("rev-parse", "--show-toplevel").stdout.strip() != W: sys.exit("refused: %s is not a git clone of the wallet. %s" % (W, FIX))
 got = git("rev-parse", "HEAD").stdout.strip()
 if got != PIN: sys.exit("refused: %s is at %r, not the pinned %s. %s" % (W, got, PIN, FIX))
-st = git("status", "--porcelain", "--untracked-files=all")
-if st.returncode or st.stdout.strip(): sys.exit("refused: %s differs from the pinned commit: %s. %s" % (W, " ".join(st.stdout.split()[:6]) or st.stderr.strip(), FIX))
+tree = {}  # the pinned tree, compared with the files on disk byte for byte (no index, no .gitignore, no exclude)
+for e in git("ls-tree", "-r", "-z", PIN).stdout.split("\0"):
+    if e: m, path = e.split("\t", 1); tree[path] = m.split()
+dirs = {""} | {path.rsplit("/", i)[0] for path in tree for i in range(1, path.count("/") + 1)}
+flags = [e[2:] for e in git("ls-files", "-v", "-z").stdout.split("\0") if e and (e[0].islower() or e[0] == "S")]
+if not tree or flags: sys.exit("refused: %s hides changes from git (%s). %s" % (W, " ".join(flags[:3]) or "no tree", FIX))
+seen = set()
+for root, ds, fs in os.walk(W):
+    rel = os.path.relpath(root, W).replace(os.sep, "/"); rel = "" if rel == "." else rel + "/"
+    if not rel: ds[:] = [d for d in ds if d != ".git"]
+    for n in ds + fs:
+        f = os.path.join(root, n)
+        if (rel + n) not in (dirs if n in ds else tree) or os.path.islink(f):
+            sys.exit("refused: %s is not in the pinned wallet - remove it or re-clone. Nothing was signed." % f)
+    for n in fs:
+        b = open(os.path.join(root, n), "rb").read(); seen.add(rel + n)
+        if tree[rel + n][0] not in ("100644", "100755") or hashlib.sha1(b"blob %d\0" % len(b) + b).hexdigest() != tree[rel + n][2]:
+            sys.exit("refused: %s%s differs from the pinned commit - %s" % (rel, n, FIX))
+if seen != set(tree): sys.exit("refused: %s lacks %s. %s" % (W, " ".join(sorted(set(tree) - seen)[:3]), FIX))
 sys.pycache_prefix = tempfile.mkdtemp(prefix="seedrecv-")  # no .pyc is read from the wallet folder: only its checked .py files
-sys.path.insert(0, W)
+sys.path.append(W)  # last: a standard-library name never resolves into the wallet folder
 import json, blocks, nanoaddr, payments
 from mcp_server import Server
 from ed25519_blake2b import private_key_from_seed
@@ -462,20 +482,20 @@ for n, m in list(sys.modules.items()):
     f = getattr(m, "__file__", None)
     if n != "__main__" and f and not os.path.realpath(f).startswith(tuple(LIB + [W + os.sep])):
         sys.exit("refused: module %s was loaded from %s, outside %s and the standard library. Nothing was signed." % (n, f, W))
-where = opt["--seed-file"] or ("NANO_SEED" if os.environ.get("NANO_SEED") else None)
+where = opt["--seed-file"] or ("NANO_SEED" if SEED_ENV else None)
 if not where: sys.exit("refused: no seed given. " + USE)
 try:
-    hx = open(where).read() if opt["--seed-file"] else os.environ["NANO_SEED"]
+    hx = open(where).read() if opt["--seed-file"] else SEED_ENV
     seed = bytes.fromhex(hx.strip())
     if len(seed) != 32: raise ValueError("%d bytes, not 32" % len(seed))
 except OSError as e: sys.exit("refused: cannot read the seed file %s (%s). Nothing was signed." % (where, e.strerror))
 except ValueError: sys.exit("refused: %s is not a 64-hex seed. Nothing was signed." % where)
-env = {k: v for k, v in os.environ.items() if k not in ("NANO_SEED", "NANO_WALLET_KEY_FILE", "NANO_WALLET_PROFILE", "NANO_WALLET_ALLOW_SEND")}
+env = {k: v for k, v in os.environ.items() if k not in ("NANO_WALLET_KEY_FILE", "NANO_WALLET_PROFILE", "NANO_WALLET_ALLOW_SEND")}
 mine, sent = {}, []
 try:
     s = Server("receive-only", env=env); node = s.node(); a = s.keys.put(private_key_from_seed(seed, 0))
 except Exception as e: sys.exit("stopped: %s. Nothing was signed." % getattr(e, "message", e))
-del seed, hx
+del seed, hx; SEED_ENV = None
 if a != pos[0]: sys.exit("refused: %s is the wallet of %s, not %s. Nothing was signed or sent." % (where, a, pos[0]))
 print(a)
 def frontier(prev):  # account_info is NOT trusted for balance or representative: read the frontier block, check its hash
@@ -493,8 +513,9 @@ def guarded(key, acct, prev, rep, balance, link, subtype):  # no block lowers or
     was, keep = frontier(prev) if prev != blocks.ZERO32 else (-1, rep)
     if not balance > was: sys.exit("refused: new balance %d is not above %d, the balance of your frontier block -"
                                    " signed, it would be a SEND. The node lied. Nothing was signed." % (balance, was))
-    if rep != keep: sys.exit("refused: the node named representative %s, but your frontier block says %s. A receive never"
-                             " changes it. Nothing was signed." % (nanoaddr.encode(rep), nanoaddr.encode(keep)))
+    if rep != keep: sys.exit("refused: %s named representative %s, but your frontier block says %s. A receive never"
+                             " changes it. Nothing was signed." % ("NANO_WALLET_REPRESENTATIVE (unset it)" if
+                             os.environ.get("NANO_WALLET_REPRESENTATIVE") else "the node", nanoaddr.encode(rep), nanoaddr.encode(keep)))
     b = build(key, acct, prev, rep, balance, link, subtype); mine[bytes.fromhex(b["_hash"])] = (balance, rep); return b
 blocks.build_signed = guarded
 process = node.process
@@ -511,12 +532,16 @@ print(json.dumps(r, indent=1))
 EOF
    NANO_NODE_URL=https://rpc.nano.to python3 -I -S seedrecv.py YOUR_ADDRESS --seed-file nano-seed.txt --dry-run
    NANO_NODE_URL=https://rpc.nano.to python3 -I -S seedrecv.py YOUR_ADDRESS --seed-file nano-seed.txt
+   No git or no Python 3 here? Post the address anyway: copy nano-seed.txt
+   (nothing else) to a machine with node and use section 8's receive.js, or
+   import the 64-hex seed into a Nano wallet you already trust.
    Put your ADDRESS (the one nanokey.py printed) in place of YOUR_ADDRESS, and
    your seed file's path in place of nano-seed.txt if you moved it - or drop
    --seed-file nano-seed.txt and export NANO_SEED as above. Keep seedrecv.py
    next to the nano-wallet-xno folder (or pass --wallet DIR). It refuses,
    before it signs anything, if the seed is not that address's wallet, if the
-   wallet folder is not at the pinned commit or has any changed or added file,
+   wallet folder is not at the pinned commit or holds any file that differs
+   from that commit or is not in it (ignored ones too, .pyc included),
    or if any module it loads comes from anywhere but that folder and Python's
    standard library (-I -S keeps this folder, PYTHONPATH and site-packages
    out). An error is one line, never a traceback with your data in it.

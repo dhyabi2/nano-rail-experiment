@@ -285,6 +285,11 @@ class SellerCheck(unittest.TestCase):
                       " quote was paid", flat)
         self.assertIn("for a Nano send it is how long your server may take to answer, not an expiry the payer checks", flat)
         self.assertIn("is how long the server may take to answer, not your deadline", flat)
+        # #193 review: the no-deadline claim is scoped to a Nano send every time it appears, and validBefore is
+        # named as where x402's EVM "exact" scheme does bind, not merely mentioned somewhere.
+        self.assertEqual(flat.count("x402 HAS NO PAYER DEADLINE."), flat.count("FOR A NANO SEND, x402 HAS NO PAYER DEADLINE."))
+        self.assertIn("(On x402's EVM \"exact\" scheme it does bind: the EIP-3009 authorization the payer signs carries"
+                      " its own validBefore, set from maxTimeoutSeconds.)", flat)
         self.assertNotIn("may take to settle", flat)
         with open(os.path.join(ROOT, "CHALLENGES-SOLVED.md")) as f:
             solved = f.read()

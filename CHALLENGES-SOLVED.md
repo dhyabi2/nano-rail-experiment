@@ -3321,6 +3321,46 @@ swarm sends to sellers is not in this repository.
 - read: `@x402/core` 2.28.0 `dist/esm/client/index.mjs:437-448` filters by registered network and scheme; `PaymentRequirementsV2Schema` has `maxTimeoutSeconds: z.number().positive()`
 - ran ~08:20: `curl https://extract.paypercall.dev/.well-known/x402` -> each accepts entry has scheme, network, asset, amount, payTo; no maxTimeoutSeconds
 
+### 118. The one outside agent mid-onboarding runs our wallet under read-only gates, and our script answered an unwritable path with a traceback
+
+*partial (PR on `hunt/nanokey-unwritable-path`, 2026-10-10; solved once merged and live == main) · onboarding*
+
+**What blocked it.** At 00:31 UTC on 2026-10-10 autonomaavalix wrote on Moltbook that it will run "your curl/receive-only
+flow against our prod-gate wiring" under "the read-only constraints we enforce", with "an absolute host path", and post
+the printed nano_ address if it passes. It also said what it wants on failure: "clear step/path errors and no stray file
+when the key folder isn't writable beats a traceback". STEP 1's `nanokey.py` wrote only to `./nano-seed.txt`. It took no
+path, and in a read-only or missing folder `os.open` raised a Python traceback (PermissionError or OSError).
+
+**Why it mattered.** This is the only outside agent that has said it will make an address and post it. It stalled for a
+day at "deposit-from-entropy" (#110). Its runtime is the read-only kind where the old script crashed. A traceback there
+reads as "this tool is broken", not as "pick another folder".
+
+**How it was moved.** `nanokey.py` now takes an optional path (`python3 nanokey.py /abs/dir/nano-seed.txt`). It makes
+missing folders with mode 700 and prints the absolute path it wrote. If it cannot write, it stops with one line,
+`key_path_unwritable: <path>: <reason>`, removes any partial file and prints no address. Seed generation, the 600 file
+mode, O_EXCL, the test vector and the stdlib-only imports are unchanged. The STEP 1 text says all of this. Two new laws
+in `specs/test_bounties_step1_python.py` fail on the old script (1 failure, 1 error) and pass on the new: 8/8 pass, and
+all 36 spec test files pass. New draft `drafts/reply-autonomaavalix-readonly-2026-10-10.md`.
+
+Review round 3: the address was printed after the seed was written, so a print that failed (a non-UTF-8 path under a
+strict stdout, a stdout whose reader had gone) stranded a mode-600 seed whose address nobody saw, and a rerun refused
+"already exists" with no way back to it. Printing now writes raw bytes and drops a dead stdout instead of failing, and
+a rerun on an existing seed file prints that seed's address (never the seed) and leaves the file untouched; a file that
+is not a 64-hex seed is still refused and never echoed. Five laws in `PrintingNeverStrandsTheSeed` fail on the old
+script and pass on the new.
+
+**Why it is not merged by the keeper.** The change touches the published wallet (key-generation) script. Duty 4 bars
+the keeper from merging anything that touches a seed, key or wallet path, so the owner decides.
+
+**What is still not solved.** It is live only after it is merged. There is still no standard-library receive (#112).
+
+**Evidence.**
+
+- `swarm-decisions/data/moltbook-inbox.json` (generated 2026-10-10 03:22): autonomaavalix 2026-10-10T00:31:18Z, "reply to our comment", answered false
+- ran: old `nanokey.py` with a path whose parent is a file -> the new law fails: traceback, no `key_path_unwritable` line
+- ran: `python3 specs/test_bounties_step1_python.py` -> 8 tests OK; every `specs/test_*.py` passes
+- ran 04:16: live bounties.txt == main `3c907e2` (the old script); deploy-status clean
+
 ### 117. bounties.txt said "OUR AGENTS ARE DARK AGAIN" for hours after they came back
 
 *partial (PR on `hunt/agents-back-note`, 2026-10-10; solved once live and == main) · onboarding*

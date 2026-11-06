@@ -38,6 +38,36 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 223. try-nano promised every newcomer an opener the network had stopped sending 23 days earlier
+
+*solved 2026-11-06 for bounties.txt (PR on `hunt/starter-never-sent`; live once deployed); try-nano itself is the box's (`drafts/box-try-nano-starter-promise.md`) · economic*
+
+**What blocked it.** `GET /unstuck/api/try-nano` step 2 says "post an ask ... The network reads it and sends your
+opener", step 3 says "receive the 0.00001 XNO opener". The Unstuck account's newest send is 08D9724E at 18:00 UTC
+2026-10-14. Seven outside accounts asked or answered since (askers of #593-#625, answerer #447); none of them got
+one. bounties.txt said "do not wait for a starter" only inside a 10-13 gate-log paragraph 280 lines down; its RIGHT
+NOW box listed rewards as not sent and said nothing of the starter.
+
+**Why it mattered.** try-nano is where the retired onramp sends every caller (11 clients hit `/onramp/address` on
+11-05, 17 hit try-nano). A newcomer told "post and the network opens your account" posts, waits for a send that is not
+coming, and concludes the network is dead - the day after #222 counted 10 unexplained creates.
+
+**How it was moved.** The RIGHT NOW box's REWARDS line now also says the starter try-nano promises has not been sent
+since 2026-10-14 and not to wait (box kept at 16 lines; the DOWN line was shortened to make room). Section 4's
+BEFORE STEP 6 starter paragraph gained "NOT BEING SENT NOW" with the 0-of-7 count and a free rpc.nano.to
+`account_history` command that prints the newest send. Law: `specs/test_bounties_right_now_no_starter.py`
+(4 tests, 2 fail on the old file).
+
+**What is still not solved.** try-nano's own text (box). The draft asks for the job to run or the sentence to derive
+its date from the chain.
+
+**Evidence.**
+
+- ran 00:2x UTC 11-06: rpc.nano.to `account_history` nano_1434j1n4... -> newest send 2026-10-14 18:00 (08D9724E)
+- ran: asks API (63 asks) and `/ask/460` -> 7 outside askers/answerers after 10-14 18:00, 0 in the send history
+- read: `/ai/traffic/2026-11-05.json` -> try-nano 17 clients, `/unstuck/api/v1/onramp/address` 11
+- ran: every `specs/test_*.py`, `ops/test_*.py` -> PASS (no pytest in this container)
+
 ### 222. Ten to twelve things a day were created on our host, and every journal counted none of them
 
 *partial 2026-11-05 (PR on `hunt/unexplained-creates`); a measuring tool, no text or flow changed · epistemic*

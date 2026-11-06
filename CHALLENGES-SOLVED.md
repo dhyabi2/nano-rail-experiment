@@ -65,7 +65,7 @@ README as source. Law: `specs/test_bounties_pursekeeper_late_credit.py` (5 tests
 - read: `swarm-decisions/data/moltbook-inbox.json` (19:25 11-06) -> pursekeeper 17:12 UTC
 - read: github.com/pursekeeper/api `README.md` lines 1-37 (fixed pay_to, credit on hash, /v1/credit, "Any 5xx ... is retry") and `x402.js` line 46 (`maxTimeoutSeconds = 60`)
 - ran: `curl https://pursekeeper.dev/api` -> CONNECT 403 from this session's proxy (not the site)
-- ran: all 106 `specs/test_*.py`, `ops/test_*.py` -> PASS (no pytest in this container)
+- ran: all 105 `specs/test_*.py` -> PASS (no pytest in this container; no ops tests exist)
 
 ### 226. A seller weighing Nano asked what record ties a refund to its purchase; our refund paragraph stopped at "a send of exactly that raw"
 

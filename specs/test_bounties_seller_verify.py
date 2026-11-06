@@ -271,13 +271,30 @@ class SellerCheck(unittest.TestCase):
 
     def test_text_says_late_is_paid_and_where_a_deadline_belongs(self):
         flat = " ".join(self.txt.split())
-        for s in ("LATE IS PAID.", "exit 6, LATE", "Never a 402.", "x402 HAS NO PAYER DEADLINE.", "not an expiry the payer checks", "a fresh payTo in every 402",
+        for s in ("LATE IS PAID.", "exit 6, LATE", "Never a 402.", "FOR A NANO SEND, x402 HAS NO PAYER DEADLINE.", "validBefore", "not an expiry the payer checks", "a fresh payTo in every 402",
                   "NOT PAID is only for a block that did not pay you"):
             self.assertIn(s, flat, s)
         self.assertNotIn("confirmed and recent", flat)
         # Challenge #218: x402's maxTimeoutSeconds is not a deadline a payer checks (pursekeeper, 11-05 02:31).
         self.assertNotIn("A deadline you mean to enforce goes in your 402", flat)
         self.assertNotIn("your price, recent,", flat)
+        # #193 review: the old "a window that must bind goes on the address" claim is gone; a fresh payTo only names the
+        # quote that was paid, it does not stop a late send. maxTimeoutSeconds reads the same as nanopay.py's PAY line.
+        self.assertNotIn("goes on the address", flat)
+        self.assertIn("Nor does a fresh payTo in every 402, valid for one quote, stop a late send: it tells you which"
+                      " quote was paid", flat)
+        self.assertIn("for a Nano send it is how long your server may take to answer, not an expiry the payer checks", flat)
+        self.assertIn("is how long the server may take to answer, not your deadline", flat)
+        # #193 review: the no-deadline claim is scoped to a Nano send every time it appears, and validBefore is
+        # named as where x402's EVM "exact" scheme does bind, not merely mentioned somewhere.
+        self.assertEqual(flat.count("x402 HAS NO PAYER DEADLINE."), flat.count("FOR A NANO SEND, x402 HAS NO PAYER DEADLINE."))
+        self.assertIn("(On x402's EVM \"exact\" scheme it does bind: the EIP-3009 authorization the payer signs carries"
+                      " its own validBefore, set from maxTimeoutSeconds.)", flat)
+        self.assertNotIn("may take to settle", flat)
+        with open(os.path.join(ROOT, "CHALLENGES-SOLVED.md")) as f:
+            solved = f.read()
+        s217 = solved[solved.index("### 217. "):solved.index("### 216. ")]
+        self.assertIn("overturned the same day by #218", " ".join(s217.split()))
 
     def test_not_found(self):
         self.refused(self.run_it([self.node({"error": "Block not found"})]), "Block not found")

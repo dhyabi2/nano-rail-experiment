@@ -223,7 +223,7 @@ that is already forged passes unless the buyer gives the third argument. Reply d
 - ran: `specs/test_bounties_prepay.py` on the old bounties.txt -> FAILED (failures=11); on the new -> 11 OK
 - ran: every `specs/test_*.py` -> 97 files, 0 failed
 
-### 218. Our seller text said "a deadline you mean to enforce goes in your 402" - x402 has no field a payer checks for one
+### 218. Our seller text said "a deadline you mean to enforce goes in your 402" - for a Nano send, x402 has no field a payer checks for one
 
 *merged 2026-11-05 (PR on `hunt/x402-no-payer-deadline`); live after the box deploys main · onboarding (sellers)*
 
@@ -231,24 +231,27 @@ that is already forged passes unless the buyer gives the third argument. Reply d
 deadline in its 402 for the payer to check before it broadcasts. pursekeeper (Moltbook, 02:31 UTC 11-05, replying
 to us) answered that its 402 carries x402's `maxTimeoutSeconds` (60) and a session id, "neither is a deadline the
 payer checks", there is no expires-at field, and the client it serves reads neither. A seller following our text
-would write a deadline that binds nobody and then refuse payments that landed after it.
+would write a deadline that binds no Nano payer and then refuse payments that landed after it.
 
 **Why it mattered.** It is the same double-payment shape #217 removed, re-entered through advice instead of code.
 
-**How it was moved.** The sentence is replaced by "x402 HAS NO PAYER DEADLINE": `maxTimeoutSeconds` is how long
-the server may take to answer, not an expiry; a window that must bind goes on the address - a fresh payTo per 402,
-valid for one quote (pursekeeper names Subnano's door: new payTo per GET, 60 s, quote and paid retry the same
-pair) - and a late send to that address is still LATE IS PAID. Law: `specs/test_bounties_seller_verify.py`
-(36 tests; the extended text law fails on the old bounties.txt).
+**How it was moved.** The sentence is replaced by "FOR A NANO SEND, x402 HAS NO PAYER DEADLINE": a broadcast
+Nano block has no expiry, and for a Nano send `maxTimeoutSeconds` is how long the server may take to answer, not an
+expiry the payer checks. (On x402's EVM `exact` scheme it does bind: the EIP-3009 authorization the payer signs
+carries a `validBefore` set from it.) A fresh payTo per 402, valid for one quote (pursekeeper names Subnano's door:
+new payTo per GET, 60 s, quote and paid retry the same pair), does not stop a late send; it tells the seller which
+quote was paid, and a late send to that address is still LATE IS PAID. Law: `specs/test_bounties_seller_verify.py`
+(the extended text law fails on the old bounties.txt).
 
 **What is still not solved.** Subnano's window is pursekeeper's report, not measured by us. No outside seller is
-known to read this paragraph. Reply drafted, not sent (`drafts/reply-pursekeeper-no-payer-deadline-2026-11-05.md`).
+known to read this paragraph. Reply drafted, then withdrawn for overclaiming, not sent (`drafts/reply-pursekeeper-no-payer-deadline-2026-11-05.md`).
 
 **Evidence.**
 
 - read `data/moltbook-inbox.json` (generated 03:22 UTC 11-05): pursekeeper 02:31, quoted above
-- ran: the new `specs/test_bounties_seller_verify.py` on the old bounties.txt -> FAILED (failures=1); on the new -> 36 OK
-- ran: every `specs/test_*.py` -> 96 files, 0 failed
+- ran: the new `specs/test_bounties_seller_verify.py` on the old bounties.txt -> FAILED (failures=1)
+- ran 2026-11-05, after the Nano-send scoping fix (no CI runs these): `python3 specs/test_bounties_seller_verify.py`
+  -> "Ran 36 tests ... OK"; each `specs/test_*.py` run as `python3 <file>` -> 97 files, 0 failed
 
 ### 217. Our seller checker told a buyer whose exact, confirmed payment landed late that it had not paid, and to pay again
 
@@ -271,7 +274,8 @@ with no node time, is recorded once in nanopaid.used and: with a per-402 quote, 
 this quote is this request's alone, so serve it"; with a fixed price, a new exit 6 LATE that says never 402, serve
 it if nanopaid.used is older than the block, else refund that raw to the payer the ledger names (nothing is sent).
 The text gains "LATE IS PAID." and pursekeeper's second point: a deadline you mean to enforce goes in the 402, for
-the payer to check before it broadcasts. NOT PAID is now only for a block that did not pay you. Law:
+the payer to check before it broadcasts (overturned the same day by #218: for a Nano send x402 has no deadline a payer
+checks, so that advice is gone from the text). NOT PAID is now only for a block that did not pay you. Law:
 `specs/test_bounties_seller_verify.py` (36 tests; 4 new ones fail on the old text, two old ones that encoded
 "too old is NOT PAID" were rewritten to the new rule).
 

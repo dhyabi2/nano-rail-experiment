@@ -175,7 +175,7 @@ would write a deadline that binds no Nano payer and then refuse payments that la
 **Why it mattered.** It is the same double-payment shape #217 removed, re-entered through advice instead of code.
 
 **How it was moved.** The sentence is replaced by "FOR A NANO SEND, x402 HAS NO PAYER DEADLINE": a broadcast
-Nano block has no expiry, and for a Nano send `maxTimeoutSeconds` is how long the server may take to settle, not an
+Nano block has no expiry, and for a Nano send `maxTimeoutSeconds` is how long the server may take to answer, not an
 expiry the payer checks. (On x402's EVM `exact` scheme it does bind: the EIP-3009 authorization the payer signs
 carries a `validBefore` set from it.) A fresh payTo per 402, valid for one quote (pursekeeper names Subnano's door:
 new payTo per GET, 60 s, quote and paid retry the same pair), does not stop a late send; it tells the seller which
@@ -213,7 +213,8 @@ with no node time, is recorded once in nanopaid.used and: with a per-402 quote, 
 this quote is this request's alone, so serve it"; with a fixed price, a new exit 6 LATE that says never 402, serve
 it if nanopaid.used is older than the block, else refund that raw to the payer the ledger names (nothing is sent).
 The text gains "LATE IS PAID." and pursekeeper's second point: a deadline you mean to enforce goes in the 402, for
-the payer to check before it broadcasts. NOT PAID is now only for a block that did not pay you. Law:
+the payer to check before it broadcasts (overturned the same day by #218: for a Nano send x402 has no deadline a payer
+checks, so that advice is gone from the text). NOT PAID is now only for a block that did not pay you. Law:
 `specs/test_bounties_seller_verify.py` (36 tests; 4 new ones fail on the old text, two old ones that encoded
 "too old is NOT PAID" were rewritten to the new rule).
 

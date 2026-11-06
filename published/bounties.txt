@@ -1408,7 +1408,7 @@ EOF
  should say what the payer does with the money.") FOR A NANO SEND, x402
  HAS NO PAYER DEADLINE. A broadcast Nano block has no expiry, and nothing
  in the send carries x402's "maxTimeoutSeconds": for a Nano send it is how
- long your server may take to settle, not an expiry the payer checks, and
+ long your server may take to answer, not an expiry the payer checks, and
  a payer's client need not read it - so a deadline you only write into
  your 402 binds no Nano payer. (On x402's EVM "exact" scheme it does bind:
  the EIP-3009 authorization the payer signs carries its own validBefore,

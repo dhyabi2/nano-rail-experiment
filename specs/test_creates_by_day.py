@@ -195,6 +195,40 @@ class ReviewFindings(unittest.TestCase):
             self.assertEqual(code, 2, repr(detail))
             self.assertIn("UNKNOWN", err, repr(detail))
 
+    def test_asks_error_document_is_unknown_not_zero(self):
+        # {"error": "rate limited"} has no asks key: a failed read, never "0 asks ... UNEXPLAINED".
+        for doc in ({"error": "rate limited"}, {}):
+            code, err, _ = run_main(["2026-11-03"], traffic_doc=GOOD, asks_doc=doc, ask_doc={"ask": {}})
+            self.assertEqual(code, 2, repr(doc))
+            self.assertIn("UNKNOWN", err, repr(doc))
+            with self.assertRaises(cbd.Unknown, msg=repr(doc)):
+                cbd.ask_ids(doc)
+
+    def test_ask_detail_error_document_is_unknown_not_empty(self):
+        for detail in ({"error": "rate limited"}, {}, {"ask": None}):
+            code, err, _ = run_main(["2026-11-03"], traffic_doc=GOOD, asks_doc={"asks": [{"id": 1}]}, ask_doc=detail)
+            self.assertEqual(code, 2, repr(detail))
+            self.assertIn("UNKNOWN", err, repr(detail))
+
+    def test_duplicate_ask_ids_are_unknown(self):
+        with self.assertRaises(cbd.Unknown):
+            cbd.ask_ids({"asks": [{"id": 1}, {"id": 2}, {"id": 1}]})
+        code, err, _ = run_main(["2026-11-03"], traffic_doc=GOOD, asks_doc={"asks": [{"id": 1}, {"id": 1}]},
+                                ask_doc={"ask": {}})
+        self.assertEqual(code, 2)
+        self.assertIn("UNKNOWN", err)
+
+    def test_non_finite_generated_utc_never_reaches_json_output(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            doc = {"generated_utc": bad, "complete_day": True, "status": {"201": 1}}
+            code, err, _ = run_main(["--json", "2026-11-03"], traffic_doc=doc, asks_doc={"asks": []})
+            self.assertEqual(code, 2, repr(bad))
+            self.assertIn("UNKNOWN", err, repr(bad))
+
+    def test_json_output_still_works(self):
+        code, err, _ = run_main(["--json", "2026-11-03"], traffic_doc=GOOD, asks_doc={"asks": []})
+        self.assertEqual(code, 0, err)
+
 
 if __name__ == "__main__":
     unittest.main()

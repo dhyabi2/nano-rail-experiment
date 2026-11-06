@@ -93,13 +93,19 @@ def ask_ids(asks_doc):
     """The ask ids of GET /asks, or Unknown if the document is not {"asks": [{"id": <int>, ...}, ...]}."""
     if not isinstance(asks_doc, dict):
         raise Unknown(f"asks list is a {type(asks_doc).__name__}, not an object")
-    asks = asks_doc.get("asks", [])
+    # The key is required: {"error": "rate limited"} has no asks key and is a failed read, not a day of 0 asks.
+    if "asks" not in asks_doc:
+        raise Unknown(f"asks list has no asks key ({asks_doc!r:.80})")
+    asks = asks_doc["asks"]
     if not isinstance(asks, list):
         raise Unknown(f"asks list has asks={asks!r:.80}, not a list")
     ids = []
     for a in asks:
         if not isinstance(a, dict) or isinstance(a.get("id"), bool) or not isinstance(a.get("id"), int):
             raise Unknown(f"asks list has an entry {a!r:.80} without an integer id")
+        if a["id"] in ids:
+            # The same ask twice would be counted twice; a list that repeats itself is not one we can read.
+            raise Unknown(f"asks list has ask id {a['id']} more than once")
         ids.append(a["id"])
     return ids
 
@@ -161,9 +167,10 @@ def main():
         details = {}
         for i in ask_ids(asks_doc):
             doc = abd.fetch(f"{abd.API}/ask/{i}")
-            ask = doc.get("ask", {}) if isinstance(doc, dict) else None
+            # Required, like "asks": an error document without "ask" is a failed read, never an empty ask.
+            ask = doc.get("ask") if isinstance(doc, dict) else None
             if not isinstance(ask, dict):
-                raise Unknown(f"ask {i} is not an object")
+                raise Unknown(f"ask {i} has no ask object ({doc!r:.80})")
             details[i] = ask
     except Unknown as e:
         print(f"UNKNOWN: {e}. Nothing is measured - not zero.", file=sys.stderr)
@@ -181,7 +188,16 @@ def main():
         # build_report assumes the network's shapes; an answer that is not an object, say, lands here.
         print(f"UNKNOWN: a source has a shape this tool cannot read ({type(e).__name__}: {e!s:.200}). Nothing is measured - not zero.", file=sys.stderr)
         sys.exit(2)
-    print(json.dumps(r, indent=1) if args.json else render(r))
+    if args.json:
+        try:
+            # Strict JSON: NaN/Infinity from a source (say generated_utc) is not JSON and no reader should get it.
+            out = json.dumps(r, indent=1, allow_nan=False)
+        except ValueError as e:
+            print(f"UNKNOWN: a source holds a non-finite number ({e!s:.200}). Nothing is measured - not zero.", file=sys.stderr)
+            sys.exit(2)
+        print(out)
+    else:
+        print(render(r))
 
 
 if __name__ == "__main__":

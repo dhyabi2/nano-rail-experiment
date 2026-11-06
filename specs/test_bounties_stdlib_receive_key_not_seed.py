@@ -14,7 +14,7 @@ class StdlibReceiveKeyNotSeed(unittest.TestCase):
         with open(os.path.join(ROOT, "published", "bounties.txt")) as f:
             txt = f.read()
         i = txt.index("WHERE THE PYTHON PATH ENDS TODAY")
-        self.step1 = " ".join(txt[i:i + 10000].split())
+        self.step1 = " ".join(txt[i:i + 14000].split())
         j = txt.index(" 8. RECEIVE WHAT WAS SENT TO YOU")
         self.s8 = " ".join(txt[j:j + 800].split())
         self.txt = " ".join(txt.split())
@@ -36,8 +36,9 @@ class StdlibReceiveKeyNotSeed(unittest.TestCase):
         self.assertIn("makes a NEW key there instead of failing", self.step1)
 
     def test_gives_fetch_read_run_instead_of_a_pipe(self):
-        # challenge #146: the clone is now pinned to a commit and serves the seed-file line too
-        self.assertIn("git clone -q https://github.com/dhyabi2/nano-wallet-xno && git -C nano-wallet-xno checkout -q", self.step1)
+        # challenge #146: the clone is now pinned to a commit (fetched by SHA) and serves the seed-file line too
+        self.assertIn("test -e nano-wallet-xno || git clone -q https://github.com/dhyabi2/nano-wallet-xno", self.step1)
+        self.assertIn("git -C nano-wallet-xno checkout -q", self.step1)
         self.assertIn("profiles.py (which tools receive-only registers)", self.step1)
         self.assertNotIn("tar xz", self.txt)
 

@@ -493,15 +493,22 @@ receive.js - node + nanocurrency, the wall nanokey.py exists to skip. The stdlib
 PRIVATE KEY, so given nano-seed.txt it reads a different, empty account (#142). A Python-only agent holding a seed had
 nowhere to sign its first receive.
 
-**How it was moved.** STEP 1's WHERE THE PYTHON PATH ENDS TODAY now gives a standard-library receive for nano-seed.txt:
-one `git clone` of the owner's wallet pinned to commit 6420e935, and one `python3 -c` line that derives index 0's key
-from the seed in memory with the wallet's own `private_key_from_seed`, receives in the `receive-only` profile (send not
-registered), finds receive-threshold work locally when the node refuses it, and prints the address first so the reader
-checks it against nanokey.py's. No new crypto; a missing seed file is an error, not a new key. The #142 warnings about
-the thread line stay, and section 8 now points no-node readers to it. `specs/test_bounties_python_seed_receive.py`
-(10 laws) runs the exact published line against a stub node that refuses work like rpc.nano.to: it opens the account
-nanokey.py printed for the same seed, the signature recomputes with that seed's key, the work meets 0xfffffe00..., and
-neither the seed nor the key appears in any output. Two older laws (#142, #110) were updated to the new truth.
+**How it was moved.** STEP 1's WHERE THE PYTHON PATH ENDS TODAY now gives a standard-library receive for
+nano-seed.txt: one idempotent git line that clones the owner's wallet - or moves an existing clone, a `--depth 1` one
+too, by fetching the commit by SHA - to commit 6420e935, and a short `seedrecv.py` run as `python3 -I -S seedrecv.py
+YOUR_ADDRESS --seed-file nano-seed.txt` (or with NANO_SEED set). It derives index 0's key from the seed in memory
+with the wallet's own `private_key_from_seed`, receives in the `receive-only` profile (send not registered), finds
+receive-threshold work locally when the node refuses it, and prints the address first. Before it signs it refuses
+if: the seed is not the given address's; the wallet folder is not at the pin or `git status --porcelain` shows any
+change; any loaded module comes from outside that folder and the standard library (-I -S keeps the seed's folder,
+PYTHONPATH and site-packages off the path; no .pyc is read from the wallet folder); and, on an opened account, the
+new balance is not above the frontier block's (block_info, contents hashed back to the frontier) or the
+representative is not that block's. NANO_WALLET_KEY_FILE is dropped from the wallet's environment; every error is
+one line. `--dry-run` prints the signed blocks with placeholder work and a summary that says `would_receive`. No new
+crypto; a missing seed file is an error, not a new key. The #142 warnings about the thread line stay, and section 8
+points no-node readers to it. `specs/test_bounties_python_seed_receive.py` (30 laws) runs the exact published lines
+against stub nodes and the exact git line against a local stand-in for GitHub. Two older laws (#142, #110) were
+updated to the new truth.
 
 **Why it is not solved yet.** It is not live. It tells outside agents how to sign with their own seed, so its merge is
 the owner's call (same rule as PR #89). It has not broadcast a block on mainnet, and the page says so.
@@ -512,7 +519,10 @@ the owner's call (same rule as PR #89). It has not broadcast a block on mainnet,
 - `published/bounties.txt` (pre-fix) section 8: "the Python wallet in step 1 has no receive of its own yet"
 - `nano-wallet-xno@6420e935` `ed25519_blake2b.py:108 private_key_from_seed`, `keystore.py:70 KeyStore.put`,
   `nanonode.py:323 work_generate` (local fallback for receive/open only)
-- ran: `python3 -m unittest specs.test_bounties_python_seed_receive` -> 10 OK (fresh clone, 10.8 s)
+- ran: `python3 -m unittest specs.test_bounties_python_seed_receive` -> 10 OK (fresh clone, 10.8 s); after two
+  reviews of #118, 30 OK (NANO_WALLET_XNO_DIR at 6420e935)
+- ran 2026-11-06, read-only: rpc.nano.to block_info DC297D7B... json_block=true -> state block whose contents
+  recompute to DC297D7B... with `blocks.block_hash` (representative nano_1banexkc...); no key, no send
 
 ### 212. The one paid call every guide says works was in no check, and its terms were served as a download
 

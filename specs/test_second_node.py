@@ -96,6 +96,19 @@ class SecondNode(unittest.TestCase):
         self.assertIn("contents: read", wf)
         self.assertNotIn("write", wf.split("permissions:")[1].split("jobs:")[0])
 
+    def test_bounties_names_only_measured_nodes(self):
+        # Measured 08:24 UTC 2026-11-07 on GitHub's runners (second-node run 1): these AGREED with rpc.nano.to.
+        measured = ["https://nanoslo.0x.no/proxy", "https://node.somenano.com/proxy",
+                    "https://rainstorm.city/api", "https://app.natrium.io/api"]
+        txt = open(os.path.join(ROOT, "published", "bounties.txt")).read()
+        step4 = txt[txt.index(" STEP 4 - PROVE"):txt.index(" STEP 5 - TRY")]
+        for node in measured:
+            self.assertIn(node, step4)
+            self.assertIn(node, csn.CANDIDATES, "a node named in the guide must stay in the daily probe")
+        self.assertIn("Measured 08:24 UTC 2026-11-07", step4)
+        self.assertIn("two names can be one operator", step4)
+        self.assertNotIn("we have measured none", txt)
+
 
 if __name__ == "__main__":
     unittest.main()

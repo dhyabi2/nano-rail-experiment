@@ -505,11 +505,14 @@ EOF
    nano_1yo6c1t6..., amount 500000000000000000000000000 (0.0005 XNO).
    What it paid for is our word, not the ledger's: a round 0.0005, no invoice.
    Any field missing or different: the verdict is UNKNOWN, not settled.
-   Write down which node you asked. That is one node's word: send the same
-   JSON to a second node you choose, run by someone else (every Nano node
-   speaks this RPC). Measured 08:24 UTC 2026-11-07, these four gave the same
-   answer as rpc.nano.to for this block and for the treasury's balance and
-   frontier (ops/check-second-node.py, run on GitHub's runners):
+   Write down which node you asked. That is one node's word: ask a second
+   node you choose, run by someone else (every Nano node speaks this RPC).
+   Measured 08:24 UTC 2026-11-07, these four answered blocks_info (the plural:
+   {"action":"blocks_info","json_block":"true","hashes":["<BLOCK>"]}) for this
+   block and account_info for the treasury's balance and frontier the same as
+   rpc.nano.to (ops/check-second-node.py, run on GitHub's runners). block_info
+   (the singular, above) was not measured on them; a proxy may refuse it, so
+   send them the blocks_info line:
      https://nanoslo.0x.no/proxy      https://node.somenano.com/proxy
      https://rainstorm.city/api       https://app.natrium.io/api
    We do not know who runs them, and two names can be one operator. Section 7

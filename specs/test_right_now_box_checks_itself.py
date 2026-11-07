@@ -36,7 +36,8 @@ class RightNowBoxChecksItself(unittest.TestCase):
         self.assertIn("-X POST https://getunstuck.space/unstuck/api/v1/echo", step6)
 
     def test_every_claim_in_the_box_has_its_own_check(self):
-        self.assertEqual(self.box.count("curl -s -m 10"), 2, "one check for what works paid, one for what is down")
+        self.assertEqual(self.box.count("curl -s -m 10"), 3,
+                         "one check each for the outside paid call, our paid call and what is down (#233)")
 
 
 if __name__ == "__main__":

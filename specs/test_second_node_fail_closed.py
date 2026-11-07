@@ -66,10 +66,13 @@ class FailClosed(unittest.TestCase):
             self.assertIn(named, text, "bounties.txt STEP 4 no longer names %s: update this law" % named)
             self.assertIn(named, hosts, "%s is named in bounties.txt but the probe no longer measures it" % named)
 
-    def test_a_disagreeing_node_turns_the_run_red(self):
-        wf = open(os.path.join(ROOT, ".github", "workflows", "second-node.yml")).read()
-        # nrx#211 follow-up LOW 4: only 0 and 3 stay green; 1, 4 and any crash (2, 127, 137) go red.
-        self.assertRegex(wf, r'if \[ "\$code" != "0" \] && \[ "\$code" != "3" \]; then exit 1; fi')
+    def test_every_failure_but_unreadable_is_nonzero_and_distinct(self):
+        # nrx#211 follow-up LOW 4 (the workflow is gone, owner rule a18424e): the exit code alone must say what
+        # happened - 1 disagrees, 4 misread reference, 3 none readable, 0 agrees.
+        self.assertEqual(csn.exit_code([{"verdict": "REFERENCE"}, {"verdict": "DISAGREES"}]), 1)
+        self.assertEqual(csn.exit_code([{"verdict": "UNKNOWN", "faulty_reference": True}, {"verdict": "UNKNOWN"}]), 4)
+        self.assertEqual(csn.exit_code([{"verdict": "REFERENCE"}, {"verdict": "UNKNOWN"}]), 3)
+        self.assertEqual(csn.exit_code([{"verdict": "REFERENCE"}, {"verdict": "AGREES"}]), 0)
 
 
 class WrongBlockIsNeverMasked(unittest.TestCase):

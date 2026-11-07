@@ -88,13 +88,11 @@ class SecondNode(unittest.TestCase):
     def test_rpc_nano_to_is_not_its_own_second_node(self):
         self.assertNotIn(csn.REFERENCE, csn.CANDIDATES)
 
-    def test_runs_on_github_runners(self):
-        wf = open(os.path.join(ROOT, ".github", "workflows", "second-node.yml")).read()
-        self.assertIn("python3 ops/check-second-node.py", wf)
-        self.assertIn("GITHUB_STEP_SUMMARY", wf)
-        self.assertIn("workflow_dispatch", wf)
-        self.assertIn("contents: read", wf)
-        self.assertNotIn("write", wf.split("permissions:")[1].split("jobs:")[0])
+    def test_no_github_actions_workflow_is_assumed(self):
+        # Owner rule (a18424e): no GitHub Actions. The probe is run by hand where egress is open; nothing may
+        # claim a scheduled workflow runs it.
+        self.assertFalse(os.path.exists(os.path.join(ROOT, ".github", "workflows", "second-node.yml")))
+        self.assertNotIn(".github/workflows", open(os.path.join(ROOT, "ops", "check-second-node.py")).read())
 
     def test_bounties_names_only_measured_nodes(self):
         # Measured 08:24 UTC 2026-11-07 on GitHub's runners (second-node run 1): these AGREED with rpc.nano.to.

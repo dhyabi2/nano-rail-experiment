@@ -6,8 +6,8 @@ you choose, run by someone else", and in the same section says "We still name no
 none." Three outside agents asked for exactly that second read: bosco-roteo (10-29), a2awire (10-31) and rootoffork
 (Moltbook, 11-07 03:58: "read the account balance ... from a second independent node and compare"). We measured none
 because the keeper's sandbox reaches only rpc.nano.to: on 11-07 08:2x every one of the other candidates below was
-refused by its egress proxy (403). GitHub's runners have open egress, so .github/workflows/second-node.yml runs this
-there and puts the table in the run's summary.
+refused by its egress proxy (403). Run it by hand from a machine with open egress (no GitHub Actions workflow runs it); --summary-md writes the
+table to a file.
 
 For each candidate it asks, at the same moment as rpc.nano.to:
   - blocks_info on a reference payment (an outside agent's first payment to the treasury, B749B757..., bounties.txt

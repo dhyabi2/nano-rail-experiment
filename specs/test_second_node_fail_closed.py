@@ -116,6 +116,58 @@ class FaultyReferenceIsItsOwnRed(unittest.TestCase):
         self.assertEqual(csn.exit_code(csn.run(["https://n1"], call)), 3)
 
 
+def blocks_answer(ref_bi):
+    """The reference answers blocks_info with ref_bi verbatim; n1 is healthy."""
+    good = stub({"https://n1": (GOOD_BLOCK, dict(GOOD_ACCOUNT))})
+
+    def call(url, payload):
+        if url == csn.REFERENCE:
+            return ref_bi if payload["action"] == "blocks_info" else dict(GOOD_ACCOUNT)
+        return good(url, payload)
+    return call
+
+
+class ReferenceThatCannotReadTheBlockIsRed(unittest.TestCase):
+    """nrx#212 review MEDIUM 2: rpc.nano.to denying the confirmed reference payment exited 3 (green)."""
+
+    def check(self, ref_bi):
+        rows = csn.run(["https://n1"], blocks_answer(ref_bi))
+        self.assertEqual(rows[0]["verdict"], "UNKNOWN")
+        self.assertTrue(rows[0]["faulty_reference"])
+        self.assertIn("FAULTY REFERENCE", rows[0]["detail"])
+        self.assertEqual(rows[1]["verdict"], "UNKNOWN")
+        self.assertEqual(csn.exit_code(rows), 4)
+        return rows
+
+    def test_block_not_found_exits_4(self):
+        self.assertIn("Block not found", self.check({"error": "Block not found"})[0]["detail"])
+
+    def test_empty_blocks_exits_4(self):
+        self.check({"blocks": {}})
+
+    def test_reference_block_null_exits_4(self):
+        self.check({"blocks": {csn.REF_BLOCK: None}})
+
+
+class OddBlocksShapeIsUnreadableNotACrash(unittest.TestCase):
+    """nrx#212 review LOW 4: {"blocks": [..]} or {"blocks": "x"} raised AttributeError (exit 1, no summary)."""
+
+    def test_candidate_with_list_or_string_blocks_is_unknown(self):
+        for odd in ([GOOD_BLOCK], "x"):
+            def call(url, payload, odd=odd):
+                if url == "https://n1" and payload["action"] == "blocks_info":
+                    return {"blocks": odd}
+                return stub({csn.REFERENCE: (GOOD_BLOCK, GOOD_ACCOUNT), "https://n1": (GOOD_BLOCK, GOOD_ACCOUNT)})(url, payload)
+            rows = csn.run(["https://n1"], call)
+            self.assertEqual(rows[1]["verdict"], "UNKNOWN")
+            self.assertEqual(csn.exit_code(rows), 3)
+
+    def test_reference_with_list_or_string_blocks_exits_4(self):
+        for odd in ([GOOD_BLOCK], "x"):
+            rows = csn.run(["https://n1"], blocks_answer({"blocks": odd}))
+            self.assertEqual(csn.exit_code(rows), 4)
+
+
 class GarbageBlockDoesNotCrash(unittest.TestCase):
     def test_a_string_block_is_a_fault_not_a_traceback(self):
         rows = csn.run(["https://n1"], stub({csn.REFERENCE: (GOOD_BLOCK, GOOD_ACCOUNT),

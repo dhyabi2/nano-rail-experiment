@@ -22,7 +22,7 @@ class PursekeeperLateCredit(unittest.TestCase):
         with open(os.path.join(ROOT, "published", "bounties.txt")) as f:
             self.flat = " ".join(f.read().split())
         self.i = self.flat.index("pursekeeper.dev's door")
-        self.para = self.flat[self.i:self.i + 1400]
+        self.para = self.flat[self.i:self.i + 2600]
 
     def test_follows_the_subnano_window(self):
         self.assertLess(self.flat.index("purchase id and the hash"), self.i)

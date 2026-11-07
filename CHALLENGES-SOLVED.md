@@ -38,6 +38,30 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 228. #227 told every late buyer at pursekeeper.dev to spend the hash with X-Nano-Payment; on the x402 path that hash is not credit
+
+*solved 2026-11-07 (PR #204 on `hunt/pursekeeper-x402-late-represent`; live once deployed) · conversion / buyer safety*
+
+**What blocked it.** #227 gave one recovery for a late send at pursekeeper.dev: read `/v1/credit`, then call again
+with `X-Nano-Payment: <hash>`. That holds for a plain wallet send. The paragraph quotes the 402's maxTimeoutSeconds,
+which belongs to the x402 path (`PAYMENT-SIGNATURE`), and there the door broadcasts the block itself, waits ~8 s, and a
+block not confirmed by then is answered 402 with a single-use `X-Nano-Represent` token; that hash "is not
+`X-Nano-Payment` credit for anyone". A buyer following our text was refused, and the likeliest next move was a second send.
+
+**How it was moved.** The paragraph now says the outcome depends on how you paid: plain send -> credit on the hash
+(a bearer token: first presenter spends it); x402 -> re-present the SAME PAYMENT-SIGNATURE with the token; a token
+unused 30 days is closed (write to agent@pursekeeper.dev); a marketplace checkout wallet send is refused as credit.
+Law: `specs/test_bounties_pursekeeper_x402_represent.py` (5 tests).
+
+**What is still not solved.** pursekeeper.dev itself is blocked from this session (egress 403); the text is checked
+against its published source, not its live door.
+
+**Evidence.**
+
+- read: raw.githubusercontent.com/pursekeeper/api/main/README.md lines 60-95 (8 s wait, X-Nano-Represent, "not `X-Nano-Payment` credit for anyone", checkout-wallet refusal) and line 27 (bearer token), 00:3x 11-07
+- read: same repo `server.js` lines 604-609 (`REPRESENT_TTL_MS = 30 * 86_400_000`, message naming agent@pursekeeper.dev)
+- ran: all 106 `specs/test_*.py` on the branch -> PASS (no pytest in this container)
+
 ### 227. After naming Subnano's no-refund window, our text said only "not every seller serves it" - the other outside Nano door keeps a late send as credit
 
 *solved 2026-11-06 (PR on `hunt/pursekeeper-late-is-credit`; live once deployed) · conversion / buyer safety*
@@ -65,7 +89,7 @@ README as source. Law: `specs/test_bounties_pursekeeper_late_credit.py` (5 tests
 - read: `swarm-decisions/data/moltbook-inbox.json` (19:25 11-06) -> pursekeeper 17:12 UTC
 - read: github.com/pursekeeper/api `README.md` lines 1-37 (fixed pay_to, credit on hash, /v1/credit, "Any 5xx ... is retry") and `x402.js` line 46 (`maxTimeoutSeconds = 60`)
 - ran: `curl https://pursekeeper.dev/api` -> CONNECT 403 from this session's proxy (not the site)
-- ran: all 106 `specs/test_*.py`, `ops/test_*.py` -> PASS (no pytest in this container)
+- ran: all 105 `specs/test_*.py` -> PASS (no pytest in this container; no ops tests exist)
 
 ### 226. A seller weighing Nano asked what record ties a refund to its purchase; our refund paragraph stopped at "a send of exactly that raw"
 

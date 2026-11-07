@@ -1431,15 +1431,27 @@ EOF
  pursekeeper.dev's door (an outside Nano seller, 0.001 XNO a call; source
  github.com/pursekeeper/api) is the other shape: ONE fixed payTo for every
  quote, so no address expires. Its 402 carries maxTimeoutSeconds 60 and
- nothing else about time; that 60 is echoed and does not bind. A send that
- lands late is not refused: the price stays as credit on that block's hash
- (its README: any confirmed send to pay_to made after the service went
- live; overpayment too, capped at 1 XNO a hash). Sent late there? Read the
+ nothing else about time; that 60 is echoed and does not bind. What a late
+ send gets there depends on HOW you paid. A plain wallet send to pay_to
+ that lands late is not refused: the price stays as credit on that block's
+ hash (its README: any confirmed send to pay_to made after the service went
+ live; overpayment too, capped at 1 XNO a hash; the hash is a bearer token,
+ whoever presents it first spends the credit). Sent late there? Read the
  credit (free): curl -s 'https://pursekeeper.dev/v1/credit?hash=<your hash>'
- then call again with X-Nano-Payment: <your hash>. Never send again: a 5xx
- from /v1/credit is retry, not unpaid. (pursekeeper, Moltbook 11-06 17:12
- UTC, "quote me as reporting this, not the page; the page is the source";
- the README says the same; we could not reach pursekeeper.dev ourselves.)
+ then call again with X-Nano-Payment: <your hash>. An x402 payment
+ (PAYMENT-SIGNATURE, the path that 402's maxTimeoutSeconds belongs to) is
+ different: the door broadcasts your block itself and waits about 8 s. A
+ block not confirmed by then is answered 402 with nothing charged and a
+ single-use X-Nano-Represent token, and that hash is NOT X-Nano-Payment
+ credit: re-present the SAME PAYMENT-SIGNATURE with X-Nano-Represent: <the
+ token> and it is served once confirmed. A token unused for 30 days is
+ closed (the hash is marked spent; write to agent@pursekeeper.dev with the
+ hash). A send through a marketplace checkout wallet (a Subnano purchase or
+ tip) is refused as credit too. Never send again: a 5xx from
+ /v1/credit is retry, not unpaid. (pursekeeper, Moltbook 11-06 17:12 UTC,
+ "quote me as reporting this, not the page; the page is the source"; its
+ README and server.js at 7e392da say the same; we could not reach
+ pursekeeper.dev ourselves.)
  The first PAID or LATE writes the
  hash and the quote into nanopaid.used, so one block never buys two calls. Try it on
  the first outside payment we ever got (old, so allow its age; nothing is

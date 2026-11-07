@@ -64,6 +64,11 @@ section 7 only a node that AGREES, with the date it was measured and the caveat 
 - ran 08:2x: `python3 ops/check-second-node.py` here -> rpc.nano.to REFERENCE; 8 candidates 403 at the egress proxy,
   bitrequest reset; exit 3 (UNKNOWN, not clean). api.nanswap.com and api.coingecko.com are also refused here.
 - ran: `python3 specs/test_second_node.py` -> 9 tests OK; all `specs/test_*.py` -> see the PR
+- ran 08:24 on GitHub's runners (second-node run 1, job 128352098164): AGREES nanoslo.0x.no/proxy,
+  node.somenano.com/proxy, rainstorm.city/api, app.natrium.io/api, www.bitrequest.app:8020; UNKNOWN (DNS: name not
+  known) proxy.nanos.cc, mynano.ninja, vault.nanocrawler.cc, nanonode.cc; exit 0
+- PR #207: bounties.txt STEP 4 names the first four (bitrequest left out: a non-standard port many egress rules
+  block), section 7 says why it named none until 11-07, and a tenth law ties every named node to the daily probe
 
 ### 229. The most-knocked door on the host (59 outside clients on 11-07) has no fix anyone could apply: the #204 edit broke the box draft's Caddy
 

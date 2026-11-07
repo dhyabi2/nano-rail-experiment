@@ -361,7 +361,7 @@ class SellerCheck(unittest.TestCase):
 
     def test_text_says_a_down_node_is_unknown_not_a_402(self):
         for s in ("Exit 5 prints UNKNOWN", "never with a 402", "means UNKNOWN, exit 5",
-                  "A NODE THAT IS DOWN IS NOT A PAYMENT THAT FAILED", "We still name no second node: we have measured none"):
+                  "A NODE THAT IS DOWN IS NOT A PAYMENT THAT FAILED", "Until 2026-11-07 we named no second node"):
             self.assertIn(s, self.txt)
         self.assertNotIn("one that is down or blocked means NOT PAID", self.txt)
 

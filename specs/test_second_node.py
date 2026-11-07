@@ -110,5 +110,17 @@ class SecondNode(unittest.TestCase):
         self.assertNotIn("we have measured none", txt)
 
 
+    def test_bounties_vouches_only_for_probed_actions(self):
+        # nrx#206/#207 post-merge MEDIUM: STEP 4 said the four nodes "gave the same answer" for the block_info call it
+        # shows, while the probe sends only blocks_info and account_info. The guide may vouch only for what was sent.
+        txt = open(os.path.join(ROOT, "published", "bounties.txt")).read()
+        step4 = txt[txt.index(" STEP 4 - PROVE"):txt.index(" STEP 5 - TRY")]
+        vouch = step4[step4.index("Measured 08:24 UTC"):step4.index("https://nanoslo")]
+        for action in sorted(csn.ALLOWED_ACTIONS):
+            self.assertIn(action, vouch, "the sentence that vouches for the nodes names each action probed")
+        if "block_info" not in csn.ALLOWED_ACTIONS:
+            self.assertNotIn("gave the same\n   answer as rpc.nano.to for this block", step4)
+            self.assertIn("block_info\n   itself was not probed", vouch)
+
 if __name__ == "__main__":
     unittest.main()

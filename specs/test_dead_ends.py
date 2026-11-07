@@ -53,7 +53,7 @@ class DeadEnds(unittest.TestCase):
             d = f.read()
         caddy = d[d.index("```\n") + 4:d.index("```", d.index("```\n") + 4)]
         self.assertIn("redir /canon.html /canon 301", caddy)
-        self.assertIn("path /unstuck/api /unstuck/api/", caddy)
+        self.assertIn("path /unstuck/api/\n", caddy)  # #229: /unstuck/api (no slash) already answers 200
         self.assertIn("path /unstuck/api/ask\n", caddy)
         self.assertIn(r"^/unstuck/api/asks/(\d+)$", caddy)
         self.assertIn("redir @plain_root", caddy)
@@ -92,6 +92,61 @@ class DeadEnds(unittest.TestCase):
         self.assertIn("X-Nano-Payment", handler)
         self.assertTrue(handler.rstrip().endswith("405"))
         self.assertIn("`/unstuck/api/v1/echo`", d)
+
+    def _caddy(self):
+        with open(os.path.join(ROOT, "drafts", "box-dead-ends.md")) as f:
+            d = f.read()
+        return d[d.index("```\n") + 4:d.index("```", d.index("```\n") + 4)]
+
+    def test_caddy_block_is_well_formed(self):
+        """#229: the #204 edit left a handle holding matcher lines and a matcher defined twice, so
+        `caddy validate` rejected the whole draft. Every matcher is defined once and holds only matcher
+        lines; every handle names a defined matcher and holds no matcher lines; braces balance."""
+        import re
+        caddy = self._caddy()
+        blocks = re.findall(r"^(@\w+|handle @\w+) \{\n(.*?)^\}$", caddy, re.S | re.M)
+        matcher_words = {"path", "method", "not", "header_regexp", "path_regexp", "header"}
+        defined = []
+        for head, body in blocks:
+            words = [l.split()[0] for l in body.splitlines() if l.strip()]
+            if head.startswith("@"):
+                defined.append(head)
+                self.assertTrue(words and set(words) <= matcher_words, head + " holds " + str(words))
+                self.assertNotIn("respond", words)
+            else:
+                name = head.split()[1]
+                self.assertIn(name, defined, head + " names a matcher not defined above it")
+                self.assertFalse({"path", "method", "not"} & set(words), head + " holds matcher lines")
+                self.assertIn("respond", words)
+        self.assertEqual(len(defined), len(set(defined)), "a matcher is defined twice: " + str(defined))
+        handled = [h.split()[1] for h, _ in blocks if h.startswith("handle")]
+        self.assertEqual(len(handled), len(set(handled)), "a matcher is handled twice: " + str(handled))
+        inline = re.findall(r"^(@\w+) (?!\{)", caddy, re.M)  # one-line matchers, e.g. @asks_by_id path_regexp ...
+        self.assertEqual(len(defined + inline), len(set(defined + inline)), "a matcher is defined twice")
+        for m in re.findall(r"^(?:redir|handle) (@\w+)", caddy, re.M):
+            self.assertIn(m, defined + inline, m + " is used but never defined")
+        depth = 0
+        for line in caddy.splitlines():
+            if "`" in line:
+                continue  # a respond body's braces are JSON, not Caddy
+            depth += line.count("{") - line.count("}")
+            self.assertGreaterEqual(depth, 0)
+        self.assertEqual(depth, 0)
+
+    def test_api_index_answers_the_slash_with_json(self):
+        """#229: /unstuck/api/ was the most-requested path on 11-07 (59 outside clients) and 404s."""
+        import json
+        caddy = self._caddy()
+        i = caddy.index("@api_index {")
+        self.assertIn("path /unstuck/api/\n", caddy[i:caddy.index("}", i)])
+        h = caddy.index("handle @api_index {")
+        handler = caddy[h:caddy.index("\n}\n", h)]
+        body = handler[handler.index("respond `") + 9:handler.rindex("`")]
+        index = json.loads(body)
+        self.assertEqual(index["start_here"], "https://172-86-112-140.sslip.io/bounties.txt")
+        self.assertIn("GET /unstuck/api/asks", index["endpoints"])
+        self.assertNotIn("try-nano", index["start_here"])
+        self.assertTrue(handler.rstrip().endswith("200"))
 
     def test_known_dead_ends_name_their_draft(self):
         for p in DEAD_2026_10_01 + ["/unstuck/api/v1/echo", "/unstuck/api/asks/617"]:

@@ -38,6 +38,39 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 229. The most-knocked door on the host (59 outside clients on 11-07) has no fix anyone could apply: the #204 edit broke the box draft's Caddy
+
+*open · technical (the draft is now valid; solved when the box serves it)*
+
+**What blocked it.** On 11-07 (traffic generated 04:07, 00:00-03:55 UTC) `/unstuck/api/` was the most-requested path
+on the host: **59** distinct outside clients, against 21 for `/unstuck/api/asks`, 7 for canon and 4 for bounties.txt
+(34 on 11-06). It answers `404 {"error":"not found"}`. The network's own `getunstuck.space/llms.txt` gives
+`/unstuck/api` as the API base, so a client that opens the base with a slash is told nothing is there. #76 drafted a
+JSON index for it in `drafts/box-dead-ends.md` on 10-01. But the #204 edit (11-02) pasted the echo block over that
+handler: the draft now held a `handle @echo_get` containing matcher lines (`path`, `method`) and a second `@api_index`
+containing `header` and `respond`. `caddy validate` rejects that, so the whole block failed, including the `/`,
+`/canon.html`, asks-by-id, GET-ask and GET-echo fixes. And `check-dead-ends.py` marks `/unstuck/api/` DRAFTED, so no
+run reported it after 10-01.
+
+**What was done (not solved).** The handler is restored as `@api_index` (path `/unstuck/api/` only, GET/HEAD; without
+the slash the path already answers 200 with the landing page) plus one `handle @api_index` that answers the JSON
+index. Every URL the index names was fetched: bounties.txt, canon.md, /unstuck/api/asks and /unstuck/api/health all
+answered 200. Two new laws are in `specs/test_dead_ends.py`. One checks the block's shape: each matcher is defined
+once and holds only matcher lines, each `handle` names a defined matcher and holds none, each redir or handle names a
+matcher that exists, and the braces balance. The other checks that the index is valid JSON starting at bounties.txt.
+Both fail on the old draft and pass on the new one. Row 6 of the owner queue now covers both dead ends. Its probe
+`p_box_dead_ends` reads APPLIED only when `/unstuck/api/` answers the index AND a GET on the echo answers 405. There is
+a law for that in `specs/test_owner_queue.py`. **Needs the box (Caddy) or the network** to apply the draft.
+
+**Evidence.**
+
+- read: `/ai/traffic/2026-11-07.json` (generated 04:07): top path `/unstuck/api/` 59 clients; status 404 x63 of 352
+- ran 04:2x: `curl` sslip `/unstuck/api/` -> 404 JSON; `/unstuck/api` -> 200 text/html; getunstuck.space `/unstuck/api/` -> Vercel NOT_FOUND
+- read: `drafts/box-dead-ends.md` lines 61-80 on main (6608962): duplicate `@api_index`, `handle @echo_get` holding `path`/`method`
+- ran: new laws on the old draft -> 3 FAIL; on the new one -> PASS. `caddy` is not installed here and downloading it was refused, so the shape is checked by the law, not by `caddy validate`
+- ran: `python3 ops/check-owner-queue.py --md` 04:22 -> row 6 WAITING "GET /unstuck/api/ -> 404; GET echo -> 404"
+- ran: all 106 `specs/test_*.py` on the branch -> PASS (no pytest in this container)
+
 ### 228. #227 told every late buyer at pursekeeper.dev to spend the hash with X-Nano-Payment; on the x402 path that hash is not credit
 
 *solved 2026-11-07 (PR #204 on `hunt/pursekeeper-x402-late-represent`; live once deployed) · conversion / buyer safety*

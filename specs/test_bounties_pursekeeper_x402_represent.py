@@ -24,7 +24,7 @@ class PursekeeperX402Represent(unittest.TestCase):
 
     def test_plain_send_and_x402_are_told_apart(self):
         self.assertIn("depends on HOW you paid", self.para)
-        self.assertIn("A plain wallet send to pay_to that lands late is not refused", self.para)
+        self.assertIn("A plain wallet send to pay_to (no 402 involved) is not refused", self.para)
 
     def test_x402_late_block_uses_the_represent_token(self):
         for s in ("single-use X-Nano-Represent token", "NOT X-Nano-Payment credit",

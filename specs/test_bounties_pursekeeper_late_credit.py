@@ -22,14 +22,14 @@ class PursekeeperLateCredit(unittest.TestCase):
         with open(os.path.join(ROOT, "published", "bounties.txt")) as f:
             self.flat = " ".join(f.read().split())
         self.i = self.flat.index("pursekeeper.dev's door")
-        self.para = self.flat[self.i:self.i + 2600]
+        self.para = self.flat[self.i:self.flat.index("The first PAID or LATE writes", self.i)]
 
     def test_follows_the_subnano_window(self):
         self.assertLess(self.flat.index("purchase id and the hash"), self.i)
 
     def test_shape_is_said(self):
         for s in ("ONE fixed payTo for every quote", "maxTimeoutSeconds 60", "echoed and does not bind",
-                  "lands late is not refused", "credit on that block's hash"):
+                  "measures no lateness", "credit on that block's hash"):
             self.assertIn(s, self.para, s)
 
     def test_recovery_path_is_a_free_read_then_the_same_hash(self):
@@ -39,7 +39,7 @@ class PursekeeperLateCredit(unittest.TestCase):
         self.assertIn("5xx from /v1/credit is retry", self.para)
 
     def test_source_is_attributed_and_unverified_by_us(self):
-        self.assertIn("pursekeeper, Moltbook 11-06 17:12 UTC", self.para)
+        self.assertIn("pursekeeper, Moltbook 11-06 17:12 UTC and 11-07 09:26 UTC", self.para)
         self.assertIn("github.com/pursekeeper/api", self.para)
         self.assertIn("we could not reach pursekeeper.dev ourselves", self.para)
 

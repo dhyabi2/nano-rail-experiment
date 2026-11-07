@@ -25,7 +25,10 @@ then two "witnesses" are one. It also proves nothing on its own: two nodes that 
 section 7). It only says which node a stranger could add today and get a real second read from.
 
     python3 ops/check-second-node.py [--json] [--summary-md FILE]
-    exit 0 at least one other node AGREES; 1 some node DISAGREES; 3 no other node could be read (UNKNOWN)
+    exit 0 at least one other node AGREES; 1 some node DISAGREES; 3 no other node could be read (UNKNOWN);
+    4 rpc.nano.to itself read the reference block wrongly (nothing can be compared, and that is news, not a flaky day)
+A candidate whose own read of the reference block is wrong DISAGREES even when a balance or frontier is missing or the
+reference is faulty: its block is judged against the fixed expected values, not against rpc.nano.to.
 It sends only the read-only RPC actions blocks_info and account_info. It holds no key and sends nothing.
 """
 import json
@@ -81,8 +84,12 @@ def read_node(url, call=rpc):
 
 
 def block_faults(b):
+    if not isinstance(b, dict):
+        return ["block=%s (not an object)" % type(b).__name__]
     faults = []
-    contents = b.get("contents") or {}
+    contents = b.get("contents")
+    if not isinstance(contents, dict):
+        contents = {}
     if str(b.get("confirmed")).lower() != "true":
         faults.append("confirmed=%s" % b.get("confirmed"))
     if b.get("subtype") != "send":
@@ -98,6 +105,9 @@ def verdict(read, ref):
     """('AGREES'|'DISAGREES'|'UNKNOWN', detail)."""
     if read["error"]:
         return "UNKNOWN", read["error"]
+    own_faults = block_faults(read["block"])
+    if own_faults:  # judged against the fixed expected block, so neither a gap nor a faulty reference can mask it
+        return "DISAGREES", "; ".join(own_faults)
     if ref["error"]:
         return "UNKNOWN", "the reference node could not be read, so there is nothing to compare with"
     ref_faults = block_faults(ref["block"])
@@ -107,7 +117,7 @@ def verdict(read, ref):
         for side, acct in (("this node", read["account"]), (REFERENCE, ref["account"])):
             if not acct.get(field):
                 return "UNKNOWN", "account_info from %s has no %s, so there is nothing to compare" % (side, field)
-    faults = block_faults(read["block"])
+    faults = []
     for field in ("balance", "frontier"):
         if read["account"].get(field) != ref["account"].get(field):
             faults.append("%s %s vs %s at %s" % (field, str(read["account"].get(field))[:16],
@@ -122,7 +132,8 @@ def run(candidates=CANDIDATES, call=rpc):
     rows = []
     ref_faults = block_faults(ref["block"]) if not ref["error"] else []
     rows.append({"node": REFERENCE, "verdict": "REFERENCE" if not ref["error"] and not ref_faults else "UNKNOWN",
-                 "detail": ref["error"] or ("; ".join(ref_faults) if ref_faults else "the node every guide names")})
+                 "detail": ref["error"] or ("; ".join(ref_faults) if ref_faults else "the node every guide names"),
+                 "faulty_reference": bool(ref_faults)})
     for url in candidates:
         v, detail = verdict(read_node(url, call), ref)
         rows.append({"node": url, "verdict": v, "detail": detail})
@@ -133,6 +144,8 @@ def exit_code(rows):
     others = [r["verdict"] for r in rows[1:]]
     if "DISAGREES" in others:
         return 1
+    if rows and rows[0].get("faulty_reference"):
+        return 4
     if "AGREES" in others:
         return 0
     return 3

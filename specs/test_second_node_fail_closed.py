@@ -68,7 +68,59 @@ class FailClosed(unittest.TestCase):
 
     def test_a_disagreeing_node_turns_the_run_red(self):
         wf = open(os.path.join(ROOT, ".github", "workflows", "second-node.yml")).read()
-        self.assertRegex(wf, r'if \[ "\$code" = "1" \]; then exit 1; fi')
+        # nrx#211 follow-up LOW 4: only 0 and 3 stay green; 1, 4 and any crash (2, 127, 137) go red.
+        self.assertRegex(wf, r'if \[ "\$code" != "0" \] && \[ "\$code" != "3" \]; then exit 1; fi')
+
+
+class WrongBlockIsNeverMasked(unittest.TestCase):
+    """nrx#211 follow-up (2026-11-07): a missing field or a faulty reference hid a candidate's wrong block as UNKNOWN."""
+
+    def test_wrong_payee_with_missing_balance_disagrees(self):
+        attacker = dict(GOOD_BLOCK, contents={"link_as_account": "nano_3attacker"})
+        rows = csn.run(["https://n1"], stub({csn.REFERENCE: (GOOD_BLOCK, GOOD_ACCOUNT),
+                                             "https://n1": (attacker, {"frontier": "AB" * 32})}))
+        self.assertEqual(rows[1]["verdict"], "DISAGREES")
+        self.assertIn("payee", rows[1]["detail"])
+        self.assertEqual(csn.exit_code(rows), 1)
+
+    def test_wrong_amount_with_empty_reference_account_disagrees(self):
+        rows = csn.run(["https://n1"], stub({csn.REFERENCE: (GOOD_BLOCK, {}),
+                                             "https://n1": (dict(GOOD_BLOCK, amount="1"), dict(GOOD_ACCOUNT))}))
+        self.assertEqual(rows[1]["verdict"], "DISAGREES")
+        self.assertIn("amount", rows[1]["detail"])
+
+    def test_wrong_block_disagrees_even_against_a_faulty_reference(self):
+        unconfirmed = dict(GOOD_BLOCK, confirmed="false")
+        rows = csn.run(["https://n1"], stub({csn.REFERENCE: (unconfirmed, GOOD_ACCOUNT),
+                                             "https://n1": (dict(GOOD_BLOCK, subtype="receive"), dict(GOOD_ACCOUNT))}))
+        self.assertEqual(rows[1]["verdict"], "DISAGREES")
+
+
+class FaultyReferenceIsItsOwnRed(unittest.TestCase):
+    def test_a_misread_reference_exits_4_not_3(self):
+        wrong = dict(GOOD_BLOCK, contents={"link_as_account": "nano_3attacker"})
+        rows = csn.run(["https://n1", "https://n2"], stub({csn.REFERENCE: (wrong, GOOD_ACCOUNT),
+                                                           "https://n1": (GOOD_BLOCK, dict(GOOD_ACCOUNT)),
+                                                           "https://n2": (GOOD_BLOCK, dict(GOOD_ACCOUNT))}))
+        self.assertTrue(all(r["verdict"] == "UNKNOWN" for r in rows))
+        self.assertEqual(csn.exit_code(rows), 4)
+
+    def test_an_unreachable_reference_still_exits_3(self):
+        def call(url, payload):
+            if url == csn.REFERENCE:
+                raise OSError("timeout")
+            return stub({"https://n1": (GOOD_BLOCK, GOOD_ACCOUNT)})(url, payload)
+        self.assertEqual(csn.exit_code(csn.run(["https://n1"], call)), 3)
+
+
+class GarbageBlockDoesNotCrash(unittest.TestCase):
+    def test_a_string_block_is_a_fault_not_a_traceback(self):
+        rows = csn.run(["https://n1"], stub({csn.REFERENCE: (GOOD_BLOCK, GOOD_ACCOUNT),
+                                             "https://n1": ("garbage", dict(GOOD_ACCOUNT))}))
+        self.assertEqual(rows[1]["verdict"], "DISAGREES")
+
+    def test_string_contents_is_a_payee_fault(self):
+        self.assertTrue(any(f.startswith("payee=") for f in csn.block_faults(dict(GOOD_BLOCK, contents="x"))))
 
 
 if __name__ == "__main__":

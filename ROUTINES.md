@@ -93,6 +93,14 @@ and closes it on recovery. It exists because the box's own silence alarm died wi
 Every `ops/` tool sends the User-Agent marked `unowned-rail-probe/1` so the box can count these probes as ours
 (challenge #207, `drafts/box-count-our-probes.md`); until the box does, they appear as outside browsers.
 
+### Second-node probe - `.github/workflows/second-node.yml`
+
+**`17 6 * * *`** (daily, and by hand) - runs `ops/check-second-node.py` (challenge #230). It reads a reference payment
+(B749B757...) and the treasury's balance and frontier from rpc.nano.to and from each candidate public node, and writes
+which nodes AGREE, DISAGREE or were UNKNOWN into the run summary. Read-only RPC (`blocks_info`, `account_info`), no key,
+no issue, no email. It exists because the keeper's sandbox can reach only rpc.nano.to, so the guides could name no
+second node. A node is named in a guide only from a measured AGREES, and two hostnames may still be one operator.
+
 ## On the boxes (cron and systemd, not Claude)
 
 These belong to the swarms rather than to the experiment, and are listed so nobody schedules a second one:

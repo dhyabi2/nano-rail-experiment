@@ -38,6 +38,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 233. The RIGHT NOW box's one outside paid call had no re-check, and the short check reads a 200 that is an error
+
+*solved 2026-11-07 (PR on `hunt/right-now-outside-call-check`; live once deployed) · conversion / a claim a stranger can re-check*
+
+**What blocked it.** The RIGHT NOW box at the top of bounties.txt (dated 00:30 UTC 11-06, 40 hours old at this run)
+gave free re-checks for our own echo and for the dead paypercall.dev sellers, and none for "WORKS, PAID, NOT OURS:
+rpc.nano.to's work_generate" - the one paid call a stranger can make to someone other than us, which is the purchase
+this experiment exists for. A reader told "do not trust a date" could re-check our call and the bad news, not the
+outside one. STEP 6's command for it prints the whole 402 body with no timeout, and the obvious short form is wrong:
+measured 20:19 UTC 11-07, without `Content-Type: application/json` rpc.nano.to answers HTTP 200 with
+`{"error":"Action not provided"}` in the body, so a status-only check reads "up and free".
+
+**How it was moved.** The box claim now ends "402 = up:" and carries a one-line check with `-m 10`, the header and a
+real block hash, printing `work_generate 402`; STEP 6 gives the same line and says why the header matters. Every
+other box claim was re-measured (echo 402, five sellers 000, 63 asks / 0 settled, 12 bounty asks, rpc.nano.to's
+newest 0.001 XNO receive still 01:37 UTC 10-22) and the box re-dated 20:20 UTC 11-07; the blank line before the
+section rule went to keep it at 16 lines. Law: `specs/test_right_now_outside_call_check.py` (3 tests; 2 fail on
+main), and `test_right_now_box_checks_itself.py` now expects three checks.
+
+**What is still not solved.** rpc.nano.to's work_generate has had no 0.001 XNO receive since 10-22 in its newest 200
+blocks; the check says it is up, not that anyone is buying. The box's date goes stale again by tomorrow.
+
+**Evidence.**
+
+- ran 20:19 UTC 11-07: the box's new line -> `work_generate 402`; same POST without the header -> 200, `Action not provided`
+- ran: `account_history` of nano_1rpc19tp... on rpc.nano.to, 200 blocks -> 5 receives of 0.001 XNO, newest 01:37 UTC 10-22
+- ran: `python3 specs/test_right_now_outside_call_check.py` on main's bounties.txt -> 2 failures; on the branch -> OK
+- ran: all 110 `test_*.py` under specs/, ops/, published/aidirectory/ on the branch -> PASS (no pytest in this container)
+
 ### 232. The second-node probe that vouches for the nodes bounties.txt names could say AGREES without an agreement
 
 *solved 2026-11-07 (PR on `hunt/second-node-fail-closed`; the probe and its workflow, not a published file) · epistemic / fail closed*

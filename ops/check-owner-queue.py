@@ -122,6 +122,24 @@ def p_echo_get(f):
     return (WAITING, "GET echo -> 404") if st == 404 else (APPLIED, "GET echo -> %s" % st)
 
 
+def p_api_index(f):
+    """#229: GET /unstuck/api/ on the box was the most-requested path on 11-07 (59 outside clients) and 404s."""
+    st, t = f(BOX + "/unstuck/api/")
+    if st == 200:
+        try:
+            if "start_here" in json.loads(t):
+                return APPLIED, "GET /unstuck/api/ -> 200 index"
+        except ValueError:
+            pass
+    return WAITING, "GET /unstuck/api/ -> %s" % st
+
+
+def p_box_dead_ends(f):
+    a, b = p_api_index(f), p_echo_get(f)
+    state = APPLIED if a[0] == b[0] == APPLIED else WAITING
+    return state, "%s; %s" % (a[1], b[1])
+
+
 def p_custody(f):
     script = ROOT / "ops" / "check-custody-claims.py"
     r = subprocess.run([sys.executable, str(script)], capture_output=True, text=True, timeout=60)
@@ -204,8 +222,9 @@ QUEUE = [
      "CHALLENGES-SOLVED.md #199", "#199", p_echo_description),
     (5, "network", "link bounties and canon from llms.txt, agent.json, sitemap", "machine readers finding the offer at all",
      "drafts/unstuck-machine-routes-link-bounties.md", "#138", p_routes_link_bounties),
-    (6, "box", "answer GET on the echo with 405 + the POST", "the most-knocked dead end",
-     "drafts/box-dead-ends.md", "#204", p_echo_get),
+    (6, "box", "answer GET /unstuck/api/ with an index and GET on the echo with 405 + the POST",
+     "the two most-knocked dead ends (59 and 6 outside clients, 11-07 00:00-03:55)",
+     "drafts/box-dead-ends.md", "#204, #229", p_box_dead_ends),
     (7, "network", "stop calling the onramp's server-made seed 'yours'", "trust in the first wallet step",
      "drafts/unstuck-llms-onramp-seed.md", "#75", p_custody),
     (8, "network", "quote a fresh amount per echo 402", "a buyer's payment being claimed by a watcher",

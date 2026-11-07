@@ -109,6 +109,19 @@ class SecondNode(unittest.TestCase):
         self.assertIn("two names can be one operator", step4)
         self.assertNotIn("we have measured none", txt)
 
+    def test_bounties_vouches_only_for_actions_the_probe_sends(self):
+        # Post-merge review of #206/#207: STEP 4 said the four nodes "gave the same answer" to "the same JSON"
+        # (block_info, singular) while the probe sends only blocks_info and account_info.
+        txt = open(os.path.join(ROOT, "published", "bounties.txt")).read()
+        step4 = txt[txt.index(" STEP 4 - PROVE"):txt.index(" STEP 5 - TRY")]
+        vouch = step4[step4.index("Measured 08:24 UTC"):step4.index("We do not know who runs them")]
+        self.assertNotIn("send the same", step4.split("Measured 08:24 UTC")[0][-200:])
+        if "block_info" not in csn.ALLOWED_ACTIONS:
+            self.assertIn('"action":"blocks_info"', vouch, "the guide must hand a buyer the action the nodes were measured on")
+            self.assertIn("was not measured on them", vouch)
+        for action in csn.ALLOWED_ACTIONS:
+            self.assertIn(action, vouch)
+
 
 if __name__ == "__main__":
     unittest.main()

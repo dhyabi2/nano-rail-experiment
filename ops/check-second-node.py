@@ -15,7 +15,10 @@ For each candidate it asks, at the same moment as rpc.nano.to:
   - account_info on the treasury: balance and frontier, compared with rpc.nano.to's read.
 Verdict per node: AGREES (the block reads exactly as expected AND balance and frontier match rpc.nano.to's),
 DISAGREES (it answered, with different fields - name the field), or UNKNOWN (no answer, an error, a non-JSON or an
-error body). A node we could not read is UNKNOWN, never "agrees" and never "disagrees".
+error body). A node we could not read is UNKNOWN, never "agrees" and never "disagrees". Fail closed (challenge #232):
+when rpc.nano.to itself reads the reference block wrongly, or either side's account_info lacks balance or frontier,
+every candidate is UNKNOWN - two missing fields are not two equal answers, and agreeing with a faulty reference is not
+agreeing with the ledger.
 
 What this cannot tell: who runs a node. Two hostnames can be one operator, or one backend behind two proxies, and
 then two "witnesses" are one. It also proves nothing on its own: two nodes that agree can share a fault (bounties.txt
@@ -97,6 +100,13 @@ def verdict(read, ref):
         return "UNKNOWN", read["error"]
     if ref["error"]:
         return "UNKNOWN", "the reference node could not be read, so there is nothing to compare with"
+    ref_faults = block_faults(ref["block"])
+    if ref_faults:
+        return "UNKNOWN", "the reference node read the reference block wrongly (%s)" % "; ".join(ref_faults)
+    for field in ("balance", "frontier"):
+        for side, acct in (("this node", read["account"]), (REFERENCE, ref["account"])):
+            if not acct.get(field):
+                return "UNKNOWN", "account_info from %s has no %s, so there is nothing to compare" % (side, field)
     faults = block_faults(read["block"])
     for field in ("balance", "frontier"):
         if read["account"].get(field) != ref["account"].get(field):

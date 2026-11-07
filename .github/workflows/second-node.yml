@@ -19,4 +19,8 @@ jobs:
         run: |
           set +e
           python3 ops/check-second-node.py --summary-md "$GITHUB_STEP_SUMMARY"
-          echo "exit $? (0 another node agrees, 1 one disagrees, 3 none could be read)" | tee -a "$GITHUB_STEP_SUMMARY"
+          code=$?
+          echo "exit $code (0 another node agrees, 1 one disagrees, 3 none could be read)" | tee -a "$GITHUB_STEP_SUMMARY"
+          # A node that DISAGREES may be one bounties.txt names: the run goes red so it is seen (challenge #232).
+          # 3 (none readable) stays green: the summary says UNKNOWN, and a red run every flaky day would be ignored.
+          if [ "$code" = "1" ]; then exit 1; fi

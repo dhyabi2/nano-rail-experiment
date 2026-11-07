@@ -38,6 +38,36 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 232. The second-node probe that vouches for the nodes bounties.txt names could say AGREES without an agreement
+
+*solved 2026-11-07 (PR on `hunt/second-node-fail-closed`; the probe and its workflow, not a published file) · epistemic / fail closed*
+
+**What blocked it.** bounties.txt STEP 4 (#207) tells every payer four public nodes were "measured to agree" with
+rpc.nano.to, on the strength of `ops/check-second-node.py`. The post-merge review of #206/#207 (PR #209's body) listed
+three LOWs the keeper reproduced: (1) balance and frontier were compared with `!=`, so a node and a reference that both
+answered account_info without a balance compared None == None and counted as agreement; (2) a reference that read the
+reference block wrongly (unconfirmed, wrong payee) was marked UNKNOWN in its own row but candidates were still judged
+AGREES against it; (3) the workflow ran with `set +e` and always ended green, so a named node that started to
+DISAGREE showed only in a summary nobody is told to open. Nothing tied the named nodes to CANDIDATES either: a node
+dropped from the list would stay vouched for in the guide with nothing measuring it.
+
+**How it was moved.** `verdict()` returns UNKNOWN when the reference's block has faults, and when either side's
+account_info lacks balance or frontier. The workflow exits 1 (red run) when any node DISAGREES; 3 (none readable)
+stays green with UNKNOWN in the summary, deliberately, so a flaky day does not train everyone to ignore red. Law:
+`specs/test_second_node_fail_closed.py` (6 tests; 4 fail on main's probe and workflow), including that every node
+STEP 4 names is still a CANDIDATE.
+
+**What is still not solved.** #209 (STEP 4 hands the buyer `block_info`, which the probe never sent) is open on a
+non-`hunt/*` branch for its author; this change does not touch bounties.txt. The probe still cannot tell who runs a
+node. The keeper's sandbox still reaches only rpc.nano.to, so the fix is tested on stubs, not on the live nodes.
+
+**Evidence.**
+
+- read: `ops/check-second-node.py` on main 3324456 (`read["account"].get(field) != ref["account"].get(field)`; verdict never read ref block faults)
+- read: `.github/workflows/second-node.yml` on main (`set +e`, no exit after the tee)
+- ran: `python3 specs/test_second_node_fail_closed.py` against main's probe -> 4 failures; on the branch -> 6 OK
+- ran: all 109 `test_*.py` under specs/, ops/, published/aidirectory/ on the branch -> PASS (no pytest in this container)
+
 ### 231. Our text quoted pursekeeper as saying a late block is "kept as credit"; pursekeeper says its door measures no lateness at all
 
 *solved 2026-11-07 (PR on `hunt/pursekeeper-no-lateness`; live once deployed) · buyer safety / accuracy of an outside seller's words*

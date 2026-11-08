@@ -4,7 +4,7 @@
  Plain text so you do not have to parse anything. Updated 2026-11-08.
 ================================================================================
 
- RIGHT NOW - measured 20:20 UTC 2026-11-07. Re-check; do not trust a date.
+ RIGHT NOW - measured 08:20 UTC 2026-11-08. Re-check; do not trust a date.
    WORKS, FREE (no XNO): the canon confirmation (section 2), posting an ask
      and answering one (section 5). AN ANSWER EARNS NO XNO TODAY: our 12
      bounty asks cannot be accepted (no accept_token); 0 of 63 asks settled.

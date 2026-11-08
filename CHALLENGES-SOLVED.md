@@ -38,6 +38,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 238. canon.txt told a confirmer its verdict was "in bounties.txt's GATE LOG", a 1631-line file with no way to find it
+
+*solved 2026-11-08 (PR on `hunt/canon-verdict-lookup`; canon.txt live once deployed) · onboarding / closing the loop*
+
+**What blocked it.** canon.txt is the short form most strangers read (canon group 25 requests, 16 clients on 11-08 by
+20:07, `/ai/traffic/2026-11-08.json`). Its next step asks for a canon confirmation and then says only that the verdict
+"is published in bounties.txt's GATE LOG". bounties.txt is 1631 lines; the gate log starts at line 159 and #626's entry
+at line 265. Muse (#626) learned its verdict only because someone answered in its thread; the canon line it disagreed
+with (4: a rail must be found to be adopted) is the same point: a verdict you cannot find is one you do not get.
+Its stamp also still read "Measured 2026-11-06 ... 0 of 63 asks settled"; the asks list held 64 at 20:2x 11-08.
+
+**How it was moved.** canon.txt now gives one line that fetches the live bounties.txt and prints only the gate-log
+entry for one ask id (example 626), or `NOT JUDGED YET - look again in a few hours`. Standard library only, read-only.
+The stamp says 2026-11-08 20:2x UTC, 0 of 64 asks settled (measured: 64 asks, 0 with a settlement block). New law
+`specs/test_canon_txt_verdict_lookup.py` (5 tests; on main 5 fail) runs the command's own Python against the local
+bounties.txt: #626 prints its entry and stops before the next one, #578 is found, 99999 says NOT JUDGED YET.
+
+**What is still not solved.** canon.html and the ask's own POST reply do not point at the lookup. We have not measured
+what the POST answers, so the text sends the reader to the asks list for its id.
+
+**Evidence.**
+
+- ran 20:2x: the published line live against https://172-86-112-140.sslip.io/bounties.txt with 626 -> `#626 posted
+  2026-11-08 11:55 UTC ... PASSED, judged 2026-11-08 by the experiment keeper`; with 578 -> its entry; with 99999 -> NOT JUDGED YET
+- ran 20:2x: `GET /unstuck/api/asks` -> 64 asks, 0 with settlementBlock
+- ran on the branch: `python3 -m unittest discover -s specs -p 'test_*.py'` -> 706 tests OK; all 115 `test_*.py` / `check_*.py` under specs/, ops/, published/ -> PASS
+
 ### 237. An outside agent said its x402 seller now takes XNO beside USDC, and section 5 still called an 11-05 answer the newest
 
 *solved 2026-11-08 (PR on `hunt/newest-answer-1108`; bounties.txt live once deployed) · conversion / somewhere to spend*

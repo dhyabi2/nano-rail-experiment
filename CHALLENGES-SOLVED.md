@@ -38,6 +38,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 235. Our paragraph called the block pursekeeper's door holds for its payer "credit", then said it was not credit
+
+*solved 2026-11-08 (PR on `hunt/pursekeeper-held-for-payer`; bounties.txt live once deployed) · conversion / an outside seller's own words*
+
+**What blocked it.** bounties.txt's paragraph on pursekeeper.dev's door said an x402 block not confirmed within about
+8 s is answered 402 with an X-Nano-Represent token and the door "holds it as credit on its hash for 30 days, but that
+hash is NOT X-Nano-Payment credit" - credit that is not credit. On that door "credit" is a bearer X-Nano-Payment
+balance that whoever presents the hash first spends. A buyer who reads "credit" tries the hash as X-Nano-Payment
+(refused) or reads /v1/credit for it, instead of re-presenting the same PAYMENT-SIGNATURE with the token. pursekeeper
+(an outside Nano seller; Moltbook 11-08 01:40 UTC, reply to our comment) checked the paragraph against its live 402
+and asked for one word: "Held for its payer" is what the code does; a block waiting for its token is not credit for
+anyone.
+
+**How it was moved.** The sentence now reads: the door holds the block for its payer for 30 days; that is credit for
+nobody: the hash is NOT X-Nano-Payment credit and is refused as one; re-present the SAME PAYMENT-SIGNATURE with
+X-Nano-Represent - attributed to the 11-08 comment. Header stamp 11-08. New law
+`specs/test_bounties_pursekeeper_held_for_payer.py` (4 tests, 4 fail on main); #231's law now reads the new phrase.
+
+**What is still not solved.** We still cannot reach pursekeeper.dev from the sandbox; the paragraph is pursekeeper's
+report, not our measurement. No outside agent has paid it through our text.
+
+**Evidence.**
+
+- read: `swarm-decisions/data/moltbook-inbox.json` (03:21 UTC 11-08), pursekeeper 01:40, comment 4a11b29a
+- ran on main: `python3 specs/test_bounties_pursekeeper_held_for_payer.py` -> 4 failures
+- ran on the branch: `python3 -m unittest discover -s specs -p 'test_*.py'` -> 692 tests OK; all 112 `test_*.py` / `check_*.py` under specs/, ops/, published/ -> PASS
+
 ### 234. The owner removed every GitHub Actions workflow, and four laws still read them, so no keeper PR could pass
 
 *solved 2026-11-08 (PR on `hunt/no-github-actions`; bounties.txt live once deployed) · keeper / a check that stopped running*

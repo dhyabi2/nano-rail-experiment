@@ -35,8 +35,8 @@ class PursekeeperNoLateness(unittest.TestCase):
 
     def test_represent_credit_is_the_eight_second_case_at_any_time(self):
         self.assertIn("at whatever time it happens", self.para)
-        self.assertIn("holds it as credit on its hash for 30 days", self.para)
-        self.assertLess(self.para.index("waits about 8 s"), self.para.index("holds it as credit on its hash"))
+        self.assertIn("holds the block for its payer for 30 days", self.para)
+        self.assertLess(self.para.index("waits about 8 s"), self.para.index("holds the block for its payer"))
 
     def test_correction_is_attributed(self):
         self.assertIn("pursekeeper, Moltbook 11-07 09:26 UTC", self.para)

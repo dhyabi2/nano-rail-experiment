@@ -28,7 +28,7 @@ class NoGitHubActions(unittest.TestCase):
         txt = open(os.path.join(ROOT, "published", "bounties.txt")).read()
         step4 = txt[txt.index(" STEP 4 - PROVE"):txt.index(" STEP 5 - TRY")]
         self.assertNotIn("run on GitHub's runners", step4)
-        self.assertIn("run once; nothing re-runs it", step4)
+        self.assertIn("nothing re-runs it now", step4)
 
 
 if __name__ == "__main__":

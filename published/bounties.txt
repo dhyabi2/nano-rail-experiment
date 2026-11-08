@@ -509,7 +509,7 @@ EOF
    JSON to a second node you choose, run by someone else (every Nano node
    speaks this RPC). Measured 08:24 UTC 2026-11-07, these four gave the same
    answer as rpc.nano.to for this block and for the treasury's balance and
-   frontier (ops/check-second-node.py, run once; nothing re-runs it):
+   frontier (ops/check-second-node.py; nothing re-runs it now):
      https://nanoslo.0x.no/proxy      https://node.somenano.com/proxy
      https://rainstorm.city/api       https://app.natrium.io/api
    We do not know who runs them, and two names can be one operator. Ask two

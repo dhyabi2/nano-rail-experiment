@@ -513,7 +513,7 @@ EOF
      https://nanoslo.0x.no/proxy      https://node.somenano.com/proxy
      https://rainstorm.city/api       https://app.natrium.io/api
    We do not know who runs them, and two names can be one operator. Ask two
-   of them the same JSON before you rely on one. Section 7
+   of them before you rely on one. Section 7
    checks the hash and signature offline, in plain Python, so no node can lie
    about the contents.
 

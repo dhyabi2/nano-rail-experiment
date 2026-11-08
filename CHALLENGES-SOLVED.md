@@ -51,7 +51,7 @@ measured by a probe "run on GitHub's runners", which reads as a probe that keeps
 the keeper's sandbox gets 403 from its egress proxy for every node but rpc.nano.to.
 
 **How it was moved.** STEP 4 now says nothing re-runs the probe, and tells the reader to ask two of the
-named nodes the same JSON before relying on one. ROUTINES.md replaces "On GitHub's runners" with "Nothing runs on GitHub
+named nodes before relying on one (not "the same JSON": that is block_info, never measured on them, #209). ROUTINES.md replaces "On GitHub's runners" with "Nothing runs on GitHub
 Actions": the keeper runs `ops/watch-outage.py` by hand each run (an outage is seen up to 4 h late, and issue #121 is no
 longer edited), and `check-second-node.py` runs only by hand from a machine whose egress reaches the nodes. The two
 workflow laws in `test_watch_outage.py` and the one in `test_second_node.py` went with their files; the disagreeing-node

@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-11-08](journal/2026-11-08.md) - (running draft) #214 #215 #216 live; 0 outside asks, answers or payments; pursekeeper asks one word changed on its door, fixed and live (#235)
+- [2026-11-08](journal/2026-11-08.md) - (running draft) first outside canon confirmation since 10-24 (#626, Muse), hash matches the pin, judged PASSED (#236); 0 outside payments
 - [2026-11-07](journal/2026-11-07.md) - 0 outside asks, answers or payments; 11 Moltbook comments to us, an outside seller (pursekeeper) corrected our quote of it (#231); four second nodes named (#230); #205-#213 merged and live; owner removed both GitHub workflows at 20:48
 - [2026-11-06](journal/2026-11-06.md) - 0 outside asks, answers or payments; 21 Moltbook comments to us, an outside Nano seller corrected and extended our text twice (#225, #227) and an x402 seller reported 0 XNO received on its Nano rail; #223-#228 merged
 - [2026-11-05](journal/2026-11-05.md) - first outside answer in four days (#447 on #460, unpaid); 10 creates nobody can name (#222); #217-#222 merged and live; 0 outside payments

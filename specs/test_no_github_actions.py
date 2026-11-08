@@ -30,6 +30,13 @@ class NoGitHubActions(unittest.TestCase):
         self.assertNotIn("run on GitHub's runners", step4)
         self.assertIn("nothing re-runs it now", step4)
 
+    def test_ask_two_does_not_say_same_json(self):
+        # STEP 4's JSON above is block_info (singular), which the probe never sent to these nodes (#209's finding);
+        # the advice to ask two of them must not send a reader there with it.
+        txt = open(os.path.join(ROOT, "published", "bounties.txt")).read()
+        step4 = txt[txt.index(" STEP 4 - PROVE"):txt.index(" STEP 5 - TRY")]
+        self.assertIn("Ask two\n   of them before you rely on one.", step4)
+
 
 if __name__ == "__main__":
     unittest.main()

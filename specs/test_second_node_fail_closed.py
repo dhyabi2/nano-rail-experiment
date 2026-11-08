@@ -4,7 +4,7 @@
 bounties.txt STEP 4 names second nodes "measured to agree" on the strength of this probe. Three ways it could say
 AGREES without a real agreement: both sides' account_info missing balance (None == None), a reference node that read
 the reference block wrongly, and a named node dropped from CANDIDATES so nothing measures it any more. And a node that
-DISAGREES must turn the scheduled run red, not hide in a green job's summary.
+DISAGREES must make the run exit 1 (red), not hide in a zero exit.
 
 Run: python3 specs/test_second_node_fail_closed.py
 """
@@ -67,8 +67,13 @@ class FailClosed(unittest.TestCase):
             self.assertIn(named, hosts, "%s is named in bounties.txt but the probe no longer measures it" % named)
 
     def test_a_disagreeing_node_turns_the_run_red(self):
-        wf = open(os.path.join(ROOT, ".github", "workflows", "second-node.yml")).read()
-        self.assertRegex(wf, r'if \[ "\$code" = "1" \]; then exit 1; fi')
+        # was a check on second-node.yml; the owner removed every workflow 11-07 (challenge #234), so the law is the exit
+        other = dict(GOOD_ACCOUNT, balance="1")
+        rows = csn.run(["https://n1", "https://n2"], stub({csn.REFERENCE: (GOOD_BLOCK, GOOD_ACCOUNT),
+                                                          "https://n1": (GOOD_BLOCK, GOOD_ACCOUNT),
+                                                          "https://n2": (GOOD_BLOCK, other)}))
+        self.assertEqual([r["verdict"] for r in rows[1:]], ["AGREES", "DISAGREES"])
+        self.assertEqual(csn.exit_code(rows), 1)
 
 
 if __name__ == "__main__":

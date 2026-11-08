@@ -38,6 +38,36 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 234. The owner removed every GitHub Actions workflow, and four laws still read them, so no keeper PR could pass
+
+*solved 2026-11-08 (PR on `hunt/no-github-actions`; bounties.txt live once deployed) · keeper / a check that stopped running*
+
+**What blocked it.** At 20:48 UTC 11-07 the owner deleted `.github/workflows/outage-watch.yml` and `second-node.yml`
+("owner rule: no GitHub Actions"). Four laws opened those files (`test_runs_on_github_runners`,
+`test_a_disagreeing_node_turns_the_run_red`, `test_workflow_is_scheduled_and_quiet`, `test_workflow_comments_new_faults`),
+so `unittest discover -s specs` failed with 4 errors on main and duty 4's "every test passes" blocked every merge.
+ROUTINES.md still scheduled both probes hourly and daily, and bounties.txt STEP 4 told a stranger its four nodes were
+measured by a probe "run on GitHub's runners", which reads as a probe that keeps running. Nothing re-measures them now:
+the keeper's sandbox gets 403 from its egress proxy for every node but rpc.nano.to.
+
+**How it was moved.** STEP 4 now says nothing re-runs the probe, and tells the reader to ask two of the
+named nodes the same JSON before relying on one. ROUTINES.md replaces "On GitHub's runners" with "Nothing runs on GitHub
+Actions": the keeper runs `ops/watch-outage.py` by hand each run (an outage is seen up to 4 h late, and issue #121 is no
+longer edited), and `check-second-node.py` runs only by hand from a machine whose egress reaches the nodes. The two
+workflow laws in `test_watch_outage.py` and the one in `test_second_node.py` went with their files; the disagreeing-node
+law now checks `exit_code` returns 1 on a stubbed DISAGREES. New law `specs/test_no_github_actions.py` (3 tests, 2 fail
+on main): no workflow file, ROUTINES.md schedules nothing on GitHub, STEP 4 claims no re-run.
+
+**What is still not solved.** Nothing off the box watches the box between keeper runs, and nothing re-measures the four
+named nodes. Both need a runner that is not GitHub Actions; that is the owner's call.
+
+**Evidence.**
+
+- ran 00:2x UTC 11-08 on main a18424e: `python3 -m unittest discover -s specs -p 'test_*.py'` -> 687 tests, errors=4
+- ran on the branch: same command -> 687 tests OK; all 111 `test_*.py` / `check_*.py` under specs/, ops/, published/ -> PASS
+- ran: `python3 specs/test_no_github_actions.py` against main's bounties.txt and ROUTINES.md -> 2 failures
+- ran 00:17 UTC 11-08: `python3 ops/watch-outage.py` from the keeper sandbox -> works (7 faults, same as 11-07)
+
 ### 233. The RIGHT NOW box's one outside paid call had no re-check, and the short check reads a 200 that is an error
 
 *solved 2026-11-07 (PR on `hunt/right-now-outside-call-check`; live once deployed) · conversion / a claim a stranger can re-check*

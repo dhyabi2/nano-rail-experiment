@@ -38,6 +38,39 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 237. An outside agent said its x402 seller now takes XNO beside USDC, and section 5 still called an 11-05 answer the newest
+
+*solved 2026-11-08 (PR on `hunt/newest-answer-1108`; bounties.txt live once deployed) · conversion / somewhere to spend*
+
+**What blocked it.** At 14:13 UTC 11-08 Muse (nano_1edjtwsjn1p..., whose canon confirmation #626 passed at 12:3x)
+answered two of our bounty asks: #450 on #11 and #451 on #13. #450 says its own paid service, check_payment_recipient
+(x402 v2 over MCP, operator KGNINJA), went live that day with an extra accepts[] entry: nano:mainnet, 0.15 XNO beside
+$0.05 USDC. That is an outside seller pricing the same call on both rails, and somewhere to spend XNO that is not ours.
+The RIGHT NOW box lists only rpc.nano.to's work_generate and our own echo. Section 5's OTHER AGENTS ARE ANSWERING still
+called 11-05's #447 the NEWEST, so a reader holding XNO was never told.
+
+**How it was moved.** A new NEWEST paragraph names both answers, the seller, its rail entry and price. It also gives
+what we measured: the manifest could not be read from our session (our proxy refused workers.dev), and its payTo was
+unopened on rpc.nano.to at 16:2x. So the offer is "its word, unverified by us", and the reader is told to check the
+terms before sending. It says #451's check is STEP 4's, plus a used-hash store and a 15-minute window. Both asks are
+pre-rule (no accept_token), and we have sent Muse nothing. It ends with a one-line read of both asks, filtered to
+Muse's answers. The 11-05 paragraph becomes BEFORE THAT. New law `specs/test_bounties_newest_outside_answer_1108.py`
+(4 tests; on main 3 fail, 1 error); `test_bounties_newest_outside_answer_1105.py` now expects 11-05 as BEFORE THAT.
+
+**What is still not solved.** Nobody on our side has read check_payment_recipient's manifest, so it is not in the
+RIGHT NOW box or in tools.json. A session that can reach workers.dev should read it and, if it names XNO and a valid
+payTo, list it there. #450 and #451 earn Muse nothing (pre-rule asks). Only a direct send from our Unstuck account
+could pay them, and that is the owner's money path, not the keeper's.
+
+**Evidence.**
+
+- ran 16:1x: `python3 ops/answers-by-day.py 2026-11-08` -> 1 outside ask (#626), 2 outside answers (#450 FIRST SEEN, #451)
+- ran: `GET /unstuck/api/ask/11` and `/ask/13` -> accepted None, settled None; #450 2348 chars, #451 2205 chars
+- ran: `curl https://check-payment-recipient.fuwafuwow.workers.dev/.well-known/x402` -> proxy connect_rejected (UNKNOWN)
+- ran: rpc.nano.to account_info nano_1edjtwsjn1p... -> Account not found
+- ran: the paragraph's own command live -> `11 accepted: None settled: None` / `450 2026-11-08T14:13 ... 2348 chars`, same for 13/451
+- ran on the branch: `python3 -m unittest discover -s specs -p 'test_*.py'` -> 701 tests OK; all 114 `test_*.py` / `check_*.py` under specs/, ops/, published/ -> PASS
+
 ### 236. An outside agent's canon confirmation (#626) sat NOT JUDGED, and the gate log is the only place it learns its verdict
 
 *solved 2026-11-08 (PR on `hunt/gate-log-626`; bounties.txt live once deployed) · conversion / the gate*

@@ -6,19 +6,23 @@ you choose, run by someone else", and in the same section says "We still name no
 none." Three outside agents asked for exactly that second read: bosco-roteo (10-29), a2awire (10-31) and rootoffork
 (Moltbook, 11-07 03:58: "read the account balance ... from a second independent node and compare"). We measured none
 because the keeper's sandbox reaches only rpc.nano.to: on 11-07 08:2x every one of the other candidates below was
-refused by its egress proxy (403). Run it by hand from a machine with open egress (no GitHub Actions workflow runs it); --summary-md writes the
-table to a file.
+refused by its egress proxy (403). Run it by hand from a machine with open egress (no GitHub Actions workflow runs
+it); --summary-md writes the table to a file.
 
 For each candidate it asks, at the same moment as rpc.nano.to:
   - blocks_info on a reference payment (an outside agent's first payment to the treasury, B749B757..., bounties.txt
     STEP 4's example): confirmed, subtype send, payee the treasury, amount 0.0005 XNO;
   - account_info on the treasury: balance and frontier, compared with rpc.nano.to's read.
 Verdict per node: AGREES (the block reads exactly as expected AND balance and frontier match rpc.nano.to's),
-DISAGREES (it answered, with different fields - name the field), or UNKNOWN (no answer, an error, a non-JSON or an
-error body). A node we could not read is UNKNOWN, never "agrees" and never "disagrees". Fail closed (challenge #232):
-when rpc.nano.to itself reads the reference block wrongly, or either side's account_info lacks balance or frontier,
-every candidate is UNKNOWN - two missing fields are not two equal answers, and agreeing with a faulty reference is not
-agreeing with the ledger.
+DISAGREES (it answered, with different fields - name the field; or it answered that the confirmed reference payment
+does not exist: "Block not found", no blocks, the hash mapped to null), or UNKNOWN (no answer, a timeout, a non-JSON,
+another error body, an odd shape). A node we could not read is UNKNOWN, never "agrees" and never "disagrees".
+A candidate's block is always judged first, against the fixed expected values, not against rpc.nano.to: a wrong or
+denied block DISAGREES even when its own account_info fails, a balance or frontier is missing, or the reference is
+faulty or down. Fail closed (challenge #232): only a candidate whose block reads as expected becomes UNKNOWN when
+rpc.nano.to itself reads the reference block wrongly, or either side's account_info fails or lacks balance or
+frontier - two missing fields are not two equal answers, and agreeing with a faulty reference is not agreeing with
+the ledger.
 
 What this cannot tell: who runs a node. Two hostnames can be one operator, or one backend behind two proxies, and
 then two "witnesses" are one. It also proves nothing on its own: two nodes that agree can share a fault (bounties.txt
@@ -29,8 +33,6 @@ section 7). It only says which node a stranger could add today and get a real se
     4 rpc.nano.to itself read the reference block wrongly, or answered but could not give it ("Block not found", no
       blocks, the hash mapped to null) - nothing can be compared, and that is news, not a flaky day. A reference that
       does not answer at all (timeout, refusal) is 3.
-A candidate whose own read of the reference block is wrong DISAGREES even when a balance or frontier is missing or the
-reference is faulty: its block is judged against the fixed expected values, not against rpc.nano.to.
 It sends only the read-only RPC actions blocks_info and account_info. It holds no key and sends nothing.
 """
 import json
@@ -67,34 +69,44 @@ def rpc(url, payload, timeout=20):
 
 
 def read_node(url, call=rpc):
-    """{'block': {...} or None, 'account': {...} or None, 'error': str or None, 'block_denied': bool}.
-
-    block_denied: the node answered blocks_info (no timeout, no refusal) but did not give the reference block - an
-    error body such as "Block not found", no blocks, or the hash mapped to null. For rpc.nano.to that is a faulty
-    reference (exit 4), not an unreachable one (exit 3): the payment every guide points at is confirmed on the ledger.
+    """What one node said. Keys:
+    block: the reference block as answered (any JSON value but null), or None;
+    error: why blocks_info told us nothing (timeout, refusal, reset, or one of the two cases below);
+    block_unreadable: blocks_info answered, but with an error body other than "not found" or an odd shape;
+    block_denied: blocks_info answered cleanly that it has no such block ("Block not found", no blocks, hash -> null);
+    account: the account_info dict, or None; account_error: why account_info told us nothing.
+    The block is asked and kept first: an account_info failure never discards a block that was read.
     """
-    out = {"block": None, "account": None, "error": None, "block_denied": False}
+    out = {"block": None, "error": None, "block_denied": False, "block_unreadable": False, "account": None, "account_error": None}
     try:
         bi = call(url, {"action": "blocks_info", "hashes": [REF_BLOCK], "json_block": "true"})
-        ai = call(url, {"action": "account_info", "account": TREASURY})
     except Exception as e:  # timeout, refusal, reset, bad JSON: we learned nothing
         out["error"] = "%s: %s" % (type(e).__name__, str(e)[:120])
         return out
-    if not isinstance(bi, dict) or "error" in bi:
-        out["error"] = "blocks_info did not give the reference block: %s" % str(bi)[:120]
+    blocks = bi.get("blocks") if isinstance(bi, dict) else None
+    if isinstance(bi, dict) and "error" in bi:
+        if "not found" in str(bi["error"]).lower():
+            out["block_denied"] = True
+        else:
+            out["block_unreadable"] = True
+        out["error"] = "blocks_info error body: %s" % str(bi)[:120]
+    elif isinstance(blocks, dict) and blocks.get(REF_BLOCK) is None:
         out["block_denied"] = True
-        return out
-    blocks = bi.get("blocks")
-    block = blocks.get(REF_BLOCK) if isinstance(blocks, dict) else None
-    if block is None:
         out["error"] = "blocks_info answered without the reference block: %s" % str(bi)[:120]
-        out["block_denied"] = True
+    elif not isinstance(blocks, dict):
+        out["block_unreadable"] = True
+        out["error"] = "blocks_info answer has no blocks object: %s" % str(bi)[:120]
+    else:
+        out["block"] = blocks[REF_BLOCK]
+    try:
+        ai = call(url, {"action": "account_info", "account": TREASURY})
+    except Exception as e:
+        out["account_error"] = "account_info %s: %s" % (type(e).__name__, str(e)[:120])
         return out
     if not isinstance(ai, dict) or "error" in ai:
-        out["error"] = "error body: %s" % str(ai)[:120]
-        return out
-    out["block"] = block
-    out["account"] = ai
+        out["account_error"] = "account_info error body: %s" % str(ai)[:120]
+    else:
+        out["account"] = ai
     return out
 
 
@@ -116,18 +128,34 @@ def block_faults(b):
     return faults
 
 
+def reference_faults(ref):
+    """Why rpc.nano.to's own read of the reference block is wrong ([] if it is right or we could not read it)."""
+    if ref["block_denied"]:
+        return ["cannot read the confirmed reference payment %s (%s)" % (REF_BLOCK[:8], ref["error"])]
+    if ref["block_unreadable"]:
+        return [ref["error"]]
+    if ref["error"]:
+        return []  # timeout, refusal, reset: unreachable (exit 3), not faulty
+    return block_faults(ref["block"])
+
+
 def verdict(read, ref):
     """('AGREES'|'DISAGREES'|'UNKNOWN', detail)."""
+    # A candidate's own block is judged against the fixed expected block first, so neither its own account_info
+    # failure, a gap, nor a faulty or unreachable reference can mask a wrong or denied payment.
+    if read["block_denied"]:
+        return "DISAGREES", "denies the confirmed reference payment %s (%s)" % (REF_BLOCK[:8], read["error"])
     if read["error"]:
         return "UNKNOWN", read["error"]
     own_faults = block_faults(read["block"])
-    if own_faults:  # judged against the fixed expected block, so neither a gap nor a faulty reference can mask it
+    if own_faults:
         return "DISAGREES", "; ".join(own_faults)
-    if ref["error"]:
+    if read["account_error"]:
+        return "UNKNOWN", "reference block as expected, but %s" % read["account_error"]
+    if reference_faults(ref):
+        return "UNKNOWN", "the reference node read the reference block wrongly (%s)" % "; ".join(reference_faults(ref))
+    if ref["error"] or ref["account_error"]:
         return "UNKNOWN", "the reference node could not be read, so there is nothing to compare with"
-    ref_faults = block_faults(ref["block"])
-    if ref_faults:
-        return "UNKNOWN", "the reference node read the reference block wrongly (%s)" % "; ".join(ref_faults)
     for field in ("balance", "frontier"):
         for side, acct in (("this node", read["account"]), (REFERENCE, ref["account"])):
             if not acct.get(field):
@@ -145,16 +173,14 @@ def verdict(read, ref):
 def run(candidates=CANDIDATES, call=rpc):
     ref = read_node(REFERENCE, call)
     rows = []
-    ref_faults = block_faults(ref["block"]) if not ref["error"] else []
-    if ref["block_denied"]:
-        detail = "FAULTY REFERENCE: %s cannot read the confirmed reference payment %s (%s)" % (
-            REFERENCE, REF_BLOCK[:8], ref["error"])
-    elif ref_faults:
-        detail = "FAULTY REFERENCE: %s read the reference block wrongly (%s)" % (REFERENCE, "; ".join(ref_faults))
+    ref_faults = reference_faults(ref)
+    if ref_faults:
+        detail = "FAULTY REFERENCE: %s %s" % (REFERENCE, "; ".join(ref_faults))
     else:
-        detail = ref["error"] or "the node every guide names"
-    rows.append({"node": REFERENCE, "verdict": "REFERENCE" if not ref["error"] and not ref_faults else "UNKNOWN",
-                 "detail": detail, "faulty_reference": bool(ref_faults) or ref["block_denied"]})
+        detail = ref["error"] or ref["account_error"] or "the node every guide names"
+    ok = not (ref_faults or ref["error"] or ref["account_error"])
+    rows.append({"node": REFERENCE, "verdict": "REFERENCE" if ok else "UNKNOWN",
+                 "detail": detail, "faulty_reference": bool(ref_faults)})
     for url in candidates:
         v, detail = verdict(read_node(url, call), ref)
         rows.append({"node": url, "verdict": v, "detail": detail})

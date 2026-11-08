@@ -168,6 +168,80 @@ class OddBlocksShapeIsUnreadableNotACrash(unittest.TestCase):
             self.assertEqual(csn.exit_code(rows), 4)
 
 
+ATTACKER = dict(GOOD_BLOCK, contents={"link_as_account": "nano_3attacker"})
+
+
+def raw(answers):
+    """answers: url -> (blocks_info answer or Exception, account_info answer or Exception), returned verbatim."""
+    def call(url, payload):
+        a = answers[url][0 if payload["action"] == "blocks_info" else 1]
+        if isinstance(a, Exception):
+            raise a
+        return a
+    return call
+
+
+def wrap(block):
+    return {"blocks": {csn.REF_BLOCK: block}}
+
+
+class BlockIsJudgedBeforeAccountInfo(unittest.TestCase):
+    """nrx#212 review round 2: an account_info failure discarded a block that was read, hiding a wrong payee."""
+
+    def test_candidate_wrong_payee_with_account_error_disagrees(self):  # HIGH 1
+        for acct in ({"error": "Account not found"}, OSError("timeout")):
+            rows = csn.run(["https://n1"], raw({csn.REFERENCE: (wrap(GOOD_BLOCK), GOOD_ACCOUNT),
+                                                "https://n1": (wrap(ATTACKER), acct)}))
+            self.assertEqual(rows[1]["verdict"], "DISAGREES", acct)
+            self.assertIn("payee", rows[1]["detail"])
+            self.assertEqual(csn.exit_code(rows), 1)
+
+    def test_reference_wrong_payee_with_account_error_exits_4(self):  # MEDIUM 2
+        for acct in ({"error": "x"}, OSError("timeout")):
+            rows = csn.run(["https://n1"], raw({csn.REFERENCE: (wrap(ATTACKER), acct),
+                                                "https://n1": (wrap(GOOD_BLOCK), dict(GOOD_ACCOUNT))}))
+            self.assertTrue(rows[0]["faulty_reference"], acct)
+            self.assertIn("payee", rows[0]["detail"])
+            self.assertEqual(csn.exit_code(rows), 4)
+
+    def test_good_block_with_account_error_is_still_unknown(self):
+        rows = csn.run(["https://n1"], raw({csn.REFERENCE: (wrap(GOOD_BLOCK), GOOD_ACCOUNT),
+                                            "https://n1": (wrap(GOOD_BLOCK), OSError("timeout"))}))
+        self.assertEqual(rows[1]["verdict"], "UNKNOWN")
+        self.assertEqual(csn.exit_code(rows), 3)
+
+    def test_reference_good_block_with_account_error_is_unreachable_not_faulty(self):
+        rows = csn.run(["https://n1"], raw({csn.REFERENCE: (wrap(GOOD_BLOCK), OSError("timeout")),
+                                            "https://n1": (wrap(GOOD_BLOCK), dict(GOOD_ACCOUNT))}))
+        self.assertEqual(rows[0]["verdict"], "UNKNOWN")
+        self.assertFalse(rows[0]["faulty_reference"])
+        self.assertEqual(csn.exit_code(rows), 3)
+
+
+class CandidateDenyingThePaymentDisagrees(unittest.TestCase):
+    """nrx#212 review round 2 LOW 3: "Block not found" for a confirmed payment is a different answer, not no answer."""
+
+    def test_each_denial_disagrees(self):
+        for bi in ({"error": "Block not found"}, {"blocks": {}}, wrap(None)):
+            rows = csn.run(["https://n1"], raw({csn.REFERENCE: (wrap(GOOD_BLOCK), GOOD_ACCOUNT),
+                                                "https://n1": (bi, dict(GOOD_ACCOUNT))}))
+            self.assertEqual(rows[1]["verdict"], "DISAGREES", bi)
+            self.assertIn("denies", rows[1]["detail"])
+            self.assertEqual(csn.exit_code(rows), 1)
+
+    def test_other_error_body_is_still_unknown(self):
+        rows = csn.run(["https://n1"], raw({csn.REFERENCE: (wrap(GOOD_BLOCK), GOOD_ACCOUNT),
+                                            "https://n1": ({"error": "rate limited"}, dict(GOOD_ACCOUNT))}))
+        self.assertEqual(rows[1]["verdict"], "UNKNOWN")
+
+
+class DocstringSaysWhatTheCodeDoes(unittest.TestCase):
+    def test_no_every_candidate_is_unknown_claim(self):  # LOW 4
+        doc = csn.__doc__
+        self.assertNotIn("every candidate is UNKNOWN", " ".join(doc.split()))
+        self.assertTrue(all(len(line) <= 120 for line in doc.splitlines()))
+
+
 class GarbageBlockDoesNotCrash(unittest.TestCase):
     def test_a_string_block_is_a_fault_not_a_traceback(self):
         rows = csn.run(["https://n1"], stub({csn.REFERENCE: (GOOD_BLOCK, GOOD_ACCOUNT),

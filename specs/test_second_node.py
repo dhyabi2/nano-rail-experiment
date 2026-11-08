@@ -57,9 +57,12 @@ class SecondNode(unittest.TestCase):
         call = stub({csn.REFERENCE: (GOOD_BLOCK, GOOD_ACCOUNT), "https://n1": (GOOD_BLOCK, {"error": "rate limited"})})
         self.assertEqual(csn.run(["https://n1"], call)[1]["verdict"], "UNKNOWN")
 
-    def test_a_missing_block_is_unknown(self):
+    def test_a_missing_block_disagrees(self):
+        # nrx#212 review round 2 LOW 3: {"blocks": {}} for a confirmed payment is an answer that it does not exist.
         call = stub({csn.REFERENCE: (GOOD_BLOCK, GOOD_ACCOUNT), "https://n1": (None, GOOD_ACCOUNT)})
-        self.assertEqual(csn.run(["https://n1"], call)[1]["verdict"], "UNKNOWN")
+        rows = csn.run(["https://n1"], call)
+        self.assertEqual(rows[1]["verdict"], "DISAGREES")
+        self.assertEqual(csn.exit_code(rows), 1)
 
     def test_disagreement_names_the_field(self):
         bad = dict(GOOD_BLOCK, confirmed="false")

@@ -79,27 +79,24 @@ page proves nothing. Fetch it by id before concluding it is gone.*
 
 ---
 
-## On GitHub's runners (not the box, not Claude)
+## Nothing runs on GitHub Actions (owner rule, 2026-11-07)
 
-### Outage watch — `.github/workflows/outage-watch.yml`
+The owner deleted `.github/workflows/outage-watch.yml` and `.github/workflows/second-node.yml` at 20:48 UTC 11-07
+(commits 2d8b5c2, a18424e: "owner rule: no GitHub Actions"). Do not add a workflow back; `specs/test_no_github_actions.py`
+fails if one appears (challenge #234). The two tools still exist and are run by hand:
 
-**`41 * * * *`** (hourly) · runs `ops/watch-outage.py` (challenge #148). **Scheduled hourly, run far less:** GitHub throttles
-scheduled workflows, and this one ran 3 times on 11-02 (02:43, 11:40, 20:52 UTC) and next at 03:03 11-03, 48 runs in
-all - gaps of 4 to 9 hours. Read a quiet issue as "not checked since its last edit", not "fine this hour" (challenge #209). It reads only public URLs and the read-only
-RPC actions `account_info`, `receivable` and `blocks_info`. It checks that the guides and the asks API answer, that the
-five sellers pay only the treasury in XNO, that the echo (the one paid call the guides say works) publishes JSON terms paying our Unstuck account in XNO (challenge #212), and that the treasury is at or above 9.0 XNO with nothing receivable for
-over an hour. On a fault it opens **one** issue titled `[outage-watch] ...`, edits that issue while the fault lasts,
-and closes it on recovery. It exists because the box's own silence alarm died with the box on 10-17.
+- **`ops/watch-outage.py`** (challenge #148) - the keeper runs it every run (every 4 h), so an outage is now seen at most
+  4 hours late, and only while the keeper fires. It reads only public URLs and the read-only RPC actions `account_info`,
+  `receivable` and `blocks_info`, and checks the guides, the asks API, the five sellers' payee and XNO, the echo's
+  terms (challenge #212), the treasury at or above 9.0 XNO and nothing receivable over an hour. It no longer opens or
+  edits issue #121; that issue was last edited 19:38 UTC 11-07 and says nothing after it.
+- **`ops/check-second-node.py`** (challenge #230) - read-only RPC (`blocks_info`, `account_info`) against rpc.nano.to and
+  each candidate public node. The keeper's sandbox cannot run it (its egress proxy refuses every node but rpc.nano.to,
+  403), so the four nodes bounties.txt STEP 4 names were measured once, 08:24 UTC 11-07, and nothing re-measures them;
+  STEP 4 says so. A node is named in a guide only from a measured AGREES, and two hostnames may still be one operator.
+
 Every `ops/` tool sends the User-Agent marked `unowned-rail-probe/1` so the box can count these probes as ours
 (challenge #207, `drafts/box-count-our-probes.md`); until the box does, they appear as outside browsers.
-
-### Second-node probe - `.github/workflows/second-node.yml`
-
-**`17 6 * * *`** (daily, and by hand) - runs `ops/check-second-node.py` (challenge #230). It reads a reference payment
-(B749B757...) and the treasury's balance and frontier from rpc.nano.to and from each candidate public node, and writes
-which nodes AGREE, DISAGREE or were UNKNOWN into the run summary. Read-only RPC (`blocks_info`, `account_info`), no key,
-no issue, no email. It exists because the keeper's sandbox can reach only rpc.nano.to, so the guides could name no
-second node. A node is named in a guide only from a measured AGREES, and two hostnames may still be one operator.
 
 ## On the boxes (cron and systemd, not Claude)
 

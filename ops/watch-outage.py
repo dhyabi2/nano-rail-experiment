@@ -4,8 +4,9 @@
 Found 2026-10-24 (challenge #148). The box went down at about 10:25 UTC on 10-17 and stayed down until about 04:00
 on 10-24. For those six and a half days every guide we publish returned a Vercel 502, the five paid endpoints timed
 out, and a 10 XNO send sat receivable at the treasury - and nothing noticed, because the silence alarm ran on the box
-it was watching and the keeper routine was not firing. This check runs on GitHub's runners (.github/workflows/
-outage-watch.yml, hourly), so it fails loudly when the box does.
+it was watching and the keeper routine was not firing. This check ran on GitHub's runners (outage-watch.yml, hourly)
+until the owner removed every GitHub Actions workflow at 20:48 UTC 11-07 (challenge #234); the keeper now runs it by
+hand each run, off the box.
 
 It checks only what the keeper's alert list names as critical:
   - every published guide and the asks API answer 200 (and the .txt guides as text/plain);

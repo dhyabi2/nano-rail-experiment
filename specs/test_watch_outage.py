@@ -3,8 +3,8 @@
 
 The off-box watcher must report the 10-17 outage as it was measured (a 502 on every guide, timeouts on every seller,
 10 XNO receivable for days); must call a seller that names another payee or no XNO a fault; must never report a check
-that could not run as clean; and must send only read-only RPC actions. (The GitHub workflow that ran it on a schedule
-and kept one issue open was removed under the owner rule "no GitHub Actions", 2d8b5c2.)
+that could not run as clean; must send only read-only RPC actions. Until 11-07 a workflow ran it hourly and kept one issue; the owner removed every
+GitHub Actions workflow that day (challenge #234), so its two workflow laws went with it.
 
 Run: python3 specs/test_watch_outage.py
 """
@@ -128,10 +128,6 @@ class WatchOutage(unittest.TestCase):
         f = wo.check_page("https://getunstuck.space/bounties.txt", "text/plain", lambda u: (200, "text/html", b""))
         self.assertIn("text/plain", f)
 
-    def test_no_github_actions_workflow_is_assumed(self):
-        # Owner rule (2d8b5c2, "no GitHub Actions"): outage-watch.yml was deleted; nothing here may need it back.
-        self.assertFalse(os.path.exists(os.path.join(ROOT, ".github", "workflows", "outage-watch.yml")))
-
     # challenge #160: issue #121's body as the 01:42 UTC 10-26 run left it, before the box went down
     BODY_0142 = """6 fault(s) at 2026-10-26T01:42:42Z:
 - https://extract.paypercall.dev/.well-known/x402 answered nothing (timeout or reset)
@@ -158,6 +154,7 @@ Latest run: https://github.com/dhyabi2/nano-rail-experiment/actions/runs/4025540
 
     def test_no_open_issue_means_everything_is_new(self):
         self.assertEqual(wo.new_faults("", ["a fault"]), ["a fault"])
+
 
 if __name__ == "__main__":
     unittest.main()

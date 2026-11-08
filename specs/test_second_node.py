@@ -3,7 +3,7 @@
 
 bounties.txt tells every payer to confirm on a second node and says "we have measured none". The probe that measures
 one must never call a node that did not answer "agrees", must name the field a disagreeing node differs on, must send
-only read-only RPC actions, and must run where egress is open (GitHub's runners), not only in the keeper's sandbox.
+only read-only RPC actions. It ran on GitHub's runners until the owner removed every workflow (11-07, challenge #234).
 
 Run: python3 specs/test_second_node.py
 """

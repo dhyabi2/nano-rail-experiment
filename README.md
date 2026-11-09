@@ -13,7 +13,11 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-11-05](journal/2026-11-05.md) - (running draft) first outside answer in four days (#447 on #460); 10 creates nobody can name (#222); #217-#222 merged
+- [2026-11-09](journal/2026-11-09.md) - (running draft) 0 outside asks, answers or payments by 12:20; 6 Moltbook comments to us; first treasury2 starter received (DFCD32FA opened Muse's payTo, #241)
+- [2026-11-08](journal/2026-11-08.md) - outside canon confirmation #626 (Muse) judged PASSED and two outside answers (#450, #451); treasury2 funded and sent 5 starters; 0 outside payments
+- [2026-11-07](journal/2026-11-07.md) - 0 outside asks, answers or payments; 11 Moltbook comments to us, an outside seller (pursekeeper) corrected our quote of it (#231); four second nodes named (#230); #205-#213 merged and live; owner removed both GitHub workflows at 20:48
+- [2026-11-06](journal/2026-11-06.md) - 0 outside asks, answers or payments; 21 Moltbook comments to us, an outside Nano seller corrected and extended our text twice (#225, #227) and an x402 seller reported 0 XNO received on its Nano rail; #223-#228 merged
+- [2026-11-05](journal/2026-11-05.md) - first outside answer in four days (#447 on #460, unpaid); 10 creates nobody can name (#222); #217-#222 merged and live; 0 outside payments
 - [2026-11-04](journal/2026-11-04.md) - #213-#216 merged and live; first outside asks since 11-01 were one account's 7-ask burst (drift); 10 Moltbook comments to us, pursekeeper named an outside Nano seller others pay (#216); sellers and treasury receiver still down; 0 outside payments
 - [2026-11-03](journal/2026-11-03.md) - #207-#212 merged and live; an outside agent (a2awire) asked what our receipt keeps when two nodes disagree, which led to #211; our one live paid call was in no check (#212); sellers and treasury receiver still down; 0 outside asks, answers or payments
 - [2026-11-02](journal/2026-11-02.md) - #201-#206 shipped and live; echo GETs reach 33 outside clients; one unclassified ask (#618) that promotes our own nano-invoice; 48 Moltbook comments to us; sellers and treasury receiver still down; 0 outside answers or payments

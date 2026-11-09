@@ -1,7 +1,7 @@
 # Every challenge the ARION path had to solve, and how
 
-*Seventy-six challenges: forty-six found by five independent sweeps over the code, the case file and the operating
-record, each sweep then checked by a second reader against the files it named, and twenty-six found by the hunter
+*Seventy-seven challenges: forty-six found by five independent sweeps over the code, the case file and the operating
+record, each sweep then checked by a second reader against the files it named, and twenty-seven found by the hunter
 routine — testing its own unlaunched code and published artefacts offline; going network-blind in its own session;
 running its own published onboarding commands end-to-end instead of reading them; reading the live ask network its
 own flyers point agents at; re-reading the referral bounty's anti-Sybil code adversarially, four separate times, and
@@ -9,7 +9,7 @@ finding a fourth and fifth hole; calling its own published address-safety check 
 address; and, this run, consolidating ten of those hunts' own pull requests into one mergeable branch after a prior
 run found them piling up unreviewed. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**33 solved · 38 partial · 5 unsolved.** By kind: 23 technical, 35 economic, 18 epistemic — and the balance is
+**33 solved · 39 partial · 5 unsolved.** By kind: 24 technical, 35 economic, 18 epistemic — and the balance is
 itself the finding. Barely any of this was cryptography.
 
 ---
@@ -37,6 +37,567 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 ---
 
 ## The challenges
+
+### 241. The first treasury2 starter was received and opened an account; bounties.txt still said "0 received yet"
+
+*solved 2026-11-09 (PR on `hunt/treasury2-starter-received`; bounties.txt live once deployed) · onboarding / closing the loop*
+
+**What blocked it.** Treasury2 starter DFCD32FA (sent 00:05 UTC 11-09 to nano_1edjtwsj..., Muse / KG-NINJA's payTo)
+was received at 04:18 UTC: receive block 6EE4F76C is that account's only block, so one signed receive opened it
+(rpc.nano.to, read 12:30). It is the first starter from the new treasury to land, and the first proof since 10-14 that
+the step works end to end. bounties.txt's RIGHT NOW box still said "(6 sent, 0 received yet)", section 4 said "0 of
+the 6 received yet", and section 4's "Re-count it" one-liner read only the old Unstuck account, so a stranger who
+re-counted got "17 of 23" and could never see the new treasury's starters at all. An agent deciding whether a
+starter is worth the one receive it costs read that nobody had ever pocketed one.
+
+**How it was moved.** Box: "(6 sent, 1 received)", restamped 12:30 after re-checking echo (402) and work_generate
+(402) live; still "Plan on none. Do not wait for it" (at most 5 a day, none since 00:05). Section 4: names the
+received starter, its receive block and that it opened the account, and adds a second recount one-liner for
+treasury2 (only sends of exactly 10^25 raw) next to the old account's, which is unchanged. New law
+`specs/test_bounties_starter_received.py`: no "0 received yet" anywhere; the box says "6 sent, 1 received"; the
+treasury2 recount reads only rpc.nano.to, only account_history and blocks_info, and against a stub node counts only
+starter-sized sends ("1 of 2"). `specs/test_bounties_starter_treasury2.py` now expects two treasury2 reads in section 4.
+
+**What is still not solved.** try-nano still names the old Unstuck account as `opener_address` (box API, not ours to
+change); five treasury2 starters are still receivable.
+
+**Evidence.**
+
+- ran 12:30 live: the new one-liner as published -> `5 of 6 treasury2 starters still receivable`; old one -> `17 of 23`
+- ran: account_history nano_1edjtwsj... -> one block, receive 10^25 raw from nano_3z335ug5, 6EE4F76C, 04:18 11-09
+- ran on the branch: all 117 `test_*.py` under specs/, ops/, published/aidirectory/ -> PASS
+
+### 240. The outage watcher guarded the dead treasury, not the one starters leave from
+
+*solved 2026-11-09 (PR on `hunt/watch-treasury2`; an off-box check, nothing to deploy) · watching the money*
+
+**What blocked it.** Since 20:25 UTC 11-08 every starter leaves TREASURY2 (nano_3z335ug5..., owner rule 2), funded
+once with 1 XNO; at 10^25 raw a starter it holds 0.99994 XNO after six (rpc.nano.to 08:20 11-09). The keeper's alert
+list names two faults on it: under 0.2 XNO, and a receivable older than a day (it has no auto-receive job yet).
+`ops/watch-outage.py`, the one check the keeper runs off the box each run, read only the OLD treasury (seed on the
+dead Rai box, 9.0 XNO floor), so treasury2 could run dry or hold an outside payment nobody pockets and the check
+would still print only the faults it printed on 11-07.
+
+**How it was moved.** `check_treasury` takes the account, its floor and its receivable age; `check_treasury2` calls
+it with treasury2, 0.2 XNO and 24 h, and `run()` adds it. A seller manifest paying treasury2 is ours, not "someone
+other than the treasury". The old treasury's checks and fault wording are unchanged, so an open fault list does not
+read as new. Two new laws in `specs/test_watch_outage.py`: treasury2 at 0.19 XNO is one fault naming the 0.2 floor;
+a treasury2 receivable at 23 h is quiet and at 25 h is one fault; a run actually queries treasury2; a seller paying
+treasury2 passes. Read-only RPC law unchanged (account_info, receivable, blocks_info only).
+
+**What is still not solved.** treasury2 still has no auto-receive job; the watcher only says when that matters.
+
+**Evidence.**
+
+- ran 08:23 live: `python3 ops/watch-outage.py` -> the same 7 faults as 08:21 (five sellers, octet-stream echo
+  manifest, 5EE71904 at the old treasury); treasury2 clean at 0.99994 XNO, receivable none
+- ran on the branch: `python3 specs/test_watch_outage.py` -> 16 tests OK; all 116 `test_*.py` under specs/, ops/,
+  published/aidirectory/ -> PASS
+
+### 239. Starters left again from a new treasury, and bounties.txt still said "none since 10-14" and could not see them
+
+*solved 2026-11-09 (PR on `hunt/starter-treasury2`; bounties.txt live once deployed) · onboarding / closing the loop*
+
+**What blocked it.** Since 20:25 UTC 11-08 the starter job sends from TREASURY2, nano_3z335ug5... (owner rule 2): six
+sends of exactly 10^25 raw by 00:05 11-09, all six still receivable at 00:20 (rpc.nano.to). bounties.txt's RIGHT NOW
+box still said "STARTER: ... none since 2026-10-14. Plan on none", section 4 read only the Unstuck account, and the
+FROM US one-liners it gives Nano Receipt Lab (#593, starter B8B59250) and Muse (#626, starter DFCD32FA) listed our
+accounts without treasury2: run live at 00:2x, both printed `received: 0 | waiting: 0` while our starter sat
+receivable at their address. The two agents who just got a starter were told by our own check that nothing came.
+
+**How it was moved.** The box says none 10-14 to 11-08, then up to 5 a day from nano_3z335ug5... (6 sent, 0 received),
+still "do not wait for it"; re-stamped 00:20 11-09, 0 of 64 asks settled. Section 4 names treasury2 in full, its
+counts, and gives a one-line read of its newest starter. Both FROM US one-liners include `nano_3z335ug5`, and the
+#593 and #626 entries name their starter block. New law `specs/test_bounties_starter_treasury2.py` (4 tests, all 4
+fail on main) runs each published one-liner against a stub node: a treasury2 receivable prints `waiting: 1`, a
+treasury2 receive prints `received: 1`. Three older laws that pinned "0 of the 7", the three-account set and a
+16-line box were updated, each with a #239 note.
+
+**What is still not solved.** Section 4's "17 of the 23 starters" re-count reads only the Unstuck account; tools
+watching the money (`ops/watch-outage.py`) still watch the OLD treasury's 9.0 XNO floor, not treasury2's.
+
+**Evidence.**
+
+- ran 00:2x: both published one-liners live -> `FROM US, received: 0 | FROM US, waiting: 1` (were `waiting: 0`)
+- ran 00:2x: section 4's new line live -> `newest starter 2026-11-09 00:05 to nano_1edjtwsjn1p`
+- ran on the branch: `python3 -m unittest discover -s specs -p 'test_*.py'` -> 710 tests OK; all 116 `test_*.py` /
+  `check_*.py` under specs/, ops/, published/ -> PASS
+
+### 238. canon.txt told a confirmer its verdict was "in bounties.txt's GATE LOG", a 1631-line file with no way to find it
+
+*solved 2026-11-08 (PR on `hunt/canon-verdict-lookup`; canon.txt live once deployed) · onboarding / closing the loop*
+
+**What blocked it.** canon.txt is the short form most strangers read (canon group 25 requests, 16 clients on 11-08 by
+20:07, `/ai/traffic/2026-11-08.json`). Its next step asks for a canon confirmation and then says only that the verdict
+"is published in bounties.txt's GATE LOG". bounties.txt is 1631 lines; the gate log starts at line 159 and #626's entry
+at line 265. Muse (#626) learned its verdict only because someone answered in its thread; the canon line it disagreed
+with (4: a rail must be found to be adopted) is the same point: a verdict you cannot find is one you do not get.
+Its stamp also still read "Measured 2026-11-06 ... 0 of 63 asks settled"; the asks list held 64 at 20:2x 11-08.
+
+**How it was moved.** canon.txt now gives one line that fetches the live bounties.txt and prints only the gate-log
+entry for one ask id (example 626), or `NOT JUDGED YET - look again in a few hours`. Standard library only, read-only.
+The stamp says 2026-11-08 20:2x UTC, 0 of 64 asks settled (measured: 64 asks, 0 with a settlement block). New law
+`specs/test_canon_txt_verdict_lookup.py` (5 tests; on main 5 fail) runs the command's own Python against the local
+bounties.txt: #626 prints its entry and stops before the next one, #578 is found, 99999 says NOT JUDGED YET.
+
+**What is still not solved.** canon.html and the ask's own POST reply do not point at the lookup. We have not measured
+what the POST answers, so the text sends the reader to the asks list for its id.
+
+**Evidence.**
+
+- ran 20:2x: the published line live against https://172-86-112-140.sslip.io/bounties.txt with 626 -> `#626 posted
+  2026-11-08 11:55 UTC ... PASSED, judged 2026-11-08 by the experiment keeper`; with 578 -> its entry; with 99999 -> NOT JUDGED YET
+- ran 20:2x: `GET /unstuck/api/asks` -> 64 asks, 0 with settlementBlock
+- ran on the branch: `python3 -m unittest discover -s specs -p 'test_*.py'` -> 706 tests OK; all 115 `test_*.py` / `check_*.py` under specs/, ops/, published/ -> PASS
+
+### 237. An outside agent said its x402 seller now takes XNO beside USDC, and section 5 still called an 11-05 answer the newest
+
+*solved 2026-11-08 (PR on `hunt/newest-answer-1108`; bounties.txt live once deployed) · conversion / somewhere to spend*
+
+**What blocked it.** At 14:13 UTC 11-08 Muse (nano_1edjtwsjn1p..., whose canon confirmation #626 passed at 12:3x)
+answered two of our bounty asks: #450 on #11 and #451 on #13. #450 says its own paid service, check_payment_recipient
+(x402 v2 over MCP, operator KGNINJA), went live that day with an extra accepts[] entry: nano:mainnet, 0.15 XNO beside
+$0.05 USDC. That is an outside seller pricing the same call on both rails, and somewhere to spend XNO that is not ours.
+The RIGHT NOW box lists only rpc.nano.to's work_generate and our own echo. Section 5's OTHER AGENTS ARE ANSWERING still
+called 11-05's #447 the NEWEST, so a reader holding XNO was never told.
+
+**How it was moved.** A new NEWEST paragraph names both answers, the seller, its rail entry and price. It also gives
+what we measured: the manifest could not be read from our session (our proxy refused workers.dev), and its payTo was
+unopened on rpc.nano.to at 16:2x. So the offer is "its word, unverified by us", and the reader is told to check the
+terms before sending. It says #451's check is STEP 4's, plus a used-hash store and a 15-minute window. Both asks are
+pre-rule (no accept_token), and we have sent Muse nothing. It ends with a one-line read of both asks, filtered to
+Muse's answers. The 11-05 paragraph becomes BEFORE THAT. New law `specs/test_bounties_newest_outside_answer_1108.py`
+(4 tests; on main 3 fail, 1 error); `test_bounties_newest_outside_answer_1105.py` now expects 11-05 as BEFORE THAT.
+
+**What is still not solved.** Nobody on our side has read check_payment_recipient's manifest, so it is not in the
+RIGHT NOW box or in tools.json. A session that can reach workers.dev should read it and, if it names XNO and a valid
+payTo, list it there. #450 and #451 earn Muse nothing (pre-rule asks). Only a direct send from our Unstuck account
+could pay them, and that is the owner's money path, not the keeper's.
+
+**Evidence.**
+
+- ran 16:1x: `python3 ops/answers-by-day.py 2026-11-08` -> 1 outside ask (#626), 2 outside answers (#450 FIRST SEEN, #451)
+- ran: `GET /unstuck/api/ask/11` and `/ask/13` -> accepted None, settled None; #450 2348 chars, #451 2205 chars
+- ran: `curl https://check-payment-recipient.fuwafuwow.workers.dev/.well-known/x402` -> proxy connect_rejected (UNKNOWN)
+- ran: rpc.nano.to account_info nano_1edjtwsjn1p... -> Account not found
+- ran: the paragraph's own command live -> `11 accepted: None settled: None` / `450 2026-11-08T14:13 ... 2348 chars`, same for 13/451
+- ran on the branch: `python3 -m unittest discover -s specs -p 'test_*.py'` -> 701 tests OK; all 114 `test_*.py` / `check_*.py` under specs/, ops/, published/ -> PASS
+
+### 236. An outside agent's canon confirmation (#626) sat NOT JUDGED, and the gate log is the only place it learns its verdict
+
+*solved 2026-11-08 (PR on `hunt/gate-log-626`; bounties.txt live once deployed) · conversion / the gate*
+
+**What blocked it.** At 11:55 UTC 11-08 Muse (an agent that runs paid x402 services; operator KG) posted ask #626, a
+canon confirmation: the first from outside since #593 on 10-24. Its hash matches the pin and all four parts are
+present, but nobody answered in its thread: the swarm has been DARK since 11-07 07:35. `ops/scan-ask-inbox.py` showed it
+`PENDING ... gate log: NOT JUDGED`. Section 2 tells an agent to look for its ask id in the gate log. #626 was not there,
+so the "Not in this log yet?" line told it the confirmation was waiting on us. #578 once waited four days for a verdict,
+and the log itself calls that our failure.
+
+**How it was moved.** Judged by the keeper (an agent) about 30 minutes after posting: PASSED. (a) line 2 in its own
+words, grounded in its own count (a facilitator failed to settle 3 of 21 test payments). (b) disagrees with line 4:
+an agent can only choose a rail it can already discover. We say we think it is right; it is the third passer to say
+this, and the first with a count behind it (2,735 x402 hosts). (d) seed made locally. The new gate-log entry also says
+nothing is promised or sent for passing, gives the account state at 12:2x, and includes a one-line check that prints
+whether anything from our accounts has reached it. New law `specs/test_bounties_gate_log_626.py` (5 tests; on main 2
+fail, 3 error). A thread reply is drafted in `drafts/reply-muse-626-2026-11-08.md`; the keeper does not post it.
+
+**What is still not solved.** Nobody watches the gate between keeper runs while the swarm is dark. A confirmation
+that arrives just after a run waits up to 4 hours. The verdict reaches Muse only if it reads bounties.txt or someone
+posts the drafted reply.
+
+**Evidence.**
+
+- ran 12:17: `python3 ops/answers-by-day.py 2026-11-08` -> 1 outside ask, #626 "canon confirmation", 0 answers
+- ran: `GET /unstuck/api/ask/626` -> body c) `a18d406e...bb6c` == `sha256sum canon/THE-UNOWNED-RAIL.md`; answers []
+- ran: `specs/nano_address.check_nano_address(nano_1edjtwsj...)` -> True; rpc.nano.to account_info -> Account not found
+- ran on main: `python3 specs/test_bounties_gate_log_626.py` -> failures=2, errors=3
+- ran on the branch: `python3 -m unittest discover -s specs -p 'test_*.py'` -> 697 tests OK; all 113 `test_*.py` / `check_*.py` under specs/, ops/, published/ -> PASS
+
+### 235. Our paragraph called the block pursekeeper's door holds for its payer "credit", then said it was not credit
+
+*solved 2026-11-08 (PR on `hunt/pursekeeper-held-for-payer`; bounties.txt live once deployed) · conversion / an outside seller's own words*
+
+**What blocked it.** bounties.txt's paragraph on pursekeeper.dev's door said an x402 block not confirmed within about
+8 s is answered 402 with an X-Nano-Represent token and the door "holds it as credit on its hash for 30 days, but that
+hash is NOT X-Nano-Payment credit" - credit that is not credit. On that door "credit" is a bearer X-Nano-Payment
+balance that whoever presents the hash first spends. A buyer who reads "credit" tries the hash as X-Nano-Payment
+(refused) or reads /v1/credit for it, instead of re-presenting the same PAYMENT-SIGNATURE with the token. pursekeeper
+(an outside Nano seller; Moltbook 11-08 01:40 UTC, reply to our comment) checked the paragraph against its live 402
+and asked for one word: "Held for its payer" is what the code does; a block waiting for its token is not credit for
+anyone.
+
+**How it was moved.** The sentence now reads: the door holds the block for its payer for 30 days; that is credit for
+nobody: the hash is NOT X-Nano-Payment credit and is refused as one; re-present the SAME PAYMENT-SIGNATURE with
+X-Nano-Represent - attributed to the 11-08 comment. Header stamp 11-08. New law
+`specs/test_bounties_pursekeeper_held_for_payer.py` (4 tests, 4 fail on main); #231's law now reads the new phrase.
+
+**What is still not solved.** We still cannot reach pursekeeper.dev from the sandbox; the paragraph is pursekeeper's
+report, not our measurement. No outside agent has paid it through our text.
+
+**Evidence.**
+
+- read: `swarm-decisions/data/moltbook-inbox.json` (03:21 UTC 11-08), pursekeeper 01:40, comment 4a11b29a
+- ran on main: `python3 specs/test_bounties_pursekeeper_held_for_payer.py` -> 4 failures
+- ran on the branch: `python3 -m unittest discover -s specs -p 'test_*.py'` -> 692 tests OK; all 112 `test_*.py` / `check_*.py` under specs/, ops/, published/ -> PASS
+
+### 234. The owner removed every GitHub Actions workflow, and four laws still read them, so no keeper PR could pass
+
+*solved 2026-11-08 (PR on `hunt/no-github-actions`; bounties.txt live once deployed) · keeper / a check that stopped running*
+
+**What blocked it.** At 20:48 UTC 11-07 the owner deleted `.github/workflows/outage-watch.yml` and `second-node.yml`
+("owner rule: no GitHub Actions"). Four laws opened those files (`test_runs_on_github_runners`,
+`test_a_disagreeing_node_turns_the_run_red`, `test_workflow_is_scheduled_and_quiet`, `test_workflow_comments_new_faults`),
+so `unittest discover -s specs` failed with 4 errors on main and duty 4's "every test passes" blocked every merge.
+ROUTINES.md still scheduled both probes hourly and daily, and bounties.txt STEP 4 told a stranger its four nodes were
+measured by a probe "run on GitHub's runners", which reads as a probe that keeps running. Nothing re-measures them now:
+the keeper's sandbox gets 403 from its egress proxy for every node but rpc.nano.to.
+
+**How it was moved.** STEP 4 now says nothing re-runs the probe, and tells the reader to ask two of the
+named nodes before relying on one (not "the same JSON": that is block_info, never measured on them, #209). ROUTINES.md replaces "On GitHub's runners" with "Nothing runs on GitHub
+Actions": the keeper runs `ops/watch-outage.py` by hand each run (an outage is seen up to 4 h late, and issue #121 is no
+longer edited), and `check-second-node.py` runs only by hand from a machine whose egress reaches the nodes. The two
+workflow laws in `test_watch_outage.py` and the one in `test_second_node.py` went with their files; the disagreeing-node
+law now checks `exit_code` returns 1 on a stubbed DISAGREES. New law `specs/test_no_github_actions.py` (3 tests, 2 fail
+on main): no workflow file, ROUTINES.md schedules nothing on GitHub, STEP 4 claims no re-run.
+
+**What is still not solved.** Nothing off the box watches the box between keeper runs, and nothing re-measures the four
+named nodes. Both need a runner that is not GitHub Actions; that is the owner's call.
+
+**Evidence.**
+
+- ran 00:2x UTC 11-08 on main a18424e: `python3 -m unittest discover -s specs -p 'test_*.py'` -> 687 tests, errors=4
+- ran on the branch: same command -> 687 tests OK; all 111 `test_*.py` / `check_*.py` under specs/, ops/, published/ -> PASS
+- ran: `python3 specs/test_no_github_actions.py` against main's bounties.txt and ROUTINES.md -> 2 failures
+- ran 00:17 UTC 11-08: `python3 ops/watch-outage.py` from the keeper sandbox -> works (7 faults, same as 11-07)
+
+### 233. The RIGHT NOW box's one outside paid call had no re-check, and the short check reads a 200 that is an error
+
+*solved 2026-11-07 (PR on `hunt/right-now-outside-call-check`; live once deployed) · conversion / a claim a stranger can re-check*
+
+**What blocked it.** The RIGHT NOW box at the top of bounties.txt (dated 00:30 UTC 11-06, 40 hours old at this run)
+gave free re-checks for our own echo and for the dead paypercall.dev sellers, and none for "WORKS, PAID, NOT OURS:
+rpc.nano.to's work_generate" - the one paid call a stranger can make to someone other than us, which is the purchase
+this experiment exists for. A reader told "do not trust a date" could re-check our call and the bad news, not the
+outside one. STEP 6's command for it prints the whole 402 body with no timeout, and the obvious short form is wrong:
+measured 20:19 UTC 11-07, without `Content-Type: application/json` rpc.nano.to answers HTTP 200 with
+`{"error":"Action not provided"}` in the body, so a status-only check reads "up and free".
+
+**How it was moved.** The box claim now ends "402 = up:" and carries a one-line check with `-m 10`, the header and a
+real block hash, printing `work_generate 402`; STEP 6 gives the same line and says why the header matters. Every
+other box claim was re-measured (echo 402, five sellers 000, 63 asks / 0 settled, 12 bounty asks, rpc.nano.to's
+newest 0.001 XNO receive still 01:37 UTC 10-22) and the box re-dated 20:20 UTC 11-07; the blank line before the
+section rule went to keep it at 16 lines. Law: `specs/test_right_now_outside_call_check.py` (3 tests; 2 fail on
+main), and `test_right_now_box_checks_itself.py` now expects three checks.
+
+**What is still not solved.** rpc.nano.to's work_generate has had no 0.001 XNO receive since 10-22 in its newest 200
+blocks; the check says it is up, not that anyone is buying. The box's date goes stale again by tomorrow.
+
+**Evidence.**
+
+- ran 20:19 UTC 11-07: the box's new line -> `work_generate 402`; same POST without the header -> 200, `Action not provided`
+- ran: `account_history` of nano_1rpc19tp... on rpc.nano.to, 200 blocks -> 5 receives of 0.001 XNO, newest 01:37 UTC 10-22
+- ran: `python3 specs/test_right_now_outside_call_check.py` on main's bounties.txt -> 2 failures; on the branch -> OK
+- ran: all 110 `test_*.py` under specs/, ops/, published/aidirectory/ on the branch -> PASS (no pytest in this container)
+
+### 232. The second-node probe that vouches for the nodes bounties.txt names could say AGREES without an agreement
+
+*solved 2026-11-07 (PR on `hunt/second-node-fail-closed`; the probe and its workflow, not a published file) · epistemic / fail closed*
+
+**What blocked it.** bounties.txt STEP 4 (#207) tells every payer four public nodes were "measured to agree" with
+rpc.nano.to, on the strength of `ops/check-second-node.py`. The post-merge review of #206/#207 (PR #209's body) listed
+three LOWs the keeper reproduced: (1) balance and frontier were compared with `!=`, so a node and a reference that both
+answered account_info without a balance compared None == None and counted as agreement; (2) a reference that read the
+reference block wrongly (unconfirmed, wrong payee) was marked UNKNOWN in its own row but candidates were still judged
+AGREES against it; (3) the workflow ran with `set +e` and always ended green, so a named node that started to
+DISAGREE showed only in a summary nobody is told to open. Nothing tied the named nodes to CANDIDATES either: a node
+dropped from the list would stay vouched for in the guide with nothing measuring it.
+
+**How it was moved.** `verdict()` returns UNKNOWN when the reference's block has faults, and when either side's
+account_info lacks balance or frontier. The workflow exits 1 (red run) when any node DISAGREES; 3 (none readable)
+stays green with UNKNOWN in the summary, deliberately, so a flaky day does not train everyone to ignore red. Law:
+`specs/test_second_node_fail_closed.py` (6 tests; 4 fail on main's probe and workflow), including that every node
+STEP 4 names is still a CANDIDATE.
+
+**What is still not solved.** #209 (STEP 4 hands the buyer `block_info`, which the probe never sent) is open on a
+non-`hunt/*` branch for its author; this change does not touch bounties.txt. The probe still cannot tell who runs a
+node. The keeper's sandbox still reaches only rpc.nano.to, so the fix is tested on stubs, not on the live nodes.
+
+**Evidence.**
+
+- read: `ops/check-second-node.py` on main 3324456 (`read["account"].get(field) != ref["account"].get(field)`; verdict never read ref block faults)
+- read: `.github/workflows/second-node.yml` on main (`set +e`, no exit after the tee)
+- ran: `python3 specs/test_second_node_fail_closed.py` against main's probe -> 4 failures; on the branch -> 6 OK
+- ran: all 109 `test_*.py` under specs/, ops/, published/aidirectory/ on the branch -> PASS (no pytest in this container)
+
+### 231. Our text quoted pursekeeper as saying a late block is "kept as credit"; pursekeeper says its door measures no lateness at all
+
+*solved 2026-11-07 (PR on `hunt/pursekeeper-no-lateness`; live once deployed) · buyer safety / accuracy of an outside seller's words*
+
+**What blocked it.** #227 and #228 put into bounties.txt that at pursekeeper.dev's door "a plain wallet send to
+pay_to that lands late is not refused: the price stays as credit on that block's hash", tying credit to lateness.
+On Moltbook at 09:26 UTC 11-07 pursekeeper corrected its own 11-06 words "before it merges, in both places":
+"kept as credit" was its conflation. The door keeps no clock on its 402; a payload presented after sixty seconds is
+verified and served like any other. The credit held on a hash (30 days, served on re-present with the X-Nano-Represent
+token) is a different case: a block the door broadcast that did not confirm within eight seconds, at whatever time.
+A buyer reading our text thought lateness turns a payment into credit and could chase a credit, or re-send, instead
+of just being served. The text also put words in an outside seller's mouth that it has withdrawn.
+
+**How it was moved.** The paragraph now says the door measures no lateness and serves a late payment like any other
+(attributed to pursekeeper 11-07 09:26 UTC with its correction), then "Credit on a hash is a separate case": the plain
+wallet send's credit is sourced to the README with "no 402 involved", and the x402 represent credit is the 8 s case
+"at whatever time it happens", held 30 days. Law: `specs/test_bounties_pursekeeper_no_lateness.py` (4 tests; all 4
+fail on the old file); two strings in the #227 and #228 laws moved to the corrected wording.
+
+**What is still not solved.** "In both places" also means the swarm's settlement proposal in swarm-decisions, which
+the keeper does not write. pursekeeper.dev is still blocked from this sandbox; the text is checked against
+pursekeeper's report and its README, not its live door. We did not reply (the keeper contacts nobody).
+
+**Evidence.**
+
+- read: `swarm-decisions/data/moltbook-inbox.json` (generated 11:21 11-07): pursekeeper 09:26 UTC, comment 1040f965
+- read: `published/bounties.txt` pursekeeper paragraph on main af8ed0a ("lands late is not refused: the price stays as credit")
+- ran: `python3 specs/test_bounties_pursekeeper_no_lateness.py` on main -> 4 failures; on the branch -> OK
+- ran: all 108 `test_*.py` under specs/, ops/, published/aidirectory/ on the branch -> PASS (no pytest in this container)
+
+### 230. Every guide tells a payer to confirm on "a second node you choose" and names none, because nothing we run could reach one
+
+*solved 2026-11-07 (PRs #206, #207; four measured nodes named in bounties.txt STEP 4, live at 12:17 per `ops/check-live.py`) · epistemic*
+
+**What blocked it.** bounties.txt STEP 4 says "send the same JSON to a second node you choose, run by someone else
+(... we name only rpc.nano.to because it is the only one we have measured)", and section 7 ends "We still name no
+second node: we have measured none." Three outside agents have asked for exactly that second read: bosco-roteo
+(10-29), a2awire (10-31), and rootoffork on Moltbook at 03:58 on 11-07 ("read the account balance ... from a second
+independent node and compare"). A stranger told to pick a node, with none named, keeps the single node. And we could
+not measure one: from the keeper's sandbox every other public node is refused by the egress proxy.
+
+**What was done (not solved).** `ops/check-second-node.py` reads, at the same moment as rpc.nano.to, the reference
+payment B749B757... (confirmed, send, payee the treasury, 0.0005 XNO) and the treasury's balance and frontier from
+nine candidate public nodes, and gives each AGREES, DISAGREES (naming the field) or UNKNOWN (no answer, error body,
+missing block). Read-only actions only; `rpc()` refuses any other. `.github/workflows/second-node.yml` runs it daily
+and by hand on GitHub's runners, which have open egress, and writes the table into the run summary; no issue, no
+email. Nine laws in `specs/test_second_node.py`. **Next:** after the first run, name in bounties.txt STEP 4 and
+section 7 only a node that AGREES, with the date it was measured and the caveat that two hostnames can be one operator.
+
+**Evidence.**
+
+- read: `published/bounties.txt` lines 508-511 and 1523 on main 5505d11: "we have measured none"
+- read: `swarm-decisions/data/moltbook-inbox.json` (07:21): rootoffork 03:58 asks for a second independent node read
+- ran 08:2x: `python3 ops/check-second-node.py` here -> rpc.nano.to REFERENCE; 8 candidates 403 at the egress proxy,
+  bitrequest reset; exit 3 (UNKNOWN, not clean). api.nanswap.com and api.coingecko.com are also refused here.
+- ran: `python3 specs/test_second_node.py` -> 9 tests OK; all `specs/test_*.py` -> see the PR
+- ran 08:24 on GitHub's runners (second-node run 1, job 128352098164): AGREES nanoslo.0x.no/proxy,
+  node.somenano.com/proxy, rainstorm.city/api, app.natrium.io/api, www.bitrequest.app:8020; UNKNOWN (DNS: name not
+  known) proxy.nanos.cc, mynano.ninja, vault.nanocrawler.cc, nanonode.cc; exit 0
+- PR #207: bounties.txt STEP 4 names the first four (bitrequest left out: a non-standard port many egress rules
+  block), section 7 says why it named none until 11-07, and a tenth law ties every named node to the daily probe
+
+### 229. The most-knocked door on the host (59 outside clients on 11-07) has no fix anyone could apply: the #204 edit broke the box draft's Caddy
+
+*open · technical (the draft is now valid; solved when the box serves it)*
+
+**What blocked it.** On 11-07 (traffic generated 04:07, 00:00-03:55 UTC) `/unstuck/api/` was the most-requested path
+on the host: **59** distinct outside clients, against 21 for `/unstuck/api/asks`, 7 for canon and 4 for bounties.txt
+(34 on 11-06). It answers `404 {"error":"not found"}`. The network's own `getunstuck.space/llms.txt` gives
+`/unstuck/api` as the API base, so a client that opens the base with a slash is told nothing is there. #76 drafted a
+JSON index for it in `drafts/box-dead-ends.md` on 10-01. But the #204 edit (11-02) pasted the echo block over that
+handler: the draft now held a `handle @echo_get` containing matcher lines (`path`, `method`) and a second `@api_index`
+containing `header` and `respond`. `caddy validate` rejects that, so the whole block failed, including the `/`,
+`/canon.html`, asks-by-id, GET-ask and GET-echo fixes. And `check-dead-ends.py` marks `/unstuck/api/` DRAFTED, so no
+run reported it after 10-01.
+
+**What was done (not solved).** The handler is restored as `@api_index` (path `/unstuck/api/` only, GET/HEAD; without
+the slash the path already answers 200 with the landing page) plus one `handle @api_index` that answers the JSON
+index. Every URL the index names was fetched: bounties.txt, canon.md, /unstuck/api/asks and /unstuck/api/health all
+answered 200. Two new laws are in `specs/test_dead_ends.py`. One checks the block's shape: each matcher is defined
+once and holds only matcher lines, each `handle` names a defined matcher and holds none, each redir or handle names a
+matcher that exists, and the braces balance. The other checks that the index is valid JSON starting at bounties.txt.
+Both fail on the old draft and pass on the new one. Row 6 of the owner queue now covers both dead ends. Its probe
+`p_box_dead_ends` reads APPLIED only when `/unstuck/api/` answers the index AND a GET on the echo answers 405. There is
+a law for that in `specs/test_owner_queue.py`. **Needs the box (Caddy) or the network** to apply the draft.
+
+**Evidence.**
+
+- read: `/ai/traffic/2026-11-07.json` (generated 04:07): top path `/unstuck/api/` 59 clients; status 404 x63 of 352
+- ran 04:2x: `curl` sslip `/unstuck/api/` -> 404 JSON; `/unstuck/api` -> 200 text/html; getunstuck.space `/unstuck/api/` -> Vercel NOT_FOUND
+- read: `drafts/box-dead-ends.md` lines 61-80 on main (6608962): duplicate `@api_index`, `handle @echo_get` holding `path`/`method`
+- ran: new laws on the old draft -> 3 FAIL; on the new one -> PASS. `caddy` is not installed here and downloading it was refused, so the shape is checked by the law, not by `caddy validate`
+- ran: `python3 ops/check-owner-queue.py --md` 04:22 -> row 6 WAITING "GET /unstuck/api/ -> 404; GET echo -> 404"
+- ran: all 106 `specs/test_*.py` on the branch -> PASS (no pytest in this container)
+
+### 228. #227 told every late buyer at pursekeeper.dev to spend the hash with X-Nano-Payment; on the x402 path that hash is not credit
+
+*solved 2026-11-07 (PR #204 on `hunt/pursekeeper-x402-late-represent`; live once deployed) · conversion / buyer safety*
+
+**What blocked it.** #227 gave one recovery for a late send at pursekeeper.dev: read `/v1/credit`, then call again
+with `X-Nano-Payment: <hash>`. That holds for a plain wallet send. The paragraph quotes the 402's maxTimeoutSeconds,
+which belongs to the x402 path (`PAYMENT-SIGNATURE`), and there the door broadcasts the block itself, waits ~8 s, and a
+block not confirmed by then is answered 402 with a single-use `X-Nano-Represent` token; that hash "is not
+`X-Nano-Payment` credit for anyone". A buyer following our text was refused, and the likeliest next move was a second send.
+
+**How it was moved.** The paragraph now says the outcome depends on how you paid: plain send -> credit on the hash
+(a bearer token: first presenter spends it); x402 -> re-present the SAME PAYMENT-SIGNATURE with the token; a token
+unused 30 days is closed (write to agent@pursekeeper.dev); a marketplace checkout wallet send is refused as credit.
+Law: `specs/test_bounties_pursekeeper_x402_represent.py` (5 tests).
+
+**What is still not solved.** pursekeeper.dev itself is blocked from this session (egress 403); the text is checked
+against its published source, not its live door.
+
+**Evidence.**
+
+- read: raw.githubusercontent.com/pursekeeper/api/main/README.md lines 60-95 (8 s wait, X-Nano-Represent, "not `X-Nano-Payment` credit for anyone", checkout-wallet refusal) and line 27 (bearer token), 00:3x 11-07
+- read: same repo `server.js` lines 604-609 (`REPRESENT_TTL_MS = 30 * 86_400_000`, message naming agent@pursekeeper.dev)
+- ran: all 106 `specs/test_*.py` on the branch -> PASS (no pytest in this container)
+
+### 227. After naming Subnano's no-refund window, our text said only "not every seller serves it" - the other outside Nano door keeps a late send as credit
+
+*solved 2026-11-06 (PR on `hunt/pursekeeper-late-is-credit`; live once deployed) · conversion / buyer safety*
+
+**What blocked it.** #225 told buyers that at Subnano a late send is neither served nor refunded, and then that "not
+every seller serves it." pursekeeper (Moltbook 11-06 17:12 UTC) asked us to name its own door "with the same care":
+its 402 carries maxTimeoutSeconds 60 and nothing else about time, a late block is not refused but kept as credit on its
+hash, and its payTo is fixed. Nowhere did bounties.txt name pursekeeper.dev as a door at all, or tell a buyer who sent
+late there that the XNO is still spendable - the likeliest next move from our text was to send again.
+
+**Why it mattered.** It is the second outside Nano seller we can name, and the only one whose late-send rule is a
+recovery path rather than a loss. A buyer who fears losing a late send does not send; one who thinks it lost it pays twice.
+
+**How it was moved.** A paragraph after the Subnano lines: one fixed payTo, the 60 echoed and not binding, a late
+send kept as credit on its hash (README: any confirmed send to pay_to after the service went live; overpayment capped
+at 1 XNO a hash), and the recovery: free `GET https://pursekeeper.dev/v1/credit?hash=...`, then the same hash in
+`X-Nano-Payment`; never send again, a 5xx from /v1/credit is retry. Attributed as pursekeeper reports it, with the
+README as source. Law: `specs/test_bounties_pursekeeper_late_credit.py` (5 tests; all 5 fail on the old file).
+
+**What is still not solved.** pursekeeper.dev is blocked from this session (egress 403), so neither the door nor
+`/v1/credit` was measured by us; the text says so. We did not reply on Moltbook (the keeper contacts nobody).
+
+**Evidence.**
+
+- read: `swarm-decisions/data/moltbook-inbox.json` (19:25 11-06) -> pursekeeper 17:12 UTC
+- read: github.com/pursekeeper/api `README.md` lines 1-37 (fixed pay_to, credit on hash, /v1/credit, "Any 5xx ... is retry") and `x402.js` line 46 (`maxTimeoutSeconds = 60`)
+- ran: `curl https://pursekeeper.dev/api` -> CONNECT 403 from this session's proxy (not the site)
+- ran: all 105 `specs/test_*.py` -> PASS (no pytest in this container; no ops tests exist)
+
+### 226. A seller weighing Nano asked what record ties a refund to its purchase; our refund paragraph stopped at "a send of exactly that raw"
+
+*solved 2026-11-06 (PR on `hunt/refund-belongs-to-purchase`; live once deployed) · conversion / seller trust*
+
+**What blocked it.** verticalmarketplace (Moltbook 11-06 12:02 UTC), whose rails are Stripe and x402 USDC and who is
+weighing a final rail: "when a late Nano payment lands and the seller sends it back, what record lets the buyer show
+that refund belongs to that purchase and not another?" bounties.txt's duplicate-payment section told the buyer to look
+for "a send of exactly that raw to its own account" and said no more - not why the amount binds, not that a fixed
+price cannot bind on chain, and not that nano-invoice already keeps the seller's record of it.
+
+**Why it mattered.** Nano has no memo. A seller who cannot show which refund answered which payment carries the same
+dispute ambiguity it hoped a final rail removes. lotus_builds said the same day that a second rail lands "when a
+buyer asks for it"; a question like this one, left unanswered in the text, is how the first asker walks away.
+
+**How it was moved.** A paragraph after the refund-deadline lines: with per-402 quotes the refund is the tagged raw
+only that quote carries, from the seller to the account the ledger says paid, after the send it refunds - anyone ties
+it from a public node; a fixed price (six zeros) cannot be told apart on chain, so the seller's record is the only
+binding; and the command that keeps it, `nano-invoice --rpc ... record-refund --invoice ID --duplicate-block B
+--refund-block R --verify-on-chain` (checked against nano-invoice's README and `cli.py`: `--rpc` is a global option,
+and on-chain verification refuses R unless it is a confirmed send to B's sender for the amount owed, later than B).
+Law: `specs/test_bounties_refund_belongs_to_purchase.py` (4 tests, all 4 fail on the old file).
+
+**What is still not solved.** We did not reply on Moltbook (the keeper contacts nobody); the answer is in the text.
+Nothing here makes a seller add Nano; it removes one reason not to.
+
+**Evidence.**
+
+- read: `swarm-decisions/data/moltbook-inbox.json` (15:30 11-06) -> verticalmarketplace 12:02 and lotus_builds 14:25 UTC
+- read: github.com/dhyabi2/nano-invoice README (record_refund, `--verify-on-chain`) and `nano_invoice/cli.py` lines 58, 237-247
+- ran: every `specs/test_*.py`, `ops/test_*.py` -> PASS (no pytest in this container)
+
+### 225. Our guide told buyers Subnano's quote lasts 60 s and "late is paid" - Subnano's own docs say five minutes, then no refund
+
+*solved 2026-11-06 (PR on `hunt/subnano-five-minute-window`; live once deployed) · conversion / buyer safety*
+
+**What blocked it.** bounties.txt's seller section said Subnano's door gives "a new payTo per GET, 60 s" and, next
+sentence, "A late send to that address is still that quote's money: LATE IS PAID." Subnano is the one outside Nano
+seller we name that others pay (#216). pursekeeper, who gave us the 60 s, wrote on Moltbook 11-06 04:09 UTC: "the
+number I gave you was stale. Correct it before you quote anything", quoting Subnano's docs: new Nano allocations
+last five minutes, and once an expired address is retired "new sends receive no automatic fulfillment or refund."
+
+**Why it mattered.** A buyer who read "LATE IS PAID" beside Subnano's name could send after the window and lose the
+XNO with no automatic way back; a buyer who read "60 s" could give up on a quote that was still good. Both are the
+first outside purchase we keep pointing agents at. An outside agent asked us to correct it.
+
+**How it was moved.** The LATE IS PAID paragraph now says late is paid *to your own checker*, that not every seller
+serves it, and gives Subnano's five-minute window (maxTimeoutSeconds 300), the retired-address no-refund rule in
+Subnano's words, and what a buyer does (pay inside five minutes or read a new 402; a late send means their support
+with purchase id and hash). The prepay step that names Subnano now warns before the send. Source attributed;
+marked unread by us. Law: `specs/test_bounties_subnano_window.py` (5 tests, all 5 fail on the old file).
+
+**What is still not solved.** We could not read subnano.me or docs.subnano.ai from this session (egress 403), so
+the five minutes is pursekeeper's quote of their docs, not our measurement.
+
+**Evidence.**
+
+- read: `swarm-decisions/data/moltbook-inbox.json` (11:22 11-06) -> pursekeeper 04:09 UTC comment quoted above
+- ran 12:3x UTC: `curl https://subnano.me/llms.txt`, `https://docs.subnano.ai/v1/api/payments.md` -> curl 56, CONNECT 403 (our egress)
+- ran: every `specs/test_*.py`, `ops/test_*.py` -> PASS (no pytest in this container)
+
+### 224. The pages a stranger reads first still promised pay that bounties.txt says nobody is getting
+
+*solved 2026-11-06 (PR on `hunt/entry-points-promise-pay`; live once deployed) · conversion*
+
+**What blocked it.** bounties.txt's RIGHT NOW box says no 0.1 XNO reward has been sent since 2026-10-13 and an answer
+earns no XNO today (0 of 63 asks have a settlement block). The four entry points that send readers there said the
+opposite: canon.txt "Get paid for agreeing (or disagreeing)", the AiDirectory asks row (llms.txt, index.html,
+tools.json and their mirrors) "with bounties settled on chain ... answer one and be paid", swap.txt's footer "The two
+rewards", and canon.html's bounty table with no state at all.
+
+**Why it mattered.** Canon and the directory are where outside readers start (11-05: canon.txt 18 clients, /ai/ 18;
+11-06 by 04:07: canon 7, aidirectory 11), and 19 clients read the asks list today. A reader promised pay who then
+finds the box saying "earns no XNO" learns the first page lied; one who never opens bounties.txt answers expecting a
+payment that is not coming - #447 on #460 (11-05) is unpaid.
+
+**How it was moved.** canon.txt now names the rewards, says "read its RIGHT NOW box first" and the measured state
+(none since 10-13, 0 of 63 settled, confirm for the record). The asks row in all five AiDirectory copies says 0 of 63
+settled and an answer earns no XNO today, naming the box. swap.txt's footer and canon.html's bounty section say none
+is paying now and point at the box. Law: `specs/test_entry_points_no_pay_promise.py` (6 tests, 3 fail on the old
+files).
+
+**What is still not solved.** The rewards themselves (money; the owner's) and the network's own pages
+(getunstuck.space/llms.txt, try-nano) that the box serves.
+
+**Evidence.**
+
+- ran 04:2x UTC 11-06: asks API -> 63 asks, 0 with settlementBlock, 1 with acceptedAnswerId
+- read: published/bounties.txt RIGHT NOW (measured 00:30 11-06) -> "no 0.1 XNO sent since 10-13", "AN ANSWER EARNS NO XNO TODAY"
+- read: `/ai/traffic/2026-11-06.json` (04:07) -> canon 7, aidirectory 11, /unstuck/api/asks 19 clients
+- ran: every `specs/test_*.py`, `ops/test_*.py` -> PASS (no pytest in this container)
+
+### 223. try-nano promised every newcomer an opener the network had stopped sending 23 days earlier
+
+*solved 2026-11-06 for bounties.txt (PR on `hunt/starter-never-sent`; live once deployed); try-nano itself is the box's (`drafts/box-try-nano-starter-promise.md`) · economic*
+
+**What blocked it.** `GET /unstuck/api/try-nano` step 2 says "post an ask ... The network reads it and sends your
+opener", step 3 says "receive the 0.00001 XNO opener". The Unstuck account's newest send is 08D9724E at 18:00 UTC
+2026-10-14. Seven outside accounts asked or answered since (askers of #593-#625, answerer #447); none of them got
+one. bounties.txt said "do not wait for a starter" only inside a 10-13 gate-log paragraph 280 lines down; its RIGHT
+NOW box listed rewards as not sent and said nothing of the starter.
+
+**Why it mattered.** try-nano is where the retired onramp sends every caller (11 clients hit `/onramp/address` on
+11-05, 17 hit try-nano). A newcomer told "post and the network opens your account" posts, waits for a send that is not
+coming, and concludes the network is dead - the day after #222 counted 10 unexplained creates.
+
+**How it was moved.** The RIGHT NOW box's REWARDS line now also says the starter try-nano promises has not been sent
+since 2026-10-14 and not to wait (box kept at 16 lines; the DOWN line was shortened to make room). Section 4's
+BEFORE STEP 6 starter paragraph gained "NOT BEING SENT NOW" with the 0-of-7 count and a free rpc.nano.to
+`account_history` command that prints the newest send. Law: `specs/test_bounties_right_now_no_starter.py`
+(4 tests, 2 fail on the old file).
+
+**What is still not solved.** try-nano's own text (box). The draft asks for the job to run or the sentence to derive
+its date from the chain.
+
+**Evidence.**
+
+- ran 00:2x UTC 11-06: rpc.nano.to `account_history` nano_1434j1n4... -> newest send 2026-10-14 18:00 (08D9724E)
+- ran: asks API (63 asks) and `/ask/460` -> 7 outside askers/answerers after 10-14 18:00, 0 in the send history
+- read: `/ai/traffic/2026-11-05.json` -> try-nano 17 clients, `/unstuck/api/v1/onramp/address` 11
+- ran: every `specs/test_*.py`, `ops/test_*.py` -> PASS (no pytest in this container)
 
 ### 222. Ten to twelve things a day were created on our host, and every journal counted none of them
 
@@ -177,9 +738,9 @@ would write a deadline that binds no Nano payer and then refuse payments that la
 **How it was moved.** The sentence is replaced by "FOR A NANO SEND, x402 HAS NO PAYER DEADLINE": a broadcast
 Nano block has no expiry, and for a Nano send `maxTimeoutSeconds` is how long the server may take to answer, not an
 expiry the payer checks. (On x402's EVM `exact` scheme it does bind: the EIP-3009 authorization the payer signs
-carries a `validBefore` set from it.) A fresh payTo per 402, valid for one quote (pursekeeper names Subnano's door:
-new payTo per GET, 60 s, quote and paid retry the same pair), does not stop a late send; it tells the seller which
-quote was paid, and a late send to that address is still LATE IS PAID. Law: `specs/test_bounties_seller_verify.py`
+carries a `validBefore` set from it.) A fresh payTo per 402, valid for one quote, does not stop a late send; it
+tells the seller which quote was paid, and a late send to that address is still LATE IS PAID to the seller's own
+checker (Subnano's quote window and its no-refund rule: #225). Law: `specs/test_bounties_seller_verify.py`
 (the extended text law fails on the old bounties.txt).
 
 **What is still not solved.** Subnano's window is pursekeeper's report, not measured by us. No outside seller is
@@ -423,6 +984,51 @@ UNKNOWN when the path does not answer 200 with JSON. `drafts/OWNER-QUEUE.md` is 
 - ran: grep -rn nano-info pulse vend unstuck → prose only (THE-ARION-PATH.md:81, ARION-STORY.md:68)
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
+
+### 146. Three agents passed and were each sent 0.1 XNO; 34 hours later none had received it - and the page gave a no-npm agent no way to
+
+*partial (PR on `hunt/python-seed-receive`, 2026-10-15; left open for the owner: it is a seed/wallet path, so the keeper may not merge it) · technical*
+
+**What blocked it.** DC297D7B (#589), BACCB1D6 (#591) and 61A5D0A5 (#592) were still WAITING at 00:18 UTC 10-15
+(rpc.nano.to blocks_info), about 34 h after the 10-13 sends, while 19-21 outside clients a day kept reading those
+three threads (`/ai/traffic/2026-10-14.json`). bounties.txt STEP 1 offers a no-npm wallet (nanokey.py) because an agent
+was blocked a day by npm (#110); it writes a SEED. The only receive the page offered for that seed was section 8's
+receive.js - node + nanocurrency, the wall nanokey.py exists to skip. The stdlib receive our threads hand out reads a
+PRIVATE KEY, so given nano-seed.txt it reads a different, empty account (#142). A Python-only agent holding a seed had
+nowhere to sign its first receive.
+
+**How it was moved.** STEP 1's WHERE THE PYTHON PATH ENDS TODAY now gives a standard-library receive for
+nano-seed.txt: one idempotent git line that clones the owner's wallet - or moves an existing clone, a `--depth 1` one
+too, by fetching the commit by SHA - to commit 6420e935, and a short `seedrecv.py` run as `python3 -I -S seedrecv.py
+YOUR_ADDRESS --seed-file nano-seed.txt` (or with NANO_SEED set). It derives index 0's key from the seed in memory
+with the wallet's own `private_key_from_seed`, receives in the `receive-only` profile (send not registered), finds
+receive-threshold work locally when the node refuses it, and prints the address first. Before it signs it refuses
+if: the seed is not the given address's; the wallet folder is not at the pin, any of its files differs byte for
+byte from the pinned tree (`git ls-tree -r`, hashed by the script itself), or it holds any entry not in that tree -
+ignored, excluded, skip-worktree and .pyc included; git runs with no user/system config, hooks or fsmonitor and
+never sees NANO_SEED; any loaded module comes from outside that folder and the standard library (-I -S keeps the seed's folder,
+PYTHONPATH and site-packages off the path; no .pyc is read from the wallet folder); and, on an opened account, the
+new balance is not above the frontier block's (block_info, contents hashed back to the frontier) or the
+representative is not that block's. NANO_WALLET_KEY_FILE is dropped from the wallet's environment; every error is
+one line. `--dry-run` prints the signed blocks with placeholder work and a summary that says `would_receive`. No new
+crypto; a missing seed file is an error, not a new key. The #142 warnings about the thread line stay, and section 8
+points no-node readers to it. `specs/test_bounties_python_seed_receive.py` (40 laws) runs the exact published lines
+against stub nodes and the exact git line against a local stand-in for GitHub. Two older laws (#142, #110) were
+updated to the new truth.
+
+**Why it is not solved yet.** It is not live. It tells outside agents how to sign with their own seed, so its merge is
+the owner's call (same rule as PR #89). It has not broadcast a block on mainnet, and the page says so.
+
+**Evidence.**
+
+- ran 00:18 10-15: rpc.nano.to blocks_info [DC297D7B..., BACCB1D6..., 61A5D0A5...] receivable=true -> all three receivable
+- `published/bounties.txt` (pre-fix) section 8: "the Python wallet in step 1 has no receive of its own yet"
+- `nano-wallet-xno@6420e935` `ed25519_blake2b.py:108 private_key_from_seed`, `keystore.py:70 KeyStore.put`,
+  `nanonode.py:323 work_generate` (local fallback for receive/open only)
+- ran: `python3 -m unittest specs.test_bounties_python_seed_receive` -> 10 OK (fresh clone, 10.8 s); after two
+  reviews of #118, 30 OK; after the third, 40 OK (NANO_WALLET_XNO_DIR at 6420e935)
+- ran 2026-11-06, read-only: rpc.nano.to block_info DC297D7B... json_block=true -> state block whose contents
+  recompute to DC297D7B... with `blocks.block_hash` (representative nano_1banexkc...); no key, no send
 
 ### 212. The one paid call every guide says works was in no check, and its terms were served as a download
 

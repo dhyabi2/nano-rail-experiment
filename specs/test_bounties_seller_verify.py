@@ -271,25 +271,23 @@ class SellerCheck(unittest.TestCase):
 
     def test_text_says_late_is_paid_and_where_a_deadline_belongs(self):
         flat = " ".join(self.txt.split())
-        for s in ("LATE IS PAID.", "exit 6, LATE", "Never a 402.", "FOR A NANO SEND, x402 HAS NO PAYER DEADLINE.", "validBefore", "not an expiry the payer checks", "a fresh payTo in every 402",
+        for s in ("LATE IS PAID.", "exit 6, LATE", "Never a 402.", "FOR A NANO SEND, x402 HAS NO PAYER DEADLINE.",
+                  "not an expiry the payer checks", "a fresh payTo in every 402",
                   "NOT PAID is only for a block that did not pay you"):
             self.assertIn(s, flat, s)
         self.assertNotIn("confirmed and recent", flat)
         # Challenge #218: x402's maxTimeoutSeconds is not a deadline a payer checks (pursekeeper, 11-05 02:31).
         self.assertNotIn("A deadline you mean to enforce goes in your 402", flat)
         self.assertNotIn("your price, recent,", flat)
-        # #193 review: the old "a window that must bind goes on the address" claim is gone; a fresh payTo only names the
-        # quote that was paid, it does not stop a late send. maxTimeoutSeconds reads the same as nanopay.py's PAY line.
-        self.assertNotIn("goes on the address", flat)
-        self.assertIn("Nor does a fresh payTo in every 402, valid for one quote, stop a late send: it tells you which"
-                      " quote was paid", flat)
-        self.assertIn("for a Nano send it is how long your server may take to answer, not an expiry the payer checks", flat)
-        self.assertIn("is how long the server may take to answer, not your deadline", flat)
-        # #193 review: the no-deadline claim is scoped to a Nano send every time it appears, and validBefore is
-        # named as where x402's EVM "exact" scheme does bind, not merely mentioned somewhere.
+        # #193 review: the no-deadline claim is scoped to a Nano send every time it appears (on x402's EVM "exact"
+        # scheme maxTimeoutSeconds does bind, through the signed authorization's validBefore).
         self.assertEqual(flat.count("x402 HAS NO PAYER DEADLINE."), flat.count("FOR A NANO SEND, x402 HAS NO PAYER DEADLINE."))
-        self.assertIn("(On x402's EVM \"exact\" scheme it does bind: the EIP-3009 authorization the payer signs carries"
-                      " its own validBefore, set from maxTimeoutSeconds.)", flat)
+        # A fresh payTo attributes a payment, it does not refuse one: a late send to that address is still that
+        # quote's money to the seller's own checker, so the window "on the address" is never a reason to answer 402.
+        self.assertIn("A window that must bind goes on the address, not the clock: a fresh payTo in every 402, valid for"
+                      " one quote. A late send to that address is still that quote's money to YOUR checker: LATE IS PAID.",
+                      flat)
+        self.assertIn("is how long the server may take to answer, not your deadline", flat)
         self.assertNotIn("may take to settle", flat)
         with open(os.path.join(ROOT, "CHALLENGES-SOLVED.md")) as f:
             solved = f.read()
@@ -378,7 +376,7 @@ class SellerCheck(unittest.TestCase):
 
     def test_text_says_a_down_node_is_unknown_not_a_402(self):
         for s in ("Exit 5 prints UNKNOWN", "never with a 402", "means UNKNOWN, exit 5",
-                  "A NODE THAT IS DOWN IS NOT A PAYMENT THAT FAILED", "We still name no second node: we have measured none"):
+                  "A NODE THAT IS DOWN IS NOT A PAYMENT THAT FAILED", "Until 2026-11-07 we named no second node"):
             self.assertIn(s, self.txt)
         self.assertNotIn("one that is down or blocked means NOT PAID", self.txt)
 

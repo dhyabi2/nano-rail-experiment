@@ -43,6 +43,17 @@ class OwnerQueue(unittest.TestCase):
         self.assertEqual(oq.p_routes_link_bounties(f)[0], oq.WAITING)
         self.assertEqual(oq.p_echo_get(f)[0], oq.WAITING)
 
+    def test_api_index_row_needs_both_dead_ends_closed(self):
+        """#229: row 6 is APPLIED only when /unstuck/api/ answers an index AND a GET on the echo answers 405."""
+        index = json.dumps({"start_here": "https://172-86-112-140.sslip.io/bounties.txt"})
+        both = stub({"/v1/echo": (405, "use POST"), "sslip.io/unstuck/api/": (200, index)})
+        self.assertEqual(oq.p_box_dead_ends(both)[0], oq.APPLIED)
+        only_echo = stub({"/v1/echo": (405, "use POST"), "sslip.io/unstuck/api/": (404, '{"error":"not found"}')})
+        self.assertEqual(oq.p_box_dead_ends(only_echo)[0], oq.WAITING)
+        html = stub({"/v1/echo": (405, "use POST"), "sslip.io/unstuck/api/": (200, "<!doctype html>")})
+        self.assertEqual(oq.p_api_index(html)[0], oq.WAITING)
+        self.assertIs(dict((r[0], r[6]) for r in oq.QUEUE)[6], oq.p_box_dead_ends)
+
     def test_fixed_answers_read_applied(self):
         good = {"accepts": [{"asset": "XNO", "payTo": oq.TREASURY}]}
         terms = dict(TERMS, resource={"description": "echo call, 0.001 XNO"})

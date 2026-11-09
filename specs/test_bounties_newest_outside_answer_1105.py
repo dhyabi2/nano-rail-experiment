@@ -26,9 +26,10 @@ class NewestOutsideAnswer1105(unittest.TestCase):
         self.block = " ".join(self.txt[i:self.txt.index("MEASURED 2026-10-04, and you should check it", i)].split())
 
     def test_newest_is_447_and_11_02_moves_below(self):
-        self.assertIn("NEWEST, measured 2026-11-05", self.block)
+        # Since #450/#451 (challenge #237) the 11-05 paragraph is BEFORE THAT, still above 11-02.
+        self.assertIn("measured 2026-11-05 12:2x UTC: answer #447", self.block)
         self.assertNotIn("NEWEST, measured 2026-11-02", self.block)
-        self.assertLess(self.block.index("NEWEST, measured 2026-11-05"),
+        self.assertLess(self.block.index("measured 2026-11-05 12:2x UTC: answer #447"),
                         self.block.index("BEFORE THAT, measured 2026-11-02 00:20 UTC"))
 
     def test_names_answer_its_claim_and_what_we_measured(self):

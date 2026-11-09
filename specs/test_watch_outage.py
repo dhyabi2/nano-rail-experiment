@@ -3,8 +3,8 @@
 
 The off-box watcher must report the 10-17 outage as it was measured (a 502 on every guide, timeouts on every seller,
 10 XNO receivable for days); must call a seller that names another payee or no XNO a fault; must never report a check
-that could not run as clean; must send only read-only RPC actions; and the workflow must run on a schedule and open,
-update and close one issue rather than mail the owner every hour.
+that could not run as clean; must send only read-only RPC actions. Until 11-07 a workflow ran it hourly and kept one issue; the owner removed every
+GitHub Actions workflow that day (challenge #234), so its two workflow laws went with it.
 
 Run: python3 specs/test_watch_outage.py
 """
@@ -56,7 +56,9 @@ def chain(balance="71617800000000000000000000000000", receivable=None, ts=None, 
         if payload["action"] == "account_info":
             return {"balance": balance, "balance_nano": str(int(balance) / 10**30)}
         if payload["action"] == "receivable":
-            return {"blocks": {h: "1" for h in (receivable or [])} or ""}
+            # the receivable sits at the old treasury, as 5EE71904 does (treasury2 is tested by account below)
+            mine = receivable if payload["account"] == wo.TREASURY else None
+            return {"blocks": {h: "1" for h in (mine or [])} or ""}
         if payload["action"] == "blocks_info":
             return {"blocks": {h: {"local_timestamp": str(ts)} for h in payload["hashes"]}}
         raise AssertionError(payload)
@@ -78,6 +80,40 @@ class WatchOutage(unittest.TestCase):
 
     def test_under_floor(self):
         self.assertIn("floor", wo.check_treasury(chain(balance=str(8 * 10**30)), lambda: NOW)[0])
+
+    def test_treasury2_is_watched_by_account_floor_and_one_day(self):
+        # challenge #240: the starter's source since 11-08, measured 0.99994 XNO at 08:20 11-09
+        seen = []
+
+        def by_account(balances, receivable, ts):
+            def call(payload):
+                if payload["action"] in ("account_info", "receivable"):
+                    seen.append(payload["account"])
+                if payload["action"] == "account_info":
+                    b = balances[payload["account"]]
+                    return {"balance": b, "balance_nano": str(int(b) / 10**30)}
+                if payload["action"] == "receivable":
+                    return {"blocks": {h: "1" for h in receivable.get(payload["account"], [])} or ""}
+                return {"blocks": {h: {"local_timestamp": str(ts)} for h in payload["hashes"]}}
+            return call
+        ok = {wo.TREASURY: "71617800000000000000000000000000", wo.TREASURY2: "999940000000000000000000000000"}
+        self.assertEqual(wo.run(healthy_get, by_account(ok, {}, NOW), lambda: NOW), [])
+        self.assertIn(wo.TREASURY2, seen)
+        low = dict(ok, **{wo.TREASURY2: str(19 * 10**28)})  # 0.19 XNO
+        faults = wo.run(healthy_get, by_account(low, {}, NOW), lambda: NOW)
+        self.assertEqual(len(faults), 1)
+        self.assertIn("treasury2", faults[0])
+        self.assertIn("0.2 floor", faults[0])
+        # a receivable on treasury2: 23 h is quiet, 25 h is a fault; the old treasury's one-hour line is unchanged
+        rec = {wo.TREASURY2: ["CAFE0001"]}
+        self.assertEqual(wo.run(healthy_get, by_account(ok, rec, NOW - 23 * 3600), lambda: NOW), [])
+        faults = wo.run(healthy_get, by_account(ok, rec, NOW - 25 * 3600), lambda: NOW)
+        self.assertEqual(len(faults), 1)
+        self.assertIn("CAFE0001 at the treasury2 is 25.0 hours old", faults[0])
+
+    def test_a_seller_paying_treasury2_is_ours(self):
+        t2 = GOOD_MANIFEST.replace(wo.TREASURY.encode(), wo.TREASURY2.encode())
+        self.assertIsNone(wo.check_manifest("extract", lambda u: (200, "application/json", t2)))
 
     def test_unreadable_chain_is_never_clean(self):
         def boom(payload):
@@ -128,15 +164,6 @@ class WatchOutage(unittest.TestCase):
         f = wo.check_page("https://getunstuck.space/bounties.txt", "text/plain", lambda u: (200, "text/html", b""))
         self.assertIn("text/plain", f)
 
-    def test_workflow_is_scheduled_and_quiet(self):
-        wf = open(os.path.join(ROOT, ".github", "workflows", "outage-watch.yml")).read()
-        self.assertIn("schedule:", wf)
-        self.assertIn("ops/watch-outage.py", wf)
-        self.assertIn("issues: write", wf)
-        for step in ("gh issue create", "gh issue edit", "gh issue close"):
-            self.assertIn(step, wf)
-        self.assertNotIn("secrets.", wf.replace("secrets.GITHUB_TOKEN", ""))
-
     # challenge #160: issue #121's body as the 01:42 UTC 10-26 run left it, before the box went down
     BODY_0142 = """6 fault(s) at 2026-10-26T01:42:42Z:
 - https://extract.paypercall.dev/.well-known/x402 answered nothing (timeout or reset)
@@ -163,13 +190,6 @@ Latest run: https://github.com/dhyabi2/nano-rail-experiment/actions/runs/4025540
 
     def test_no_open_issue_means_everything_is_new(self):
         self.assertEqual(wo.new_faults("", ["a fault"]), ["a fault"])
-
-    def test_workflow_comments_new_faults(self):
-        wf = open(os.path.join(ROOT, ".github", "workflows", "outage-watch.yml")).read()
-        self.assertIn("--previous prev.md --new-out new.txt", wf)
-        self.assertIn("gh issue view", wf)
-        self.assertIn('gh issue comment "$open"', wf)
-        self.assertLess(wf.index("Read the open outage issue"), wf.index("ops/watch-outage.py --previous"))
 
 
 if __name__ == "__main__":

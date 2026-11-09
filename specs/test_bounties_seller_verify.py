@@ -271,13 +271,28 @@ class SellerCheck(unittest.TestCase):
 
     def test_text_says_late_is_paid_and_where_a_deadline_belongs(self):
         flat = " ".join(self.txt.split())
-        for s in ("LATE IS PAID.", "exit 6, LATE", "Never a 402.", "x402 HAS NO PAYER DEADLINE.", "not an expiry the payer checks", "a fresh payTo in every 402",
+        for s in ("LATE IS PAID.", "exit 6, LATE", "Never a 402.", "FOR A NANO SEND, x402 HAS NO PAYER DEADLINE.",
+                  "not an expiry the payer checks", "a fresh payTo in every 402",
                   "NOT PAID is only for a block that did not pay you"):
             self.assertIn(s, flat, s)
         self.assertNotIn("confirmed and recent", flat)
         # Challenge #218: x402's maxTimeoutSeconds is not a deadline a payer checks (pursekeeper, 11-05 02:31).
         self.assertNotIn("A deadline you mean to enforce goes in your 402", flat)
         self.assertNotIn("your price, recent,", flat)
+        # #193 review: the no-deadline claim is scoped to a Nano send every time it appears (on x402's EVM "exact"
+        # scheme maxTimeoutSeconds does bind, through the signed authorization's validBefore).
+        self.assertEqual(flat.count("x402 HAS NO PAYER DEADLINE."), flat.count("FOR A NANO SEND, x402 HAS NO PAYER DEADLINE."))
+        # A fresh payTo attributes a payment, it does not refuse one: a late send to that address is still that
+        # quote's money to the seller's own checker, so the window "on the address" is never a reason to answer 402.
+        self.assertIn("A window that must bind goes on the address, not the clock: a fresh payTo in every 402, valid for"
+                      " one quote. A late send to that address is still that quote's money to YOUR checker: LATE IS PAID.",
+                      flat)
+        self.assertIn("is how long the server may take to answer, not your deadline", flat)
+        self.assertNotIn("may take to settle", flat)
+        with open(os.path.join(ROOT, "CHALLENGES-SOLVED.md")) as f:
+            solved = f.read()
+        s217 = solved[solved.index("### 217. "):solved.index("### 216. ")]
+        self.assertIn("overturned the same day by #218", " ".join(s217.split()))
 
     def test_not_found(self):
         self.refused(self.run_it([self.node({"error": "Block not found"})]), "Block not found")

@@ -1638,8 +1638,8 @@ EOF
  costs you a send. Never a 402. Until 2026-11-05 this said NOT PAID,
  "answer 402 again", and the buyer paid twice. (Asked on Moltbook 11-04 by
  pursekeeper: "if the checker refuses a landed block as late, the README
- should say what the payer does with the money.") x402 HAS NO PAYER
- DEADLINE. "maxTimeoutSeconds" is how long your server may take to answer,
+ should say what the payer does with the money.") FOR A NANO SEND, x402
+ HAS NO PAYER DEADLINE. "maxTimeoutSeconds" is how long your server may take to answer,
  not an expiry the payer checks, there is no expires-at field, and the
  clients we know do not read it - so a deadline you only write into your
  402 binds nobody. (Until 11-05 this said put the deadline in the 402;

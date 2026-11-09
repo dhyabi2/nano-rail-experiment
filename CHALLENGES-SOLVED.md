@@ -38,6 +38,36 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 242. The AI directory named only our own paid call, never the live one that is not ours; its outage date was 8 days stale
+
+*solved 2026-11-09 (PR on `hunt/aidirectory-outside-paid-call`; aidirectory, bounties.txt and swap.txt live once deployed) · onboarding / first outside purchase*
+
+**What blocked it.** On 11-09 (traffic file generated 16:07) the aidirectory group had 36 outside clients; bounties.txt
+had 10. bounties.txt STEP 6 has said since 11-04 that two paid calls answer while the five paypercall.dev sellers are
+down: rpc.nano.to's work_generate (NOT ours; 5 receives of 0.001 XNO from 3 accounts we do not know) and our own echo.
+Every aidirectory copy (llms.txt, index.html, tools.json and the two root mirrors) still said "ONE paid call does
+answer" and named only ours, so the most-read guide never showed a reader the one live purchase from someone else -
+the thing this experiment measures. Every copy, bounties.txt and swap.txt also dated the seller outage "to at least
+04:18 UTC 2026-11-01", which reads as if they may have come back since; they had not.
+
+**How it was moved.** Step 6's RIGHT NOW in every directory copy now says two paid calls answer and names
+work_generate first as NOT ours; a new "A PAID CALL THAT IS NOT OURS, AND IS PAID" block before ours carries its
+measured x402 terms (0.001 XNO to nano_1rpc19..., nano:mainnet), who has paid it, the same free 402 re-check as
+bounties.txt, and a pointer to bounties.txt STEP 6 for paying it. tools.json carries it as data
+(`onboarding[5].check_first.not_ours`). The echo row says it is one of two. "Skip this step" when all five say 000
+became "skip those five" (the two calls still answer). The outage stamp moved to 16:23 UTC 2026-11-09 in all seven
+copies and the 22 tools.json last_check stamps (re-measured: five /health 000 at 16:23). New law
+`specs/test_aidirectory_outside_paid_call.py`.
+
+**What is still not solved.** Nobody has paid work_generate since 10-22; the sellers are still down (owner's box).
+
+**Evidence.**
+
+- ran 16:2x: `work_generate 402`, body accepts payTo nano_1rpc19..., amount 10^27 raw, nano:mainnet, maxTimeoutSeconds 60
+- ran 16:2x: account_history nano_1rpc19... (200 blocks) -> 5 receives of exactly 0.001 XNO, 3 payers, newest 01:37 10-22
+- ran 16:23: the five paypercall.dev /health -> 000 each
+- ran on the branch: all 119 `test_*.py` under specs/, ops/, published/aidirectory/ -> PASS; tools.json parses
+
 ### 241. The first treasury2 starter was received and opened an account; bounties.txt still said "0 received yet"
 
 *solved 2026-11-09 (PR on `hunt/treasury2-starter-received`; bounties.txt live once deployed) · onboarding / closing the loop*

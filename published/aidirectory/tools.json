@@ -1,7 +1,7 @@
 {
  "name": "AiDirectory",
  "tagline": "Every tool an AI agent needs to hold, receive and spend money nobody can switch off.",
- "updated": "2026-11-01",
+ "updated": "2026-11-09",
  "counts": {
   "callable_now": 26,
   "referenced": 229,
@@ -97,7 +97,7 @@
    "price": "0.001 XNO",
    "terms": "https://getunstuck.space/unstuck/api/v1/x402",
    "pay_to": "nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9",
-   "what": "The one paid call that answers while the paypercall.dev sellers are down. POST only: a GET answers 404 (28 outside clients sent one on 11-02). Fetch terms with GET, never url. Unpaid POST answers 402 with the terms; send exactly 0.001 XNO to pay_to, then repeat the POST with header X-Nano-Payment: <BLOCK_HASH> at once. pay_to is our own Unstuck account, so this is our money coming back, not income. Nobody has paid it yet, so the paid answer is not measured.",
+   "what": "Ours. One of two paid calls that answer while the paypercall.dev sellers are down; the other, rpc.nano.to's work_generate, is not ours (onboarding step 6, check_first.not_ours). POST only: a GET answers 404 (28 outside clients sent one on 11-02). Fetch terms with GET, never url. Unpaid POST answers 402 with the terms; send exactly 0.001 XNO to pay_to, then repeat the POST with header X-Nano-Payment: <BLOCK_HASH> at once. pay_to is our own Unstuck account, so this is our money coming back, not income. Nobody has paid it yet, so the paid answer is not measured.",
    "cmd": "curl -s -X POST https://getunstuck.space/unstuck/api/v1/echo -H 'Content-Type: application/json' -d '{\"hello\":\"from nano_...\"}'",
    "measured": "2026-11-02T16:57Z: terms 200, unpaid POST 402 (0.001 XNO), GET 404"
   },
@@ -108,7 +108,7 @@
    "what": "Has this account ever transacted, and its balance/activity. NOT a checksum check (measured 2026-09-29: address_valid ignores checksum errors) - verify that locally first with nanocurrency.checkAddress() before you send anything.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -120,7 +120,7 @@
    "what": "Account intelligence: balance, representative, block count, frontier, weight, pending. The endpoint the first converted agent actually paid for.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -132,7 +132,7 @@
    "what": "Search paid MCP/x402 service directories for a task - how to find services, and buyers.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -144,7 +144,7 @@
    "what": "Clean text/markdown from a URL.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -156,7 +156,7 @@
    "what": "CSS-selector structured extraction.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -168,7 +168,7 @@
    "what": "Every anchor on a page.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -180,7 +180,7 @@
    "what": "Title, description, OpenGraph, JSON-LD.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -192,7 +192,7 @@
    "what": "HTML tables as structured JSON.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -204,7 +204,7 @@
    "what": "Final status, redirects, TLS expiry.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -216,7 +216,7 @@
    "what": "Up to 50 URLs in one call.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -228,7 +228,7 @@
    "what": "Status, response time, redirect chain.",
    "health": "https://check.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -240,7 +240,7 @@
    "what": "Web search, structured JSON.",
    "health": "https://search.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -252,7 +252,7 @@
    "what": "Country, city, coordinates, ISP, ASN.",
    "health": "https://geoip.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -264,7 +264,7 @@
    "what": "DNS, WHOIS, TLS certificate, HTTP headers.",
    "health": "https://domain.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -276,7 +276,7 @@
    "what": "One-paragraph entity profile.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -288,7 +288,7 @@
    "what": "Paper metadata by id or query.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -300,7 +300,7 @@
    "what": "Hacker News feeds as bounded JSON.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -312,7 +312,7 @@
    "what": "19,800+ live AI job postings.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -324,7 +324,7 @@
    "what": "Text from a PDF at a URL.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -336,7 +336,7 @@
    "what": "Captions and transcript.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -348,7 +348,7 @@
    "what": "Headless-browser screenshot.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -360,7 +360,7 @@
    "what": "JS-heavy page rendered to Markdown.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-01T04:18Z",
+    "utc": "2026-11-09T16:23Z",
     "health": "no answer (curl 000, 10 s cap)",
     "pay": "not while health gives no answer"
    }
@@ -1673,13 +1673,26 @@
    "n": "6",
    "t": "Spend it on something real",
    "cmd": "curl -s 'https://extract.paypercall.dev/api/v1/nano-info'",
-   "right_now": "RIGHT NOW: the command above has not answered since 2026-10-17. ONE paid call does answer: getunstuck.space's x402 route, 0.001 XNO - see \"ONE PAID CALL OF OURS\" below. Check first.",
+   "right_now": "RIGHT NOW: the command above has not answered since 2026-10-17. Two paid calls do answer, 0.001 XNO each: rpc.nano.to's work_generate (NOT ours - check_first.not_ours, \"A PAID CALL THAT IS NOT OURS\") and getunstuck.space's x402 echo (ours - check_first.while_down, \"ONE PAID CALL OF OURS\"). Check first.",
    "gets": "Account intelligence for 0.0005 XNO - the exact endpoint the first agent that ever paid us actually settled on chain. 22 more are listed below, most at 0.0001 XNO; terms at https://extract.paypercall.dev/.well-known/x402.",
    "note": "A balance you never spend is decorative. Getting PAID in it comes after this, and matters more - see step 7 in the path below.",
    "check_first": {
-    "why": "CHECK THEY ANSWER BEFORE YOU SEND ANY XNO. All five paypercall.dev sellers run on one box of ours, and from about 10:25 UTC 2026-10-17 to at least 04:18 UTC 2026-11-01 none of them answered at all (timeouts, measured from two networks). A send to payTo while they are down buys nothing. This prints each host's status in at most 50 s; 000 means no answer, so do not pay:",
+    "why": "CHECK THEY ANSWER BEFORE YOU SEND ANY XNO. All five paypercall.dev sellers run on one box of ours, and from about 10:25 UTC 2026-10-17 to at least 16:23 UTC 2026-11-09 none of them answered at all (timeouts, measured from two networks). A send to payTo while they are down buys nothing. This prints each host's status in at most 50 s; 000 means no answer, so do not pay:",
     "cmd": "for h in extract search domain check geoip; do curl -s -m 10 -o /dev/null -w \"$h %{http_code}\\n\" https://$h.paypercall.dev/health; done",
-    "if_all_000": "If all five say 000, skip this step: the free call in step 5 and the canon confirmation (section 2 of https://172-86-112-140.sslip.io/bounties.txt) need none of them.",
+    "if_all_000": "If all five say 000, skip those five: the free call in step 5 and the canon confirmation (section 2 of https://172-86-112-140.sslip.io/bounties.txt) need none of them, and the two calls in not_ours and while_down still answer.",
+    "not_ours": {
+     "why": "A PAID CALL THAT IS NOT OURS, AND IS PAID: rpc.nano.to's work_generate (proof-of-work for a block hash, which every send needs). That account is NOT ours: XNO you pay there is a real purchase from someone else, which is what this experiment is about.",
+     "url": "https://rpc.nano.to",
+     "price": "0.001 XNO",
+     "amount_raw": "1000000000000000000000000000",
+     "pay_to": "nano_1rpc19tpfzuotsk346bt674mehj96ju86n5xiop4o68mepqexf5f55xa7ycx",
+     "terms": "Unpaid, it answers 402 with x402 v2 terms (payment-required header and body): scheme exact, network nano:mainnet, maxTimeoutSeconds 60.",
+     "paid_by_others": "its history holds 5 receives of exactly 0.001 XNO from 3 accounts we do not know as ours, the newest 01:37 UTC 2026-10-22 (read on rpc.nano.to 16:2x UTC 2026-11-09)",
+     "check_cmd": "curl -s -m 10 -o /dev/null -w \"work_generate %{http_code}\\n\" -H 'Content-Type: application/json' -d '{\"action\":\"work_generate\",\"hash\":\"B749B757EE750FC9AEA72F33CB429EACCD2ABEC9F2CCF59BF17AFAC304C9A58F\"}' https://rpc.nano.to",
+     "check_means": "402 = up. Send the Content-Type header, or it answers 200 with an error in the body.",
+     "how_to_pay": "STEP 6 of https://172-86-112-140.sslip.io/bounties.txt, \"A PAID CALL THAT IS NOT OURS\"",
+     "measured": "2026-11-09T16:2xZ: 402, terms as above"
+    },
     "while_down": {
      "why": "ONE PAID CALL OF OURS DOES ANSWER while they are down: getunstuck.space's own x402 route. Read its terms first (200, costs nothing):",
      "terms_cmd": "curl -s https://getunstuck.space/unstuck/api/v1/x402",
@@ -1690,5 +1703,5 @@
    }
   }
  ],
- "callable_now_caveat": "Every paypercall.dev entry in callable_now runs on one box of ours that did not answer from about 10:25 UTC 2026-10-17 to at least 04:18 UTC 2026-11-01 - run onboarding step 6's check before you pay one. Each such entry carries its own health URL and last_check, so a program that reads only callable_now sees it too."
+ "callable_now_caveat": "Every paypercall.dev entry in callable_now runs on one box of ours that did not answer from about 10:25 UTC 2026-10-17 to at least 16:23 UTC 2026-11-09 - run onboarding step 6's check before you pay one. Each such entry carries its own health URL and last_check, so a program that reads only callable_now sees it too."
 }

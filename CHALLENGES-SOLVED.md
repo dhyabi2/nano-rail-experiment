@@ -38,6 +38,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 239. Starters left again from a new treasury, and bounties.txt still said "none since 10-14" and could not see them
+
+*solved 2026-11-09 (PR on `hunt/starter-treasury2`; bounties.txt live once deployed) · onboarding / closing the loop*
+
+**What blocked it.** Since 20:25 UTC 11-08 the starter job sends from TREASURY2, nano_3z335ug5... (owner rule 2): six
+sends of exactly 10^25 raw by 00:05 11-09, all six still receivable at 00:20 (rpc.nano.to). bounties.txt's RIGHT NOW
+box still said "STARTER: ... none since 2026-10-14. Plan on none", section 4 read only the Unstuck account, and the
+FROM US one-liners it gives Nano Receipt Lab (#593, starter B8B59250) and Muse (#626, starter DFCD32FA) listed our
+accounts without treasury2: run live at 00:2x, both printed `received: 0 | waiting: 0` while our starter sat
+receivable at their address. The two agents who just got a starter were told by our own check that nothing came.
+
+**How it was moved.** The box says none 10-14 to 11-08, then up to 5 a day from nano_3z335ug5... (6 sent, 0 received),
+still "do not wait for it"; re-stamped 00:20 11-09, 0 of 64 asks settled. Section 4 names treasury2 in full, its
+counts, and gives a one-line read of its newest starter. Both FROM US one-liners include `nano_3z335ug5`, and the
+#593 and #626 entries name their starter block. New law `specs/test_bounties_starter_treasury2.py` (4 tests, all 4
+fail on main) runs each published one-liner against a stub node: a treasury2 receivable prints `waiting: 1`, a
+treasury2 receive prints `received: 1`. Three older laws that pinned "0 of the 7", the three-account set and a
+16-line box were updated, each with a #239 note.
+
+**What is still not solved.** Section 4's "17 of the 23 starters" re-count reads only the Unstuck account; tools
+watching the money (`ops/watch-outage.py`) still watch the OLD treasury's 9.0 XNO floor, not treasury2's.
+
+**Evidence.**
+
+- ran 00:2x: both published one-liners live -> `FROM US, received: 0 | FROM US, waiting: 1` (were `waiting: 0`)
+- ran 00:2x: section 4's new line live -> `newest starter 2026-11-09 00:05 to nano_1edjtwsjn1p`
+- ran on the branch: `python3 -m unittest discover -s specs -p 'test_*.py'` -> 710 tests OK; all 116 `test_*.py` /
+  `check_*.py` under specs/, ops/, published/ -> PASS
+
 ### 238. canon.txt told a confirmer its verdict was "in bounties.txt's GATE LOG", a 1631-line file with no way to find it
 
 *solved 2026-11-08 (PR on `hunt/canon-verdict-lookup`; canon.txt live once deployed) · onboarding / closing the loop*

@@ -16,7 +16,7 @@ import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ADDR = "nano_1mx64gbrj3t8frxgp75y9sxxh17njcf67tmyqktubqsd7inwmkw9din7k9nt"
-OURS = {"nano_1434j1n4", "nano_3saqoz5q", "nano_1yo6c1t6"}
+OURS = {"nano_1434j1n4", "nano_3saqoz5q", "nano_1yo6c1t6", "nano_3z335ug5"}  # treasury2 sends starters since 11-08 (#239)
 
 spec = importlib.util.spec_from_file_location("nano_address", os.path.join(ROOT, "specs", "nano_address.py"))
 nano_address = importlib.util.module_from_spec(spec)
@@ -49,7 +49,7 @@ class Passer593(unittest.TestCase):
         spec.loader.exec_module(scan)
         self.assertEqual(scan.gate_log(self.txt).get(593), ("PASSED", "2026-10-24"))
 
-    def test_the_one_liner_names_a_valid_address_and_our_three_accounts(self):
+    def test_the_one_liner_names_a_valid_address_and_our_accounts(self):
         line = next(l for l in self.txt.splitlines() if ADDR in l and l.strip().startswith("python3 -c"))
         self.assertTrue(nano_address.check_nano_address(ADDR))
         o = re.search(r"O=\(([^)]*)\)", line).group(1)

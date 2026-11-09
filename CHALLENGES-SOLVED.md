@@ -1,7 +1,7 @@
 # Every challenge the ARION path had to solve, and how
 
-*Seventy-six challenges: forty-six found by five independent sweeps over the code, the case file and the operating
-record, each sweep then checked by a second reader against the files it named, and twenty-six found by the hunter
+*Seventy-seven challenges: forty-six found by five independent sweeps over the code, the case file and the operating
+record, each sweep then checked by a second reader against the files it named, and twenty-seven found by the hunter
 routine — testing its own unlaunched code and published artefacts offline; going network-blind in its own session;
 running its own published onboarding commands end-to-end instead of reading them; reading the live ask network its
 own flyers point agents at; re-reading the referral bounty's anti-Sybil code adversarially, four separate times, and
@@ -9,7 +9,7 @@ finding a fourth and fifth hole; calling its own published address-safety check 
 address; and, this run, consolidating ten of those hunts' own pull requests into one mergeable branch after a prior
 run found them piling up unreviewed. Ordered **unsolved first** — the honest order, not the flattering one.*
 
-**33 solved · 38 partial · 5 unsolved.** By kind: 23 technical, 35 economic, 18 epistemic — and the balance is
+**33 solved · 39 partial · 5 unsolved.** By kind: 24 technical, 35 economic, 18 epistemic — and the balance is
 itself the finding. Barely any of this was cryptography.
 
 ---
@@ -980,6 +980,51 @@ UNKNOWN when the path does not answer 200 with JSON. `drafts/OWNER-QUEUE.md` is 
 - ran: grep -rn nano-info pulse vend unstuck → prose only (THE-ARION-PATH.md:81, ARION-STORY.md:68)
 - `vend/swarm/test_money_audit.py — the `{"note": "no address here at all"}` manifest asserted to yield v == []`
 - `vend/swarm/endpoint_count.py paid_paths() — amount > 0, no currency test; vend/AGENTS.md:121 permits USDC-first where an index demands it`
+
+### 146. Three agents passed and were each sent 0.1 XNO; 34 hours later none had received it - and the page gave a no-npm agent no way to
+
+*partial (PR on `hunt/python-seed-receive`, 2026-10-15; left open for the owner: it is a seed/wallet path, so the keeper may not merge it) · technical*
+
+**What blocked it.** DC297D7B (#589), BACCB1D6 (#591) and 61A5D0A5 (#592) were still WAITING at 00:18 UTC 10-15
+(rpc.nano.to blocks_info), about 34 h after the 10-13 sends, while 19-21 outside clients a day kept reading those
+three threads (`/ai/traffic/2026-10-14.json`). bounties.txt STEP 1 offers a no-npm wallet (nanokey.py) because an agent
+was blocked a day by npm (#110); it writes a SEED. The only receive the page offered for that seed was section 8's
+receive.js - node + nanocurrency, the wall nanokey.py exists to skip. The stdlib receive our threads hand out reads a
+PRIVATE KEY, so given nano-seed.txt it reads a different, empty account (#142). A Python-only agent holding a seed had
+nowhere to sign its first receive.
+
+**How it was moved.** STEP 1's WHERE THE PYTHON PATH ENDS TODAY now gives a standard-library receive for
+nano-seed.txt: one idempotent git line that clones the owner's wallet - or moves an existing clone, a `--depth 1` one
+too, by fetching the commit by SHA - to commit 6420e935, and a short `seedrecv.py` run as `python3 -I -S seedrecv.py
+YOUR_ADDRESS --seed-file nano-seed.txt` (or with NANO_SEED set). It derives index 0's key from the seed in memory
+with the wallet's own `private_key_from_seed`, receives in the `receive-only` profile (send not registered), finds
+receive-threshold work locally when the node refuses it, and prints the address first. Before it signs it refuses
+if: the seed is not the given address's; the wallet folder is not at the pin, any of its files differs byte for
+byte from the pinned tree (`git ls-tree -r`, hashed by the script itself), or it holds any entry not in that tree -
+ignored, excluded, skip-worktree and .pyc included; git runs with no user/system config, hooks or fsmonitor and
+never sees NANO_SEED; any loaded module comes from outside that folder and the standard library (-I -S keeps the seed's folder,
+PYTHONPATH and site-packages off the path; no .pyc is read from the wallet folder); and, on an opened account, the
+new balance is not above the frontier block's (block_info, contents hashed back to the frontier) or the
+representative is not that block's. NANO_WALLET_KEY_FILE is dropped from the wallet's environment; every error is
+one line. `--dry-run` prints the signed blocks with placeholder work and a summary that says `would_receive`. No new
+crypto; a missing seed file is an error, not a new key. The #142 warnings about the thread line stay, and section 8
+points no-node readers to it. `specs/test_bounties_python_seed_receive.py` (40 laws) runs the exact published lines
+against stub nodes and the exact git line against a local stand-in for GitHub. Two older laws (#142, #110) were
+updated to the new truth.
+
+**Why it is not solved yet.** It is not live. It tells outside agents how to sign with their own seed, so its merge is
+the owner's call (same rule as PR #89). It has not broadcast a block on mainnet, and the page says so.
+
+**Evidence.**
+
+- ran 00:18 10-15: rpc.nano.to blocks_info [DC297D7B..., BACCB1D6..., 61A5D0A5...] receivable=true -> all three receivable
+- `published/bounties.txt` (pre-fix) section 8: "the Python wallet in step 1 has no receive of its own yet"
+- `nano-wallet-xno@6420e935` `ed25519_blake2b.py:108 private_key_from_seed`, `keystore.py:70 KeyStore.put`,
+  `nanonode.py:323 work_generate` (local fallback for receive/open only)
+- ran: `python3 -m unittest specs.test_bounties_python_seed_receive` -> 10 OK (fresh clone, 10.8 s); after two
+  reviews of #118, 30 OK; after the third, 40 OK (NANO_WALLET_XNO_DIR at 6420e935)
+- ran 2026-11-06, read-only: rpc.nano.to block_info DC297D7B... json_block=true -> state block whose contents
+  recompute to DC297D7B... with `blocks.block_hash` (representative nano_1banexkc...); no key, no send
 
 ### 212. The one paid call every guide says works was in no check, and its terms were served as a download
 

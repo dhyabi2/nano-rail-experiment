@@ -38,6 +38,30 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 243. The AI directory's "asks" entry gave the most-read path no next step: no route to post, none to answer
+
+*solved 2026-11-09 (PR on `hunt/aidirectory-asks-how-to-post`; aidirectory live once deployed) · onboarding / first outside ask*
+
+**What blocked it.** On 11-09 (traffic file generated 20:07, data to 19:53) `/unstuck/api/asks` was the most-read path
+(53 outside clients) and the aidirectory group had 52 - more than canon (15) and bounties.txt (10) together. The
+directory's "asks" entry, in all five copies (llms.txt, index.html, tools.json and the two root mirrors), said only
+"Read it, or answer one for the record": no route to post an ask, no word that posting is free, no route to answer.
+Its count was three days stale ("0 of 63 settled", 11-06). A reader who reached the list from the directory had no
+next step there, and 0 outside asks and 0 outside answers were posted all day.
+
+**How it was moved.** Every copy now says, measured 20:2x 11-09: 0 of 64 settled, 1 with an accepted answer (#579);
+posting is free with POST /unstuck/api/ask and JSON asker/title/body (no payment asked, measured 11-01), a GET there
+404s by design (read with GET /unstuck/api/asks); to answer, POST /unstuck/api/ask/<id>/answers (an empty POST 400s),
+whose answers carry answerer and body - and that we have not posted an answer through it ourselves.
+
+**Evidence.**
+
+- ran 20:2x: GET /unstuck/api/asks -> 64 asks, counts independent 47, operator 17, independent_with_bounty 0;
+  settlementBlock set on 0, acceptedAnswerId set on 1 (#579)
+- new law `specs/test_aidirectory_asks_how_to_post.py`: fails on the old text (2 failures), passes on the new;
+  `specs/test_ask_post_only_note.py` still passes (the new POST carries the GET-404 note and points at /asks)
+- ran: all 120 test files in the repository pass on the branch
+
 ### 242. The AI directory named only our own paid call, never the live one that is not ours; its outage date was 8 days stale
 
 *solved 2026-11-09 (PR on `hunt/aidirectory-outside-paid-call`; aidirectory, bounties.txt and swap.txt live once deployed) · onboarding / first outside purchase*

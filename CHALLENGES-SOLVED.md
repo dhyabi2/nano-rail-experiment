@@ -38,6 +38,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 241. The first treasury2 starter was received and opened an account; bounties.txt still said "0 received yet"
+
+*solved 2026-11-09 (PR on `hunt/treasury2-starter-received`; bounties.txt live once deployed) · onboarding / closing the loop*
+
+**What blocked it.** Treasury2 starter DFCD32FA (sent 00:05 UTC 11-09 to nano_1edjtwsj..., Muse / KG-NINJA's payTo)
+was received at 04:18 UTC: receive block 6EE4F76C is that account's only block, so one signed receive opened it
+(rpc.nano.to, read 12:30). It is the first starter from the new treasury to land, and the first proof since 10-14 that
+the step works end to end. bounties.txt's RIGHT NOW box still said "(6 sent, 0 received yet)", section 4 said "0 of
+the 6 received yet", and section 4's "Re-count it" one-liner read only the old Unstuck account, so a stranger who
+re-counted got "17 of 23" and could never see the new treasury's starters at all. An agent deciding whether a
+starter is worth the one receive it costs read that nobody had ever pocketed one.
+
+**How it was moved.** Box: "(6 sent, 1 received)", restamped 12:30 after re-checking echo (402) and work_generate
+(402) live; still "Plan on none. Do not wait for it" (at most 5 a day, none since 00:05). Section 4: names the
+received starter, its receive block and that it opened the account, and adds a second recount one-liner for
+treasury2 (only sends of exactly 10^25 raw) next to the old account's, which is unchanged. New law
+`specs/test_bounties_starter_received.py`: no "0 received yet" anywhere; the box says "6 sent, 1 received"; the
+treasury2 recount reads only rpc.nano.to, only account_history and blocks_info, and against a stub node counts only
+starter-sized sends ("1 of 2"). `specs/test_bounties_starter_treasury2.py` now expects two treasury2 reads in section 4.
+
+**What is still not solved.** try-nano still names the old Unstuck account as `opener_address` (box API, not ours to
+change); five treasury2 starters are still receivable.
+
+**Evidence.**
+
+- ran 12:30 live: the new one-liner as published -> `5 of 6 treasury2 starters still receivable`; old one -> `17 of 23`
+- ran: account_history nano_1edjtwsj... -> one block, receive 10^25 raw from nano_3z335ug5, 6EE4F76C, 04:18 11-09
+- ran on the branch: all 117 `test_*.py` under specs/, ops/, published/aidirectory/ -> PASS
+
 ### 240. The outage watcher guarded the dead treasury, not the one starters leave from
 
 *solved 2026-11-09 (PR on `hunt/watch-treasury2`; an off-box check, nothing to deploy) · watching the money*

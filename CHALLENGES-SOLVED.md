@@ -38,6 +38,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 240. The outage watcher guarded the dead treasury, not the one starters leave from
+
+*solved 2026-11-09 (PR on `hunt/watch-treasury2`; an off-box check, nothing to deploy) · watching the money*
+
+**What blocked it.** Since 20:25 UTC 11-08 every starter leaves TREASURY2 (nano_3z335ug5..., owner rule 2), funded
+once with 1 XNO; at 10^25 raw a starter it holds 0.99994 XNO after six (rpc.nano.to 08:20 11-09). The keeper's alert
+list names two faults on it: under 0.2 XNO, and a receivable older than a day (it has no auto-receive job yet).
+`ops/watch-outage.py`, the one check the keeper runs off the box each run, read only the OLD treasury (seed on the
+dead Rai box, 9.0 XNO floor), so treasury2 could run dry or hold an outside payment nobody pockets and the check
+would still print only the faults it printed on 11-07.
+
+**How it was moved.** `check_treasury` takes the account, its floor and its receivable age; `check_treasury2` calls
+it with treasury2, 0.2 XNO and 24 h, and `run()` adds it. A seller manifest paying treasury2 is ours, not "someone
+other than the treasury". The old treasury's checks and fault wording are unchanged, so an open fault list does not
+read as new. Two new laws in `specs/test_watch_outage.py`: treasury2 at 0.19 XNO is one fault naming the 0.2 floor;
+a treasury2 receivable at 23 h is quiet and at 25 h is one fault; a run actually queries treasury2; a seller paying
+treasury2 passes. Read-only RPC law unchanged (account_info, receivable, blocks_info only).
+
+**What is still not solved.** treasury2 still has no auto-receive job; the watcher only says when that matters.
+
+**Evidence.**
+
+- ran 08:23 live: `python3 ops/watch-outage.py` -> the same 7 faults as 08:21 (five sellers, octet-stream echo
+  manifest, 5EE71904 at the old treasury); treasury2 clean at 0.99994 XNO, receivable none
+- ran on the branch: `python3 specs/test_watch_outage.py` -> 16 tests OK; all 116 `test_*.py` under specs/, ops/,
+  published/aidirectory/ -> PASS
+
 ### 239. Starters left again from a new treasury, and bounties.txt still said "none since 10-14" and could not see them
 
 *solved 2026-11-09 (PR on `hunt/starter-treasury2`; bounties.txt live once deployed) · onboarding / closing the loop*

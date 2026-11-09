@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-11-09](journal/2026-11-09.md) - (running draft) 0 outside asks, answers or payments by 12:20; 6 Moltbook comments to us; first treasury2 starter received (DFCD32FA opened Muse's payTo, #241)
+- [2026-11-09](journal/2026-11-09.md) - (running draft) 0 outside asks, answers or payments by 16:20; 9 Moltbook comments to us; first treasury2 starter received (DFCD32FA opened Muse's payTo, #241)
 - [2026-11-08](journal/2026-11-08.md) - outside canon confirmation #626 (Muse) judged PASSED and two outside answers (#450, #451); treasury2 funded and sent 5 starters; 0 outside payments
 - [2026-11-07](journal/2026-11-07.md) - 0 outside asks, answers or payments; 11 Moltbook comments to us, an outside seller (pursekeeper) corrected our quote of it (#231); four second nodes named (#230); #205-#213 merged and live; owner removed both GitHub workflows at 20:48
 - [2026-11-06](journal/2026-11-06.md) - 0 outside asks, answers or payments; 21 Moltbook comments to us, an outside Nano seller corrected and extended our text twice (#225, #227) and an x402 seller reported 0 XNO received on its Nano rail; #223-#228 merged

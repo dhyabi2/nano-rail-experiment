@@ -13,7 +13,11 @@ It checks only what the keeper's alert list names as critical:
   - every paid endpoint's /.well-known/x402 names the treasury as its only payee and accepts XNO;
   - the one paid call the guides say WORKS (getunstuck.space's echo, challenge #212) publishes its terms, at both
     manifest URLs, as JSON that names our Unstuck account as its only payee and accepts XNO;
-  - the treasury holds at least 9.0 XNO and has nothing receivable for longer than an hour.
+  - the treasury holds at least 9.0 XNO and has nothing receivable for longer than an hour;
+  - TREASURY2, the starter's source since 2026-11-08 (OWNER-RULES rule 2), holds at least 0.2 XNO and has nothing
+    receivable for longer than a day (it has no auto-receive job yet). Challenge #240: until then this watcher read
+    only the old treasury, whose seed is on the dead Rai box, so the account starters actually leave could run dry
+    or sit on an unreceived payment and nothing here would say so.
 It reads only: GETs on public URLs, and the read-only RPC calls account_info, receivable and blocks_info.
 
     python3 ops/watch-outage.py [--json] [--previous BODY_FILE --new-out FILE]
@@ -36,6 +40,11 @@ RPC = "https://rpc.nano.to"
 TREASURY = "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
 FLOOR_RAW = 9 * 10**30
 RECEIVABLE_MAX_AGE_S = 3600
+# Challenge #240: the owner-funded starter source (1 XNO on 11-08; a starter is 10^25 raw). The keeper's alert list
+# names its two faults: under 0.2 XNO, and a receivable older than a day.
+TREASURY2 = "nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy"
+TREASURY2_FLOOR_RAW = 2 * 10**29
+TREASURY2_RECEIVABLE_MAX_AGE_S = 86400
 
 # (url, required content-type prefix or None)
 PAGES = [
@@ -114,7 +123,7 @@ def check_manifest(seller, get=http_get):
     payees_and_assets(doc, payees, assets)
     if not payees:
         return "%s names no payTo" % url
-    others = sorted(p for p in payees if p != TREASURY)
+    others = sorted(p for p in payees if p not in (TREASURY, TREASURY2))
     if others:
         return "%s pays someone other than the treasury: %s" % (url, ", ".join(others))
     if not any(a.upper() == "XNO" or a.lower().startswith("nano") for a in assets):
@@ -145,13 +154,15 @@ def check_live_call(url, get=http_get):
     return None
 
 
-def check_treasury(call=rpc, now=time.time):
+def check_treasury(call=rpc, now=time.time, account=TREASURY, name="treasury", floor=FLOOR_RAW,
+                   max_age=RECEIVABLE_MAX_AGE_S, why="auto-receive is every 15 min"):
     faults = []
     try:
-        info = call({"action": "account_info", "account": TREASURY})
-        if int(info.get("balance", "0")) < FLOOR_RAW:
-            faults.append("treasury holds %s XNO, under the 9.0 floor" % info.get("balance_nano", info.get("balance")))
-        rec = call({"action": "receivable", "account": TREASURY, "count": "50", "threshold": "1"}).get("blocks") or {}
+        info = call({"action": "account_info", "account": account})
+        if int(info.get("balance", "0")) < floor:
+            faults.append("%s holds %s XNO, under the %s floor"
+                          % (name, info.get("balance_nano", info.get("balance")), "%.1f" % (floor / 10.0**30)))
+        rec = call({"action": "receivable", "account": account, "count": "50", "threshold": "1"}).get("blocks") or {}
         hashes = list(rec) if isinstance(rec, (dict, list)) else []
         if hashes:
             blocks = call({"action": "blocks_info", "hashes": hashes, "json_block": "true"}).get("blocks", {})
@@ -159,12 +170,17 @@ def check_treasury(call=rpc, now=time.time):
                 ts = int((blocks.get(h) or {}).get("local_timestamp") or 0)
                 if not ts:
                     faults.append("receivable block %s has no readable timestamp" % h[:8])
-                elif now() - ts > RECEIVABLE_MAX_AGE_S:
-                    faults.append("receivable block %s at the treasury is %.1f hours old (auto-receive is every 15 min)"
-                                  % (h[:8], (now() - ts) / 3600.0))
+                elif now() - ts > max_age:
+                    faults.append("receivable block %s at the %s is %.1f hours old (%s)"
+                                  % (h[:8], name, (now() - ts) / 3600.0, why))
     except Exception as e:
-        faults.append("treasury could not be read from %s: %r" % (RPC, e))
+        faults.append("%s could not be read from %s: %r" % (name, RPC, e))
     return faults
+
+
+def check_treasury2(call=rpc, now=time.time):
+    return check_treasury(call, now, TREASURY2, "treasury2", TREASURY2_FLOOR_RAW, TREASURY2_RECEIVABLE_MAX_AGE_S,
+                          "it has no auto-receive job; the alert line is one day")
 
 
 def run(get=http_get, call=rpc, now=time.time):
@@ -172,6 +188,7 @@ def run(get=http_get, call=rpc, now=time.time):
     faults += [f for f in (check_manifest(s, get) for s in SELLERS) if f]
     faults += [f for f in (check_live_call(u, get) for u in LIVE_CALL_MANIFESTS) if f]
     faults += check_treasury(call, now)
+    faults += check_treasury2(call, now)
     return faults
 
 

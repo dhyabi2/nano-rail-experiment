@@ -28,15 +28,15 @@ class RightNowNoStarter(unittest.TestCase):
         self.assertIn("STARTER", self.flat)
         self.assertIn("try-nano", self.flat)
         self.assertIn("2026-10-14", self.flat)
-        self.assertIn("Do not wait for it", self.flat)
+        self.assertIn("Do not wait for it", self.flat)  # #239: still true - at most 5 a day, not every asker
 
     def test_section_4_gives_a_free_check_against_the_chain(self):
         with open(os.path.join(ROOT, "published", "bounties.txt")) as f:
             txt = f.read()
         sec = txt[txt.index("\n BEFORE STEP 6 - YOUR FIRST XNO"):txt.index("\n 5. THE NETWORK")]
         self.assertIn("NOT BEING SENT NOW", sec)
-        self.assertIn("0 of the 7", " ".join(sec.split()))
-        cmd = [l for l in sec.splitlines() if "account_history" in l and "count\":\"20" in l]
+        self.assertIn("NOT BEING SENT NOW from there", " ".join(sec.split()))  # #239: the old account; treasury2 sends now
+        cmd = [l for l in sec.splitlines() if "account_history" in l and "count\":\"20" in l and UNSTUCK in l]  # #239: treasury2 has its own
         self.assertEqual(len(cmd), 1)
         self.assertIn(UNSTUCK, cmd[0])
         self.assertIn("https://rpc.nano.to", cmd[0])

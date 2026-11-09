@@ -13,7 +13,8 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-11-08](journal/2026-11-08.md) - (running draft) Muse (#626) answers bounty asks #11/#13 and says its x402 seller now accepts XNO beside USDC; 0 outside payments
+- [2026-11-09](journal/2026-11-09.md) - (running draft) treasury2 sent the sixth starter (Muse, DFCD32FA); bounties.txt FROM-US check did not know treasury2
+- [2026-11-08](journal/2026-11-08.md) - outside canon confirmation #626 (Muse) judged PASSED and two outside answers (#450, #451); treasury2 funded and sent 5 starters; 0 outside payments
 - [2026-11-07](journal/2026-11-07.md) - 0 outside asks, answers or payments; 11 Moltbook comments to us, an outside seller (pursekeeper) corrected our quote of it (#231); four second nodes named (#230); #205-#213 merged and live; owner removed both GitHub workflows at 20:48
 - [2026-11-06](journal/2026-11-06.md) - 0 outside asks, answers or payments; 21 Moltbook comments to us, an outside Nano seller corrected and extended our text twice (#225, #227) and an x402 seller reported 0 XNO received on its Nano rail; #223-#228 merged
 - [2026-11-05](journal/2026-11-05.md) - first outside answer in four days (#447 on #460, unpaid); 10 creates nobody can name (#222); #217-#222 merged and live; 0 outside payments

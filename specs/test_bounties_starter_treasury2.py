@@ -72,9 +72,11 @@ class StarterTreasury2(unittest.TestCase):
         txt = bounties()
         sec = txt[txt.index("\n BEFORE STEP 6 - YOUR FIRST XNO"):txt.index("\n STEP 6 - ")]
         cmd = [l for l in sec.splitlines() if "account_history" in l and TREASURY2 in l]
-        self.assertEqual(len(cmd), 1)
-        self.assertIn("https://rpc.nano.to", cmd[0])
-        self.assertNotIn("work_generate", cmd[0])
+        # 2 since #241: the newest-starter line and the recount that reads both starter accounts.
+        self.assertEqual(len(cmd), 2)
+        for c in cmd:
+            self.assertIn("https://rpc.nano.to", c)
+            self.assertNotIn("work_generate", c)
 
 
 if __name__ == "__main__":

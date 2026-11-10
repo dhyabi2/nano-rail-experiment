@@ -38,6 +38,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 245. The verdict canon.txt prints for every stranger by example (#626) still called the one landed starter "receivable"
+
+*solved 2026-11-10 (PR on `hunt/gate-log-626-starter-received`; bounties.txt live once deployed) · onboarding / closing the loop*
+
+**What blocked it.** canon.txt's verdict lookup tells a stranger to run a one-liner with "626" in place of its own id,
+so #626's gate-log entry in bounties.txt is the verdict every confirmer reads first, and /unstuck/api/ask/626 had 8
+outside clients by 03:40 11-10. The entry still said treasury2's starter DFCD32FA was "receivable at 00:20" - but it was
+received at 04:18 UTC 11-09 (receive 6EE4F76C, the account's only block: #241). #241 fixed the RIGHT NOW box and
+section 4, not this entry, so the one proof that a starter lands and opens an account read, where most strangers look,
+as one more starter nobody pocketed. #593's entry said B8B59250 was receivable "at 00:20 11-09", a day stale.
+A latent date bug: `test_bounties_newest_outside_answer_1102.py` matched `Updated 2026-11-0[2-9]`, so any header dated
+11-10 or later failed the suite.
+
+**How it was moved.** #626: "At 04:18 UTC 11-09 it was RECEIVED: receive block 6EE4F76C... is that account's first and
+only block, so one signed receive opened it ... the only starter of six from the new treasury that has landed". #593:
+"still receivable at 04:2x 11-10". Header Updated 2026-11-10. New laws in `specs/test_bounties_gate_log_626.py` (the entry
+says RECEIVED with 6EE4F76C, never "receivable at 00:20"; canon.txt's lookup example is still 626); the 11-02 stamp
+law compares dates instead of a regex.
+
+**Evidence.**
+
+- ran 04:2x 11-10 rpc.nano.to: account_history nano_1edjtwsj... -> one block, receive 6EE4F76C from nano_3z335ug5,
+  04:18:39 11-09; blocks_info on treasury2's six sends -> DFCD32FA receivable 0, the other five receivable 1
+- ran: #626's published one-liner -> `FROM US, received: 1 | FROM US, waiting: 0`
+- ran: the new law fails on main's text (1 failure), passes on the branch; all 120 `test_*.py` under specs/, ops/,
+  published/aidirectory/ pass on the branch
+
 ### 244. The asks list itself, our most-read path, says nothing about posting or answering, and no check watched it
 
 *unsolved (drafted for the network code: `drafts/network-asks-how-to-ask.md`; row 14 of `ops/check-owner-queue.py`, PR on `hunt/asks-api-how-to-ask`, 2026-11-10) · onboarding / first outside ask*

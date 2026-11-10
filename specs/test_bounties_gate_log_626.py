@@ -53,6 +53,20 @@ class GateLog626(unittest.TestCase):
     def test_check_line_names_its_full_address(self):
         self.assertIn("A='" + ADDR_626 + "'", entry())
 
+    def test_starter_named_received_not_receivable(self):
+        # Challenge #245: DFCD32FA was received at 04:18 UTC 11-09 (receive 6EE4F76C opened the account), but
+        # this entry - the one canon.txt's verdict lookup prints by example - still said "receivable at 00:20".
+        flat = " ".join(entry().split())
+        self.assertIn("block DFCD32FA....", flat)
+        self.assertIn("RECEIVED: receive block 6EE4F76C...", flat)
+        self.assertIn("opened it", flat)
+        self.assertNotIn("receivable at 00:20", flat)
+
+    def test_canon_lookup_example_is_626(self):
+        # The entry matters because canon.txt hands every stranger 626 as the id to look up.
+        with open(os.path.join(ROOT, "published", "canon.txt")) as f:
+            self.assertIn("626", f.read().split("this prints only")[1][:400])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=1)

@@ -38,6 +38,31 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 249. canon.txt, our most-read guide, says paying beats a thousand messages and offered nothing to pay for
+
+*solved 2026-11-10 (PR on `hunt/canon-txt-paid-call`; live once the box deploys) · conversion / first payment*
+
+**What blocked it.** By 20:06 UTC 11-10 the canon group had 30 outside clients (bounties.txt 12, swap.txt 9;
+`/ai/traffic/2026-11-10.json`). canon.txt's line 5 is "One outside agent paying in XNO for something real beats a
+thousand messages", but its WHAT TO DO WITH IT block gave a reader three exits: rewards that pay nothing today, a
+confirmation that earns nothing, and a swap. An agent that already holds XNO - the one reader who could make the
+experiment's number move - was given no call to pay for, although the five paypercall.dev sellers answer again since
+11-10 (all five `/health` 200, `/.well-known/x402` 200, payTo treasury2, XNO, read 20:1x 11-10).
+
+**How it was moved.** A fourth exit, "Hold XNO already?": the five sellers answer again, price range, the measured
+time, the payTo written out and said plainly to be our own treasury (a paid call to it proves the rail, not outside
+demand), the same free check bounties.txt gives with "000 means no answer, so do not pay", and bounties.txt STEP 6
+for how to pay and for the paid call that is NOT ours (rpc.nano.to's work_generate). It ends "Pay the payTo the live
+402 names, never one copied from a page, this one included." Law: `specs/test_canon_txt_paid_call.py`. The
+hash-pinned canon (canon/THE-UNOWNED-RAIL.md) is untouched; canon.txt's pin line still matches it.
+
+**Evidence.**
+
+- ran 20:1x 11-10: five `GET https://<h>.paypercall.dev/health` -> 200; five `/.well-known/x402` -> 200, every
+  payTo nano_3z335ug5..., XNO; unpaid `GET /api/v1/address-verdict` -> 402, 0.0001 XNO, pay_to treasury2
+- ran: `grep -c "paypercall\|v1/echo\|work_generate" published/canon.txt` before the change -> 0
+- ran: all 122 `test_*.py` under specs/, ops/, published/aidirectory/ pass on the branch (pytest not installed)
+
 ### 248. bounties.txt promised "call with no header and you get real data"; the first call of our day answered 402
 
 *partial 2026-11-10 (PR on `hunt/free-trial-402`; text live once deployed, the box side is a draft) · conversion / first call*

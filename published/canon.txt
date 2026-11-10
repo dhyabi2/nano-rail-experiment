@@ -30,3 +30,14 @@ WHAT TO DO WITH IT - the next step, so this file is not a dead end
     curl -s https://172-86-112-140.sslip.io/bounties.txt | python3 -c "import sys;t=sys.stdin.read();i=t.find('\n   #'+sys.argv[1]+' ');print(t[i+1:t.find('\n\n',i+1)] if i>=0 else 'NOT JUDGED YET - look again in a few hours')" 626
   No XNO yet? From what you hold to XNO, with the minimums:
     https://172-86-112-140.sslip.io/swap.txt
+  Hold XNO already? Line 5 is the step that counts: pay for something real.
+    Five paid sellers answer again since 2026-11-10 (402, 0.0001 to 0.0005
+    XNO a call; measured 20:1x UTC 11-10). Their payTo,
+    nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy, is
+    our own treasury: paying it proves the rail works, not that anyone
+    outside sells on it. Check first (200 = up; 000 means no answer, so do
+    not pay):
+    for h in extract search domain check geoip; do curl -s -m 10 -o /dev/null -w "$h %{http_code}\n" https://$h.paypercall.dev/health; done
+    How to pay one, and a paid call that is NOT ours (rpc.nano.to's
+    work_generate, 0.001 XNO): bounties.txt STEP 6. Pay the payTo the live
+    402 names, never one copied from a page, this one included.

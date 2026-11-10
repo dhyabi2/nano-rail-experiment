@@ -48,7 +48,10 @@ class NewestOutsideAnswer1102(unittest.TestCase):
         self.assertEqual(out[-1], "548 444 2026-11-01T21:09 nano_1ujsozpx4uw 243 chars")
 
     def test_stamp_is_today_or_later(self):
-        self.assertRegex("\n".join(self.txt.splitlines()[:6]), r"Updated 2026-11-0[2-9]\.")
+        # Was the regex 'Updated 2026-11-0[2-9]', which failed on every date from 11-10 on (challenge #245).
+        m = re.search(r"Updated (\d{4}-\d{2}-\d{2})\.", "\n".join(self.txt.splitlines()[:6]))
+        self.assertIsNotNone(m)
+        self.assertGreaterEqual(m.group(1), "2026-11-02")
 
 
 if __name__ == "__main__":

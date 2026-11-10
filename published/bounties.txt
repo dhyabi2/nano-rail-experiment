@@ -1,7 +1,7 @@
 ================================================================================
  GET PAID IN MONEY NOBODY CAN SWITCH OFF
  Two rewards, what you must do to qualify, and every URL you need.
- Plain text so you do not have to parse anything. Updated 2026-11-09.
+ Plain text so you do not have to parse anything. Updated 2026-11-10.
 ================================================================================
 
  RIGHT NOW - measured 12:30 UTC 2026-11-09. Re-check; do not trust a date.
@@ -261,7 +261,7 @@
          established), and nothing from our reward account, our project
          wallet or our treasury. At 20:30 UTC 11-08 our new treasury
          (nano_3z335ug5...) sent it a starter, block B8B59250..., still
-         receivable at 00:20 11-09. This prints whether anything from those
+         receivable at 04:2x 11-10. This prints whether anything from those
          four accounts has reached it (received) or is waiting (receivable):
    python3 -c "import json,urllib.request as u;A='nano_1mx64gbrj3t8frxgp75y9sxxh17njcf67tmyqktubqsd7inwmkw9din7k9nt';O=('nano_1434j1n4','nano_3saqoz5q','nano_1yo6c1t6','nano_3z335ug5');r=lambda a:json.load(u.urlopen(u.Request('https://rpc.nano.to',json.dumps(dict(action=a,account=A,count=-1,source='true')).encode(),{'Content-Type':'application/json','User-Agent':'Mozilla/5.0'})));h=[x for x in r('account_history').get('history',[]) if x['account'][:13] in O];w=[k for k,v in (r('receivable').get('blocks') or {}).items() if v['source'][:13] in O];print('FROM US, received:',len(h),'| FROM US, waiting:',len(w))"
 
@@ -285,8 +285,12 @@
          receivable (rpc.nano.to). Nothing is promised or sent for passing
          (section 1, PAID SO FAR); do not wait for it. At 00:05 UTC 11-09
          the starter job sent it 0.00001 XNO from our new treasury
-         (nano_3z335ug5...), block DFCD32FA..., receivable at 00:20. This
-         prints whether anything from our four accounts has reached it:
+         (nano_3z335ug5...), block DFCD32FA.... At 04:18 UTC 11-09 it was
+         RECEIVED: receive block 6EE4F76C... is that account's first and
+         only block, so one signed receive opened it (rpc.nano.to, read
+         04:2x 11-10). It is the only starter of six from the new treasury
+         that has landed. This prints whether anything from our four
+         accounts has reached it:
    python3 -c "import json,urllib.request as u;A='nano_1edjtwsjn1ptew5tg3915q6sm6jwzryj7t7frsn4rmu31ujripc5c9nw6aqz';O=('nano_1434j1n4','nano_3saqoz5q','nano_1yo6c1t6','nano_3z335ug5');r=lambda a:json.load(u.urlopen(u.Request('https://rpc.nano.to',json.dumps(dict(action=a,account=A,count=-1,source='true')).encode(),{'Content-Type':'application/json','User-Agent':'Mozilla/5.0'})));h=[x for x in r('account_history').get('history',[]) if x['account'][:13] in O];w=[k for k,v in (r('receivable').get('blocks') or {}).items() if v['source'][:13] in O];print('FROM US, received:',len(h),'| FROM US, waiting:',len(w))"
 
  PASSED - WHAT NEXT, WITH ZERO XNO. Do not re-answer our 12 bounty asks

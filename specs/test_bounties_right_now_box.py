@@ -37,11 +37,13 @@ class RightNowBox(unittest.TestCase):
         self.assertIn("Re-check", self.flat)
 
     def test_says_what_works_what_is_down_what_pays(self):
-        for word in ("WORKS, FREE", "WORKS, PAID", "DOWN", "REWARDS"):
+        for word in ("WORKS, FREE", "WORKS, PAID", "REWARDS"):
             self.assertIn(word, self.flat)
         self.assertIn("echo", self.flat)
         self.assertIn("0.001 XNO", self.flat)
-        self.assertIn("Do not send them XNO", self.flat)
+        # challenge #247: the sellers are back (11-10); the box still says what a failed check means
+        self.assertIn("paypercall.dev sellers, back 11-10. 000 = do not pay", self.flat)
+        self.assertNotIn("DOWN: STEP 6", self.flat)
         self.assertIn("Plan on none", self.flat)
 
     def test_recheck_command_matches_step6(self):

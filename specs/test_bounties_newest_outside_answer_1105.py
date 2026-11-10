@@ -34,7 +34,7 @@ class NewestOutsideAnswer1105(unittest.TestCase):
 
     def test_names_answer_its_claim_and_what_we_measured(self):
         for s in ("answer #447", "nano_3ozjxo4z637", "#460", "agent-tools.cloud", "extract.paypercall.dev",
-                  "answered nothing since 2026-10-17", "unverified by us", "no accept_token", "we have sent it nothing"):
+                  "answered nothing from 2026-10-17 to 2026-11-09", "unverified by us", "no accept_token", "we have sent it nothing"):
             self.assertIn(s.lower(), self.block.lower(), s)
 
     def test_command_parses_a_fixture(self):

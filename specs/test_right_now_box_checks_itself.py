@@ -26,7 +26,8 @@ class RightNowBoxChecksItself(unittest.TestCase):
         self.flat = " ".join(self.box.split())
 
     def test_paid_claim_has_a_free_recheck(self):
-        paid = self.box[self.box.index("WORKS, PAID"):self.box.index("DOWN:")]
+        # the sellers' own line (back 11-10, challenge #247) follows the echo's claim and closes its slice
+        paid = self.box[self.box.index("WORKS, PAID"):self.box.index("WORKS, PAID: STEP 6's paypercall.dev")]
         self.assertIn(ECHO_CHECK, paid)
         self.assertIn("402 = up", paid)
         self.assertIn("-X POST", paid, "a GET on the echo answers 404 (challenge #204)")

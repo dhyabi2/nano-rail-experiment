@@ -38,6 +38,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 247. Every guide still said our five paid sellers were down, the day they came back with a new payTo
+
+*solved 2026-11-10 (PR on `hunt/sellers-back-up`; live once deployed) · conversion / spend step*
+
+**What blocked it.** STEP 6 ("spend it on something real") is the only place a stranger holding XNO is told where to
+spend it, and its five paypercall.dev sellers (24 endpoints) were down 10-17 to 11-09. On 11-10 the owner moved them to
+the Unstuck box with payee treasury2 (BLOCKERS 09:1xZ). At 12:24Z all five answered `/health` 200 and an unpaid
+nano-info call answered 402 naming payTo treasury2 nano_3z335ug5... in XNO on nano:mainnet. But bounties.txt's RIGHT NOW
+box still said "DOWN: ... Do not send them XNO", STEP 6 said "have not answered since 2026-10-17", and the same claim sat
+in swap.txt step 5, both aidirectory llms.txt copies, both HTML copies and tools.json (22 entries with last_check "no
+answer ... not while health gives no answer"). So every reader was steered away from the one spend we sell, on the day it
+works. aidirectory had 31 outside clients and bounties 7 by 12:00 11-10 (`/ai/traffic/2026-11-10.json`).
+
+**How it was moved.** Each copy keeps the outage as a dated past window (10:25 UTC 10-17 to at least 16:23 UTC 11-09) and
+adds the measured return (12:24 UTC 11-10), the new payTo in full, and "pay the payTo the live 402 names, not one copied
+from an older page" (the box's own docs page still shows the old treasury, BLOCKERS 11-10). The check command and "000
+means no answer, so do not pay" stay. tools.json's 22 last_check entries now read 2026-11-10T12:24Z, 200. Laws:
+`specs/test_sellers_down_stamp_agrees.py` now requires one measured return in all seven copies, later than the outage
+end, and refuses the stale "down now" sentences; the box, last_check and #447 laws follow the new wording.
+
+**Evidence.**
+
+- ran 12:24 11-10: the published five-host check -> extract, search, domain, check, geoip 200
+- ran 12:2x: `/.well-known/x402` on all five -> 200, payTo only nano_3z335ug5..., XNO / nano:mainnet; unpaid
+  `extract.../api/v1/nano-info` -> 402, 0.0005 XNO to nano_3z335ug5..., x402Version 2
+- ran: all 121 `test_*.py` under specs/, ops/, published/aidirectory/ pass on the branch (pytest not installed)
+
 ### 246. bounties.txt's "is our receiver up" check read the dead old treasury, not the payTo a payment to us goes to
 
 *solved 2026-11-10 (PR on `hunt/receiver-check-reads-payto`; bounties.txt live once deployed) · trust / closing the loop*

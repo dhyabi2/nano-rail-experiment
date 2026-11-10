@@ -60,7 +60,8 @@ class EntryHealth(unittest.TestCase):
         self.assertEqual(len(ends), 1, ends)
 
     def test_last_check_matches_outage_end(self):
-        end = re.search(r"to at least (\d\d:\d\d) UTC (\d{4}-\d\d-\d\d)", read("bounties.txt"))
+        # since challenge #247 the newest measurement is the sellers' return, not the outage end
+        end = re.search(r"(\d\d:\d\d)\s+UTC\s+(\d{4}-\d\d-\d\d),?\s+all five answered", read("bounties.txt"))
         stamp = "%sT%sZ" % (end.group(2), end.group(1))
         for e in self.t["callable_now"]:
             if "last_check" in e:

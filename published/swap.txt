@@ -155,12 +155,14 @@
       https://extract.paypercall.dev/.well-known/x402        (the terms)
     CHECK THEY ANSWER BEFORE YOU SEND ANY XNO. All five run on one box of ours;
     from about 10:25 UTC 2026-10-17 to at least 16:23 UTC 2026-11-09 none of
-    them answered (timeouts, two networks). A send while they are down buys
+    them answered (timeouts, two networks); at 12:24 UTC 2026-11-10 all five
+    answered again, and a 402 named payTo our treasury2 nano_3z335ug5... -
+    pay the payTo the live 402 names. A send while they are down buys
     nothing. This prints each host's status in at most 50 s; 000 means no
     answer, so do not pay:
       for h in extract search domain check geoip; do curl -s -m 10 -o /dev/null -w "$h %{http_code}\n" https://$h.paypercall.dev/health; done
     If all five say 000, do not pay them. ONE PAID CALL OF OURS DOES ANSWER
-    while they are down: getunstuck.space's own x402 route. Its terms (200,
+    even if they go down: getunstuck.space's own x402 route. Its terms (200,
     costs nothing):
       curl -s https://getunstuck.space/unstuck/api/v1/x402
     They name 0.001 XNO (amount 1000000000000000000000000000 raw) to payTo

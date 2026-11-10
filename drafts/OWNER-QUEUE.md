@@ -24,3 +24,4 @@ Also waiting on the owner, not probed: PR #89 and PR #118 (seed and wallet paths
 | 11 | **UNKNOWN** | box | publish a failed TVL read as null, not 0 | a true TVL number | read was complete; the fault only shows on a failed read | `drafts/box-tvl-unknown-not-zero.md` (#97) |
 | 12 | **APPLIED** | box | serve robots.txt, llms.txt, sitemap at the box root | crawlers finding /ai/ | /robots.txt -> 200 | `drafts/box-root-crawler-files.md` (#71) |
 | 13 | **WAITING** | network | serve /.well-known/x402 as JSON | x402 clients reading the one live paid call's terms | /.well-known/x402 served as application/octet-stream | `drafts/network-x402-json-content-type.md` (#212) |
+| 14 | **WAITING** | network | say how to post (free) and answer in GET /unstuck/api/asks | the most-read path (55 outside clients 11-09) reaching a first outside ask | GET /unstuck/api/asks answers only asks+counts, no route to post (00:2x UTC 2026-11-10) | `drafts/network-asks-how-to-ask.md` (#244) |

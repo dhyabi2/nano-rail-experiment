@@ -38,6 +38,31 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 248. bounties.txt promised "call with no header and you get real data"; the first call of our day answered 402
+
+*partial 2026-11-10 (PR on `hunt/free-trial-402`; text live once deployed, the box side is a draft) · conversion / first call*
+
+**What blocked it.** Section 4, HOW A CALL IS PAID, item 0 told every stranger the first 5 calls a day per IP are free:
+"call with no header and you get real data. Test here, with no XNO." It is the only zero-XNO first contact with the
+sellers that came back at 12:24Z. At 16:21 UTC 11-10 the first unpaid call of our day from the keeper's network answered
+402 at once, no data, on extract, nano-info, check-link and web-search, while `/.well-known/x402` still advertises
+`"trial": {"limit": 5, "window": "1 day", "scope": "per-IP"}`. The sellers now sit behind Caddy (`via: 1.1 Caddy`); if
+the app keys the trial on the proxy address, all buyers share one pool of 5. An agent that follows item 0 and gets a 402
+reads the page as false, or the seller as broken, and leaves.
+
+**How it was moved.** Item 0 now says the manifest advertises the trial, "Do not count on it", gives the measured 402s
+with time and endpoints, says a 402 there is the trial spent and not the seller down, and points at STEP 5's
+oracle-check, which needs no XNO and answered 200 at 16:21Z. Law: `specs/test_bounties_how_to_pay.py`
+`test_free_trial_is_not_promised_as_real_data`. Box side: `drafts/vend-trial-behind-caddy.md` (how to tell a shared
+egress IP from a proxy-keyed trial, and the uvicorn `--proxy-headers` fix). Partial until the box question is answered.
+
+**Evidence.**
+
+- ran 16:21 11-10: four unpaid GETs -> 402 "payment_required" (0.0001 / 0.0005 XNO to nano_3z335ug5...), headers
+  `server: uvicorn`, `via: 1.1 Caddy`; `/.well-known/x402` -> `trial` limit 5, per-IP
+- ran 16:21 11-10: `GET /unstuck/api/v1/oracle-check?url=https://example.com` -> 200 with a reading
+- ran: all 121 `test_*.py` under specs/, ops/, published/aidirectory/ pass on the branch (pytest not installed)
+
 ### 247. Every guide still said our five paid sellers were down, the day they came back with a new payTo
 
 *solved 2026-11-10 (PR on `hunt/sellers-back-up`; live once deployed) · conversion / spend step*

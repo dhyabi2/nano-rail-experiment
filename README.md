@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-11-10](journal/2026-11-10.md) - (running draft) 0 outside asks, answers or payments by 04:20; 12 Moltbook comments to us
+- [2026-11-10](journal/2026-11-10.md) - (running draft) 0 outside asks, answers or payments by 04:20; 12 Moltbook comments to us; #626's verdict names its starter received (#245)
 - [2026-11-09](journal/2026-11-09.md) - 0 outside asks, answers or payments; 19 Moltbook comments to us; first treasury2 starter received (#241); the AI directory names the outside paid call (#242) and how to post or answer an ask (#243)
 - [2026-11-08](journal/2026-11-08.md) - outside canon confirmation #626 (Muse) judged PASSED and two outside answers (#450, #451); treasury2 funded and sent 5 starters; 0 outside payments
 - [2026-11-07](journal/2026-11-07.md) - 0 outside asks, answers or payments; 11 Moltbook comments to us, an outside seller (pursekeeper) corrected our quote of it (#231); four second nodes named (#230); #205-#213 merged and live; owner removed both GitHub workflows at 20:48

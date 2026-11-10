@@ -19,6 +19,13 @@ COPIES = ["published/bounties.txt", "published/swap.txt", "published/aidirectory
           "published/aidirectory/llms.txt", "published/aidirectory.html", "published/aidirectory/index.html",
           "published/aidirectory/tools.json"]
 STAMP = re.compile(r"10:25 UTC 2026-10-17 to at least (\d\d:\d\d UTC \d{4}-\d\d-\d\d)")
+# Challenge #247: the sellers answered again on 2026-11-10. Every copy now also carries the measured return, and
+# tools.json's per-entry last_check is that newest measurement, not the outage end.
+BACK = re.compile(r"(\d\d:\d\d UTC \d{4}-\d\d-\d\d),? all five answered|answered again at (\d\d:\d\d UTC \d{4}-\d\d-\d\d)")
+
+
+def back_stamps(text):
+    return {a or b for a, b in BACK.findall(text)}
 
 
 def read(rel):
@@ -35,8 +42,27 @@ class SellersDownStampAgrees(unittest.TestCase):
         stamps = {m for rel in COPIES for m in STAMP.findall(read(rel))}
         self.assertEqual(len(stamps), 1, "copies disagree on the outage end: %s" % sorted(stamps))
 
+    def test_every_copy_carries_one_measured_return(self):
+        stamps = set()
+        for rel in COPIES:
+            found = back_stamps(read(rel))
+            self.assertTrue(found, rel + " still reads as if the sellers were down")
+            stamps |= found
+        self.assertEqual(len(stamps), 1, "copies disagree on the return: %s" % sorted(stamps))
+        end = STAMP.search(read("published/bounties.txt")).group(1)
+        key = lambda s: (s.split()[2], s.split()[0])
+        self.assertGreater(key(stamps.pop()), key(end), "the return must be measured after the outage end")
+
+    def test_no_copy_says_the_sellers_are_down_now(self):
+        for rel in COPIES:
+            s = read(rel)
+            for stale in ("have not answered since 2026-10-17", "has not answered since 2026-10-17",
+                          "DOWN: STEP 6's paypercall.dev sellers", "while the paypercall.dev sellers are down",
+                          "ONE PAID CALL OF OURS DOES ANSWER while they are down"):
+                self.assertNotIn(stale, s, rel)
+
     def test_tools_json_last_checks_match_the_stamp(self):
-        stamp = STAMP.search(read("published/bounties.txt")).group(1)  # "20:22 UTC 2026-10-27"
+        stamp = back_stamps(read("published/bounties.txt")).pop()  # "12:24 UTC 2026-11-10"
         hm, _, day = stamp.split()
         want = "%sT%sZ" % (day, hm)
         with open(os.path.join(ROOT, "published/aidirectory/tools.json")) as f:

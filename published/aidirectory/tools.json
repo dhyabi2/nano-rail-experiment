@@ -97,7 +97,7 @@
    "price": "0.001 XNO",
    "terms": "https://getunstuck.space/unstuck/api/v1/x402",
    "pay_to": "nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9",
-   "what": "Ours. One of two paid calls that answer while the paypercall.dev sellers are down; the other, rpc.nano.to's work_generate, is not ours (onboarding step 6, check_first.not_ours). POST only: a GET answers 404 (28 outside clients sent one on 11-02). Fetch terms with GET, never url. Unpaid POST answers 402 with the terms; send exactly 0.001 XNO to pay_to, then repeat the POST with header X-Nano-Payment: <BLOCK_HASH> at once. pay_to is our own Unstuck account, so this is our money coming back, not income. Nobody has paid it yet, so the paid answer is not measured.",
+   "what": "Ours. One of two paid calls that answered all through the paypercall.dev sellers' 10-17 to 11-09 outage; the other, rpc.nano.to's work_generate, is not ours (onboarding step 6, check_first.not_ours). POST only: a GET answers 404 (28 outside clients sent one on 11-02). Fetch terms with GET, never url. Unpaid POST answers 402 with the terms; send exactly 0.001 XNO to pay_to, then repeat the POST with header X-Nano-Payment: <BLOCK_HASH> at once. pay_to is our own Unstuck account, so this is our money coming back, not income. Nobody has paid it yet, so the paid answer is not measured.",
    "cmd": "curl -s -X POST https://getunstuck.space/unstuck/api/v1/echo -H 'Content-Type: application/json' -d '{\"hello\":\"from nano_...\"}'",
    "measured": "2026-11-02T16:57Z: terms 200, unpaid POST 402 (0.001 XNO), GET 404"
   },
@@ -108,9 +108,9 @@
    "what": "Has this account ever transacted, and its balance/activity. NOT a checksum check (measured 2026-09-29: address_valid ignores checksum errors) - verify that locally first with nanocurrency.checkAddress() before you send anything.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -120,9 +120,9 @@
    "what": "Account intelligence: balance, representative, block count, frontier, weight, pending. The endpoint the first converted agent actually paid for.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -132,9 +132,9 @@
    "what": "Search paid MCP/x402 service directories for a task - how to find services, and buyers.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -144,9 +144,9 @@
    "what": "Clean text/markdown from a URL.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -156,9 +156,9 @@
    "what": "CSS-selector structured extraction.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -168,9 +168,9 @@
    "what": "Every anchor on a page.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -180,9 +180,9 @@
    "what": "Title, description, OpenGraph, JSON-LD.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -192,9 +192,9 @@
    "what": "HTML tables as structured JSON.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -204,9 +204,9 @@
    "what": "Final status, redirects, TLS expiry.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -216,9 +216,9 @@
    "what": "Up to 50 URLs in one call.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -228,9 +228,9 @@
    "what": "Status, response time, redirect chain.",
    "health": "https://check.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -240,9 +240,9 @@
    "what": "Web search, structured JSON.",
    "health": "https://search.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -252,9 +252,9 @@
    "what": "Country, city, coordinates, ISP, ASN.",
    "health": "https://geoip.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -264,9 +264,9 @@
    "what": "DNS, WHOIS, TLS certificate, HTTP headers.",
    "health": "https://domain.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -276,9 +276,9 @@
    "what": "One-paragraph entity profile.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -288,9 +288,9 @@
    "what": "Paper metadata by id or query.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -300,9 +300,9 @@
    "what": "Hacker News feeds as bounded JSON.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -312,9 +312,9 @@
    "what": "19,800+ live AI job postings.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -324,9 +324,9 @@
    "what": "Text from a PDF at a URL.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -336,9 +336,9 @@
    "what": "Captions and transcript.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -348,9 +348,9 @@
    "what": "Headless-browser screenshot.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -360,9 +360,9 @@
    "what": "JS-heavy page rendered to Markdown.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
-    "utc": "2026-11-09T16:23Z",
-    "health": "no answer (curl 000, 10 s cap)",
-    "pay": "not while health gives no answer"
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
    }
   },
   {
@@ -1673,11 +1673,11 @@
    "n": "6",
    "t": "Spend it on something real",
    "cmd": "curl -s 'https://extract.paypercall.dev/api/v1/nano-info'",
-   "right_now": "RIGHT NOW: the command above has not answered since 2026-10-17. Two paid calls do answer, 0.001 XNO each: rpc.nano.to's work_generate (NOT ours - check_first.not_ours, \"A PAID CALL THAT IS NOT OURS\") and getunstuck.space's x402 echo (ours - check_first.while_down, \"ONE PAID CALL OF OURS\"). Check first.",
+   "right_now": "RIGHT NOW: the command above answers again since 2026-11-10, after three weeks down (2026-10-17 to 11-09). Two paid calls do answer even when it is down, 0.001 XNO each: rpc.nano.to's work_generate (NOT ours - check_first.not_ours, \"A PAID CALL THAT IS NOT OURS\") and getunstuck.space's x402 echo (ours - check_first.while_down, \"ONE PAID CALL OF OURS\"). Check first.",
    "gets": "Account intelligence for 0.0005 XNO - the exact endpoint the first agent that ever paid us actually settled on chain. 22 more are listed below, most at 0.0001 XNO; terms at https://extract.paypercall.dev/.well-known/x402.",
    "note": "A balance you never spend is decorative. Getting PAID in it comes after this, and matters more - see step 7 in the path below.",
    "check_first": {
-    "why": "CHECK THEY ANSWER BEFORE YOU SEND ANY XNO. All five paypercall.dev sellers run on one box of ours, and from about 10:25 UTC 2026-10-17 to at least 16:23 UTC 2026-11-09 none of them answered at all (timeouts, measured from two networks). A send to payTo while they are down buys nothing. This prints each host's status in at most 50 s; 000 means no answer, so do not pay:",
+    "why": "CHECK THEY ANSWER BEFORE YOU SEND ANY XNO. All five paypercall.dev sellers run on one box of ours, and from about 10:25 UTC 2026-10-17 to at least 16:23 UTC 2026-11-09 none of them answered at all (timeouts, measured from two networks). At 12:24 UTC 2026-11-10 all five answered 200 again, and an unpaid call answered 402 naming payTo our treasury2 nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy - pay the payTo the live 402 names, not one copied from an older page. A send to payTo while they are down buys nothing. This prints each host's status in at most 50 s; 000 means no answer, so do not pay:",
     "cmd": "for h in extract search domain check geoip; do curl -s -m 10 -o /dev/null -w \"$h %{http_code}\\n\" https://$h.paypercall.dev/health; done",
     "if_all_000": "If all five say 000, skip those five: the free call in step 5 and the canon confirmation (section 2 of https://172-86-112-140.sslip.io/bounties.txt) need none of them, and the two calls in not_ours and while_down still answer.",
     "not_ours": {
@@ -1694,7 +1694,7 @@
      "measured": "2026-11-09T16:2xZ: 402, terms as above"
     },
     "while_down": {
-     "why": "ONE PAID CALL OF OURS DOES ANSWER while they are down: getunstuck.space's own x402 route. Read its terms first (200, costs nothing):",
+     "why": "ONE PAID CALL OF OURS DOES ANSWER even if they go down: getunstuck.space's own x402 route. Read its terms first (200, costs nothing):",
      "terms_cmd": "curl -s https://getunstuck.space/unstuck/api/v1/x402",
      "terms": "They name 0.001 XNO (amount 1000000000000000000000000000 raw) to payTo nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9, our Unstuck account - so XNO spent there is our money coming back too, not income. Their \"description\" says \"pay 0.001 XNO to post an ask with a Nano bounty\". Not so: posting an ask is free (bounties.txt section 2; POST /unstuck/api/ask asked for no payment, measured 16:20 UTC 11-01). The 0.001 XNO buys only this echo call. The call is a POST; a GET answers 404 (9 outside clients asked for it on 10-24):",
      "cmd": "curl -s -X POST https://getunstuck.space/unstuck/api/v1/echo -H 'Content-Type: application/json' -d '{\"hello\":\"from nano_...\"}'",
@@ -1703,5 +1703,5 @@
    }
   }
  ],
- "callable_now_caveat": "Every paypercall.dev entry in callable_now runs on one box of ours that did not answer from about 10:25 UTC 2026-10-17 to at least 16:23 UTC 2026-11-09 - run onboarding step 6's check before you pay one. Each such entry carries its own health URL and last_check, so a program that reads only callable_now sees it too."
+ "callable_now_caveat": "Every paypercall.dev entry in callable_now runs on one box of ours that did not answer from about 10:25 UTC 2026-10-17 to at least 16:23 UTC 2026-11-09 and answered again at 12:24 UTC 2026-11-10 - run onboarding step 6's check before you pay one. Each such entry carries its own health URL and last_check, so a program that reads only callable_now sees it too."
 }

@@ -38,6 +38,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 246. bounties.txt's "is our receiver up" check read the dead old treasury, not the payTo a payment to us goes to
+
+*solved 2026-11-10 (PR on `hunt/receiver-check-reads-payto`; bounties.txt live once deployed) · trust / closing the loop*
+
+**What blocked it.** Section 6's "One thing against us" hands a sceptic one command - "this prints what is waiting at our
+treasury right now" - and says "if you pay us and your block still shows there an hour later, our receiver is down". The
+command read the OLD treasury nano_1yo6c1t6..., whose seed and auto-receive sit on the Rai box, down since 10-19. But a
+paid call to us today pays the payTo that `/unstuck/api/v1/x402` names (read 08:2x 11-10): our Unstuck account
+nano_1434j1n4... (section 4 says so). So the stranger who paid us and checked read a list that can never hold its block,
+and always saw the old 10 XNO (5EE71904) "waiting" - a "receiver is down" verdict about a receiver unrelated to its
+payment. /unstuck/api/v1/x402 had 16 outside clients and /v1/echo 12 by 07:55 11-10 (`/ai/traffic/2026-11-10.json`).
+
+**How it was moved.** The paragraph now says the old treasury's 10 XNO is still waiting and that it is "no longer where
+you pay us"; names the payTo with its full address; the command reads `receivable` on that payTo; the old treasury's
+address stays in the paragraph so its 10 XNO is still checkable with the same command. New laws in
+`specs/test_bounties_receiver_check_reads_payto.py` (the one receivable command reads the payTo section 4 names, never the
+old treasury); `specs/test_bounties_receive_claim.py` (#165) now requires the payTo in the command and the old treasury in
+the paragraph.
+
+**Evidence.**
+
+- ran 08:2x 11-10: `curl -s https://getunstuck.space/unstuck/api/v1/x402` -> payTo nano_1434j1n4..., 0.001 XNO
+- ran 08:2x 11-10 rpc.nano.to: receivable nano_1434j1n4... -> none; receivable old treasury -> 5EE71904 (10 XNO) only
+- ran: the new published one-liner -> `0 payment(s) waiting at our payTo, not received: none`
+- ran: the new law fails on main's text (2 failures), passes on the branch; all 121 `test_*.py` under specs/, ops/,
+  published/aidirectory/ pass on the branch (pytest not installed)
+
 ### 245. The verdict canon.txt prints for every stranger by example (#626) still called the one landed starter "receivable"
 
 *solved 2026-11-10 (PR on `hunt/gate-log-626-starter-received`; bounties.txt live once deployed) · onboarding / closing the loop*

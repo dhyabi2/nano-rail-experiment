@@ -15,6 +15,7 @@ import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TREASURY = "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+PAYTO = "nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9"
 
 
 class ReceiveClaim(unittest.TestCase):
@@ -31,9 +32,12 @@ class ReceiveClaim(unittest.TestCase):
         para = self.txt[i:self.txt.index("One more against us", i)]
         self.assertIn("5EE71904", para, "the unreceived 10-18 block must be named")
         cmd = [l for l in para.splitlines() if "python3 -c" in l]
-        self.assertEqual(len(cmd), 1, "one command that prints what is waiting at the treasury")
+        self.assertEqual(len(cmd), 1, "one command that prints what is waiting where a payment to us lands")
         self.assertIn("'action':'receivable'", cmd[0])
-        self.assertIn(TREASURY, cmd[0])
+        # Since challenge #246 (11-10) the command reads the payTo a paid call names (Unstuck); the old
+        # treasury, whose receiver box is down, is still named in the paragraph so its 10 XNO stays checkable.
+        self.assertIn(PAYTO, cmd[0])
+        self.assertIn(TREASURY, para)
         self.assertIn("rpc.nano.to", cmd[0])
 
 

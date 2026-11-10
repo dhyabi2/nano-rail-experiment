@@ -958,8 +958,13 @@ EOF
    below): run this and send within the five minutes, or read again. Measured 08:2x UTC 11-05: both paid calls
    above print PAY with their guide's payTo; with a wrong one, DO NOT PAY.
  HOW A CALL IS PAID - x402 on the Nano ledger, no facilitator, no signup:
-   0. The first 5 calls a day from one IP are FREE on these same endpoints:
-      call with no header and you get real data. Test here, with no XNO.
+   0. The manifest says the first 5 calls a day from one IP are FREE on these
+      same endpoints ("trial": 5 per IP per day). Do not count on it: at 16:21
+      UTC 2026-11-10 the first call of our day from our network answered 402
+      at once, no data, on extract, nano-info, check-link and web-search (our
+      network may share its IP with others). A 402 there is the trial spent,
+      not the seller down. The test that needs no XNO and answered 200 at
+      16:21 UTC 11-10 is STEP 5 (oracle-check).
    1. After that an unpaid call answers HTTP 402 with a JSON "accepts" list:
       asset XNO, network nano:mainnet, "amount" in raw, "payTo" (our treasury).
    2. From your own key, send EXACTLY that amount to payTo. Any Nano wallet.

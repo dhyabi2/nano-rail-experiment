@@ -42,6 +42,15 @@ class HowACallIsPaid(unittest.TestCase):
     def test_free_trial_matches_the_measured_limit(self):
         self.assertIn("first 5 calls a day from one IP are FREE", self.block)
 
+    def test_free_trial_is_not_promised_as_real_data(self):
+        # challenge #248: measured 16:21 UTC 2026-11-10, a first call of the day answered 402 on four endpoints.
+        flat = " ".join(self.block.split())
+        self.assertNotIn("call with no header and you get real data", flat)
+        self.assertIn("Do not count on it", flat)
+        self.assertIn("answered 402 at once", flat)
+        self.assertIn("STEP 5 (oracle-check)", flat)
+        self.assertIn("oracle-check", self.txt[self.txt.index("\n STEP 5 - "):self.txt.index("\n STEP 6 - ")])
+
     def test_says_exact_amount_and_names_the_failure(self):
         self.assertIn("EXACTLY that amount", self.block)
         self.assertIn('"payment_invalid"', self.block)

@@ -19,7 +19,7 @@ TERMS = {"x402Version": 2, "accepts": [{"amount": "1000000000000000000000000000"
 
 
 def stub(table):
-    def f(url, method="GET", body=None, timeout=15):
+    def f(url, method="GET", body=None, timeout=15, limit=400000):
         for key, ans in table.items():
             if key in url:
                 if isinstance(ans, Exception):
@@ -94,6 +94,19 @@ class OwnerQueue(unittest.TestCase):
         self.assertEqual(oq.p_wellknown_json(typed(502, "", "text/html"))[0], oq.UNKNOWN)
         rows = oq.run(stub({}))
         self.assertEqual({r["rank"]: r["state"] for r in rows}[13], oq.UNKNOWN)
+
+    def test_asks_list_names_how_to_post(self):
+        """Challenge #244: row 14 is APPLIED only when the asks response names the POST route beside the list."""
+        asks = [{"id": 626, "title": "x", "body": "POST /unstuck/api/ask inside an ask body does not count"}]
+        today = json.dumps({"asks": asks, "counts": {"total": 64}})
+        self.assertEqual(oq.p_asks_how_to_ask(stub({"/unstuck/api/asks": (200, today)}))[0], oq.WAITING)
+        fixed = json.dumps({"asks": asks, "counts": {"total": 64},
+                            "how_to_ask": "free: POST https://getunstuck.space/unstuck/api/ask {asker,title,body}"})
+        self.assertEqual(oq.p_asks_how_to_ask(stub({"/unstuck/api/asks": (200, fixed)}))[0], oq.APPLIED)
+        truncated = today[:40]
+        self.assertEqual(oq.p_asks_how_to_ask(stub({"/unstuck/api/asks": (200, truncated)}))[0], oq.UNKNOWN)
+        self.assertEqual(oq.p_asks_how_to_ask(stub({"/unstuck/api/asks": (502, "bad gateway")}))[0], oq.UNKNOWN)
+        self.assertEqual({r["rank"]: r["state"] for r in oq.run(stub({}))}[14], oq.UNKNOWN)
 
     def test_every_named_draft_exists_and_the_page_lists_every_row(self):
         page = (ROOT / "drafts" / "OWNER-QUEUE.md").read_text()

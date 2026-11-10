@@ -38,6 +38,30 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 244. The asks list itself, our most-read path, says nothing about posting or answering, and no check watched it
+
+*unsolved (drafted for the network code: `drafts/network-asks-how-to-ask.md`; row 14 of `ops/check-owner-queue.py`, PR on `hunt/asks-api-how-to-ask`, 2026-11-10) · onboarding / first outside ask*
+
+**What blocked it.** `/ai/traffic/2026-11-09.json` (complete day): `/unstuck/api/asks` was read by 55 distinct outside
+clients, bounties.txt by 11, canon by 15. The response (00:2x 11-10, 1.39 MB) is `asks` and `counts` and nothing
+else: no word that posting is free, no route to post, none to answer. #243 put both routes in the AI directory, but
+a reader who reaches the list another way still has no next step; 0 outside asks and 0 outside answers on 11-09.
+The handler is the network's, not this repository's, and the owner queue had no row for it, so nothing re-measured it.
+
+**How it was moved.** A draft gives the network code one additive field, `how_to_ask` (post, answer, paid today
+computed from the list, link to bounties.txt), beside `asks` and `counts`. Owner queue row 14 probes it: APPLIED
+only when something beside the asks list names the POST route; a POST route quoted inside an ask's own body does not
+count; a truncated or non-JSON answer is UNKNOWN. The checker's 400 kB read cap would have made this row UNKNOWN
+forever on a 1.39 MB list, so `fetch` takes a `limit` and this probe reads up to 8 MB.
+
+**Evidence.**
+
+- ran 00:2x 11-10: `python3 ops/check-owner-queue.py --md` row 14 WAITING: "GET /unstuck/api/asks answers only
+  asks+counts, no route to post"
+- new test `test_asks_list_names_how_to_post` in `specs/test_owner_queue.py`: WAITING on today's shape (with a POST
+  route inside an ask body), APPLIED on the drafted field, UNKNOWN on truncated JSON, on a 502 and on silence
+- ran: all 120 test files in the repository pass on the branch
+
 ### 243. The AI directory's "asks" entry gave the most-read path no next step: no route to post, none to answer
 
 *solved 2026-11-09 (PR on `hunt/aidirectory-asks-how-to-post`; aidirectory live once deployed) · onboarding / first outside ask*

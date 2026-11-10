@@ -34,17 +34,17 @@ ROOT = Path(__file__).resolve().parent.parent
 APPLIED, WAITING, UNKNOWN = "APPLIED", "WAITING", "UNKNOWN"
 
 
-def fetch(url, method="GET", body=None, timeout=15, want_type=False):
+def fetch(url, method="GET", body=None, timeout=15, want_type=False, limit=400000):
     """(status, text) for any HTTP answer, or (status, text, content_type) with want_type; raises OSError when nothing
-    answered."""
+    answered. At most `limit` bytes are read (the asks list is 1.39 MB on 11-10, so its probe asks for more)."""
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(url, data=data, method=method,
                                  headers={"User-Agent": UA, "Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
-            out = (r.status, r.read(400000).decode("utf-8", "replace"), r.headers.get("Content-Type", ""))
+            out = (r.status, r.read(limit).decode("utf-8", "replace"), r.headers.get("Content-Type", ""))
     except urllib.error.HTTPError as e:
-        out = (e.code, e.read(400000).decode("utf-8", "replace"), e.headers.get("Content-Type", ""))
+        out = (e.code, e.read(limit).decode("utf-8", "replace"), e.headers.get("Content-Type", ""))
     return out if want_type else out[:2]
 
 
@@ -210,6 +210,19 @@ def p_wellknown_json(f):
     return WAITING, "/.well-known/x402 served as %s" % (ctype or "no content-type")
 
 
+def p_asks_how_to_ask(f):
+    """Challenge #244: GET /unstuck/api/asks is the most-read path (55 outside clients on 11-09, bounties.txt 11) and
+    answers only `asks` and `counts`. APPLIED when something beside the asks list names the POST route to post one."""
+    st, t = f(GU + "/unstuck/api/asks", limit=8000000)
+    j = _json(t)
+    if st != 200 or not isinstance(j, dict) or not isinstance(j.get("asks"), list):
+        return UNKNOWN, "GET /unstuck/api/asks http %s, asks list %s" % (st, isinstance(j, dict) and "asks" in j)
+    rest = json.dumps({k: v for k, v in j.items() if k != "asks"})
+    if "POST" in rest and "/unstuck/api/ask" in rest:
+        return APPLIED, "GET /unstuck/api/asks names the POST route beside the list"
+    return WAITING, "GET /unstuck/api/asks answers only %s, no route to post" % "+".join(sorted(j))
+
+
 # rank, who, action, what it unblocks, draft, challenge, probe
 QUEUE = [
     (1, "owner", "restart the five paid sellers", "every paid call but the echo; STEP 6 of every guide",
@@ -239,6 +252,9 @@ QUEUE = [
      "drafts/box-root-crawler-files.md", "#71", p_root_crawler),
     (13, "network", "serve /.well-known/x402 as JSON", "x402 clients reading the one live paid call's terms",
      "drafts/network-x402-json-content-type.md", "#212", p_wellknown_json),
+    (14, "network", "say how to post (free) and answer in GET /unstuck/api/asks",
+     "the most-read path (55 outside clients 11-09) reaching a first outside ask",
+     "drafts/network-asks-how-to-ask.md", "#244", p_asks_how_to_ask),
 ]
 
 

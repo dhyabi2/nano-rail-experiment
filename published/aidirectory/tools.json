@@ -375,7 +375,7 @@
    "name": "openings ledger",
    "url": "https://getunstuck.space/ledger.json",
    "price": "free",
-   "what": "Every account this network has opened, and honestly how many were NOT opened by us."
+   "what": "Every account this network has opened, and honestly how many were NOT opened by us. STALE (measured 2026-11-11 04:2x UTC): its updated field says 2026-10-29 and it counts 23 starters from the old opener only; the starters since 2026-11-08 leave treasury2 nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy and are not in it. For the current count read starter_payments in https://172-86-112-140.sslip.io/ai/numbers.json (29 sent, 21 unreceived at 04:03 11-11) or treasury2's account_history yourself (bounties.txt STEP 3)."
   }
  ],
  "catalogue": {

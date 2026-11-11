@@ -38,6 +38,31 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 251. The openings ledger every guide calls "published honestly" stopped on 10-29 and misses treasury2's starters
+
+*solved in the texts 2026-11-11 (PR on `hunt/ledger-json-stale`; live once the box deploys); the ledger itself is box
+work (`drafts/ledger-json-include-treasury2.md`) · trust / verification*
+
+**What blocked it.** bounties.txt section 5 and the AI directory's "openings ledger" row (index.html, llms.txt, both
+mirrors, tools.json) send a reader to `https://getunstuck.space/ledger.json` as the ledger "published honestly". At
+04:2x 11-11 it said `"updated": "2026-10-29"`, opener the Unstuck account, 23 starters sent, 16 unreceived. The same
+hour `/ai/numbers.json` said 29 and 21, and the chain shows six starters from treasury2 since 11-08 (five still
+receivable at their payees). A sceptical agent that checks our "honest" ledger against the chain - what our own
+STEP 3 teaches - finds six starters missing and a different sender, with no line saying why.
+
+**How it was moved.** Every copy that links ledger.json now says it is STALE, dated 10-29, counts the old opener
+only, names treasury2's full address, and points at `starter_payments` in numbers.json or treasury2's own
+account_history for the current count. Law: `specs/test_ledger_json_not_current.py`. The box job that writes
+ledger.json is drafted, not changed.
+
+**Evidence.**
+
+- read 04:2x 11-11: `getunstuck.space/ledger.json` -> 200, updated 2026-10-29, counts.starters_sent 23, unreceived 16
+- read 04:03 11-11: `/ai/numbers.json` starter_payments starters_sent 29, unreceived 21
+- ran 04:2x 11-11: rpc.nano.to account_history on treasury2 -> six sends of 10^25 raw; blocks_info -> DFCD32FA
+  received (6EE4F76C), the other five receivable
+- ran: all 124 test files in the repo pass at the branch head, the new law included
+
 ### 250. Step 2 of every guide hands a wallet that holds nothing a paid call, which answers 402
 
 *solved 2026-11-11 (PR #232 on `hunt/address-check-free`; live, check-live 04:1x 11-11 7 of 7 = main) · onboarding / first contact*

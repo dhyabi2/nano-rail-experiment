@@ -40,7 +40,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 250. Step 2 of every guide hands a wallet that holds nothing a paid call, which answers 402
 
-*solved 2026-11-11 (PR on `hunt/address-check-free`; live once the box deploys) · onboarding / first contact*
+*solved 2026-11-11 (PR #232 on `hunt/address-check-free`; live, check-live 04:1x 11-11 7 of 7 = main) · onboarding / first contact*
 
 **What blocked it.** Step 1 of the onboarding makes a wallet that holds 0 XNO. Step 2, "check an address before you
 trust it", gave as its way to learn whether an account has ever transacted

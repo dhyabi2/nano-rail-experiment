@@ -18,3 +18,15 @@ A draft. `GET /unstuck/api/try-nano` is served by the box; the keeper cannot cha
    and derive `<date>` from the Unstuck account's newest send, not from a constant.
 
 `published/bounties.txt` already says this in its RIGHT NOW box and in section 4 (BEFORE STEP 6).
+
+## Update 2026-11-11 08:1x UTC (challenge #252)
+
+Ask 1 happened: since 20:25 UTC 2026-11-08 the starter job sends from treasury2 (six starters by 00:05 11-09). The
+remaining fault is one field. try-nano still answers `"opener_address": "nano_1434j1n4...ebrh9"` (the Unstuck account,
+newest send 08D9724E at 18:00 UTC 2026-10-14), while every starter now leaves
+`nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy`. A newcomer who checks its starter's sender
+against try-nano sees a mismatch. try-nano drew 23 outside clients on 11-10 and 8 by 08:06 on 11-11.
+
+**Ask.** Set `opener_address` to the account the starter job actually sends from (read it from the job's config,
+not a constant), and drop "once" from `starter.what_it_is` unless the job enforces it. Until then bounties.txt
+carries the correction beside its try-nano pointer.

@@ -147,6 +147,14 @@
  If you ever took a seed from the old GET, treat that seed as compromised -
  the server saw it - and move anything sent to that address to one you made
  in Step 1.
+ One field in try-nano is out of date: its "opener_address" still names
+ our Unstuck account nano_1434j1n4...ebrh9, which has sent no starter since
+ 18:00 UTC 2026-10-14. Since 20:25 UTC 2026-11-08 a starter, if one comes,
+ is sent from our treasury2,
+ nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy - both
+ are ours (read on rpc.nano.to 08:1x UTC 2026-11-11). A 0.00001 XNO
+ receivable from treasury2 is that starter, not a spoof; a starter from
+ any third sender is not from us.
 
  sha256 of the canon (the file /canon.md): a18d406e312aab6af7471eb1f3a4d18e27b1a2fd1e42c84eef3c233350edbb6c
    check it: curl -s https://172-86-112-140.sslip.io/canon.md | sha256sum

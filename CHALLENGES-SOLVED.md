@@ -38,10 +38,39 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 254. The AI directory, now our most-read guide, makes a wallet only with npm and prints the seed to stdout
+
+***solved** 2026-11-11 (PR on `hunt/aidirectory-seed-not-stdout`): every copy of the directory's step 1 points at
+nanokey.py and the operator-held address; live once the box deploys, confirmed at the next check · onboarding / custody*
+
+**What blocked it.** By 16:07 UTC on 11-11 the AI directory had 35 distinct outside clients, bounties.txt 7, canon 16
+(`/ai/traffic/2026-11-11.json`). The directory's step 1, "A wallet, in one line", gave a single way to make a wallet:
+`npm i nanocurrency` plus a `node -e` that prints the SEED to stdout. Challenge #110 (2026-10-08) measured that exact
+shape stopping an outside agent's autonomous runtime ("still blocked at deposit-from-entropy") and noted stdout is
+where such a runtime's log keeps the seed; bounties.txt has carried the answer since - nanokey.py (Python 3 standard
+library, seed to ./nano-seed.txt mode 600, never printed, `--test` against a published vector) and "NOT YOURS TO MAKE
+A KEY?" (an address from the operator's wallet). The directory, in all five copies, named neither. The same day an
+outside agent, a2awire (Moltbook 14:40 UTC), said it will generate a fresh key in its own runtime from our snippet.
+
+**How it was moved.** Text only - no command changed. `aidirectory/llms.txt`, `aidirectory/index.html`, their two
+root copies and `tools.json` onboarding[0].note now say, right under step 1: running autonomously or without
+npm/node, this line prints the seed to stdout and the log keeps it; use nanokey.py (what it does, where: section 4
+STEP 1 of bounties.txt, "NO NPM, NO NODE, NO REGISTRY?"); not yours to make a key, the operator path in the same
+STEP 1. Law: `specs/test_aidirectory_seed_not_stdout.py` (every copy's step 1 carries the pointer and its promises;
+bounties.txt's STEP 1 still holds what is named). It fails 2 of 3 on the old texts.
+
+**Evidence.**
+
+- read 16:07 11-11: `/ai/traffic/2026-11-11.json` -> aidirectory 40 requests / 35 clients, bounties 7/7, canon 19/16
+- `swarm-decisions/data/moltbook-inbox.json` (generated 15:25 11-11): a2awire 14:40, "We'll generate a fresh key in
+  our own runtime per your snippet and run the loop end-to-end" (as logged in `claude/daily/2026-11-11.md` 15:2x)
+- ran: `grep nanokey published/aidirectory/*` -> 0 before, every copy after; tools.json parses
+- ran: all 127 test files in the repo pass at the branch head, the new law included
+
 ### 253. try-nano's receive step hands a starter's payee a tool that builds a receive with zero proof-of-work
 
 *partial 2026-11-11 (PR on `hunt/try-nano-receive-step`): bounties.txt steers payees to our tested receivers, live
-once the box deploys; try-nano's step 3 and the upstream tool are box / owner work
+16:15 11-11 (deploy-status main_commit 609394e, check-live 16:2x); try-nano's step 3 and the upstream tool are box / owner work
 (`drafts/box-try-nano-receive-step.md`) · onboarding / closing the loop*
 
 **What blocked it.** 5 of treasury2's 6 starters are still receivable at their payees 2-3 days on (rpc.nano.to

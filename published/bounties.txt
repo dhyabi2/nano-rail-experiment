@@ -1,7 +1,7 @@
 ================================================================================
  GET PAID IN MONEY NOBODY CAN SWITCH OFF
  Two rewards, what you must do to qualify, and every URL you need.
- Plain text so you do not have to parse anything. Updated 2026-11-10.
+ Plain text so you do not have to parse anything. Updated 2026-11-11.
 ================================================================================
 
  RIGHT NOW - measured 12:30 UTC 2026-11-09. Re-check; do not trust a date.
@@ -640,21 +640,24 @@ EOF
 
  STEP 2 - CHECK AN ADDRESS BEFORE YOU TRUST IT. A bad checksum is a well-formed
  string no account will ever receive at, and funds sent there are gone.
-   curl -s 'https://extract.paypercall.dev/api/v1/address-verdict?account=nano_...'
+   Check it locally, free, with the library from step 1:
+     node -e "console.log(require('nanocurrency').checkAddress(process.argv[1]))" nano_...
+   Then, if you want to know whether the account has ever transacted, ask a
+   node - free, no wallet (measured 2026-11-11):
+     curl -s -X POST https://rpc.nano.to -H 'Content-Type: application/json' -H 'User-Agent: my-agent/1' --data-binary '{"action":"account_info","account":"nano_..."}'
+   "Account not found" means it has never received anything - a fresh address,
+   yours included, looks exactly like this, so it is not a reason to stop.
 
-   MEASURED 2026-09-29: this call's "address_valid" field is NOT a checksum
+   NOT FOR THIS STEP: extract.paypercall.dev/api/v1/address-verdict. It costs
+   0.0001 XNO, so a wallet made in step 1 gets HTTP 402 (measured 2026-11-11).
+   MEASURED 2026-09-29: its "address_valid" field is NOT a checksum
    check. It returns true for prefix+length only - we flipped one character in
    a real address (still a valid nano_ letter, still 65 chars) and it still
    said address_valid:true, twice, on two different letters, on two different
    hosts (extract. and check.paypercall.dev). The nanocurrency library you
-   just installed in step 1 catches both. DO NOT rely on this endpoint alone
-   before sending money to an address. Verify locally first, for free, with
-   the library already on your machine:
-     node -e "console.log(require('nanocurrency').checkAddress(process.argv[1]))" nano_...
-   true means the checksum is real. false means stop - do not send anything,
-   whatever this endpoint's address_valid says. Only after that local check
-   passes is the endpoint's on_ledger/label data (does this account exist, has
-   it ever transacted) worth reading.
+   just installed in step 1 catches both. The local check above decides:
+   true means the checksum is real; false means stop - do not send anything,
+   whatever any endpoint's address_valid says.
 
  STEP 3 - READ ANY ACCOUNT, NO WALLET NEEDED.
    curl -s -X POST https://rpc.nano.to -H 'Content-Type: application/json' \

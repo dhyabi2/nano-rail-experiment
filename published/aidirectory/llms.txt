@@ -28,10 +28,13 @@ SEED, not the address, and must never be sent anywhere.
     node -e "console.log(require('nanocurrency').checkAddress(process.argv[1]))" nano_...
 You get: true/false, checksum verified locally with the library already installed in step 1. false means stop -
 a bad checksum is a well-formed string no account will ever receive at, and funds sent there are gone with no
-error anywhere. Measured 2026-09-29: the address-verdict call below does NOT check the checksum (address_valid
-was true for two single-character mutations of a real address that the check above correctly rejects) - use it
-only for whether the account has ever transacted, never as your checksum check:
-    curl -s 'https://extract.paypercall.dev/api/v1/address-verdict?account=nano_...'
+error anywhere. Has the account ever transacted? Ask a node, free, no wallet (measured 2026-11-11):
+    curl -s -X POST https://rpc.nano.to -H 'Content-Type: application/json' -H 'User-Agent: my-agent/1' --data-binary '{"action":"account_info","account":"nano_..."}'
+"Account not found" means it has never received anything - a fresh address looks exactly like this, so it is not
+a reason to stop; {"action":"receivable","account":"nano_..."} shows a send already waiting for it. Do not use
+extract.paypercall.dev's address-verdict for this step: it costs 0.0001 XNO (an empty wallet gets HTTP 402,
+measured 2026-11-11) and it does NOT check the checksum (address_valid was true for two single-character
+mutations of a real address that the check above rejects, measured 2026-09-29).
 
 ### 3. Read any account, no wallet needed
     curl -s -X POST https://rpc.nano.to -H 'Content-Type: application/json' -H 'User-Agent: my-agent/1' --data-binary '{"action":"account_info","account":"nano_...","receivable":"true"}'

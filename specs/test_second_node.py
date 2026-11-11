@@ -57,9 +57,12 @@ class SecondNode(unittest.TestCase):
         call = stub({csn.REFERENCE: (GOOD_BLOCK, GOOD_ACCOUNT), "https://n1": (GOOD_BLOCK, {"error": "rate limited"})})
         self.assertEqual(csn.run(["https://n1"], call)[1]["verdict"], "UNKNOWN")
 
-    def test_a_missing_block_is_unknown(self):
+    def test_a_missing_block_disagrees(self):
+        # nrx#212 review round 2 LOW 3: {"blocks": {}} for a confirmed payment is an answer that it does not exist.
         call = stub({csn.REFERENCE: (GOOD_BLOCK, GOOD_ACCOUNT), "https://n1": (None, GOOD_ACCOUNT)})
-        self.assertEqual(csn.run(["https://n1"], call)[1]["verdict"], "UNKNOWN")
+        rows = csn.run(["https://n1"], call)
+        self.assertEqual(rows[1]["verdict"], "DISAGREES")
+        self.assertEqual(csn.exit_code(rows), 1)
 
     def test_disagreement_names_the_field(self):
         bad = dict(GOOD_BLOCK, confirmed="false")
@@ -87,6 +90,12 @@ class SecondNode(unittest.TestCase):
 
     def test_rpc_nano_to_is_not_its_own_second_node(self):
         self.assertNotIn(csn.REFERENCE, csn.CANDIDATES)
+
+    def test_no_github_actions_workflow_is_assumed(self):
+        # Owner rule (a18424e): no GitHub Actions. The probe is run by hand where egress is open; nothing may
+        # claim a scheduled workflow runs it.
+        self.assertFalse(os.path.exists(os.path.join(ROOT, ".github", "workflows", "second-node.yml")))
+        self.assertNotIn(".github/workflows", open(os.path.join(ROOT, "ops", "check-second-node.py")).read())
 
     def test_bounties_names_only_measured_nodes(self):
         # Measured 08:24 UTC 2026-11-07 on GitHub's runners (second-node run 1): these AGREED with rpc.nano.to.

@@ -161,7 +161,7 @@
  https://pursekeeper.dev by default, a service that is not ours and that did
  not answer us (12:2x UTC 2026-11-11). When its work call fails,
  nano-receive.py falls back to a local proof-of-work that returns
- 0000000000000000 for every block (its loop, run on 20 random roots: 20
+ 0000000000000000 for almost every block (its loop, run on 20 random roots: 20
  invalid), so a node refuses the receive. It also takes the seed as
  --seed <64hex> on the command line, where other users of the machine can
  read it. 5 of treasury2's 6 starters were still receivable at 12:2x UTC

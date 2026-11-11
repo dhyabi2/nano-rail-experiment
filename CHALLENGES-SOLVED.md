@@ -38,10 +38,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 252. try-nano, the "guided first transaction", names a starter sender that has sent nothing since 10-14
+
+*partial 2026-11-11 (PR on `hunt/try-nano-opener-address`): bounties.txt corrected, live once the box deploys; the
+try-nano field itself is box work (`drafts/box-try-nano-starter-promise.md`, update 11-11) · trust / verification*
+
+**What blocked it.** bounties.txt section 2 sends a newcomer to `GET https://getunstuck.space/unstuck/api/try-nano`
+(23 outside clients on 11-10, 8 by 08:06 on 11-11, `/ai/traffic`). Its JSON says `"opener_address":
+"nano_1434j1n4...ebrh9"`, our Unstuck account, whose newest send is 18:00 UTC 2026-10-14. Since 20:25 UTC 11-08
+every starter leaves treasury2 (`nano_3z335ug5...`). Our own STEP 4 says "verify on the chain, never on a page": a
+newcomer who does finds its 0.00001 XNO came from an address try-nano never names, and no published file said why
+(`grep opener_address published/` was empty).
+
+**How it was moved.** bounties.txt, right after the try-nano pointer and the retired-onramp warning, now names the
+stale field, dates the old opener's last send, gives treasury2's full address as the real sender, and says a starter
+from any third sender is not ours. Law: `specs/test_bounties_try_nano_opener_address.py`. The box field is drafted.
+
+**Evidence.**
+
+- read 08:1x 11-11: try-nano -> 200, `opener_address` nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9
+- ran 08:1x 11-11: rpc.nano.to account_history, Unstuck newest send 08D9724E (2026-10-14); treasury2 newest send
+  DFCD32FA (height 7), six sends of 10^25 raw since 11-08
+- ran: all 125 test files in the repo pass at the branch head, the new law included
+
 ### 251. The openings ledger every guide calls "published honestly" stopped on 10-29 and misses treasury2's starters
 
-*solved in the texts 2026-11-11 (PR on `hunt/ledger-json-stale`; live once the box deploys); the ledger itself is box
-work (`drafts/ledger-json-include-treasury2.md`) · trust / verification*
+*solved in the texts 2026-11-11 (PR #233 on `hunt/ledger-json-stale`; live, check-live 08:1x 11-11 7 of 7 = main);
+the ledger itself is box work (`drafts/ledger-json-include-treasury2.md`) · trust / verification*
 
 **What blocked it.** bounties.txt section 5 and the AI directory's "openings ledger" row (index.html, llms.txt, both
 mirrors, tools.json) send a reader to `https://getunstuck.space/ledger.json` as the ledger "published honestly". At

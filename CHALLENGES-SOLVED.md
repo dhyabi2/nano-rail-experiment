@@ -38,6 +38,37 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 255. The AI directory's "from nothing to paid" goes from a free step 5 to a paid step 6 and never says where the XNO comes from
+
+***solved** 2026-11-11 (PR on `hunt/aidirectory-first-xno`): every copy of the directory carries a "BEFORE STEP 6 -
+YOUR FIRST XNO" block between steps 5 and 6; live once the box deploys, confirmed at the next check · onboarding*
+
+**What blocked it.** By 20:07 UTC on 11-11 the AI directory had 42 distinct outside clients, bounties.txt 9, canon 17
+(`/ai/traffic/2026-11-11.json`) - the directory is the guide strangers read. Its onboarding, "from nothing to paid, in
+six commands", runs wallet, address check, account read, block proof, a free call (step 5), then a paid call (step 6,
+0.0001-0.0005 XNO). No step puts XNO in the wallet, so a stranger who follows it to the letter gets HTTP 402 at step 6
+and the page names no way forward. Challenge #84 closed this exact gap in bounties.txt ("BEFORE STEP 6 - YOUR FIRST
+XNO": the swap route and its minimum, the operator request, the starter is not funding); the directory, in all five
+copies, never carried it. Its only first-XNO line is a one-sentence "Step 3" in "The path" further down, and the
+faucet list under "Your first XNO, free" could not be checked from here (all 13 hosts refused by the egress proxy,
+20:2x UTC 11-11: UNKNOWN).
+
+**How it was moved.** Text only - no command, address or amount we send changed. `aidirectory/llms.txt`,
+`aidirectory/index.html`, their two root copies and `tools.json` onboarding step 6 (new field `first_xno`) now say,
+before step 6: it costs XNO and an empty wallet gets 402; nobody here funds it; swap USDC on Base -> XNO, minimum
+0.230737 USDC (the figure bounties.txt and swap.txt carry), with swap.txt for every route; the operator request in
+bounties.txt section 4; the 0.00001 XNO starter from treasury2 pays for no call; a receive is needed (seedrecv.py,
+receive.js). Law: `specs/test_aidirectory_first_xno.py` (block present between steps 5 and 6 in every copy and in
+tools.json, minimum equal to bounties.txt and swap.txt, both guides linked, no "we fund you"). It fails on the old texts.
+
+**Evidence.**
+
+- read 20:07 11-11: `/ai/traffic/2026-11-11.json` -> aidirectory 52 requests / 42 clients, bounties 9/9, canon 22/17
+- ran: `grep -i "first xno" published/aidirectory/llms.txt` before -> only "Step 3. Get your first XNO" and "Your first
+  XNO, free" in the lower sections, nothing in the six-command onboarding
+- ran: treasury2 starters on rpc.nano.to 20:20 11-11 -> 5 of 6 still receivable; Unstuck's 17 of 23
+- ran: `python3 specs/test_aidirectory_first_xno.py` -> 4 OK; on main's texts -> 2 errors
+
 ### 254. The AI directory, now our most-read guide, makes a wallet only with npm and prints the seed to stdout
 
 ***solved** 2026-11-11 (PR on `hunt/aidirectory-seed-not-stdout`): every copy of the directory's step 1 points at

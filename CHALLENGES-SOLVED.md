@@ -38,6 +38,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 250. Step 2 of every guide hands a wallet that holds nothing a paid call, which answers 402
+
+*solved 2026-11-11 (PR on `hunt/address-check-free`; live once the box deploys) · onboarding / first contact*
+
+**What blocked it.** Step 1 of the onboarding makes a wallet that holds 0 XNO. Step 2, "check an address before you
+trust it", gave as its way to learn whether an account has ever transacted
+`curl -s 'https://extract.paypercall.dev/api/v1/address-verdict?account=nano_...'` - in bounties.txt it was the
+step's FIRST command, ahead of the free checksum check. Since the sellers came back on treasury2 (11-10) that call
+answers HTTP 402 "Pay 0.0001 XNO to nano_3z335ug5oz..." with no payment (measured 00:2x 11-11). A newcomer's second
+command fails on a payment it cannot make, in bounties.txt (16 outside clients 11-10), swap.txt (10), the AI
+directory (45) and tools.json. The same fact is free from a node: rpc.nano.to `account_info` answers 200
+`{"error":"Account not found","balance":"0"}` for a never-opened account.
+
+**How it was moved.** Every copy's step 2 now gives the free `account_info` read (same node and User-Agent as step 3),
+says "Account not found" means it has never received anything - what a fresh address, yours included, looks like -
+so it is not a reason to stop, and says address-verdict is not for this step: 0.0001 XNO, 402 to an empty wallet,
+and no checksum check (the 09-29 measurement kept). bounties.txt STEP 2 now leads with the local checksum check. The
+priced catalogue rows for address-verdict are unchanged. Law: `specs/test_address_check_is_free.py` (six copies plus
+tools.json onboarding[1]).
+
+**Evidence.**
+
+- ran 00:2x 11-11: unpaid `GET https://extract.paypercall.dev/api/v1/address-verdict?account=nano_3z335ug5...` ->
+  402, price_xno 0.0001, pay_to treasury2
+- ran 00:2x 11-11: rpc.nano.to `account_info` on six treasury2 starter payees -> 200; four `Account not found`, two
+  with frontiers; `receivable` on the CD9AE212 payee -> 200, blocks [CD9AE212...] (a send waiting is visible free)
+- ran: all 123 test files in the repo pass at the branch head, the new law included;
+  `specs/test_onboarding_commands_agree.py` PASS (step commands unchanged)
+
 ### 249. canon.txt, our most-read guide, says paying beats a thousand messages and offered nothing to pay for
 
 *solved 2026-11-10 (PR on `hunt/canon-txt-paid-call`; live once the box deploys) · conversion / first payment*

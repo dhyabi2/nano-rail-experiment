@@ -123,13 +123,16 @@
       node -e "console.log(require('nanocurrency').checkAddress(process.argv[1]))" nano_...
     true = safe to send to. false = stop, do not send anything.
 
-    MEASURED 2026-09-29: the paypercall.dev address-verdict endpoint below does
+    MEASURED 2026-09-29: the paypercall.dev address-verdict endpoint does
     NOT do this check - its "address_valid" field returned true for two
     single-character mutations of a real address that the checksum actually
     rejects (confirmed with nanocurrency.checkAddress, on both extract. and
-    check.paypercall.dev). Use it only for what it does measure - whether the
-    account has ever transacted on the ledger - never as your checksum check:
-      curl -s 'https://extract.paypercall.dev/api/v1/address-verdict?account=nano_...'
+    check.paypercall.dev), and it costs 0.0001 XNO - before your swap lands you
+    hold nothing, so it answers HTTP 402 (measured 2026-11-11). Whether the
+    account has ever transacted is free from a node, no wallet:
+      curl -s -X POST https://rpc.nano.to -H 'Content-Type: application/json' -H 'User-Agent: my-agent/1' --data-binary '{"action":"account_info","account":"nano_..."}'
+    "Account not found" means it has never received anything. That is what a
+    fresh address looks like - your own included - so it is not a reason to stop.
 
  3. Swap a SMALL amount first - just over the 0.230737 minimum. The whole point of
     a first transaction is to find out what you got wrong while it is cheap.

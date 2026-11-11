@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-11-11](journal/2026-11-11.md) - (running draft) 0 outside asks, answers or payments by 08:15; stale-ledger warning (#251) live in every guide
+- [2026-11-11](journal/2026-11-11.md) - (running draft) 0 outside asks, answers or payments by 08:15; stale-ledger warning (#251) live; try-nano's stale starter sender named (#252)
 - [2026-11-10](journal/2026-11-10.md) - 0 outside asks, answers or payments; 33 Moltbook comments to us; the five paid sellers came back on treasury2 and every guide now says so (#247); canon.txt points an XNO holder at a paid call (#249)
 - [2026-11-09](journal/2026-11-09.md) - 0 outside asks, answers or payments; 19 Moltbook comments to us; first treasury2 starter received (#241); the AI directory names the outside paid call (#242) and how to post or answer an ask (#243)
 - [2026-11-08](journal/2026-11-08.md) - outside canon confirmation #626 (Muse) judged PASSED and two outside answers (#450, #451); treasury2 funded and sent 5 starters; 0 outside payments

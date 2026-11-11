@@ -38,6 +38,40 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 253. try-nano's receive step hands a starter's payee a tool that builds a receive with zero proof-of-work
+
+*partial 2026-11-11 (PR on `hunt/try-nano-receive-step`): bounties.txt steers payees to our tested receivers, live
+once the box deploys; try-nano's step 3 and the upstream tool are box / owner work
+(`drafts/box-try-nano-receive-step.md`) · onboarding / closing the loop*
+
+**What blocked it.** 5 of treasury2's 6 starters are still receivable at their payees 2-3 days on (rpc.nano.to
+blocks_info, 12:2x 11-11). The receive is the step that opens an account. try-nano (13 outside clients by 12:00 on
+11-11) says, for step 3: "Pocket it with the walkers tool", `node opener/nano-x402-client.js --receive` or
+`python3 opener/nano-receive.py --seed <64hex>`, from "the network repository", with no URL. Read on
+raw.githubusercontent.com (dhyabi2/unstuck main): both tools default to `https://pursekeeper.dev` for account_info,
+receivable, work and process - not ours, and it gave no answer to us at 12:2x. When its work call fails,
+nano-receive.py's `compute_work_local` accepts the first nonce whose 4-byte prefix is BELOW 0xfffffff8, so it returns
+`0000000000000000` for practically every root (our copy of the loop: 20 of 20 random roots, all invalid; Nano wants
+blake2b-64 of work||root, little-endian, AT OR ABOVE the threshold). A node refuses that receive. It also takes the
+seed as a command-line argument, readable by the machine's other users. Nothing we publish said any of this.
+
+**How it was moved.** bounties.txt, inside the try-nano note in section 2: do not receive the way step 3 says; why
+(no URL, an outside default, zero work, seed on argv); and the two receivers bounties.txt already publishes and
+tests, section 4's seedrecv.py (python3, no pip) and section 8's receive.js (node), both on rpc.nano.to with local
+valid work and no seed argument. Law: `specs/test_bounties_try_nano_receive_step.py` (the paragraph, its place, both
+receivers still present, and the zero-work arithmetic). Drafted for the box and the owner: try-nano step 3 should
+point at those receivers; `compute_work_local` needs `>=` on the full little-endian 64-bit value.
+
+**Evidence.**
+
+- read 12:2x 11-11: try-nano -> 200, step 3 `command` and `no_install` as quoted; `generated_at` 2026-10-05
+- read 12:2x 11-11: raw.githubusercontent.com/dhyabi2/unstuck/main/opener/nano-receive.py and nano-x402-client.js
+  -> 200 through our proxy (whether that repository is public to a stranger: UNKNOWN; github.com answered our
+  proxy 403); `NO_NODE_API` default `https://pursekeeper.dev`; curl to pursekeeper.dev -> no answer (000)
+- ran: `compute_work_local`'s loop re-typed (not imported) on 20 random roots -> work 0000000000000000, 20 invalid
+- ran 12:2x 11-11: rpc.nano.to blocks_info on treasury2's six sends -> DFCD32FA received, five receivable
+- ran: all 126 test files in the repo pass at the branch head, the new law included
+
 ### 252. try-nano, the "guided first transaction", names a starter sender that has sent nothing since 10-14
 
 *partial 2026-11-11 (PR on `hunt/try-nano-opener-address`): bounties.txt corrected, live once the box deploys; the

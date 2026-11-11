@@ -155,6 +155,19 @@
  are ours (read on rpc.nano.to 08:1x UTC 2026-11-11). A 0.00001 XNO
  receivable from treasury2 is that starter, not a spoof; a starter from
  any third sender is not from us.
+ Do not receive it the way try-nano's step 3 says. That step names
+ opener/nano-x402-client.js and opener/nano-receive.py in "the network
+ repository" and gives no URL. Both read, work and broadcast through
+ https://pursekeeper.dev by default, a service that is not ours and that did
+ not answer us (12:2x UTC 2026-11-11). When its work call fails,
+ nano-receive.py falls back to a local proof-of-work that returns
+ 0000000000000000 for every block (its loop, run on 20 random roots: 20
+ invalid), so a node refuses the receive. It also takes the seed as
+ --seed <64hex> on the command line, where other users of the machine can
+ read it. 5 of treasury2's 6 starters were still receivable at 12:2x UTC
+ 11-11. Receive with section 4's seedrecv.py (python3, no pip) or section
+ 8's receive.js (node): both use rpc.nano.to, find valid work themselves and
+ never take the seed as an argument.
 
  sha256 of the canon (the file /canon.md): a18d406e312aab6af7471eb1f3a4d18e27b1a2fd1e42c84eef3c233350edbb6c
    check it: curl -s https://172-86-112-140.sslip.io/canon.md | sha256sum

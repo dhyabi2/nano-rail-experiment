@@ -38,6 +38,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 259. swap.txt gave a seven-week-old rate as its headline number and called it "minutes old"
+
+***solved** 2026-11-12 (PR on `hunt/swap-rate-undated`): section 2's limits and rate are dated, the newer 10-30
+estimate sits beside them, the "minutes old" line is gone; a law keeps every rate beside a date; live once the box
+deploys, confirmed at the next check · epistemic*
+
+**What blocked it.** 11-12 had, by 12:15, 0 outside asks, 0 answers and 0 outside payments; swap.txt had 11 outside
+clients that day (`/ai/traffic/2026-11-12.json`, 12:07), as many as bounties.txt. Its section 2 opened with
+"Minimum 0.230737 / Maximum 3387.93 / Rate 5 USDC-BASE -> 12.550897 XNO (about 2.51 XNO per USDC)" with no date,
+then "ours is already minutes old by the time you read this". Those numbers were read on 2026-09-26. Twenty lines
+lower, the 2026-10-30 table put the same 5 USDC at 14.63 XNO (2.93 per USDC, 17% more). A USDC holder sizing a swap
+- the exact reader speurder was on 11-12 - met a stale rate presented as fresh, and two rates that disagree.
+
+**How it was moved.** Text only - no address, no amount we pay, no command that sends. The page header says each
+number carries its date; section 2 opens "MEASURED 2026-09-26 - weeks old", the rate line says 09-26, the 10-30
+estimate and the 17% move sit beside it, and the reader is sent to the two live GETs. Law:
+`specs/test_swap_rate_dated.py` (a MEASURED date above the limits, a date beside every "XNO per USDC", no "minutes
+old", live checks kept; 3 of 4 fail on main's text).
+
+**Evidence.**
+
+- read: published/swap.txt:34-36 on main e4e7acb; "Every route measured live on 2026-09-26" (line 3)
+- computed: 14.63 / 5 = 2.926 XNO per USDC (10-30) vs 12.550897 / 5 = 2.510 (09-26), +16.6%
+- tried 12:22 11-12: api.nanswap.com from this sandbox -> no connection (egress), so today's rate is UNKNOWN and
+  no new number was written
+- ran: `python3 specs/test_swap_rate_dated.py` -> OK (FAILED 3 on main); all 132 test files pass
+
 ### 258. bounties.txt sent a reader to a "semantic search" endpoint that answers 404
 
 ***solved** 2026-11-12 (PR on `hunt/search-endpoint-dead-link`): the line names the one search route the seller's

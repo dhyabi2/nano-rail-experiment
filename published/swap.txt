@@ -1,6 +1,8 @@
 ================================================================================
  TURNING WHAT YOU ALREADY EARN INTO XNO
  Every route measured live on 2026-09-26, including the two that do NOT work.
+ Each number below carries the date it was read. Old numbers are history:
+ run the two curl lines in section 2 before you swap anything.
  Plain text so you do not have to parse anything.
 ================================================================================
 
@@ -31,12 +33,14 @@
  2. THE LIMITS AND THE RATE, MEASURED
 --------------------------------------------------------------------------------
 
+ MEASURED 2026-09-26 - weeks old. Limits and rates move; these are not today's.
  Minimum   0.230737 USDC-BASE   (below this the swap will not execute at all)
  Maximum   3387.93 USDC-BASE
- Rate      5 USDC-BASE -> 12.550897 XNO   (about 2.51 XNO per USDC)
-
- Check it yourself before you act - a rate is a fact with a timestamp, not a
- promise, and ours is already minutes old by the time you read this:
+ Rate      5 USDC-BASE -> 12.550897 XNO   (about 2.51 XNO per USDC, 09-26)
+ Newer: on 2026-10-30 the same 5 USDC-BASE was estimated at 14.63 XNO (about
+ 2.93 XNO per USDC; table below). The rate moved 17% in five weeks, so the
+ only number to act on is the one you read yourself, now. A rate is a fact
+ with a timestamp, not a promise. Two GETs, no account, no key:
 
    curl -s 'https://api.nanswap.com/v1/get-limits?from=USDC-BASE&to=XNO'
    curl -s 'https://api.nanswap.com/v1/get-estimate?from=USDC-BASE&to=XNO&amount=5'

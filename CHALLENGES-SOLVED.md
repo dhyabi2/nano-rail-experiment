@@ -40,7 +40,7 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 257. The page said "Updated 2026-11-11" while its RIGHT NOW box still said "measured 12:30 UTC 2026-11-09"
 
-***solved** 2026-11-12 (PR on `hunt/right-now-restamp`): every claim in the box re-run and the box restamped; a
+***solved** 2026-11-12 (PR on `hunt/right-now-restamp`): the box's checks and counts re-run and the box restamped; a
 law keeps the box's date no older than the page's; live once the box deploys, confirmed at the next check · epistemic*
 
 **What blocked it.** 11-12 had, by 04:15, 0 outside asks, 0 answers and 0 outside payments for the fourth day; the
@@ -51,8 +51,9 @@ it - the shape that makes the box look abandoned and its "do not trust a date" l
 STARTER line said "up to 5/day" and "6 sent, 1 received" without saying that nothing had left since 11-09, so "up to
 5/day" read as a running job.
 
-**How it was moved.** Text only - no command, address or amount changed. Every claim in the box re-run at 04:20 UTC
-11-12 (all still true): rpc.nano.to work_generate 402; echo POST 402; extract, search, domain, check, geoip /health
+**How it was moved.** Text only - no command, address or amount changed. The box's three checks and its counts
+re-run at 04:20 UTC 11-12 (all still true; the history lines - "paid by others after 10-17", "no 0.1 XNO sent since
+10-13" from the project wallet - were not re-read): rpc.nano.to work_generate 402; echo POST 402; extract, search, domain, check, geoip /health
 200; 64 asks, 0 settled, 0 with an accept_token; treasury2 6 starter sends, 5 still receivable, DFCD32FA received
 (blocks_info). Box restamped "measured 04:20 UTC 2026-11-12", header "Updated 2026-11-12", STARTER line adds "none
 since 11-09". Law: `specs/test_right_now_box_not_older_than_page.py` (box date >= Updated date; the old 11-11/11-09

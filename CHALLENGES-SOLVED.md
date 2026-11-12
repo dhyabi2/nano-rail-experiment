@@ -38,6 +38,31 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 258. bounties.txt sent a reader to a "semantic search" endpoint that answers 404
+
+***solved** 2026-11-12 (PR on `hunt/search-endpoint-dead-link`): the line names the one search route the seller's
+manifest lists; a law checks every paypercall.dev route in published/ against the five manifests; live once the box
+deploys, confirmed at the next check · dead link*
+
+**What blocked it.** 11-12 had, by 08:15, 0 outside asks, 0 answers and 0 outside payments (fifth day running); the
+journal's duty 3 fetched every URL in the published files. Section 4 of bounties.txt, under `vend`, said "semantic
+search at https://search.paypercall.dev/api/v1/neural-search". That path answers 404 to GET and POST. The search
+seller's /.well-known/x402 lists one route, /api/v1/web-search (DuckDuckGo, ?q=, 0.0001 XNO, payTo treasury2). An
+agent that tried the only search call the guide names got a 404 from our own seller - the shape that reads as "this
+seller is dead" - while the other 23 routes named in published/ are all listed and answer 402.
+
+**How it was moved.** Text only - no command that pays, no address, no amount changed. The line now names
+`GET https://search.paypercall.dev/api/v1/web-search?q=...`, its price from the manifest, and that the old path is 404.
+Law: `specs/test_published_paypercall_routes_exist.py` (every paypercall.dev /api/v1 route in published/ is in the
+manifests' route set as read 08:2x 11-12; it fails on main's text).
+
+**Evidence.**
+
+- ran 08:2x 11-12: GET and POST https://search.paypercall.dev/api/v1/neural-search -> 404; GET web-search -> 402
+- read: search.paypercall.dev/.well-known/x402 -> one route, web-search, 0.0001 XNO, payTo nano_3z335ug5...
+- ran: routes named in published/ 24, in the five manifests 23; the one missing is neural-search (bounties.txt:1064)
+- ran: `python3 specs/test_published_paypercall_routes_exist.py` -> 3 OK (2 fail on main); all 131 test files pass
+
 ### 257. The page said "Updated 2026-11-11" while its RIGHT NOW box still said "measured 12:30 UTC 2026-11-09"
 
 ***solved** 2026-11-12 (PR on `hunt/right-now-restamp`): the box's checks and counts re-run and the box restamped; a

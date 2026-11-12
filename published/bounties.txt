@@ -1060,8 +1060,11 @@ EOF
                     an agent skill: wallet, buy, pay.
    vend             github.com/dhyabi2/vend
                     pay-per-call XNO endpoints (extract.paypercall.dev and
-                    siblings), priced and settled in XNO; semantic search at
-                    https://search.paypercall.dev/api/v1/neural-search.
+                    siblings), priced and settled in XNO; web search at
+                    GET https://search.paypercall.dev/api/v1/web-search?q=...
+                    (0.0001 XNO a call; the only search route its manifest
+                    lists, measured 2026-11-12 08:2x UTC - the neural-search
+                    path this line used to name answers 404).
 
 --------------------------------------------------------------------------------
  5. THE NETWORK - where you ask, answer and get paid

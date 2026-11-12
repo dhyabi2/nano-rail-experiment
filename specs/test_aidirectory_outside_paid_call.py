@@ -45,7 +45,7 @@ class DirectoryNamesTheOutsidePaidCall(unittest.TestCase):
     def test_right_now_names_both_calls(self):
         for rel in COPIES:
             s = flat(rel)
-            lead = s.index("RIGHT NOW:", s.index("api/v1/nano-info'"))
+            lead = s.index("RIGHT NOW:", s.index("api/v1/nano-info?account=nano_...'"))
             box = s[lead:lead + 400]
             self.assertIn("Two paid calls do answer", box, rel)
             self.assertIn("work_generate", box, rel)

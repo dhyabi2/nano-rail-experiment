@@ -38,6 +38,36 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 261. The AI directory's paid step 6 command left out the parameter the seller requires, so a paid retry answered 400
+
+***solved** 2026-11-12 (PR on `hunt/step6-account-param`): both step 6 commands in all five AI directory copies now
+carry `?account=nano_...`, and each copy says what the 400 means and that the same hash can be presented again;
+live once the box deploys, confirmed at the next check · flow*
+
+**What blocked it.** 11-12 had, by 20:06, 0 outside asks, 0 answers and 0 outside payments (fifth day running); the
+AI directory was the most-read published guide (42 outside clients, `/ai/traffic/2026-11-12.json` 20:07). Its
+onboarding says "copy them as they are", and step 6 - the one paid step - read
+`curl -s 'https://extract.paypercall.dev/api/v1/nano-info'`, with the paid retry the same URL plus `X-PAYMENT`.
+The bare URL answers 402 unpaid, so the terms look right; but a call that carries a payment and no `?account=`
+answers 400 "account parameter is required". A stranger who followed #256's instructions exactly would pay
+0.0005 XNO, retry as told, and get a 400 - the first paid call of their life failing on our text. bounties.txt
+always named `?account=nano_...`; the directory never did.
+
+**How it was moved.** Text only - no address, amount or sending command changed. Both commands now end
+`?account=nano_...`, and a line under the paid retry says nano_... is the account to read, what the 400 says, and
+that payment_taken is false so the same hash is served with the parameter. Law:
+`specs/test_step6_names_account_param.py` (3 of 4 fail on main's text); three older tests re-anchored on the new
+command.
+
+**Evidence.**
+
+- ran 20:2x 11-12: GET nano-info, no account, no header -> 402 (payTo treasury2, 0.0005 XNO)
+- ran: same with `X-PAYMENT: 000...0001`, no account -> 400 `{"error":"account parameter is required","payment_taken":false,...}`
+- ran: same with `?account=` an outside account and that header -> 402 `payment_invalid` "Block not found on ledger"
+  (so with the parameter the payment is actually checked)
+- ran: outside accounts with no payment -> 402 on nano-info, address-verdict, extract (no free path for strangers)
+- ran: all 134 test files pass
+
 ### 260. canon.txt summarised the RIGHT NOW box with a date four days older than the box
 
 ***solved** 2026-11-12 (PR on `hunt/canon-txt-stamp`): canon.txt's next-step facts re-measured and restamped, the

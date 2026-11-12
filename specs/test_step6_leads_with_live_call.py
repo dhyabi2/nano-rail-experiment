@@ -37,7 +37,7 @@ class Step6LeadsWithLiveCall(unittest.TestCase):
         for rel in ("published/aidirectory/llms.txt", "published/aidirectory-llms.txt",
                     "published/aidirectory/index.html", "published/aidirectory.html"):
             s = read(rel)
-            cmd = s.index("api/v1/nano-info'")
+            cmd = s.index("api/v1/nano-info?account=nano_...'")
             lead = s.index("RIGHT NOW:", cmd)
             self.assertLess(lead - cmd, 80, rel + ": RIGHT NOW must sit right under the dead command")
             self.assertIn(MARK, s[lead + 200:], rel)

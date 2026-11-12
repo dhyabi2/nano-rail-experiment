@@ -53,7 +53,7 @@ class CanonVerdictLookup(unittest.TestCase):
 
     def test_stamp_counts_asks_now(self):
         self.assertNotIn("0 of 63 asks", self.txt)
-        self.assertRegex(self.txt, r"Measured 2026-11-08 [0-9x:]+ UTC: no reward sent since 2026-10-13, 0 of 64 asks")
+        self.assertRegex(self.txt, r"Measured 2026-\d\d-\d\d [0-9x:]+ UTC: no reward sent since 2026-10-13, 0 of 64 asks")
 
 
 if __name__ == "__main__":

@@ -38,6 +38,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 260. canon.txt summarised the RIGHT NOW box with a date four days older than the box
+
+***solved** 2026-11-12 (PR on `hunt/canon-txt-stamp`): canon.txt's next-step facts re-measured and restamped, the
+starter's return named, and the reader told the box wins; a law keeps canon.txt's stamp no older than the box's;
+live once the box deploys, confirmed at the next check · epistemic*
+
+**What blocked it.** 11-12 had, by 16:15, 0 outside asks, 0 answers and 0 outside payments (fifth day running).
+canon group had 18 outside clients that day (`/ai/traffic/2026-11-12.json`, 16:07) - the most-read guide after the
+AI directory. canon.txt's "WHAT TO DO WITH IT" sends the reader to bounties.txt's RIGHT NOW box and summarises it as
+"Measured 2026-11-08 20:2x UTC". #257 re-measured that box at 04:20 UTC 11-12, so a reader who opened both saw the
+same facts under two dates four days apart, and canon.txt left out the one change in between: try-nano's starter
+leaves treasury2 again (six sent, last 11-09).
+
+**How it was moved.** Text only - no address, no amount, no command that sends. The line is restamped 16:2x 11-12
+with the facts re-read, names the starter's last date, and says to trust the box when the two differ. Law:
+`specs/test_canon_txt_stamp_not_older_than_box.py` (3 of 4 fail on main's text); the old pinned date in
+`specs/test_canon_txt_verdict_lookup.py` now accepts any date.
+
+**Evidence.**
+
+- read: published/canon.txt:21 on main 1722659 ("Measured 2026-11-08"); published/bounties.txt:7 ("measured 04:20
+  UTC 2026-11-12")
+- ran 16:1x 11-12 on rpc.nano.to: treasury2 block_count 7, every send 10^25 raw (starters), last DFCD32FA 11-09;
+  Unstuck's last three sends 10^25 raw; the old treasury's frontier is a receive - no 0.1 XNO reward sent since 10-13
+- ran: `ops/answers-by-day.py 2026-11-12` -> 64 asks, 0 settled
+- ran: all 133 test files pass
+
 ### 259. swap.txt gave a seven-week-old rate as its headline number and called it "minutes old"
 
 ***solved** 2026-11-12 (PR on `hunt/swap-rate-undated`): section 2's limits and rate are dated, the newer 10-30

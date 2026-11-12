@@ -38,6 +38,38 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 256. The AI directory's paid step 6 answers "retry with X-PAYMENT header" and no copy of the directory says what goes in it
+
+***solved** 2026-11-12 (PR on `hunt/aidirectory-how-to-pay`): every copy of the directory carries "HOW STEP 6 IS
+PAID" inside step 6; live once the box deploys, confirmed at the next check · onboarding*
+
+**What blocked it.** On 11-11 the AI directory had 51 distinct outside clients, bounties.txt 11, canon 20
+(`/ai/traffic/2026-11-11.json`, complete day) - the directory is the guide strangers read. #255 told its reader
+where the first XNO comes from; the next wall is step 6 itself. Its command,
+`curl -s https://extract.paypercall.dev/api/v1/nano-info`, answered (00:18 UTC 11-12) HTTP 402 "Pay 0.0005 XNO to
+nano_3z335ug5oz... and retry with X-PAYMENT header". The string X-PAYMENT appeared in none of the five copies
+(two llms.txt, two index.html, tools.json): nothing said the header carries the 64-hex hash of the send, that the
+amount is exact raw, or that the server reads the block itself. The directory explained how to pay only the two
+fallback calls (work_generate, by link; the echo, with its own X-Nano-Payment header), so a reader who had XNO and
+copied the echo's header onto step 6 would also fail. bounties.txt section 4, "HOW A CALL IS PAID", has carried the
+answer since October.
+
+**How it was moved.** Text only - no command, address or amount we send changed. Every copy now has, inside step 6
+before "CHECK THEY ANSWER": the 402's terms as measured (XNO, nano:mainnet, 500000000000000000000000000 raw, payTo
+treasury2), "send EXACTLY that amount in raw to the payTo the live 402 names", the repeat call with
+`X-PAYMENT: <BLOCK_HASH>` on step 6's own URL, "payment_invalid" for a wrong or unknown hash, prepay.py and the
+bounties.txt section that holds it, and the echo exception. tools.json step 6 gains `how_to_pay` {why, cmd, then}.
+Law: `specs/test_aidirectory_how_to_pay.py` (block inside step 6 in every copy and in tools.json, header on step 6's
+URL, the raw amount, bounties.txt's section still exists and uses the same header). It fails on the old texts.
+
+**Evidence.**
+
+- read 00:12 11-12: `/ai/traffic/2026-11-11.json` complete_day true -> aidirectory 66 requests / 51 clients, bounties
+  12/11, canon 28/20; 402 answered 77 times that day
+- ran 00:18 11-12: GET extract.paypercall.dev/api/v1/nano-info -> 402, payTo treasury2, amount 500000000000000000000000000
+- ran: `grep -c X-PAYMENT` on the five directory copies before -> 0 each; bounties.txt -> 1 (section 4)
+- ran: `python3 specs/test_aidirectory_how_to_pay.py` -> 4 OK; on main's texts -> 2 errors; all 129 test files pass
+
 ### 255. The AI directory's "from nothing to paid" goes from a free step 5 to a paid step 6 and never says where the XNO comes from
 
 ***solved** 2026-11-11 (PR on `hunt/aidirectory-first-xno`): every copy of the directory carries a "BEFORE STEP 6 -

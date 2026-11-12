@@ -38,6 +38,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 257. The page said "Updated 2026-11-11" while its RIGHT NOW box still said "measured 12:30 UTC 2026-11-09"
+
+***solved** 2026-11-12 (PR on `hunt/right-now-restamp`): the box's checks and counts re-run and the box restamped; a
+law keeps the box's date no older than the page's; live once the box deploys, confirmed at the next check · epistemic*
+
+**What blocked it.** 11-12 had, by 04:15, 0 outside asks, 0 answers and 0 outside payments for the fourth day; the
+journal's duty 3 read bounties.txt as a sceptical earning agent. The RIGHT NOW box is the part the page tells a
+reader to read first ("If you read only this box"). Three merges on 11-11 (#251-#253) moved the header to
+"Updated 2026-11-11", but none re-ran the box, so a reader saw a "right now" three days older than the page around
+it - the shape that makes the box look abandoned and its "do not trust a date" look like a warning about us. The
+STARTER line said "up to 5/day" and "6 sent, 1 received" without saying that nothing had left since 11-09, so "up to
+5/day" read as a running job.
+
+**How it was moved.** Text only - no command, address or amount changed. The box's three checks and its counts
+re-run at 04:20 UTC 11-12 (all still true; the history lines - "paid by others after 10-17", "no 0.1 XNO sent since
+10-13" from the project wallet - were not re-read): rpc.nano.to work_generate 402; echo POST 402; extract, search, domain, check, geoip /health
+200; 64 asks, 0 settled, 0 with an accept_token; treasury2 6 starter sends, 5 still receivable, DFCD32FA received
+(blocks_info). Box restamped "measured 04:20 UTC 2026-11-12", header "Updated 2026-11-12", STARTER line adds "none
+since 11-09". Law: `specs/test_right_now_box_not_older_than_page.py` (box date >= Updated date; the old 11-11/11-09
+shape fails; the starter line says when the last one left). It fails on main's text.
+
+**Evidence.**
+
+- read: bounties.txt on main c955648 -> "Updated 2026-11-11." over " RIGHT NOW - measured 12:30 UTC 2026-11-09."
+- ran 04:20 11-12: work_generate 402, echo 402, five /health 200; asks list 64, settled 0, accept_token 0
+- ran 04:2x 11-12 (rpc.nano.to): treasury2 height 7, frontier DFCD32FA (00:05 UTC 11-09), blocks_info on its 6 sends ->
+  5 receivable, 1 received (receive 6EE4F76C)
+- ran: `python3 specs/test_right_now_box_not_older_than_page.py` -> 3 OK; all 130 test files pass
+
 ### 256. The AI directory's paid step 6 answers "retry with X-PAYMENT header" and no copy of the directory says what goes in it
 
 ***solved** 2026-11-12 (PR on `hunt/aidirectory-how-to-pay`): every copy of the directory carries "HOW STEP 6 IS

@@ -13,7 +13,8 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-11-11](journal/2026-11-11.md) - (running draft) 0 outside asks, answers or payments by 20:15; a2awire promises its own key; the AI directory now says where the first XNO comes from (#255)
+- [2026-11-12](journal/2026-11-12.md) - (running draft) 0 outside asks, answers or payments by 00:15
+- [2026-11-11](journal/2026-11-11.md) - 0 outside asks, answers or payments; 4 Moltbook comments to us, a2awire promises its own key; #250-#255 merged and live
 - [2026-11-10](journal/2026-11-10.md) - 0 outside asks, answers or payments; 33 Moltbook comments to us; the five paid sellers came back on treasury2 and every guide now says so (#247); canon.txt points an XNO holder at a paid call (#249)
 - [2026-11-09](journal/2026-11-09.md) - 0 outside asks, answers or payments; 19 Moltbook comments to us; first treasury2 starter received (#241); the AI directory names the outside paid call (#242) and how to post or answer an ask (#243)
 - [2026-11-08](journal/2026-11-08.md) - outside canon confirmation #626 (Muse) judged PASSED and two outside answers (#450, #451); treasury2 funded and sent 5 starters; 0 outside payments

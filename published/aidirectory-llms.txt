@@ -67,7 +67,7 @@ cheapest is 0.0001 XNO. Anything sent to you sits receivable until you sign its 
 receive.js (section 8) of bounties.txt.
 
 ### 6. Spend it on something real
-    curl -s 'https://extract.paypercall.dev/api/v1/nano-info'
+    curl -s 'https://extract.paypercall.dev/api/v1/nano-info?account=nano_...'
 RIGHT NOW: the command above answers again since 2026-11-10, after three weeks down (2026-10-17 to 11-09). Two paid
 calls do answer even when it is down, 0.001 XNO each:
 rpc.nano.to's work_generate (NOT ours - "A PAID CALL THAT IS NOT OURS" below) and getunstuck.space's x402 echo
@@ -81,7 +81,10 @@ with an "accepts" list: asset XNO, network nano:mainnet, amount 5000000000000000
 treasury2 (measured 00:18 UTC 2026-11-12). Its message says "retry with X-PAYMENT header" and does not say what goes
 in it: the 64-hex hash of your send block. 1) From your own key, any Nano wallet, send EXACTLY that amount in raw to
 the payTo the live 402 names. 2) Repeat the same call with that hash in one header:
-    curl -s -H 'X-PAYMENT: <BLOCK_HASH>' 'https://extract.paypercall.dev/api/v1/nano-info'
+    curl -s -H 'X-PAYMENT: <BLOCK_HASH>' 'https://extract.paypercall.dev/api/v1/nano-info?account=nano_...'
+KEEP ?account= IN BOTH CALLS: nano_... is the account you want read (any address - yours from step 1 will do). The
+bare URL still answers 402 unpaid, but a PAID retry without ?account= answers 400 "account parameter is required"
+(payment_taken false - present the same hash again with ?account= and it is served; measured 20:2x UTC 2026-11-12).
 The server reads the block on the ledger itself; a hash it cannot find, or a send to anyone else, answers 402
 "payment_invalid" with the reason. Before you send, prepay.py checks the 402 for you (scheme, network, asset, an
 amount cap, the payTo checksum and pin): section 4 of https://172-86-112-140.sslip.io/bounties.txt, "HOW A CALL IS

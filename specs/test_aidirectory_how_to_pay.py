@@ -65,10 +65,10 @@ class HowStep6IsPaid(unittest.TestCase):
         with open(os.path.join(ROOT, "published/aidirectory/tools.json")) as f:
             d = json.load(f)
         six = [x for x in d["onboarding"] if x["n"] == "6"][0]
-        self.assertEqual(six["cmd"], "curl -s '%s'" % URL)
+        self.assertEqual(six["cmd"], "curl -s '%s?account=nano_...'" % URL)  # #261: the seller requires ?account=
         h = six["how_to_pay"]
         self.assertTrue(h["why"].startswith(HEAD))
-        self.assertEqual(h["cmd"], "curl -s -H 'X-PAYMENT: <BLOCK_HASH>' '%s'" % URL)
+        self.assertEqual(h["cmd"], "curl -s -H 'X-PAYMENT: <BLOCK_HASH>' '%s?account=nano_...'" % URL)
         self.check("tools.json", " ".join([h["why"], h["cmd"], h["then"]]))
 
     def test_bounties_section_named_uses_same_header(self):

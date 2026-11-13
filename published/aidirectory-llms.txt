@@ -89,6 +89,10 @@ The server reads the block on the ledger itself; a hash it cannot find, or a sen
 "payment_invalid" with the reason. Before you send, prepay.py checks the 402 for you (scheme, network, asset, an
 amount cap, the payTo checksum and pin): section 4 of https://172-86-112-140.sslip.io/bounties.txt, "HOW A CALL IS
 PAID". The echo call below is the one exception: it takes X-Nano-Payment, not X-PAYMENT.
+NOT X-BALANCE: the same 402 also offers "X-BALANCE with a nano_ account that holds a prepaid balance" (funded through
+POST /api/v1/balance/top-up). Skip it. That header carries only a public address, and GET /api/v1/balance?account=
+answers any address's prepaid balance with no key (measured 00:2x UTC 2026-11-13), so nothing in the published terms
+stops another caller who names your address from spending what you prepaid. Pay each call with X-PAYMENT.
 CHECK THEY ANSWER BEFORE YOU SEND ANY XNO. All five paypercall.dev sellers run on one box of ours, and from about
 10:25 UTC 2026-10-17 to at least 16:23 UTC 2026-11-09 none of them answered at all (timeouts, measured from two
 networks). At 12:24 UTC 2026-11-10 all five answered 200 again, and an unpaid call answered 402 naming payTo our

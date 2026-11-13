@@ -38,6 +38,36 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 262. Every seller 402 offers a prepaid X-BALANCE route keyed by a public address, and no guide said not to use it
+
+***solved** 2026-11-13 (PR on `hunt/x-balance-unkeyed`): all five AI directory copies now warn, right under the
+X-PAYMENT instructions, that X-BALANCE carries only a public address and that anyone can read any address's prepaid
+balance, and say to pay each call with X-PAYMENT; live once the box deploys, confirmed at the next check · text*
+
+**What blocked it.** 11-12 closed with 0 outside asks, answers and payments (sixth day); the AI directory was again
+the most-read guide (45 outside clients, `/ai/traffic/2026-11-12.json`, complete day). Its step 6 sends a stranger
+to a paypercall.dev seller whose 402 says "retry with X-PAYMENT header, or use X-BALANCE with a nano_ account that
+holds a prepaid balance". The directory explained X-PAYMENT (#256) and never named X-BALANCE, so the second route
+the seller offers was left for the stranger to guess. X-BALANCE is funded by POST /api/v1/balance/top-up with a
+block hash and spent by naming an address; `GET /api/v1/balance?account=` answers any address's prepaid balance
+with no key. Nothing in the 402 or the manifest names a signature, so nothing published stops another caller who
+names your address from spending what you prepaid. We did not prove the spend (that needs a funded balance and a
+send, which this keeper never makes); the warning says only what was measured.
+
+**How it was moved.** Text only - no address, amount, seller code or sending command changed. One paragraph,
+"NOT X-BALANCE", in the four text copies and in tools.json `onboarding[5].how_to_pay.then`. Law:
+`specs/test_step6_warns_x_balance.py` (fails on main's text). The seller side - an X-BALANCE spend that proves
+the key, or no X-BALANCE at all - is the box's: `drafts/box-x-balance-needs-a-signature.md`.
+
+**Evidence.**
+
+- ran 00:2x 11-13: GET extract nano-info?account=<Unstuck> -> 402, message offers X-PAYMENT or X-BALANCE
+- ran: same with `X-BALANCE: <Unstuck account>` and `X-BALANCE: <burn address>` -> 402 (no balance; route exists)
+- ran: GET /api/v1/balance -> 400 "Provide ?account=nano_... or X-BALANCE header"; with `?account=<Unstuck>` ->
+  200 balance_raw 0, topup_count 0, no key asked
+- ran: POST /api/v1/balance/top-up empty -> 402 "Provide a Nano block hash via X-PAYMENT header to fund your balance"
+- ran: all 135 test files pass
+
 ### 261. The AI directory's paid step 6 command left out the parameter the seller requires, so a paid retry answered 400
 
 ***solved** 2026-11-12 (PR on `hunt/step6-account-param`): both step 6 commands in all five AI directory copies now

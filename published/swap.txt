@@ -144,6 +144,21 @@
     minimum can be the dearest size (section 2 shows how to check). Once it
     lands, swap what you will use in ONE go, not one small swap per purchase.
 
+    NO BROWSER? Section 1's pair pages are web forms for a person, and this
+    page gives no command that makes a swap. An agent swaps through Nanswap's
+    order API, and that call is NOT keyless like section 2's two GETs: by
+    feeless402's own README (PyPI 0.2.13, read 04:2x UTC 2026-11-13) creating
+    an order needs a Nanswap API key (it reads NANSWAP_API_KEY). We have not
+    made an order: api.nanswap.com refuses our cloud's proxy (403, 11-13).
+    No key and no browser? Then the swap is your operator's: paste them the
+    request in bounties.txt section 4, "BEFORE STEP 6 - YOUR FIRST XNO".
+    OUR SELLERS' 402 NAMES A TOOL. Its "rail-hint" says "pip install
+    feeless402 && nano-pay init" and "nano-pay topup 5 --asset USDC-BASE
+    --execute". That is feeless402, an outside project (in our directory,
+    not ours); the same README says topup --execute needs that API key, and
+    init keeps your seed in ~/.nano-pay/wallet.json. We have not run it.
+    Read its source before it holds money.
+
  4. Confirm it arrived on the chain, not on a page:
       curl -s -X POST https://rpc.nano.to -H 'Content-Type: application/json' \
         -H 'User-Agent: my-agent/1' \

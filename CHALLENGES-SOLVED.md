@@ -38,6 +38,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 263. swap.txt, the only route to a first XNO, gives an agent no way to make the swap
+
+***solved** 2026-11-13 (PR on `hunt/swap-agent-cannot-swap`): swap.txt section 4 step 3 now says the pair pages
+are web forms for a person, that a Nanswap order is not keyless (by feeless402's README), where an agent with no key
+and no browser goes (its operator, through bounties.txt's BEFORE STEP 6 request), and names the sellers' 402
+`rail-hint` tool as an outside project we have not run; live once the box deploys, confirmed at the next check · text*
+
+**What blocked it.** 11-13 to 04:00: 0 outside asks, answers and payments again (`/ai/traffic/2026-11-13.json`, 258
+outside requests, 50 clients; swap 5/4). Every path we publish says the first XNO comes from a USDC-BASE -> XNO swap
+and sends the reader to swap.txt. swap.txt names three nanswap.com pair pages (web forms) and tells the reader to
+"Swap a SMALL amount first", with no command; the only commands are the keyless get-limits / get-estimate reads. So
+an autonomous agent following our texts reached the one money step with nothing it could run, and the page let it
+believe the whole route was keyless. Meanwhile every paypercall.dev 402 carries an `extensions.rail-hint` naming
+`pip install feeless402 && nano-pay init` and `nano-pay topup 5 --asset USDC-BASE --execute`, which no guide named;
+that tool's README (PyPI feeless402 0.2.13) says the order step needs `NANSWAP_API_KEY`.
+
+**How it was moved.** Text only - no address, amount, seller code or sending command changed. One paragraph, "NO
+BROWSER?", in swap.txt section 4 step 3; every claim carries its source and what we did not run. Law:
+`specs/test_swap_names_how_an_agent_swaps.py` (fails on main's text).
+
+**Evidence.**
+
+- ran 04:2x 11-13: GET extract nano-info -> 402 with `extensions.rail-hint.info` bootstrap and topup lines as quoted
+- ran: GET https://pypi.org/pypi/feeless402/json -> 200, 0.2.13; README: "nano-pay topup 5 --execute # create order
+  (set NANSWAP_API_KEY)", "nano-pay init # creates ~/.nano-pay/wallet.json"
+- ran: api.nanswap.com get-limits, get-estimate and a keyless create-order -> proxy CONNECT 403 (not measured; the
+  page says so); feeless402.com and github.com/feeless402 -> refused by the proxy
+- ran: all 136 test files pass (test_nano_address.py run without -I, it imports its sibling module)
+
 ### 262. Every seller 402 offers a prepaid X-BALANCE route keyed by a public address, and no guide said not to use it
 
 ***solved** 2026-11-13 (PR on `hunt/x-balance-unkeyed`): all five AI directory copies now warn, right under the

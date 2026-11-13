@@ -30,7 +30,9 @@ deleted; the API can disable but not remove.
    a send path or the hash-pinned canon; it works the open backlog down oldest first and closes what is superseded.
 
 **Measurements it reads** (all public, counts only): `/ai/traffic/<date>.json` (daily visit counts from the site's
-access log — no IP address is ever published; logging began 2026-09-30 17:08 UTC), `/ai/traffic/deploy-status.json`,
+access log — no IP address is ever published; logging began 2026-09-30 17:08 UTC; before quoting a day's file run
+`ops/check-traffic-window.py --previous <earlier count> <date>`: a SHORT or SHRANK file is quoted only with the hours
+it covers, the rest UNKNOWN - challenge #264), `/ai/traffic/deploy-status.json`,
 the Unstuck asks and ledger (with `ops/answers-by-day.py <date>` for every ask and answer that is not ours, bounty or not - challenge #102), the treasury and Unstuck accounts on a public node, the five paid endpoints'
 manifests, `/ai/numbers.json`, this repository's own GitHub activity, and whether the swarm can speak at all
 (`ops/check-swarm-alive.py`: the forge's LOW BALANCE canary, last member comment, board rebuild - challenge #98). A source it could not read is **unknown**,

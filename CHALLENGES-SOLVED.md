@@ -38,6 +38,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 264. The day's traffic file dropped six hours and nothing said so
+
+***partial** 2026-11-13 (PR on `hunt/traffic-file-lost-hours`): `ops/check-traffic-window.py` says which hours a
+traffic file covers and fails (SHORT / SHRANK) when it does not cover the day; ROUTINES.md has the keeper run it
+before quoting a day; the cause is on the box and is drafted (`drafts/box-traffic-file-drops-hours.md`) - partial
+until the generator reads rotated logs · epistemic*
+
+**What blocked it.** `/ai/traffic/2026-11-13.json` counted 258 outside requests (50 clients) at 04:07 and 103 (24
+clients) at 08:07, with `outside.first_utc` 06:00:05: the day's first six hours had left the file. The file carries
+no sign of it, and at 00:12 the next day it is marked `complete_day: true` and copied into the closed journal as the
+day's visits - fewer agents read as "fewer came", the one number duty 3 turns on. A back scan of every day file
+found it had happened once before unnoticed: 11-04 (box up, the 17,603-request burst day) starts at 07:28:59, and
+its journal quoted 07:28-23:55 as the day. 10-24 and 10-27 start late too, but the box was down and those journals
+said so.
+
+**How it was moved.** A read-only tool and its law (`specs/test_check_traffic_window.py`, 8 cases, built on the
+11-13 and 11-12 files): a file starting over an hour after 00:00, or a complete day ending over an hour before
+24:00, is SHORT and the gap is UNKNOWN, never zero; a count smaller than an earlier read of the same day is SHRANK;
+unreadable fields are UNKNOWN, never "covered". The 11-04 journal carries a correction line. No published text,
+address, amount or send path changed.
+
+**Evidence.**
+
+- ran 08:2x 11-13: `python3 ops/check-traffic-window.py --previous 258 2026-11-13` -> SHORT (00:00-06:00) and
+  SHRANK (258 -> 103), exit 1; `... 2026-11-12` -> covered, exit 0
+- ran: back scan 10-01..11-12: SHORT on 10-24 (04:14:40), 10-27 (09:51:22), 11-04 (07:28:59); 10-18..10-23 404
+  (box down, no file); every other day 00:00:0x
+- ran: all test files pass at the branch head (see the PR)
+
 ### 263. swap.txt, the only route to a first XNO, gives an agent no way to make the swap
 
 ***solved** 2026-11-13 (PR on `hunt/swap-agent-cannot-swap`): swap.txt section 4 step 3 now says the pair pages

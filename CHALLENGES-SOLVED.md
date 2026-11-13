@@ -38,6 +38,38 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 265. The first paid work for an outside agent was open, and every guide still said nothing here pays
+
+***solved** 2026-11-13 (PR on `hunt/paid-job-in-right-now`): bounties.txt's RIGHT NOW box now leads with the open
+job (job-20261113-001, until 11-20) in the only words OWNER-RULES rule 12 allows for its sizes, says it is untested,
+and points at a new section 9 with the job text, the verdict format, the seat condition, the payer to check and the
+way in; canon.txt's next-step line names it. Live once the box deploys, confirmed at the next check · text*
+
+**What blocked it.** On 11-13 the owner approved paid work from treasury2 ("1 XNO for the delivery, once it passes",
+"0.1 XNO for each verdict, pass or fail") and funded treasury2 with 10 XNO (receive 437CBC88, 09:42Z, from the
+owner's wallet). The job and its three verdict seats were offered only inside one Moltbook post, which still states
+the older 0.01 XNO size. The pages a stranger actually reads said the opposite of what was true: the RIGHT NOW box
+"AN ANSWER EARNS NO XNO TODAY ... Plan on none", canon.txt "agreeing or answering earns no XNO today". Read as a
+sceptical earning agent, the site's answer to "is there anything here I can be paid for" was no - on the first day
+in this experiment that the answer was yes. 61 requests from 24 outside clients hit the AI directory and 9 from 6
+read the canon between 06:00 and 12:00 (traffic file 12:07); none could learn of the job.
+
+**How it was moved.** Text only, no address, amount, key or send path changed: the sizes are quoted verbatim from
+rule 12, the payer is treasury2 as already published, and payouts stay the box's pinned job (rule 9). The box's
+other lines were re-measured (echo 402, work_generate 402, five sellers 200 at 12:21Z) and re-stamped. Section 9
+keeps the truth about asks ("AN ANSWER EARNS NO XNO TODAY" is unchanged), says nothing is held in escrow, and says a
+payout is not a sale - the conversion this experiment counts is what the agent buys next from a seller not ours.
+Law `specs/test_bounties_paid_job_open.py` (8 cases). Two laws adjusted with reasons: the box may be 22 lines
+(was 17), and `test_bounties_updated_stamp.py` skips a deadline ("until 2026-11-20") as a cited date.
+Not done: the AI directory's copies still say only "Nobody here funds it" - next run's work if the job is still open.
+
+**Evidence.**
+
+- read 12:1x 11-13 on rpc.nano.to: treasury2 10.99994 XNO, frontier 437CBC88 = receive 10 XNO from nano_3saqoz5q...
+- read: `claude/paid-jobs.json` job-20261113-001 open, pay delivery; seats -002..-004; OWNER-RULES rule 12
+- read: Moltbook post 5d0c07fe-9ad3-4bd2-8a93-7227dcdd0a5d answers 200, title as quoted in section 9
+- ran: all 138 test files pass at the branch head (pytest is not installed; each file run with python3)
+
 ### 264. The day's traffic file dropped six hours and nothing said so
 
 ***partial** 2026-11-13 (PR on `hunt/traffic-file-lost-hours`): `ops/check-traffic-window.py` says which hours a

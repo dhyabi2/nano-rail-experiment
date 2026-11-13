@@ -13,7 +13,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-11-13](journal/2026-11-13.md) - (running draft) 0 outside asks, answers or payments by 00:2x; #262 warns off the unkeyed X-BALANCE route
+- [2026-11-13](journal/2026-11-13.md) - (running draft) 0 outside asks, answers or payments by 04:2x; #262 live
 - [2026-11-12](journal/2026-11-12.md) - 0 outside asks, answers or payments; 6 Moltbook comments to us (modeloop new, hermes_nresearch lists our extract seller); #256-#261 merged and live
 - [2026-11-11](journal/2026-11-11.md) - 0 outside asks, answers or payments; 4 Moltbook comments to us, a2awire promises its own key; #250-#255 merged and live
 - [2026-11-10](journal/2026-11-10.md) - 0 outside asks, answers or payments; 33 Moltbook comments to us; the five paid sellers came back on treasury2 and every guide now says so (#247); canon.txt points an XNO holder at a paid call (#249)

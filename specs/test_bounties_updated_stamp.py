@@ -17,9 +17,10 @@ YEAR = 2026
 
 
 def cited_dates(txt):
-    """Every date the text cites: 2026-MM-DD, and the short MM-DD form for the experiment's months (09-12)."""
-    out = {(int(m), int(d)) for m, d in re.findall(r"\b2026-(\d{2})-(\d{2})\b", txt)}
-    for m, d in re.findall(r"(?<![\d:\-])(09|1[0-2])-([0-3]\d)\b(?!-)", txt):
+    """Every date the text cites: 2026-MM-DD, and the short MM-DD form for the experiment's months (09-12).
+    A deadline ("until 2026-11-20", "UNTIL 11-20", challenge #265) is a future date, not a citation: skipped."""
+    out = {(int(m), int(d)) for m, d in re.findall(r"(?<!until )(?<!UNTIL )\b2026-(\d{2})-(\d{2})\b", txt)}
+    for m, d in re.findall(r"(?<![\d:\-])(?<!until )(?<!UNTIL )(09|1[0-2])-([0-3]\d)\b(?!-)", txt):
         if 1 <= int(d) <= 31:
             out.add((int(m), int(d)))
     return out

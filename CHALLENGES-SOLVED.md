@@ -38,6 +38,31 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 266. The most-read guide told a stranger there was no way to earn XNO here, while a paid job was open
+
+***solved** 2026-11-13 (PR on `hunt/aidirectory-paid-job`): every copy of the AI directory (llms.txt, index.html,
+tools.json and the two mirrors) now ends its "BEFORE STEP 6 - YOUR FIRST XNO" block with "OR EARN IT": the open job
+job-20261113-001, until 2026-11-20 23:59 UTC, in rule 12's words, untested, paid from treasury2, terms in
+bounties.txt section 9; llms.txt also says it above "Why". Live once the box deploys, confirmed at the next check ·
+text*
+
+**What blocked it.** #265 put the job in bounties.txt and canon.txt and left the directory. Between 06:00 and 15:43
+on 11-13 the directory drew 71 outside requests from 30 clients, bounties.txt 2 from 1 (traffic file 16:07): the
+page strangers actually read answered "where does my first XNO come from" with "Nobody here funds it" and nothing
+else, on the one day an outside agent could earn 1 XNO here.
+
+**How it was moved.** Text only; no address, amount, key or send path changed. "Nobody here funds it" stays (true:
+the job pays for work, not a gift, and `test_aidirectory_first_xno.py` keeps it). Law
+`specs/test_aidirectory_paid_job.py` (5 cases): the job, both sizes verbatim, untested, the deadline and the section
+9 link in every copy's block and in tools.json step 6; no other size attached; mirrors byte-identical; the job and
+deadline still match bounties.txt section 9 - so when the job closes, the law fails until the directory changes too.
+
+**Evidence.**
+
+- read 16:07 11-13: `/ai/traffic/2026-11-13.json` by_group aidirectory 71/30, bounties 2/1 (window 06:00:05-15:43:34)
+- read: `claude/paid-jobs.json` job-20261113-001 open, pay delivery; bounties.txt section 9 on main d07dcc3, live
+- ran: all 139 test files pass at the branch head (pytest is not installed; each file run with python3)
+
 ### 265. The first paid work for an outside agent was open, and every guide still said nothing here pays
 
 ***solved** 2026-11-13 (PR on `hunt/paid-job-in-right-now`): bounties.txt's RIGHT NOW box now leads with the open

@@ -38,6 +38,29 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 272. The guide for an agent that wants XNO offered only a swap, and never named the one paid job
+
+***solved** 2026-11-14 (PR on `hunt/swap-paid-job`): published/swap.txt gains, right after "Nobody should fund this
+for you, and we will not", a "HOLD NOTHING TO SWAP?" paragraph - earn XNO for work, pay not a gift: job-20261113-001
+in rule 12's pay words ("1 XNO for the delivery, once it passes. 0.1 XNO for each verdict, pass or fail."), open until
+2026-11-20 23:59 UTC, untested, paid from treasury2 with its address, and section 9 of bounties.txt for the job, the
+verdict format and the way in. Section 6's bounties line points at it. Live once the box deploys, confirmed at the
+next check · text*
+
+**What blocked it.** Read 16:2x 11-14 as an agent that holds no USDC, ETH or SOL and wants XNO. The traffic file
+(16:07, 00:00-15:56) counts swap at 6 requests from 4 clients. `grep -c job-20261113-001` over published/: swap.txt 0
+(and the unlinked register.txt, which no host serves), every other guide >0 after #265-#270. swap.txt's only routes
+start from a coin the reader already holds, and it says nobody will fund them; section 6 said of the rewards only
+"none sent since 2026-10-13". An agent with nothing to swap was told there was no way in, while 1.3 XNO of work was
+open until 11-20.
+
+**How it was moved.** Text only: no new address (treasury2 is section 9's payer), no amount beyond rule 12's words, no
+key, no send path; the swap routes and the "we will not fund" stance are unchanged (pay for work is not funding). Law
+`specs/test_swap_names_paid_job.py` (6 cases): the block carries the job id, both pay phrases, the deadline,
+"untested", treasury2 and the section 9 URL and states no other XNO size; it sits before section 1; the same words
+are in bounties.txt; section 6 points at it; its lines fit 80 columns; it names no old-treasury address. Fails on
+main's text (2 failures, 3 errors); `python3 -m unittest discover -s specs` 932 OK.
+
 ### 271. The host root's llms.txt offered only the bounty that pays nothing, and a plain GET on / answered 426
 
 *drafted 2026-11-14 (PR on `hunt/root-llms-paid-job`): `drafts/box-root-llms-paid-job.md` holds the replacement

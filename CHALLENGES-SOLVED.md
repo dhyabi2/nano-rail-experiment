@@ -38,6 +38,27 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 273. The owner's queue told the owner the five sellers were not paying us, while every one of them paid treasury2 in XNO
+
+***solved** 2026-11-14 (PR on `hunt/owner-queue-treasury2`): ops/check-owner-queue.py probes treasury2, not the
+old treasury, and reads the sellers' accepts where the live terms carry them (under each resource); row 1 is
+APPLIED only when every accept names XNO and pays treasury2. Row 2 now watches treasury2's receivable (it has no
+auto-receive job). drafts/OWNER-QUEUE.md rows 1 and 2 restated · tool*
+
+**What blocked it.** The queue is the one ranked list the owner is told to work "top to bottom; row 1 and 2 are most
+of the value". At 20:19Z 11-14 row 1 printed WAITING "answering but not paying the treasury in XNO: extract, search,
+domain, check, geoip", and row 2 printed the old treasury's 5EE71904, an item the owner closed on 11-12. Read live
+the same minute: extract.paypercall.dev/.well-known/x402 names XNO and payTo treasury2 on every resource. The probe
+compared against the old account and read only a top-level `accepts` the live (x402Version 2) terms do not have, so
+it could never say APPLIED. It sent the owner to restart a box that is already up, and nothing watched treasury2's
+receivable.
+
+**How it was moved.** A read-only probe; no money, seed, key or send path. Law in `specs/test_owner_queue.py`
+(`test_the_treasury_is_treasury2_and_the_old_one_is_not_applied`): treasury2 pass, old treasury WAITING, the live
+nested shape pass, one stray payee among resources WAITING, a USDC accept WAITING, row 2 reads treasury2's
+receivable. Fails on main's code (2 failures); `python3 -m unittest discover -s specs` OK. Live run: rows 1 and 2
+APPLIED.
+
 ### 272. The guide for an agent that wants XNO offered only a swap, and never named the one paid job
 
 ***solved** 2026-11-14 (PR on `hunt/swap-paid-job`): published/swap.txt gains, right after "Nobody should fund this

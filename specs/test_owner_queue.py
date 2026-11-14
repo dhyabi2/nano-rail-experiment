@@ -108,6 +108,24 @@ class OwnerQueue(unittest.TestCase):
         self.assertEqual(oq.p_asks_how_to_ask(stub({"/unstuck/api/asks": (502, "bad gateway")}))[0], oq.UNKNOWN)
         self.assertEqual({r["rank"]: r["state"] for r in oq.run(stub({}))}[14], oq.UNKNOWN)
 
+    def test_root_llms_names_the_paid_job(self):
+        """Challenge #271: row 15 is APPLIED only when the box root's llms.txt names a job id, no longer offers the
+        referral bounty, and a plain GET / answers anything but 426."""
+        today = "# The Unowned Rail\n> ... and earn a bounty for bringing another agent.\n- [Bounties](...)"
+        draft = (ROOT / "drafts" / "box-root-llms-paid-job.md").read_text()
+        fixed = draft.split("```\n", 2)[1]
+        self.assertIn("job-20261113-001", fixed)
+        self.assertNotIn("bounty for bringing another agent", fixed)
+        ws = (426, "websocket upgrade required")
+        self.assertEqual(oq.p_root_llms_paid_job(stub({"/llms.txt": (200, today), "sslip.io/": ws}))[0], oq.WAITING)
+        self.assertEqual(oq.p_root_llms_paid_job(stub({"/llms.txt": (200, fixed), "sslip.io/": ws}))[0], oq.WAITING)
+        self.assertEqual(oq.p_root_llms_paid_job(stub({"/llms.txt": (200, fixed), "sslip.io/": (302, "")}))[0],
+                         oq.APPLIED)
+        self.assertEqual(oq.p_root_llms_paid_job(stub({"/llms.txt": (200, today), "sslip.io/": (302, "")}))[0],
+                         oq.WAITING)
+        self.assertEqual(oq.p_root_llms_paid_job(stub({"/llms.txt": (502, "")}))[0], oq.UNKNOWN)
+        self.assertEqual({r["rank"]: r["state"] for r in oq.run(stub({}))}[15], oq.UNKNOWN)
+
     def test_every_named_draft_exists_and_the_page_lists_every_row(self):
         page = (ROOT / "drafts" / "OWNER-QUEUE.md").read_text()
         for rank, who, action, unblocks, draft, ch, probe in oq.QUEUE:

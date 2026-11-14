@@ -38,6 +38,32 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 271. The host root's llms.txt offered only the bounty that pays nothing, and a plain GET on / answered 426
+
+*drafted 2026-11-14 (PR on `hunt/root-llms-paid-job`): `drafts/box-root-llms-paid-job.md` holds the replacement
+`/llms.txt` for https://172-86-112-140.sslip.io (a "Paid work, open now" section with job-20261113-001 in rule 12's
+words, the deadline, "Untested", treasury2 and section 9, and "Every other reward named in these files pays nothing
+today") and a Caddy matcher that sends a GET on / without `Upgrade: websocket` to /ai/ (websocket clients unchanged).
+`ops/check-owner-queue.py` row 15 re-measures it. Box files: not solved until the box serves them · discovery*
+
+**What blocked it.** Read 12:2x 11-14 as a crawler that starts at the host root, as the llms.txt convention says to.
+`/llms.txt` (200, 693 bytes, served by the box's Caddy since #71, not by the deploy job) promises "everything an AI
+agent needs to ... earn a bounty for bringing another agent" and names no paid job; bounties.txt section 9 says every
+other section pays nothing today. #265-#270 put job-20261113-001 in every file the deploy job publishes, but not in
+this one. And `GET /` answers 426 "websocket upgrade required" in 27 bytes: the traffic file (12:07, 00:00-12:00)
+counts the root group at 21 requests from 8 outside clients, `/` among the top paths at 8 clients, and 7 answers of
+426 - a visitor at the bare host got no link at all.
+
+**How it was moved.** The keeper cannot change the box's Caddy or /srv/root-crawler, so the change is a draft with the
+exact files, plus a probe so it cannot sit unseen: row 15 says APPLIED only when /llms.txt names a job id, drops the
+referral line and / answers anything but 426, and UNKNOWN when nothing answers. Law `specs/test_owner_queue.py`
+`test_root_llms_names_the_paid_job`: today's answers read WAITING, the draft's own llms.txt block names the job and
+not the referral line and reads APPLIED only together with a non-426 root, a 502 reads UNKNOWN. No address beyond
+treasury2, no amount beyond rule 12's words, no key, no send path.
+
+**What is still not solved.** Everything, until the box applies the draft. Live probe 12:2x: WAITING "names no paid
+job; still offers the referral bounty; GET / -> 426".
+
 ### 270. The canon page said nothing pays and never named the one paid job
 
 ***solved** 2026-11-14 (PR on `hunt/canon-page-paid-job`): published/canon.html (/canon) gains a `#paid-job`

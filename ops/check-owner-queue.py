@@ -18,6 +18,7 @@ WAITING). It sends only GETs, unpaid POSTs that cost nothing, and read-only RPC 
 """
 import datetime
 import json
+import re
 import subprocess
 import sys
 import urllib.error
@@ -223,6 +224,23 @@ def p_asks_how_to_ask(f):
     return WAITING, "GET /unstuck/api/asks answers only %s, no route to post" % "+".join(sorted(j))
 
 
+def p_root_llms_paid_job(f):
+    """Challenge #271: the box root's /llms.txt offered only the referral bounty (which pays nothing) and named no paid
+    job, and a plain GET on / answered 426 "websocket upgrade required" (7 outside answers 11-14 00:00-12:00).
+    APPLIED only when /llms.txt names a job id, drops the referral line, and / answers anything but 426."""
+    st, t = f(BOX + "/llms.txt")
+    if st != 200 or not t.strip():
+        return UNKNOWN, "/llms.txt http %s" % st
+    names_job = re.search(r"\bjob-\d{8}-\d{3}\b", t) is not None
+    referral = "bounty for bringing another agent" in t
+    st_root, _ = f(BOX + "/")
+    if names_job and not referral and st_root != 426:
+        return APPLIED, "/llms.txt names a paid job; GET / -> %s" % st_root
+    missing = [m for m, bad in (("names no paid job", not names_job), ("still offers the referral bounty", referral),
+                                ("GET / -> 426", st_root == 426)) if bad]
+    return WAITING, "/llms.txt " + "; ".join(missing)
+
+
 # rank, who, action, what it unblocks, draft, challenge, probe
 QUEUE = [
     (1, "owner", "restart the five paid sellers", "every paid call but the echo; STEP 6 of every guide",
@@ -255,6 +273,9 @@ QUEUE = [
     (14, "network", "say how to post (free) and answer in GET /unstuck/api/asks",
      "the most-read path (55 outside clients 11-09) reaching a first outside ask",
      "drafts/network-asks-how-to-ask.md", "#244", p_asks_how_to_ask),
+    (15, "box", "name the paid job in the root llms.txt and send a plain GET / to /ai/",
+     "crawlers reading the host root's llms.txt (8 outside clients on / 11-14, 7 got 426)",
+     "drafts/box-root-llms-paid-job.md", "#271", p_root_llms_paid_job),
 ]
 
 

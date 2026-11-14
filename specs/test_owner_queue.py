@@ -70,6 +70,29 @@ class OwnerQueue(unittest.TestCase):
         bad = {"accepts": [{"asset": "XNO", "payTo": "nano_3other"}]}
         self.assertEqual(oq.p_sellers(stub({"paypercall.dev": (200, json.dumps(bad))}))[0], oq.WAITING)
 
+    def test_the_treasury_is_treasury2_and_the_old_one_is_not_applied(self):
+        """#273: both rows probed the dead old treasury; row 1 read WAITING for sellers paying treasury2."""
+        self.assertEqual(oq.TREASURY, "nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy")
+        t2 = {"accepts": [{"asset": "XNO", "payTo": oq.TREASURY}]}
+        self.assertEqual(oq.p_sellers(stub({"paypercall.dev": (200, json.dumps(t2))}))[0], oq.APPLIED)
+        old = {"accepts": [{"asset": "XNO", "payTo": oq.OLD_TREASURY}]}
+        self.assertEqual(oq.p_sellers(stub({"paypercall.dev": (200, json.dumps(old))}))[0], oq.WAITING)
+        # the live shape: accepts under each resource; one stray payee among them is WAITING
+        live = {"x402Version": 2, "resources": [{"url": "u1", "accepts": t2["accepts"]},
+                                                {"url": "u2", "accepts": t2["accepts"]}]}
+        self.assertEqual(oq.p_sellers(stub({"paypercall.dev": (200, json.dumps(live))}))[0], oq.APPLIED)
+        live["resources"].append({"url": "u3", "accepts": old["accepts"]})
+        self.assertEqual(oq.p_sellers(stub({"paypercall.dev": (200, json.dumps(live))}))[0], oq.WAITING)
+        usdc = {"resources": [{"accepts": [{"asset": "USDC", "payTo": oq.TREASURY}]}]}
+        self.assertEqual(oq.p_sellers(stub({"paypercall.dev": (200, json.dumps(usdc))}))[0], oq.WAITING)
+        seen = []
+
+        def f(url, method="GET", body=None, timeout=15, limit=400000):
+            seen.append(body)
+            return 200, json.dumps({"blocks": ""})
+        self.assertEqual(oq.p_treasury_receive(f)[0], oq.APPLIED)
+        self.assertEqual(seen[0]["account"], oq.TREASURY)
+
     def test_silence_is_unknown_not_a_verdict(self):
         rows = oq.run(stub({}))
         by = {r["rank"]: r["state"] for r in rows}

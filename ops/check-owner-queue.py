@@ -26,7 +26,12 @@ import urllib.request
 from pathlib import Path
 
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36 unowned-rail-probe/1"
-TREASURY = "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
+# #273: since 2026-11-08 the treasury is treasury2 (OWNER-RULES rule 2). The old one's seed and auto-receive are on
+# the dead Rai box and its 10 XNO receivable is closed by the owner (11-12): a seller paying it is WAITING, and its
+# receivable is no longer a row. Before #273 both rows probed the old account, so row 1 printed WAITING for five
+# sellers that answer XNO to treasury2, and row 2 printed a known, closed fault while treasury2 went unwatched.
+TREASURY = "nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy"
+OLD_TREASURY = "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7"
 SELLERS = ["extract", "search", "domain", "check", "geoip"]
 GU = "https://getunstuck.space"
 BOX = "https://172-86-112-140.sslip.io"
@@ -68,13 +73,17 @@ def p_sellers(f):
         j = _json(t) if st == 200 else None
         if j is None:
             continue
-        acc = j.get("accepts") or []
-        if any(a.get("payTo", a.get("pay_to")) == TREASURY and "XNO" in json.dumps(a) for a in acc):
+        # The live terms (x402Version 2, 11-14) carry accepts per resource, not at the top: read both, and require
+        # EVERY accept to name XNO and pay treasury2 (one stray payee is a seller paying someone else).
+        acc = list(j.get("accepts") or [])
+        for res in j.get("resources") or []:
+            acc.extend((res or {}).get("accepts") or [])
+        if acc and all(a.get("payTo", a.get("pay_to")) == TREASURY and a.get("asset") == "XNO" for a in acc):
             answered.append(s)
         else:
             wrong.append(s)
     if wrong:
-        return WAITING, "answering but not paying the treasury in XNO: " + ", ".join(wrong)
+        return WAITING, "answering but not paying treasury2 in XNO: " + ", ".join(wrong)
     if answered:
         return (APPLIED if len(answered) == len(SELLERS) else WAITING), "%d of 5 answer: %s" % (
             len(answered), ", ".join(answered))
@@ -88,7 +97,7 @@ def p_treasury_receive(f):
         return UNKNOWN, "receivable unreadable (http %s)" % st
     blocks = j["blocks"] or {}
     if not blocks:
-        return APPLIED, "nothing receivable at the treasury"
+        return APPLIED, "nothing receivable at treasury2"
     return WAITING, "%d block(s) receivable: %s" % (len(blocks), ", ".join(h[:8] for h in blocks))
 
 
@@ -245,7 +254,7 @@ def p_root_llms_paid_job(f):
 QUEUE = [
     (1, "owner", "restart the five paid sellers", "every paid call but the echo; STEP 6 of every guide",
      "drafts/owner-box-down-2026-10-23.md", "#197", p_sellers),
-    (2, "owner", "restart the treasury auto-receive", "a payment to us is income only once received",
+    (2, "owner", "receive what is pending at treasury2 (no auto-receive job yet)", "a payment to us is income only once received",
      "drafts/owner-box-down-2026-10-23.md", "#148", p_treasury_receive),
     (3, "network", "accept token for pre-rule asks, and in llms.txt", "paying outside answers #317, #318; any stranger accepting",
      "drafts/box-accept-token-legacy-asks.md", "#109", p_accept_token),

@@ -11,8 +11,8 @@ Also waiting on the owner, not probed: PR #89 and PR #118 (seed and wallet paths
 
 | # | state | who | action | unblocks | measured 04:22 UTC 2026-11-07 | draft |
 |---|---|---|---|---|---|---|
-| 1 | **WAITING** | owner | restart the five paid sellers | every paid call but the echo; STEP 6 of every guide | 0 of 5 sellers' /.well-known/x402 answered | `drafts/owner-box-down-2026-10-23.md` (#197) |
-| 2 | **WAITING** | owner | restart the treasury auto-receive | a payment to us is income only once received | 1 block(s) receivable: 5EE71904 | `drafts/owner-box-down-2026-10-23.md` (#148) |
+| 1 | **APPLIED** | owner | restart the five paid sellers | every paid call but the echo; STEP 6 of every guide | 20:2x 11-14: 5 of 5 answer XNO to treasury2 (#273 fixed the probe, which expected the old treasury) | `drafts/owner-box-down-2026-10-23.md` (#197) |
+| 2 | **APPLIED** | owner | receive what is pending at treasury2 (no auto-receive job yet) | a payment to us is income only once received | 20:2x 11-14: nothing receivable at treasury2 (#273; before it, this row read the old treasury, closed by the owner 11-12) | `drafts/owner-box-down-2026-10-23.md` (#148) |
 | 3 | **WAITING** | network | accept token for pre-rule asks, and in llms.txt | paying outside answers #317, #318; any stranger accepting | llms.txt never names accept_token | `drafts/box-accept-token-legacy-asks.md` (#109) |
 | 4 | **WAITING** | network | fix the echo's description (asking is free) | the cheapest conversion: posting an ask | description still says '...post an ask...' | `CHALLENGES-SOLVED.md #199` (#199) |
 | 5 | **WAITING** | network | link bounties and canon from llms.txt, agent.json, sitemap | machine readers finding the offer at all | llms.txt does not link bounties.txt | `drafts/unstuck-machine-routes-link-bounties.md` (#138) |

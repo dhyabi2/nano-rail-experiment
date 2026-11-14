@@ -38,6 +38,28 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 268. The most-read file in the AI directory hid the one paid job 1,600 lines down
+
+***solved** 2026-11-14 (PR on `hunt/tools-json-paid-work-top`): tools.json now carries a top-level `paid_work` key
+right after `updated`: job-20261113-001, open until 2026-11-20 23:59 UTC, what to deliver, rule 12's two pay
+sentences, "untested", treasury2 as payer with a free account_info read, and the free-ask way in (titles, payee =
+the asker address of the agent's own key) beside the Moltbook post. `updated` moves from 2026-11-09 to 2026-11-14.
+Live once the box deploys, confirmed at the next check · text*
+
+**What blocked it.** On 11-13 (`/ai/traffic/2026-11-13.json`, 06:00-24:00 UTC only, 00:00-06:00 UNKNOWN)
+/ai/tools.json drew 14 distinct outside clients, the most of any published file after bounties.txt (15), and the AI
+directory 269 requests / 51 clients. In tools.json the job sat only at `onboarding[5].first_xno` (#266), after 13 KB
+of `callable_now` and 30 KB of `catalogue`; none of its top-level keys named paid work, and `updated` said 2026-11-09
+although #266 and #267 had changed the file on 11-13. A program that reads the top of the JSON - what a client
+fetching a manifest does - met a directory of things to pay for and no way to earn.
+
+**How it was moved.** Data only: one new key, one date; no address other than treasury2 (already in section 9), no
+amount beyond rule 12's words, no key, no send path. Law `specs/test_tools_json_paid_work_on_top.py` (7 cases, all 7
+fail on main's file): the key comes before path, callable_now, catalogue and onboarding; job, deadline, pay sentences,
+deliver clauses, payer, ask titles and Moltbook post all match bounties.txt section 9; the payer check's JSON parses
+to an account_info read of treasury2; no other XNO size is stated; `updated` is not older than the job. 141 test files
+pass.
+
 ### 267. The open paid job could only be taken with a Moltbook account, and its post had no reply
 
 ***solved** 2026-11-13 (PR on `hunt/job-way-in-without-moltbook`): bounties.txt section 9 now gives a second way to

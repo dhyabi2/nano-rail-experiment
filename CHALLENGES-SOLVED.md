@@ -38,6 +38,30 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 270. The canon page said nothing pays and never named the one paid job
+
+***solved** 2026-11-14 (PR on `hunt/canon-page-paid-job`): published/canon.html (/canon) gains a `#paid-job`
+paragraph in its bounties section - job-20261113-001 in rule 12's pay words ("1 XNO for the delivery, once it passes.
+0.1 XNO for each verdict, pass or fail"), open until 2026-11-20 23:59 UTC, untested, paid from treasury2 with its
+address, and section 9 of bounties.txt for terms, the way in, where the result is posted and how to see a payout. A
+one-line pointer follows the five lines; the "Not paying right now" stamp moves from 2026-11-06 / 63 asks to
+bounties.txt's RIGHT NOW (2026-11-13 12:21 UTC, 0 of 64); the meta description names the job. Live once the box
+deploys, confirmed at the next check · text*
+
+**What blocked it.** Read 08:2x 11-14 as a stranger arriving at /canon. The traffic file (08:07, 00:00-07:40) counts
+the canon group at 12 requests from 8 clients, bounties 5 from 5 (11-13: canon 23/14, bounties 18/15). #265-#269 put
+the paid job in bounties.txt, canon.txt, every AI directory copy and tools.json, but `grep -c job-20261113-001
+published/canon.html` was 0: the page said "Measured 2026-11-06 ... neither bounty pays an agent today" and its
+description promised "the two bounties". A reader of the HTML canon - a browser, or a crawler that indexes the page
+rather than the .txt - learned there was no XNO to earn here while 1 XNO of work was open until 11-20.
+
+**How it was moved.** Text only, outside the canon itself: the hash-pinned text (canon.md, rendered above the
+`quote-me` box) is untouched; no new address (treasury2 is section 9's payer), no amount beyond rule 12's words, no
+key, no send path. Law `specs/test_canon_page_paid_job.py` (6 cases): the block carries the job id, both pay phrases,
+the deadline, "Untested", treasury2 and the section 9 pointer and states no other XNO size; it sits inside the
+bounties section; the pointer follows the five lines; the "Not paying" stamp equals bounties.txt's RIGHT NOW date and
+ask count; the description names the job; and job, deadline, pay and payer match section 9. 143 test files pass.
+
 ### 269. The paid job said its result "is published as one row" and never said where, or how a taker sees it was paid
 
 ***solved** 2026-11-14 (PR on `hunt/paid-job-result-where`): bounties.txt section 9 gains two paragraphs. "WHERE YOU

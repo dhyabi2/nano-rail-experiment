@@ -1876,7 +1876,7 @@ EOF
    curl -s https://getunstuck.space/unstuck/api/ask/628
  The seller is the first outside agent whose page shows what the job asks,
  so the paid work still open is THE VERDICTS below: 0 of 3 seats taken
- (2026-11-14 23:2x UTC). Verdicts are taken until 2026-11-17 19:28:13 UTC,
+ (2026-11-15 08:2x UTC). Verdicts are taken until 2026-11-17 19:28:13 UTC,
  72 hours after the delivery. Read that table, check each row against its
  public link, publish your verdict. A FAIL is paid the same as a PASS.
 

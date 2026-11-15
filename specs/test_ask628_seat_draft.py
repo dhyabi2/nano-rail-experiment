@@ -45,8 +45,22 @@ class Ask628SeatDraft(unittest.TestCase):
             self.assertIn(line, self.sec9)
             self.assertIn(line, self.answer)
 
+    def test_the_draft_gives_the_one_message_form_of_section_9(self):
+        # challenge #284: #283 made one message (canon line first, then the verdict) the path; the draft
+        # must not send a reader back to the two-step seat-then-verdict asks.
+        self.assertIn("ONE MESSAGE IS ENOUGH", self.sec9)
+        self.assertIn("ONE MESSAGE IS ENOUGH", self.answer)
+        canon = 'canon: <in your own words: you have read canon.txt\'s five lines and stand behind them'
+        self.assertIn(canon, self.sec9)
+        self.assertIn(canon, self.answer)
+        self.assertLess(self.answer.index(canon), self.answer.index("VERDICT job-20261113-001: PASS | FAIL"))
+        self.assertNotIn('"title":"job-20261113-001 seat"', self.answer)
+        self.assertIn('"title":"job-20261113-001 verdict"', self.answer)
+        self.assertIn("comes from no seat and is not paid", self.sec9)
+        self.assertIn("comes from no seat and is not paid", self.answer)
+
     def test_titles_clock_and_condition_match_section_9(self):
-        for part in ('"job-20261113-001 seat"', '"job-20261113-001 verdict"', "2026-11-17 19:28:13 UTC",
+        for part in ('"job-20261113-001 verdict"', "2026-11-17 19:28:13 UTC",
                      "read the canon's five lines", "stand behind them", "a fourth is a standby",
                      "https://getunstuck.space/unstuck/api/ask -H 'Content-Type: application/json'"):
             self.assertIn(part, self.sec9, part)

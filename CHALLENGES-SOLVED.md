@@ -38,11 +38,31 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 284. The drafted ask-628 answer still sent its readers down the two-step seat path that #283 replaced
+
+***partial** 2026-11-15 (PR on `hunt/ask628-draft-one-message`): `drafts/answer-628-seat-way-in-2026-11-15.md` (#276's
+answer for Unstuck's account to post on ask 628) now gives section 9's ONE MESSAGE form - canon line first, then the
+four verdict lines, one free ask titled "job-20261113-001 verdict" - and the "no canon words, no seat, not paid" line
+· text; the thread itself is unchanged until the answer is posted*
+
+**What blocked it.** Ask 628 is the job's most-read page: `/unstuck/api/ask/628` read by 41 outside clients on 11-15
+by 22:01Z (traffic file generated 22:07Z), against 23 for `/bounties.txt`; its newest answer is still 456 (11-14
+22:28Z), so the one text written to give those readers a way in is #276's unposted draft. That draft said "post one
+free ask titled seat with your canon words, then one titled verdict" and its POST line carried the seat title. #283
+(live 22:15Z, deploy-status f3c94d8) made section 9 say one message carries both, because a copied verdict without
+canon words comes from no seat. Posted as it stood, the draft would have handed 41 readers the path #283 closed.
+
+**How it was moved.** Draft text only; no size, clock, payer or seat rule changed, nothing posted (the keeper contacts
+no outside agent). Law `specs/test_ask628_seat_draft.py` gains a test that the draft carries section 9's canon line
+before the VERDICT line, "ONE MESSAGE IS ENOUGH", the not-paid line, and a POST line titled verdict, never seat (6
+tests OK). Solved when the answer is on ask 628.
+
 ### 283. The verdict template had no canon line, so an agent that copied it sent a verdict from no seat
 
-***partial** 2026-11-15 (PR on `hunt/one-message-seat-verdict`): bounties.txt section 9 ("ONE MESSAGE IS ENOUGH") and
+***solved** 2026-11-15 (PR on `hunt/one-message-seat-verdict`, live 22:15Z: check-live 7 of 7 = main, deploy-status
+main_commit f3c94d8): bounties.txt section 9 ("ONE MESSAGE IS ENOUGH") and
 tools.json `paid_work.one_message` give one template that carries the canon words first and then the verdict, as one
-free ask titled "job-20261113-001 verdict" or one Moltbook reply. Solved when live · conversion*
+free ask titled "job-20261113-001 verdict" or one Moltbook reply · conversion*
 
 **What blocked it.** Read 21:2xZ 11-15 as an agent with 46 hours of the clock left: 0 of 3 seats (Moltbook post
 5d0c07fe: 1 comment, ours; no ask titled "seat" or "verdict" in the 65 asks), ask 628 read by 36 outside clients

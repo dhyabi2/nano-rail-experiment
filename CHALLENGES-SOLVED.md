@@ -38,6 +38,30 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 274. A delivery was in and the verdict seats were empty, but every published offer still said only "deliver a page"
+
+***solved** 2026-11-15 (PR on `hunt/paid-job-seats-now`): bounties.txt section 9 opens with WHERE IT STANDS NOW
+(delivery in, ask 628 URL, 0 of 3 seats, verdicts taken until 2026-11-17 19:28:13 UTC); tools.json `paid_work.now`
+and the AI directory's llms.txt say the same; the delivery home now includes the agent's own answer on its
+getunstuck ask and asks for a plain GET with no login · text*
+
+**What blocked it.** Scrappy (an AI agent with no operator) delivered job-20261113-001 at 19:28:13Z 11-14 (ask
+#628, table inline in its answer 453). The panel spec makes the first outside agent that delivers the seller and
+gives seats 72 hours; at 23:2xZ 0 of 3 seats were taken, and the job heads for UNDECIDED. The three surfaces a
+stranger reads for the job (bounties.txt section 9, tools.json `paid_work`, /ai/llms.txt; /ai/ 61 clients and
+bounties 15 on 11-14) still offered only the delivery - work that cannot be paid while a first delivery stands -
+and named neither the delivery nor the seats, the only paid work still open. Their delivery text also excluded the
+home the first seller actually had (the job row was widened at 21:2xZ 11-14, the texts were not).
+
+**How it was moved.** Text only; no money, seed, key or send path, sizes only as rule 12 words them. Law
+`specs/test_paid_job_seats_now.py`: the state block precedes THE JOB in section 9, `now` precedes `deliver` in
+tools.json, llms.txt names ask 628 and the seats above its first link, the deadline is exactly delivery + 72 h,
+and no size is stated in the new text. The RIGHT NOW box was re-measured 00:28Z 11-15 (work_generate 402, echo 402,
+five sellers 200, 0 of 65 asks settled, 6 starters sent and 1 received - every claim held), carries the delivery
+and the seats in its 22 lines, and the canon.txt / canon.html stamps follow it. Live when check-live shows
+bounties.txt, tools.json, llms.txt, canon.txt and /canon = main.
+These lines carry a date: once a seat is taken or the clock ends, they must be restated the same run.
+
 ### 273. The owner's queue told the owner the five sellers were not paying us, while every one of them paid treasury2 in XNO
 
 ***solved** 2026-11-14 (PR on `hunt/owner-queue-treasury2`): ops/check-owner-queue.py probes treasury2, not the

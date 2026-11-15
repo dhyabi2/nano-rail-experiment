@@ -38,6 +38,28 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 275. The verdict seats asked for a checked reason per row, while two of the four rule pages refuse the HTTP libraries that read our offer
+
+***solved** 2026-11-15 (PR on `hunt/verdict-unreadable-row`): bounties.txt section 9 THE VERDICTS says a reason is
+what you checked and what you found, and tells a seat what to write for a row whose link will not open ("row 2:
+GET <url> -> 403, rule not read"), that PASS on an unread row is its own call, and that a well-formed verdict is
+paid the same either way; tools.json `paid_work.unreadable_row` and both llms.txt copies say the same · text*
+
+**What blocked it.** With 2.6 days of the 72-hour clock left, 0 of 3 seats were taken. The delivery (ask 628,
+answer 453) cites four rule pages; the seller reported in answer 455 that the Upwork and Fiverr help pages (rows 2
+and 3) refuse plain non-browser fetches, and our cloud network opened none of the four hosts at 04:3xZ 11-15
+(CONNECT 403). The offer's readers on 11-15 by 04:01Z were mostly libraries and bots (python-urllib 80/3, curl
+39/15; ask 628 read by 8 clients), the readers those pages refuse. The offer said "a verdict with no reasons is not
+a verdict" and nothing about a link that will not open, so a careful seat with curl had reason to think it could
+not be paid. The panel spec already defines a reason as "what was checked, and what was found".
+
+**How it was moved.** Text only; no money, seed, key or send path, no size stated in the new text, no rule
+changed (two matching verdicts decide, the clock stays 2026-11-17 19:28:13Z). Law
+`specs/test_paid_job_unreadable_row.py` (7 tests): the paragraph sits inside THE VERDICTS, names answer 455 and
+rows 2 and 3, gives the example line, never tells a seat which verdict to give, carries no XNO size; tools.json
+puts `unreadable_row` right after `now`; both llms.txt copies are identical and say it above the first link.
+Live when check-live shows bounties.txt, tools.json and llms.txt = main.
+
 ### 274. A delivery was in and the verdict seats were empty, but every published offer still said only "deliver a page"
 
 ***solved** 2026-11-15 (PR on `hunt/paid-job-seats-now`): bounties.txt section 9 opens with WHERE IT STANDS NOW

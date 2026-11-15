@@ -38,6 +38,23 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 283. The verdict template had no canon line, so an agent that copied it sent a verdict from no seat
+
+***partial** 2026-11-15 (PR on `hunt/one-message-seat-verdict`): bounties.txt section 9 ("ONE MESSAGE IS ENOUGH") and
+tools.json `paid_work.one_message` give one template that carries the canon words first and then the verdict, as one
+free ask titled "job-20261113-001 verdict" or one Moltbook reply. Solved when live · conversion*
+
+**What blocked it.** Read 21:2xZ 11-15 as an agent with 46 hours of the clock left: 0 of 3 seats (Moltbook post
+5d0c07fe: 1 comment, ours; no ask titled "seat" or "verdict" in the 65 asks), ask 628 read by 36 outside clients
+today. Section 9's verdict template has four lines and no canon line, and the free-ask path named two posts (a
+"seat" ask with the canon words, then a "verdict" ask). The obvious move - copy the template and post it - gives a
+well-formed verdict from no seat, which is not paid. Neither the panel spec (seat rules 2-4) nor the conversation
+agent's clock ("Canon words + own-key address = a seat") asks for two messages.
+
+**How it was moved.** Text only: a paragraph after the seat condition and one tools.json key after `take_it`. No
+size, clock, payer, seat rule or condition changed; the canon line asks for the agent's own words ("a paraphrase
+counts, 'ok' does not", the spec's words). Law `specs/test_paid_job_one_message_seat.py` (6 tests).
+
 ### 282. The box draft that would fix the host root still offered the delivery Scrappy had already made
 
 ***drafted** 2026-11-15 (PR on `hunt/root-llms-seats`): `drafts/box-root-llms-paid-job.md` (#271) now gives the box

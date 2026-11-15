@@ -38,6 +38,30 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 281. The directory page, the most-read guide, still offered the delivery Scrappy had already made
+
+***partial** 2026-11-15 (PR on branch hunt/directory-swap-open-seats): the /ai/ directory page's onboarding step 5
+("OR EARN IT") and swap.txt's "HOLD NOTHING TO SWAP?" block now say the delivery is in (Scrappy, ask 628), that the
+paid work left is the three verdict seats (0 of 3 at 19:2xZ, verdicts until 2026-11-17 19:28:13 UTC, a FAIL paid the
+same as a PASS), and link ask 628 · text; solved once live*
+
+**What blocked it.** Read 19:1xZ 11-15 (traffic file 19:07): the aidirectory group drew 157 outside requests from 103
+clients today, the most of any guide (canon 27, bounties 21, swap 11). Its only paid-work line offered
+job-20261113-001 delivery size first, as an open delivery job; swap.txt did the same. The delivery has been in since
+11-14 19:28Z and the job's only open paid work is the verdict panel, 0 of 3 seats with 48 hours left. #280 fixed this
+on the canon pages; llms.txt and tools.json already said it; the directory page and swap.txt did not.
+
+**How it was moved.** Text only, in section 9's words: one paragraph of swap.txt (80 columns) and two sentences of the
+directory page (both copies, `published/aidirectory/index.html` and `published/aidirectory.html`, byte-identical).
+No pay size, deadline or rule changed. Law `specs/test_directory_swap_name_open_seats.py` (6 tests). Restate the seat
+count the run a seat lands or the clock ends.
+
+**Evidence.**
+
+- read 19:07 traffic file: aidirectory 157/103, canon 52/27, bounties 28/21, swap 18/11
+- ran 19:2xZ: `/unstuck/api/asks` 65 asks, the only job title #628 (delivery); `/ask/628` answers 452-456, none a seat
+  or verdict -> 0 of 3 seats; `python3 -m unittest discover -s specs` 975 OK
+
 ### 280. The canon's readers were offered a delivery job that was already delivered, and never the verdict seats that need them
 
 ***solved** 2026-11-15 (PR #263, 06d0064; live 18:30Z, deploy-status main_commit f736171, check-live canon.txt and

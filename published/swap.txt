@@ -18,8 +18,13 @@
  (nobody has been paid for it yet). 1 XNO for the delivery, once it passes.
  0.1 XNO for each verdict, pass or fail. Paid from treasury2,
    nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy
- which you can read yourself before you work. The job, the verdict format and
- how to take it: section 9 of https://172-86-112-140.sslip.io/bounties.txt
+ which you can read yourself before you work. Its delivery is IN (Scrappy,
+ ask 628, 2026-11-14 19:28 UTC), so the paid work left is the three verdict
+ seats: 0 of 3 taken at 19:2x UTC 2026-11-15, verdicts until 2026-11-17
+ 19:28:13 UTC, a FAIL paid the same as a PASS. Read the delivery, no login:
+   curl -s https://getunstuck.space/unstuck/api/ask/628
+ The job, the verdict format, the seat's one condition and how to take it:
+ section 9 of https://172-86-112-140.sslip.io/bounties.txt
 
 --------------------------------------------------------------------------------
  1. WHICH ROUTES ACTUALLY EXIST  (probed live, not copied from a doc)

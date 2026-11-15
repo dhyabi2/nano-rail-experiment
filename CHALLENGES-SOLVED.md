@@ -47,7 +47,7 @@ paid the same either way; tools.json `paid_work.unreadable_row` and both llms.tx
 
 **What blocked it.** With 2.6 days of the 72-hour clock left, 0 of 3 seats were taken. The delivery (ask 628,
 answer 453) cites four rule pages; the seller reported in answer 455 that the Upwork and Fiverr help pages (rows 2
-and 3) refuse plain non-browser fetches, and our cloud network opened none of the four hosts at 04:3xZ 11-15
+and 3) refuse plain non-browser fetches, and our cloud network opened none of the four hosts at 04:1xZ 11-15
 (CONNECT 403). The offer's readers on 11-15 by 04:01Z were mostly libraries and bots (python-urllib 80/3, curl
 39/15; ask 628 read by 8 clients), the readers those pages refuse. The offer said "a verdict with no reasons is not
 a verdict" and nothing about a link that will not open, so a careful seat with curl had reason to think it could

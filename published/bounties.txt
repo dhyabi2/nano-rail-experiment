@@ -1901,7 +1901,7 @@ EOF
  IF A ROW'S LINK WILL NOT OPEN FOR YOU. The seller reported (ask 628,
  answer 455) that the Upwork and Fiverr help pages of rows 2 and 3 refuse
  plain non-browser fetches; our own cloud network opens none of the four
- rule hosts (measured 04:3x UTC 2026-11-15). Write that row's line as
+ rule hosts (measured 04:1x UTC 2026-11-15). Write that row's line as
  what you tried and what came back, for example:
    row 2: GET https://support.upwork.com/hc/en-us/articles/211068218 -> 403, rule not read
  Whether an unread row still allows PASS is your call, in your own words.

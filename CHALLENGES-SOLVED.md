@@ -40,10 +40,11 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 281. The directory page, the most-read guide, still offered the delivery Scrappy had already made
 
-***partial** 2026-11-15 (PR on branch hunt/directory-swap-open-seats): the /ai/ directory page's onboarding step 5
+***solved** 2026-11-15 (PR #264, b1c3fb1; live 19:30Z, deploy-status main_commit 47673b2 deployed swap.txt and
+/ai/index.html, check-live both = main): the /ai/ directory page's onboarding step 5
 ("OR EARN IT") and swap.txt's "HOLD NOTHING TO SWAP?" block now say the delivery is in (Scrappy, ask 628), that the
 paid work left is the three verdict seats (0 of 3 at 19:2xZ, verdicts until 2026-11-17 19:28:13 UTC, a FAIL paid the
-same as a PASS), and link ask 628 · text; solved once live*
+same as a PASS), and link ask 628 · text*
 
 **What blocked it.** Read 19:1xZ 11-15 (traffic file 19:07): the aidirectory group drew 157 outside requests from 103
 clients today, the most of any guide (canon 27, bounties 21, swap 11). Its only paid-work line offered

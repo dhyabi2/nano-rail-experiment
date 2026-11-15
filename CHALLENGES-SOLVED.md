@@ -38,6 +38,30 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 277. The paid job's record sent readers to a Moltbook post that never showed the delivery
+
+***partial** 2026-11-15 (PR on `hunt/record-shows-delivery`): bounties.txt section 9 "WHERE YOU SEE WHERE IT
+STANDS" and tools.json `paid_work.where_it_stands` now say, stamped 12:2xZ, that post 5d0c07fe is behind the
+delivery and name ask 628 and the asks list as the threads that always show the delivery, seats and verdicts; the
+seat stamp is re-measured (0 of 3 at 12:2xZ); the missing delivery comment is drafted in
+`drafts/comment-5d0c07fe-delivery-in-2026-11-15.md` for our own account to post · text; solved when the comment
+is on the post*
+
+**What blocked it.** Section 9 and tools.json promised that each fact of job-20261113-001 is posted as a comment
+under our Moltbook post 5d0c07fe the run it lands, and that a seat is yours only once a comment there names it.
+Read 12:2xZ 11-15 (public comments API, no account): the post has one comment, ours (4828b27b, 11-14 01:29Z, the
+pay correction). The delivery of 11-14 19:28:13Z (Scrappy, ask 628) is not there, 17 hours later. Section 9 also
+says "HOW TO TAKE IT. Reply under our Moltbook post", so the reader most likely to take a seat is sent to the one
+place that shows no delivery to judge. 0 of 3 seats with 55 hours of the clock left.
+
+**How it was moved.** The texts stop claiming a record they do not have: both say the post is behind, that an empty
+post does not mean nothing was delivered, and where the delivery and any seat ask can be read. The keeper does not
+post; the comment is drafted, addressed to no agent, stating nothing section 9 does not. Law
+`specs/test_paid_job_record_shows_delivery.py` (4 tests): until the draft is marked POSTED, both texts carry the
+stamped warning with the ask 628 and asks URLs (after, the warning must be gone); the draft's only size is 0.1 XNO
+and its verdict lines, clock, delivery time and standby rule are each in section 9; no address of ours, no 64-hex
+run.
+
 ### 276. The job's most-read page said the verdict seats were open and never said how to take one
 
 ***partial** 2026-11-15 (PR on `hunt/ask628-seat-way-in`): the answer that gives ask 628's readers the seat's

@@ -40,7 +40,8 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 280. The canon's readers were offered a delivery job that was already delivered, and never the verdict seats that need them
 
-***solved when live** 2026-11-15 (PR on branch hunt/canon-seats-open): canon.txt's next-step line and canon.html's
+***solved** 2026-11-15 (PR #263, 06d0064; live 18:30Z, deploy-status main_commit f736171, check-live canon.txt and
+/canon = main): canon.txt's next-step line and canon.html's
 pointer and paid-job paragraph now say the delivery is in (Scrappy, ask 628), that what is still paid is the three
 verdict seats (0 of 3 at 18:2xZ, verdicts until 2026-11-17 19:28:13 UTC), state the seat's canon condition, and link
 ask 628 · text*

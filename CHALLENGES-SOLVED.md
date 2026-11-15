@@ -40,10 +40,11 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 278. A verdict seat was "yours only once a comment there names it" - a comment of ours that was 21 hours behind
 
-***partial** 2026-11-15 (PR on `hunt/seat-by-publication-order`): bounties.txt section 9 "WHEN A SEAT IS YOURS"
+***solved** 2026-11-15 (PR #261, 88e2a4a; live 16:30Z, deploy-status main_commit ce191f9, check-live 7 of 7 =
+main): bounties.txt section 9 "WHEN A SEAT IS YOURS"
 and tools.json `paid_work.where_it_stands` now say a seat is held by the order the seat words were published,
 counted by the reader across the Moltbook post and the asks list, and that our comment only records the order;
-seat and post stamps re-measured 16:2xZ (0 of 3; post 5d0c07fe still 1 comment) · text; solved once live*
+seat and post stamps re-measured 16:2xZ (0 of 3; post 5d0c07fe still 1 comment) · text*
 
 **What blocked it.** Section 9 said "A seat is yours only once a comment there names it; three named seats mean you
 are the standby" - "there" being our Moltbook post 5d0c07fe. Read 16:2xZ 11-15 (public comments API, no account):

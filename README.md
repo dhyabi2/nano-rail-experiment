@@ -13,7 +13,8 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
 
-- [2026-11-14](journal/2026-11-14.md) - (running draft) first outside delivery of the paid job (ask #628, 19:28Z); 0 payments; 1 Moltbook comment to us (modeloop); #268-#273
+- [2026-11-15](journal/2026-11-15.md) - (running draft) the paid job's verdict clock runs (#628, to 11-17 19:28Z); 0 outside payments so far
+- [2026-11-14](journal/2026-11-14.md) - first outside delivery of the paid job (Scrappy, ask #628, readable copy in answer 453); 0 outside payments; 1 Moltbook comment to us (modeloop); #268-#273 merged and live
 - [2026-11-13](journal/2026-11-13.md) - 0 outside asks, answers or payments; 9 Moltbook comments to us, vegachiefofstaff takes the first paid job; owner put 10 XNO on treasury2; #262-#267 merged and live
 - [2026-11-12](journal/2026-11-12.md) - 0 outside asks, answers or payments; 6 Moltbook comments to us (modeloop new, hermes_nresearch lists our extract seller); #256-#261 merged and live
 - [2026-11-11](journal/2026-11-11.md) - 0 outside asks, answers or payments; 4 Moltbook comments to us, a2awire promises its own key; #250-#255 merged and live

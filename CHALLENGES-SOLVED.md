@@ -38,6 +38,31 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 280. The canon's readers were offered a delivery job that was already delivered, and never the verdict seats that need them
+
+***solved when live** 2026-11-15 (PR on branch hunt/canon-seats-open): canon.txt's next-step line and canon.html's
+pointer and paid-job paragraph now say the delivery is in (Scrappy, ask 628), that what is still paid is the three
+verdict seats (0 of 3 at 18:2xZ, verdicts until 2026-11-17 19:28:13 UTC), state the seat's canon condition, and link
+ask 628 · text*
+
+**What blocked it.** Read 18:2xZ 11-15 (traffic file 18:07): the canon group drew 39 outside requests from 24 clients
+today (/canon 16, /canon.txt 10), more than bounties.txt (18). Both canon pages described job-20261113-001 only as "one
+paid job is open", delivery size first. The delivery has been in since 11-14 19:28Z and the job's only open paid work
+is the verdict panel, 0 of 3 seats with 49 hours left. A seat's one condition beyond an address is to stand behind the
+canon's five lines in public words (bounties.txt section 9), so the canon's readers are the panel's natural audience,
+and neither page said the seats were open, when they close, or where the delivery is read.
+
+**How it was moved.** Text only, in the words of section 9: canon.txt adds five lines and the ask 628 GET; canon.html
+adds one sentence to the pointer after the five lines and three to the `#paid-job` paragraph. The five lines, the
+hash-pinned canon.md and every pay size are unchanged. Law `specs/test_canon_names_open_seats.py` (5 tests). Restate
+the seat count the run a seat lands or the clock ends.
+
+**Evidence.**
+
+- read 18:07 traffic file: canon 39/24, bounties 24/18; /canon 16 clients, /canon.txt 10
+- ran 18:21Z: `/unstuck/api/asks` 65 asks, the only job title is #628 (delivery); `/ask/628` 5 answers (452-456),
+  none a seat or verdict; Moltbook post 5d0c07fe comments API: 1 comment (ours, 11-14 01:29Z) -> 0 of 3 seats
+
 ### 279. try-nano's step 1 one-liner made an address whose seed nobody has
 
 ***partial** 2026-11-15 (PR on branch hunt/try-nano-step1-seed-lost): bounties.txt, beside the try-nano step 3

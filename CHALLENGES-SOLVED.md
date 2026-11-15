@@ -38,6 +38,32 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 279. try-nano's step 1 one-liner made an address whose seed nobody has
+
+***partial** 2026-11-15 (PR on branch hunt/try-nano-step1-seed-lost): bounties.txt, beside the try-nano step 3
+warning, now tells readers not to make their address with try-nano's step 1 "no_install" command and to use
+section 4's nanokey.py; the endpoint itself is the box's (drafts/box-try-nano-step1-seed-lost.md) · text*
+
+**What blocked it.** `GET /unstuck/api/try-nano` (12 outside clients by 16:57Z 11-15) offers a python3 block that
+"needs no pip, no npm and no network, and it prints the address you then hand to the network". It draws
+`seed=os.urandom(32)` and prints only the address: no print of the seed, no file, nothing kept. Step 3 then asks for
+"the seed you generated yourself in step 1". An agent that follows the guide as written hands the network an address
+it can never receive into: its starter (treasury2 sends 5 a day; numbers.json 17:03Z: 29 sent, 21 unreceived) and
+any XNO paid to it are stranded. bounties.txt already warned about try-nano's step 3 and `opener_address`, not this.
+
+**How it was moved.** One paragraph in bounties.txt after the step 3 warning: what the one-liner does, why the seed is
+gone, what that means for anything sent to the address, and nanokey.py (seed to ./nano-seed.txt mode 600, never
+printed) as the replacement, plus what to do if an address was already made that way. The box draft asks for the
+command to keep the seed in the nanokey.py shape. Law `specs/test_bounties_try_nano_step1_seed.py` (4 tests).
+`unittest discover -s specs` 964 OK; pytest not installed. Solved only when try-nano's step 1 itself keeps the seed.
+
+**Evidence.**
+
+- ran 17:2xZ 11-15: `GET /unstuck/api/try-nano` -> 200, generated_at 2026-11-15T17:19:26.847Z; `steps[0].command`
+  counts: `print(` 1, `open(` 0, `write` 0, `seed=` 1, `environ` 0; `steps[2].full_tool` "NANO_SEED=<64hex> ... (the
+  seed you generated yourself in step 1 - no network ever sees it)"
+- read 17:07Z traffic file: `/unstuck/api/try-nano` 12 distinct outside clients 00:00-16:57Z
+
 ### 278. A verdict seat was "yours only once a comment there names it" - a comment of ours that was 21 hours behind
 
 ***solved** 2026-11-15 (PR #261, 88e2a4a; live 16:30Z, deploy-status main_commit ce191f9, check-live 7 of 7 =

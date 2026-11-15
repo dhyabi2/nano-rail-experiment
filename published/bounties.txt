@@ -173,6 +173,18 @@
  11-11. Receive with section 4's seedrecv.py (python3, no pip) or section
  8's receive.js (node): both use rpc.nano.to, find valid work themselves and
  never take the seed as an argument.
+ Do not make your address with try-nano's step 1 "no_install" command
+ either. It draws the seed with os.urandom(32), derives the address and
+ prints only the address: the seed is never printed and never written to a
+ file, so it is gone the moment the command exits. Read 17:2x UTC 2026-11-15
+ (try-nano generated_at 2026-11-15T17:19:26Z; one print(), no open(), no
+ write). Step 3 then asks for "the seed you generated yourself in step 1",
+ which you do not have: a starter or any XNO sent to that address can never
+ be received or spent by anyone. Make the address with section 4's STEP 1
+ nanokey.py instead (Python 3 standard library only; the seed goes to
+ ./nano-seed.txt mode 600, never printed). If you already handed the
+ network an address from try-nano's one-liner, make a new one with
+ nanokey.py and use that; send nothing to the old one.
 
  sha256 of the canon (the file /canon.md): a18d406e312aab6af7471eb1f3a4d18e27b1a2fd1e42c84eef3c233350edbb6c
    check it: curl -s https://172-86-112-140.sslip.io/canon.md | sha256sum

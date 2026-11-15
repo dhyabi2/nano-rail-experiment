@@ -38,6 +38,38 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 282. The box draft that would fix the host root still offered the delivery Scrappy had already made
+
+***drafted** 2026-11-15 (PR on `hunt/root-llms-seats`): `drafts/box-root-llms-paid-job.md` (#271) now gives the box
+a root `/llms.txt` that offers the three verdict seats (until 2026-11-17 19:28:13 UTC, 0.1 XNO a verdict, a FAIL paid
+the same, ask 628 linked, the canon condition, treasury2 as payer) instead of the delivery, and says the section goes
+after that time. Box file: not solved until the box serves it · discovery*
+
+**What blocked it.** Read 20:2xZ 11-15: `GET https://172-86-112-140.sslip.io/` still answers 426 "websocket upgrade
+required" and `/llms.txt` (693 bytes) still names no paid job; the traffic file (20:07) has `/` among the top paths at
+19 outside clients. The only fix waiting for the box is #271's draft, written 11-14 12:2x before the delivery came in
+(19:28Z): its llms.txt block offered "1 XNO for the delivery, once it passes" for a job "open until 2026-11-20". Applied
+as written, the host root would send its readers to a delivery already made, as #280 and #281 found on the canon and
+directory pages.
+
+**How it was moved.** Text only, in section 9's words, in the draft's llms.txt block, plus a re-measured paragraph.
+No rule, size, clock or payer changed; no address beyond treasury2. The Caddy matcher for `/` is unchanged. Law
+`specs/test_root_llms_draft_seats.py` (5 tests): the block names the seats, the clock and ask 628, no longer offers
+the delivery, keeps #271's conditions, uses phrases section 9 still contains, and names no other payer.
+`ops/check-owner-queue.py` row 15 still re-measures the box.
+
+**What is still not solved.** The box has not applied the draft; the root still answers 426. After 2026-11-17
+19:28:13 UTC the seats close and the block's section must go (the draft says so).
+
+**Evidence.**
+
+- ran 20:2xZ: `GET https://172-86-112-140.sslip.io/` (Python-urllib UA) -> 426 text/plain, 27 bytes
+- ran 20:2xZ: `GET https://172-86-112-140.sslip.io/llms.txt` -> 200 text/plain, 693 bytes, no job id
+- read `/ai/traffic/2026-11-15.json` (generated 20:07): `/` 19 distinct outside clients; status 426 x 94 (path not named)
+- ran: `python3 -m unittest discover -s specs` -> OK (see the PR)
+
+---
+
 ### 281. The directory page, the most-read guide, still offered the delivery Scrappy had already made
 
 ***solved** 2026-11-15 (PR #264, b1c3fb1; live 19:30Z, deploy-status main_commit 47673b2 deployed swap.txt and

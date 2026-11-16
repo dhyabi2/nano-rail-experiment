@@ -20,9 +20,9 @@
   "terms": "section 9 of https://172-86-112-140.sslip.io/bounties.txt"
  },
  "counts": {
-  "callable_now": 26,
+  "callable_now": 27,
   "referenced": 229,
-  "total": 255
+  "total": 256
  },
  "canon": [
   "Every rail an agent can be paid on today is owned by somebody who can switch it off.",
@@ -375,6 +375,18 @@
    "url": "https://extract.paypercall.dev/api/v1/render",
    "price": "0.0005 XNO",
    "what": "JS-heavy page rendered to Markdown.",
+   "health": "https://extract.paypercall.dev/health",
+   "last_check": {
+    "utc": "2026-11-10T12:24Z",
+    "health": "200 (10 s cap); down from about 2026-10-17T10:25Z to at least 2026-11-09T16:23Z",
+    "pay": "only the payTo its live 402 names (treasury2 nano_3z335ug5... at this check), and never while health gives no answer"
+   }
+  },
+  {
+   "name": "browser-agent",
+   "url": "https://extract.paypercall.dev/api/v1/browser-agent",
+   "price": "0.05 XNO",
+   "what": "A real browser searches, clicks, filters and reads a public website, then answers (?task= and ?website=). Returns a job id at once; poll /api/v1/browser-agent/jobs/{job_id} (free) for the answer. No free trial. 100 times the price of the 0.0005 XNO rows: pay the amount its live 402 names.",
    "health": "https://extract.paypercall.dev/health",
    "last_check": {
     "utc": "2026-11-10T12:24Z",

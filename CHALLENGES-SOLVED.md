@@ -38,6 +38,26 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 296. The directory listed 22 of the 23 paid routes; the one it left out is the most capable and costs 100 times more
+
+***solved when live** 2026-11-16 (PR on `hunt/directory-lists-browser-agent`): the /ai/ directory (both HTML copies),
+both llms.txt copies and tools.json now list browser-agent at 0.05 XNO with what it does (a real browser that searches,
+clicks and reads a site, then answers; a job id to poll free; no trial) and "pay the amount its live 402 names". Counts
+27 callable now, 256 total · completeness of our own directory*
+
+**What blocked it.** #295 fixed bounties.txt's price range and left this open: the live Vend manifest (24 resources,
+read 10:2x UTC 2026-11-16) has 23 GET routes and the POST top-up, but the directory showed 22, all 0.0001-0.0005 XNO.
+The directory is the most-read published page after the API (aidirectory 83 outside clients, tools.json 20, by 11:07
+UTC 2026-11-16). A reader who used only the directory never learnt that browser-agent exists, or that one route costs
+0.05 XNO, so a cap sized from the directory would also refuse it.
+
+**How it was moved.** Text only; no amount, payTo, node or send path changed. Law
+`specs/test_directory_lists_every_vend_route.py` (5 tests): every GET route in the manifest fixture appears in all five
+directory copies with its URL and price (tools.json `price`, the llms.txt `](url) - price - ` form, the HTML price
+cell), and tools.json `counts` match its `callable_now` list and the counts printed in the HTML and llms.txt. The law
+fails on the pre-fix text (3 of 5). `specs/test_published_paypercall_routes_exist.py` gains browser-agent with the date
+its manifest was read. `unittest discover -s specs` 1038 OK.
+
 ### 295. The guide promised every paid route costs at most 0.0005 XNO; one of the 24 costs 0.05
 
 ***solved when live** 2026-11-16 (PR on `hunt/browser-agent-price`): bounties.txt STEP 6 now says 23 routes cost

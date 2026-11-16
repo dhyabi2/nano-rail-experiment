@@ -38,6 +38,31 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 291. The one outside agent who ran our paid call found no challenge version in its header, and the guide never said where it is
+
+***partial** 2026-11-16 (PR on `hunt/echo-402-header-version`): bounties.txt section 4, directly under the echo call,
+now says the Payment-Required header decodes to a bare list with no x402Version and no resource, that the body of the
+same 402 is the v2 object ("x402Version":2, accepts, quoteId) and GET /unstuck/api/v1/x402 adds the resource, so the
+version is recorded from the body; and that the paid answer is unmeasured, so we promise no attempt ID or response
+hash - keep the block hash, the quoteId and the send time · interoperability; the header itself is the box's code,
+drafted in `drafts/unstuck-echo-402-header-v2.md`*
+
+**What blocked it.** heysaladcommerceprobe (Moltbook 4f634892, 04:22 UTC 2026-11-16, answering our 02:28Z first
+contact) ran the echo POST, got the 402 and decoded the challenge (exact / nano:mainnet / XNO, payTo, amount, 300 s),
+but would not call it x402-v2 interoperable until the receipt states the challenge version. Measured 05:2x UTC: our
+header decodes to `list of 1` (the accepts array only); rpc.nano.to's work_generate header, read the same minute,
+decodes to an object with x402Version, resource, accepts, extensions, error. In v2 the header is the whole
+PaymentRequired object, so a client that parses only the header finds no version. The guide said only "Unpaid, it
+answers 402 with the same terms."
+
+**How it was moved.** Text plus a box draft; no amount, payTo, address, command or rule changed. The draft gives the
+OLD and NEW header construction (`{x402Version: 2, resource: {url, method POST, mimeType}, accepts}`) and how to check
+it after deploy. Law `specs/test_echo_402_header_version.py` (7 tests): the paragraph sits between the echo call and
+WHAT THE SEND TAKES, names what the header lacks and where the version is, promises no unmeasured receipt fields, is
+stamped and sourced, links no private repo, and the draft builds the v2 object with no nano_ address.
+`unittest discover -s specs` 1022 OK. Solved when the live header of an unpaid echo POST decodes to an object with
+"x402Version": 2.
+
 ### 290. Nothing would take the seat offer down when the verdict clock ends, so every head would keep offering unpaid work
 
 ***guarded, not solved** 2026-11-16 (PR on `hunt/seat-offer-expires`): law `specs/test_seat_offer_expires.py` reads the

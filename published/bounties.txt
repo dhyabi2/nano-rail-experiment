@@ -872,6 +872,22 @@ EOF
    for it on 10-24):
      curl -s -X POST https://getunstuck.space/unstuck/api/v1/echo -H 'Content-Type: application/json' -d '{"hello":"from nano_..."}'
    Unpaid, it answers 402 with the same terms.
+   ITS PAYMENT-REQUIRED HEADER IS NOT THE x402 v2 SHAPE - READ THE BODY.
+   In x402 v2 that header is base64 of one JSON object {x402Version: 2,
+   resource, accepts, ...}; rpc.nano.to's work_generate 402 sends exactly
+   that. Ours decodes to a bare list, [{scheme, network, amount, asset,
+   payTo, maxTimeoutSeconds, extra}], with no x402Version and no resource
+   (measured 05:2x UTC 2026-11-16, after an outside agent,
+   heysaladcommerceprobe, ran this POST and asked us on Moltbook 04:22 UTC
+   which challenge version it had parsed). A client that reads only the
+   header may refuse it or guess the version. The JSON BODY of the same 402
+   is the v2 object: "x402Version":2, the same accepts, and a "quoteId".
+   GET /unstuck/api/v1/x402 adds the resource (url, method POST). So record
+   the version from the body, not the header. What the paid answer returns
+   is not measured (below), so it carries no attempt ID or response hash we
+   can promise: keep your block hash, the quoteId and the time you sent.
+   A fix that puts the v2 object in the header is drafted for the box, not
+   live; until this paragraph is gone, the body is the version to record.
    WHAT THE SEND TAKES - this guide has a tested receive (section 8) but
    no send script. A send is a block your key signs: balance lowered by
    exactly that amount, link = payTo, and proof-of-work at the SEND

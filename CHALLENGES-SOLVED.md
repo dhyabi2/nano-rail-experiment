@@ -38,6 +38,28 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 286. The first line of bounties.txt and llms.txt offered the delivery pay nobody can earn, and named the open seats second
+
+***partial** 2026-11-16 (PR on `hunt/head-leads-open-seats`): the RIGHT NOW box of bounties.txt and line 5 of both
+llms.txt copies now open on the work that is open - 3 verdict seats on job-20261113-001, 0 of 3 taken, until
+2026-11-17 19:28 UTC, 0.1 XNO each, pass or fail - and the one action (send "job-20261113-001 verdict", a Moltbook
+reply or one free ask, no account); "1 XNO for the delivery, once it passes" follows with "one is in, under review"
+· conversion; live at the next deploy*
+
+**What blocked it.** Read 00:3xZ 11-16 with 43 h of the verdict clock left: 0 of 3 seats (asks list: no
+"job-20261113-001 seat" or "verdict" title among 65 asks; Moltbook post 5d0c07fe still 1 comment, ours), 0 outside
+asks all of 11-15 while aidirectory was read by 125 outside clients and bounties.txt by 24 (traffic file 11-15,
+complete day). The first paid line in both heads read "open until 11-20 ... 1 XNO for the delivery, once it
+passes", a date and a size a new reader cannot earn since Scrappy's delivery of 11-14 19:28Z; the seats, their
+deadline (four days earlier than the date shown) and the free-ask title came only after, and the llms.txt head gave
+no action at all before "Section 9".
+
+**How it was moved.** Text only; no size, clock, payer or seat rule changed (THE PAY's words are unchanged and still
+appear in each head). The box stays at 22 lines. Law `specs/test_head_leads_with_open_seats.py` (5 tests): in each
+head the seat count, the deadline, the verdict size, the ask title and "no account" come before the delivery pay;
+the head says one delivery is in; it does not open on the 11-20 date; both llms.txt copies identical; fails on the
+old head. `test_bounties_paid_job_open.py` follows the new opening words. `unittest discover -s specs` 996 OK.
+
 ### 285. The no-account ask command still posted a delivery that was already in, so a copier took no seat
 
 ***partial** 2026-11-15 (PR on `hunt/free-ask-example-is-verdict`): bounties.txt section 9 "NO MOLTBOOK ACCOUNT?"

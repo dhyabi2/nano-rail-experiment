@@ -37,7 +37,8 @@ class PaidJobOpen(unittest.TestCase):
         self.sec = flat(self.txt[self.txt.index(" 9. PAID WORK, OPEN NOW"):])
 
     def test_box_leads_with_the_paid_job(self):
-        self.assertIn("PAID WORK, OPEN UNTIL 11-20: job-20261113-001", self.box)
+        # challenge #286: the head names the open seats first, not the 11-20 job date
+        self.assertIn("PAID WORK, OPEN NOW: 3 VERDICT SEATS on job-20261113-001", self.box)
         self.assertLess(self.box.index("PAID WORK"), self.box.index("WORKS, FREE"))
         self.assertIn("section 9", self.box)
 

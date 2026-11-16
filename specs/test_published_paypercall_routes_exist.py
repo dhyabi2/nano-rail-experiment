@@ -24,7 +24,9 @@ MANIFEST_ROUTES = {
 } | {"https://extract.paypercall.dev/api/v1/" + p for p in (
     "address-verdict", "ai-jobs", "arxiv-paper", "balance/top-up", "batch-status", "delivery-proof", "extract",
     "hn-news", "links", "mcp-find", "meta", "nano-info", "pdf-extract", "render", "screenshot", "select", "status",
-    "table", "wiki-summary", "youtube-transcript")}
+    "table", "wiki-summary", "youtube-transcript")} | {
+    # extract's manifest, read 2026-11-16 10:2x UTC (specs/fixtures/vend-x402-manifest-2026-11-16.json), challenge #296
+    "https://extract.paypercall.dev/api/v1/browser-agent"}
 
 ROUTE = re.compile(r"https://[a-z]+\.paypercall\.dev/api/v1/[a-z0-9/-]+")
 

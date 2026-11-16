@@ -14,6 +14,7 @@ Run: python3 specs/test_paid_job_seat_by_order.py
 """
 import json
 import os
+import re
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -66,10 +67,13 @@ class SeatByPublicationOrder(unittest.TestCase):
     def test_stamps_agree(self):
         sec = section9()
         pw = json.loads(read("published/aidirectory/tools.json"))["paid_work"]
-        self.assertIn("0 of 3 seats taken (2026-11-15 16:2x UTC)", sec)
-        self.assertIn("0 of 3 taken (2026-11-15 16:2x UTC)", pw["now"])
-        self.assertIn("THAT POST IS BEHIND THE DELIVERY (read 16:2x UTC 2026-11-15)", sec)
-        self.assertIn("read 16:2x UTC 2026-11-15", pw["where_it_stands"])
+        # the stamps move with every re-read (challenge #287); what must hold is that both copies carry the same one
+        seat = re.search(r"0 of 3 seats taken \((2026-\d\d-\d\d \d\d:\d[\dx] UTC)\)", sec)
+        self.assertIsNotNone(seat)
+        self.assertIn("0 of 3 taken (%s)" % seat.group(1), pw["now"])
+        post = re.search(r"THAT POST IS BEHIND THE DELIVERY \(read (\d\d:\d[\dx] UTC 2026-\d\d-\d\d)\)", sec)
+        self.assertIsNotNone(post)
+        self.assertIn("read %s" % post.group(1), pw["where_it_stands"])
 
 
 if __name__ == "__main__":

@@ -38,6 +38,31 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 287. The open seats were counted as of three different days, and the treasury read the seat page told you to check was three days old
+
+***partial** 2026-11-16 (PR on `hunt/restamp-seat-reads-11-16`): every "read at" stamp on the open paid work is
+re-measured at 01:2x UTC 2026-11-16 and they now agree - bounties.txt's header and RIGHT NOW box, section 9's WHERE
+IT STANDS, seat count, treasury balance and Moltbook-post read, tools.json `paid_work`, both llms.txt copies, and
+the canon.txt / canon.html summaries · conversion; live at the next deploy*
+
+**What blocked it.** Read 01:2xZ 11-16 as a stranger deciding whether a verdict seat on job-20261113-001 is still
+free, with 42 hours of the clock left (2026-11-17 19:28:13 UTC) and /unstuck/api/ask/628 read by 8 outside clients
+since midnight (traffic file 01:07Z). The page said "Updated 2026-11-15" and its box "measured 00:28 UTC
+2026-11-15"; section 9 counted the seats at 16:2x UTC 11-15, and under "CHECK THE MONEY EXISTS BEFORE YOU WORK"
+gave treasury2's balance as of 12:1x UTC 11-13; llms.txt (#286) said 00:2x UTC 11-16; canon.txt and canon.html
+said 18:2x UTC 11-15. Three "now"s a day apart on the only work that pays read as a page nobody is watching - and a
+count a day old cannot tell a reader whether the seats are gone.
+
+**How it was moved.** Text only; no size, clock, rule or address changed. Re-run at 01:1x-01:2xZ before the
+stamps moved: treasury2 10.99994 XNO, receivable 0 (rpc.nano.to account_info); 0 of 3 seats (no "seat" or
+"verdict" title among 65 asks; ask 628's answers still 452-456); Moltbook post 5d0c07fe still 1 comment, ours of
+11-14 01:29Z; work_generate 402, echo POST 402, five sellers /health 200; 0 of 65 asks with a settlement block
+(ask 579, our own test, has an accepted answer and no block); treasury2 6 starters, 5 still receivable, 1
+received, last sent 11-09. Law `specs/test_seat_reads_not_older_than_page.py` (3 tests): section 9's four stamps
+are no older than the page's Updated date, llms.txt and tools.json carry the seat count's day, and it fails on the
+old shape. `test_paid_job_seat_by_order.py` now checks that bounties.txt and tools.json carry the same stamp
+instead of pinning one literal, so the next re-read needs no test edit. `unittest discover -s specs` 999 OK.
+
 ### 286. The first line of bounties.txt and llms.txt offered the delivery pay nobody can earn, and named the open seats second
 
 ***partial** 2026-11-16 (PR on `hunt/head-leads-open-seats`): the RIGHT NOW box of bounties.txt and line 5 of both

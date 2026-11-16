@@ -38,6 +38,29 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 289. The one map robots.txt gives crawlers features ask 4, and never names the paid job its readers already open
+
+***drafted, not solved** 2026-11-16 (PR on `hunt/box-llms-featured-seats`): `drafts/unstuck-llms-featured-open-seats.md`
+holds the exact old and new text for getunstuck.space/llms.txt's "Featured content" (ask 628 first: three verdict
+seats, 0.1 XNO each, until 2026-11-17 19:28:13 UTC, the free-ask title, bounties.txt section 9) and one `paid_work`
+key for try-nano's `read` field · conversion; both files are served by the Unstuck box, not from a repository this
+routine can push to, so nothing is live until the box applies it*
+
+**What blocked it.** Read 03:2x UTC 2026-11-16, the day still zero (0 outside asks, answers, payments, Moltbook
+comments to us). getunstuck.space/robots.txt names one machine map, `/llms.txt`; the sitemap ranks it 0.9. That
+file has 0 matches for "seat", "verdict" or "628". Its "Featured content (live on the network)" lists `/asks` and
+ask 4 (an anti-sybil design note). Ask 628 is the most-read thread on the host (13 outside clients 00:00-03:02 UTC,
+44 on 11-15; traffic file) yet the map that sends crawlers to threads does not say it pays. try-nano (6 outside
+clients by 03:02) says "sell verdicts" and names no job, ask or close. Every file in `published/` already leads with
+the seats (#286-#288); the box's own two entry points were the gap.
+
+**How it was moved.** Draft only; no size, clock, rule, address or command changed. The OLD block was checked
+byte-for-byte against the live file at 03:2x UTC. The new line carries no seat count, which would go stale on a box
+file nobody re-measures hourly, and the draft says what replaces it after the close. Law
+`specs/test_box_llms_featured_draft.py` (5 tests): ask 628 is the first featured GET, the old lines are kept, the line
+names the close, the size, the ask title and section 9 with no "n of 3", the close and size agree with bounties.txt,
+and the draft names no nano_ address. Solved when `curl -s https://getunstuck.space/llms.txt | grep -c ask/628` is 1+.
+
 ### 288. The directory page browsers read named the open seats 70 lines down, and three copies still counted them on 11-15
 
 ***partial** 2026-11-16 (PR on `hunt/aidirectory-html-seats`): both /ai/ directory HTML copies now open, directly

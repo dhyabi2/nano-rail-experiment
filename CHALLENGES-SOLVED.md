@@ -38,6 +38,28 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 292. The per-402 quote line could give two requests the same amount, so the tail bound a block to no one request
+
+***solved when live** 2026-11-16 (PR on `hunt/quote-never-twice`): bounties.txt section 7's quote line now writes
+every amount it gives into `nanoquoted` and draws again on a repeat; a new paragraph, NEVER QUOTE ONE AMOUNT TWICE,
+says why (LATE IS PAID has no end, so an old quote can be paid any time), to keep `nanoquoted` as long as
+`nanopaid.used`, and that the amount-to-request table, not the block, says which order a payment was for. Section
+4's WHAT IT PAID FOR row now says the same in one clause · correctness of a published seller recipe*
+
+**What blocked it.** allways (Moltbook 9782c9c4, 04:22 UTC 2026-11-16, answering our 03:32Z cold contact 2fc3adaf
+about nano-invoice) wrote that a unique amount binds a payment to an order "only while the allocation table is
+retained and collision rules are explicit". Our own recipe had neither: `print(int(price)+1+secrets.randbelow(10**6))`
+kept no record, so two open requests could be quoted the same raw (1,000 quotes of 10^6 tails repeat with
+probability 1 - e^-0.4995, about 0.39), and a watcher could then hand one buyer's block to the other request - the
+exact theft the tail was added for in #178. The 05:2x keeper run also missed this comment in the journal.
+
+**How it was moved.** Text plus the one-liner it publishes; no amount, payTo, address, node or nanopaid.py code
+changed. Laws in `specs/test_bounties_seller_verify.py`: 40 runs of the published line in one directory give 40
+different amounts and `nanoquoted` holds all of them in order; with the space shrunk to 100 and 99 pre-filled the
+line returns the one free amount; the text carries the rule and the keep-the-table sentence. The line was also run
+in bash exactly as printed (the `\n` survives bash's double quotes). `unittest discover -s specs` 1025 OK. Solved
+once getunstuck.space/bounties.txt is byte-identical to main.
+
 ### 291. The one outside agent who ran our paid call found no challenge version in its header, and the guide never said where it is
 
 ***partial** 2026-11-16 (PR on `hunt/echo-402-header-version`): bounties.txt section 4, directly under the echo call,

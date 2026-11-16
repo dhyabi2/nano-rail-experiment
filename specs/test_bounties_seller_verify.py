@@ -399,10 +399,16 @@ class SellerCheck(unittest.TestCase):
     # over a buyer's fresh block first and be served; the buyer then gets "replay". Section 7 must tell the seller to
     # quote a new amount per 402, and give the line that does it.
     def quote_line(self):
-        m = re.search(r'^   (python3 -c "import secrets,sys;print\(int\(sys\.argv\[1\]\)\+1\+secrets\.randbelow\(10\*\*6\)\)") <price in raw>$',
+        m = re.search(r'^   (python3 -c "import os,secrets,sys;[^"]*randbelow\(10\*\*6\)[^"]*") <price in raw>$',
                       self.txt, re.M)
         self.assertIsNotNone(m, "section 7 must give the per-402 quote line")
         return m.group(1)
+
+    def run_quote(self, code, cwd):
+        # the line runs in bash's double quotes: a backslash before n reaches python unchanged
+        r = subprocess.run([sys.executable, "-c", code, RAW], capture_output=True, text=True, timeout=30, cwd=cwd)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        return int(r.stdout.strip())
 
     def test_text_warns_that_one_fixed_price_lets_a_watcher_take_the_block(self):
         self.assertIn("QUOTE A NEW AMOUNT IN EVERY 402, NOT ONE PRICE FOR EVERYONE", self.txt)
@@ -413,14 +419,38 @@ class SellerCheck(unittest.TestCase):
         line = self.quote_line()
         code = re.match(r'python3 -c "(.*)"$', line).group(1)
         quotes = set()
-        for _ in range(8):
-            r = subprocess.run([sys.executable, "-c", code, RAW], capture_output=True, text=True, timeout=30)
-            self.assertEqual(r.returncode, 0, r.stderr)
-            q = int(r.stdout.strip())
-            self.assertGreater(q, int(RAW))
-            self.assertLessEqual(q, int(RAW) + 10 ** 6)
-            quotes.add(q)
+        with tempfile.TemporaryDirectory() as d:
+            for _ in range(8):
+                q = self.run_quote(code, d)
+                self.assertGreater(q, int(RAW))
+                self.assertLessEqual(q, int(RAW) + 10 ** 6)
+                quotes.add(q)
         self.assertGreater(len(quotes), 1, "eight quotes were all the same amount")
+
+    # Challenge #292 (2026-11-16): allways (Moltbook 9782c9c4) - a unique amount binds a payment to an order only
+    # while the allocation table is kept and collisions are ruled out. The old line drew a fresh random tail with no
+    # memory, so two requests could be given the same raw (1,000 quotes of 10^6 tails repeat about 4 times in 10).
+    def test_quote_line_never_gives_one_amount_twice_and_keeps_the_table(self):
+        code = re.match(r'python3 -c "(.*)"$', self.quote_line()).group(1)
+        with tempfile.TemporaryDirectory() as d:
+            got = [self.run_quote(code, d) for _ in range(40)]
+            self.assertEqual(len(set(got)), len(got), "the quote line gave one amount twice")
+            kept = open(os.path.join(d, "nanoquoted")).read().split()
+            self.assertEqual(kept, [str(q) for q in got], "nanoquoted must hold every amount given, in order")
+
+    def test_quote_line_draws_again_when_the_tail_was_already_given(self):
+        # leave exactly one free tail in a tiny space: shrink 10**6 to 10**2 and pre-fill 99 of the 100 amounts
+        code = re.match(r'python3 -c "(.*)"$', self.quote_line()).group(1).replace("10**6", "10**2")
+        free = int(RAW) + 1 + 37
+        with tempfile.TemporaryDirectory() as d:
+            with open(os.path.join(d, "nanoquoted"), "w") as f:
+                f.write("".join("%d\n" % (int(RAW) + 1 + t) for t in range(100) if int(RAW) + 1 + t != free))
+            self.assertEqual(self.run_quote(code, d), free)
+
+    def test_text_says_never_quote_one_amount_twice_and_keep_the_table(self):
+        self.assertIn("NEVER QUOTE ONE AMOUNT TWICE", self.txt)
+        self.assertIn("Keep nanoquoted as long as you keep nanopaid.used", self.txt)
+        self.assertIn("never quotes\n                           one amount twice", self.txt)
 
     def test_a_block_paid_for_one_quote_does_not_buy_another_request(self):
         quote_a, quote_b = str(int(RAW) + 417), str(int(RAW) + 90211)

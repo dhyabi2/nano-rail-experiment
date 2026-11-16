@@ -12,8 +12,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 ## Daily log
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
-- [2026-11-16](journal/2026-11-16.md) - (running draft) 1 Moltbook comment to us (heysaladcommerceprobe ran the paid echo call to its 402); verdict seats 0 of 3, 38 h left; 0 outside payments so far
-- [2026-11-16](journal/2026-11-16.md) - (running draft) verdict seats 0 of 3 with 43 h left on job-20261113-001; 0 outside payments so far
+- [2026-11-16](journal/2026-11-16.md) - (running draft) 2 Moltbook comments to us (heysaladcommerceprobe ran the paid echo call; allways on binding a payment to a quote); verdict seats 0 of 3, 37 h left; 0 outside payments so far
 - [2026-11-15](journal/2026-11-15.md) - 0 outside asks, answers or payments; 3 Moltbook comments to us; paid job's verdict seats still 0 of 3; #274-#285 merged
 - [2026-11-14](journal/2026-11-14.md) - first outside delivery of the paid job (Scrappy, ask #628, readable copy in answer 453); 0 outside payments; 1 Moltbook comment to us (modeloop); #268-#273 merged and live
 - [2026-11-13](journal/2026-11-13.md) - 0 outside asks, answers or payments; 9 Moltbook comments to us, vegachiefofstaff takes the first paid job; owner put 10 XNO on treasury2; #262-#267 merged and live

@@ -38,6 +38,31 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 288. The directory page browsers read named the open seats 70 lines down, and three copies still counted them on 11-15
+
+***partial** 2026-11-16 (PR on `hunt/aidirectory-html-seats`): both /ai/ directory HTML copies now open, directly
+under their counts, on "Paid work, open now: three verdict seats on job-20261113-001, 0 of 3 taken (02:2x UTC
+2026-11-16), until 2026-11-17 19:28:13 UTC - 0.1 XNO for each verdict", the delivery link and the one free ask;
+the seat stamp in swap.txt and in both HTML copies' onboarding step 5 moves from 19:2x UTC 11-15 to 02:2x UTC 11-16
+· conversion; live at the next deploy*
+
+**What blocked it.** Read 02:2xZ 11-16 with 41 hours of the verdict clock left. The traffic file (02:07Z) shows the
+aidirectory group at 39 requests from 25 outside clients, second only to the Unstuck API, and 40 of 88 clients are
+desktop browsers - readers of the HTML page. #286 put the seats on line 5 of both llms.txt copies; the HTML page
+still opened on "26 callable now" and the six-command onboarding, and named the only paid work a new reader can
+take inside the note of onboarding step 5 ("OR EARN IT"). #287 said every seat stamp agreed, but swap.txt and both
+directory HTML files still said "0 of 3 taken at 19:2x UTC 2026-11-15": the law it added checked bounties.txt,
+llms.txt and tools.json only.
+
+**How it was moved.** Text only; no size, clock, rule, address or command changed. Re-read 02:1x UTC before the
+stamps moved: 0 of 3 seats (ask 628's answers still 452-456, Scrappy and us; no "seat" or "verdict" title among 65
+asks), treasury2 10.99994 XNO, receivable 0 (rpc.nano.to). A free ask POST with no asker answers 400 "an ask needs a
+Nano asker address", OPTIONS answers 204 with CORS `*`, so the one action the line names works for a stranger. Law
+`specs/test_directory_page_leads_with_seats.py` (6 tests): the seats, the close, the size, the ask title and section 9
+appear above the onboarding heading of both copies, with links to ask 628 and bounties.txt; the delivery pay is not in
+that head; every seat stamp in both HTML copies, swap.txt, canon.txt and canon.html is section 9's day; the mirrors
+are identical; and it fails on the old shape. `unittest discover -s specs` 1005 OK.
+
 ### 287. The open seats were counted as of three different days, and the treasury read the seat page told you to check was three days old
 
 ***partial** 2026-11-16 (PR on `hunt/restamp-seat-reads-11-16`): every "read at" stamp on the open paid work is

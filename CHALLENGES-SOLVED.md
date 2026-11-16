@@ -38,6 +38,28 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 294. The echo route's terms carry no version, so a probe could only say "still live", never what changed
+
+***solved when live** 2026-11-16 (PR on `hunt/echo-terms-hash`): bounties.txt section 4, under the echo call, now
+prints the first 16 hex of the sha256 of GET /unstuck/api/v1/x402 as measured 09:2x UTC 2026-11-16 (01c428a7db0c0cf4,
+the same for /.well-known/x402, stable across fetches), a free one-line compare, what a mismatch means (read the terms
+again, pay only the payTo they name), and that the 402 body cannot be hashed this way (new quoteId per call) ·
+verifiability of our own paid terms*
+
+**What blocked it.** heysaladcommerceprobe ran the echo POST and wrote (Moltbook 4f634892, 04:22 UTC 2026-11-16): "If
+you publish a stable service/manifest version, the next probe can diff the commercial terms rather than merely say
+still live." The manifest has `x402Version` (the protocol) but no revision of its own terms, and no published file
+said what its bytes were, so a returning payer had nothing to diff against. #291 answered the same comment's version
+question; this point was still open.
+
+**How it was moved.** Text only; no amount, payTo, node or send path changed. The manifest as fetched is saved at
+`specs/fixtures/unstuck-x402-manifest-2026-11-16.json`. Law `specs/test_echo_terms_hash.py`: the printed prefix is the
+fixture's sha256, the fixture's terms are the ones the section states (XNO, nano:mainnet, 10^27 raw, payTo Unstuck,
+POST echo), the paragraph sits between the version note and WHAT THE SEND TAKES, and no 64-hex run is printed (the
+existing secret guard in test_echo_what_the_send_takes.py bars one from this section, so the prefix is 16 hex). The
+compare line was run as printed and gives 01c428a7db0c0cf4. A version field in the manifest itself is the box's to
+add. `unittest discover -s specs` 1029 OK.
+
 ### 292. The per-402 quote line could give two requests the same amount, so the tail bound a block to no one request
 
 ***solved when live** 2026-11-16 (PR on `hunt/quote-never-twice`): bounties.txt section 7's quote line now writes

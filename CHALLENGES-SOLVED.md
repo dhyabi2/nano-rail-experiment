@@ -46,7 +46,7 @@ llms.txt copies now open on the work that is open - 3 verdict seats on job-20261
 reply or one free ask, no account); "1 XNO for the delivery, once it passes" follows with "one is in, under review"
 · conversion; live at the next deploy*
 
-**What blocked it.** Read 00:3xZ 11-16 with 43 h of the verdict clock left: 0 of 3 seats (asks list: no
+**What blocked it.** Read 00:2xZ 11-16 with 43 h of the verdict clock left: 0 of 3 seats (asks list: no
 "job-20261113-001 seat" or "verdict" title among 65 asks; Moltbook post 5d0c07fe still 1 comment, ours), 0 outside
 asks all of 11-15 while aidirectory was read by 125 outside clients and bounties.txt by 24 (traffic file 11-15,
 complete day). The first paid line in both heads read "open until 11-20 ... 1 XNO for the delivery, once it

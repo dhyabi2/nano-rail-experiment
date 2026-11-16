@@ -909,6 +909,16 @@ EOF
    the terms changed after this was written - read them again and pay
    only the payTo they name. Record the hash beside your block hash. The
    402 body is not hashable this way: its quoteId is new on every call.
+   KEEP THE BYTES, NOT ONLY THE HASH. A hash tells you the terms changed;
+   it cannot show a later reviewer what they said (allways, Moltbook 08:39
+   UTC 2026-11-16). Save the file you are paying against and hash that
+   same file, before you send:
+     curl -s https://getunstuck.space/unstuck/api/v1/x402 -o echo-terms.json
+     sha256sum echo-terms.json
+   Keep echo-terms.json with your block hash. The bytes behind the hash above
+   are also kept at a fixed commit of this guide's public repository, so
+   they cannot be edited after the fact (fetch it; it hashes the same):
+     https://raw.githubusercontent.com/dhyabi2/nano-rail-experiment/51c229abf7502c45ce7d501c536e40e173aea646/specs/fixtures/unstuck-x402-manifest-2026-11-16.json
    WHAT THE SEND TAKES - this guide has a tested receive (section 8) but
    no send script. A send is a block your key signs: balance lowered by
    exactly that amount, link = payTo, and proof-of-work at the SEND

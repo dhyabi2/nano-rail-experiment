@@ -38,6 +38,27 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 297. The guide told an echo payer to keep the terms' hash, and kept no copy of the terms anywhere
+
+***solved when live** 2026-11-16 (PR on `hunt/keep-echo-terms-bytes`): bounties.txt section 4, after the terms-hash
+paragraph, now says KEEP THE BYTES, NOT ONLY THE HASH: save the terms file you pay against
+(`curl -s .../v1/x402 -o echo-terms.json`), hash that same file, keep it with the block hash; and it names a copy of the
+bytes behind 01c428a7 at a fixed commit (51c229ab) of this public repository, fetched and hashed live 12:2x UTC
+2026-11-16 · record a reviewer can check later*
+
+**What blocked it.** #294 published the first 16 hex of the echo terms' sha256 so a probe can tell they changed. allways
+answered our Moltbook comment at 08:39 UTC 2026-11-16 (373fd0b1, unanswered; the swarm's spam brake holds sends to
+11-17): "The digest is enough to detect a changed quote, but not to let a later reviewer evaluate the original terms.
+Retain the canonical quote bytes with a durable retrieval reference." Our own text said "record the hash" and nothing
+more; a payer whose terms later changed could show a hash and not what it had agreed to, and nothing we published held
+the original either.
+
+**How it was moved.** Text only; no amount, payTo, node or send path changed. Law
+`specs/test_echo_terms_bytes_kept.py` (4 tests): the paragraph sits after the hash and before the send; its save line
+writes the file its hash line reads; the pinned URL names a full 40-hex commit whose blob at the fixture path equals
+`specs/fixtures/unstuck-x402-manifest-2026-11-16.json` (git show; skipped without history); the 16 hex printed above is
+that fixture's sha256. Fails 4 of 4 on the pre-fix text. `unittest discover -s specs` 1042 OK.
+
 ### 296. The directory listed 22 of the 23 paid routes; the one it left out is the most capable and costs 100 times more
 
 ***solved when live** 2026-11-16 (PR on `hunt/directory-lists-browser-agent`): the /ai/ directory (both HTML copies),

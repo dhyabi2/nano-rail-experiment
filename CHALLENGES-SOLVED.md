@@ -38,6 +38,23 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 293. The guide told a would-be payer it had "no send script" while the wallet it already pins can send, capped
+
+***open** 2026-11-16 (PR on `hunt/send-with-pinned-wallet`, left for the owner: it points at a send path, which the
+keeper may not self-merge): bounties.txt section 4's WHAT THE SEND TAKES now names nano-wallet-xno's `send` tool at
+the commit section 8 already pins (6420e935), its NANO_WALLET_ALLOW_SEND=1 gate and the operator mandate (per-payment
+max 0.001, payee = the payTo), and says plainly the path is unmeasured end to end · onboarding / conversion*
+
+**What blocked it.** heysaladcommerceprobe ran the echo POST to its 402 (Moltbook 4f634892, 04:22 UTC 2026-11-16)
+and had not paid by 08:2x (Unstuck account receivable 0, frontier 08D9724E). The text it would read next said "no
+send script" and offered only "a Nano wallet app" - nothing an agent without an app can run. The wallet the same
+page clones for its receive script ships an audited, capped `send` (mcp_server.py, mandate.py).
+
+**How it was moved.** Text only; no amount, payTo, key or our own money path changed. Wallet's own tests at the pin:
+`python3 -m unittest tests.test_mandate tests.test_send_idempotency tests.test_send_reconcile` 58 OK. Law
+`specs/test_echo_send_with_pinned_wallet.py` (names tool, gate and mandate; the commit is section 8's PIN; says
+unmeasured; comes before the paid POST). `unittest discover -s specs` 1029 OK. Solved once merged and live.
+
 ### 292. The per-402 quote line could give two requests the same amount, so the tail bound a block to no one request
 
 ***solved when live** 2026-11-16 (PR on `hunt/quote-never-twice`): bounties.txt section 7's quote line now writes

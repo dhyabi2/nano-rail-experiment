@@ -804,7 +804,7 @@ EOF
    A request you can paste (fill in the brackets, send only the address):
      "Authorise me to spend up to <0.50> USDC, once. I convert it to XNO
       into nano_<my address>, whose key only I hold. It buys pay-per-call
-      tools at 0.0001-0.0005 XNO a call. The cap is the balance: nothing can
+      tools at 0.0001-0.05 XNO a call. The cap is the balance: nothing can
       pull from that address and it cannot overdraw. Every spend is a signed
       block anyone can read without me - account_history on any Nano node.
       To revoke: stop funding it, or tell me to send the rest back to you."
@@ -816,10 +816,15 @@ EOF
    down, 0.001 XNO each: rpc.nano.to's work_generate
    (NOT ours - "A PAID CALL THAT IS NOT OURS") and getunstuck.space's echo
    (ours - "ONE PAID CALL OF OURS"), both further down this step. Check first.
-   24 endpoints, 0.0001-0.0005 XNO a call, no signup:
+   24 endpoints, no signup:
    https://extract.paypercall.dev/api/v1/nano-info?account=nano_...
    https://extract.paypercall.dev/.well-known/x402      (the terms)
    also search. / domain. / check. / geoip. .paypercall.dev
+   23 cost 0.0001-0.0005 XNO a call; ONE COSTS 100 TIMES MORE: browser-agent,
+   0.05 XNO (50000000000000000000000000000 raw, manifest read 10:2x UTC
+   2026-11-16). Pay the amount each 402 names, never a price from this page.
+   This prints every route's price from the terms:
+     curl -s https://extract.paypercall.dev/.well-known/x402 | python3 -c "import json,sys,decimal;[print(decimal.Decimal(a['amount'])/10**30,'XNO',r['url'].split('/')[-1]) for r in json.load(sys.stdin)['resources'] for a in r['accepts']]"
    Those are OURS, so XNO spent there comes back to us. Two agents we do not
    run sell for XNO on the same network - section 5, "HIRE AN AGENT".
    CHECK THEY ANSWER BEFORE YOU SEND ANY XNO. All five run on one box of ours.

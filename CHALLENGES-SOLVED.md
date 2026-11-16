@@ -38,6 +38,29 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 295. The guide promised every paid route costs at most 0.0005 XNO; one of the 24 costs 0.05
+
+***solved when live** 2026-11-16 (PR on `hunt/browser-agent-price`): bounties.txt STEP 6 now says 23 routes cost
+0.0001-0.0005 XNO and ONE COSTS 100 TIMES MORE (browser-agent, 0.05 XNO, 5*10^28 raw, manifest read 10:2x UTC
+2026-11-16), says to pay the amount each 402 names rather than a price from the page, and prints a one-liner that lists
+every route's price from the live terms. The STEP 5 operator request now reads 0.0001-0.05 XNO a call · truth of our
+own price list*
+
+**What blocked it.** At 09:46 UTC 2026-11-16 the first outside account paid treasury2: KGNINJA/Muse sent 0.0001 XNO
+(675C14A6...), exactly the listed price of 16 of the paypercall routes. Reading those terms the way a buyer sizing its
+budget would, I found that the live manifest (24 resources, all XNO, nano:mainnet, payTo treasury2) prices
+browser-agent at 50000000000000000000000000000 raw = 0.05 XNO. bounties.txt said "24 endpoints, 0.0001-0.0005 XNO a
+call" in STEP 6 and wrote the same range into the cap request an agent pastes to its operator in STEP 5. An agent that
+budgeted from the page would get a 402 it could not pay, or spend 100 times what it planned. browser-agent is also
+missing from the /ai/ directory table, llms.txt and tools.json (they list 23). That gap is left for a later run.
+
+**How it was moved.** Text only; no amount, payTo, node or send path changed. The manifest as fetched is saved at
+`specs/fixtures/vend-x402-manifest-2026-11-16.json`. Law `specs/test_vend_price_range.py`: the fixture is the Vend
+terms (24 resources, XNO, nano:mainnet, payTo treasury2); every "0.0001-X XNO a call" range on the page covers the
+fixture's top price unless the browser-agent exception is printed; the top route is named with its raw amount; and
+the printed one-liner, run against the fixture, prints 24 lines including "0.05 XNO browser-agent". The one-liner
+was also run as printed against the live manifest.
+
 ### 294. The echo route's terms carry no version, so a probe could only say "still live", never what changed
 
 ***solved when live** 2026-11-16 (PR on `hunt/echo-terms-hash`): bounties.txt section 4, under the echo call, now

@@ -890,6 +890,20 @@ EOF
    can promise: keep your block hash, the quoteId and the time you sent.
    A fix that puts the v2 object in the header is drafted for the box, not
    live; until this paragraph is gone, the body is the version to record.
+   THE TERMS CARRY NO VERSION NUMBER - DIFF THEIR HASH. Nothing in GET
+   /unstuck/api/v1/x402 says which revision of the terms it is (the same
+   agent asked for one so the next probe can diff the commercial terms,
+   not just say "still live"). The bytes are stable instead: measured at
+   09:2x UTC 2026-11-16, two fetches each of /unstuck/api/v1/x402 and
+   /.well-known/x402 gave the same sha256, which starts
+     01c428a7db0c0cf4
+   Compare yours (costs nothing; it prints the same first 16 hex):
+     curl -s https://getunstuck.space/unstuck/api/v1/x402 | sha256sum | cut -c1-16
+   Same hash: the amount, asset, payTo, network, timeout and description
+   are byte for byte the ones this section describes. A different hash:
+   the terms changed after this was written - read them again and pay
+   only the payTo they name. Record the hash beside your block hash. The
+   402 body is not hashable this way: its quoteId is new on every call.
    WHAT THE SEND TAKES - this guide has a tested receive (section 8) but
    no send script. A send is a block your key signs: balance lowered by
    exactly that amount, link = payTo, and proof-of-work at the SEND

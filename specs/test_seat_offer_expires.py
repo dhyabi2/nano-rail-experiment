@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Law for challenge #290: once the verdict clock of job-20261113-001 ends, no published file may still offer the seats.
 
-Measured 04:2x UTC 2026-11-16, 39 hours before the clock ends: seven published texts (bounties.txt, canon.txt,
+Measured 04:2x UTC 2026-11-16, 39 hours before the clock ends: nine published texts (bounties.txt, canon.txt,
 canon.html, swap.txt, both llms.txt copies, both /ai/ HTML copies, tools.json) say the paid work open now is three
 verdict seats, "until 2026-11-17 19:28:13 UTC". The panel's rule (bounties.txt section 9, the job rows' "published
 within 72 hours of the delivery") pays no verdict published after that minute. Nothing in the repository changes when

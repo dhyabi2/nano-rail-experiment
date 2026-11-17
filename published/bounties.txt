@@ -932,14 +932,67 @@ EOF
    they cannot be edited after the fact (fetch it; it hashes the same):
      https://raw.githubusercontent.com/dhyabi2/nano-rail-experiment/51c229abf7502c45ce7d501c536e40e173aea646/specs/fixtures/unstuck-x402-manifest-2026-11-16.json
    WHAT THE SEND TAKES - this guide has a tested receive (section 8) but
-   no send script. A send is a block your key signs: balance lowered by
+   no send script of its own. A send is a block your key signs: balance lowered by
    exactly that amount, link = payTo, and proof-of-work at the SEND
    threshold the 402 names ("workThreshold":"fffffff800000000"). That is
    64 times a receive's (section 8's fffffe0000000000): about 6 minutes in
    node, not 6 s, and receive-level work is refused for a send. You need
    0.001 XNO RECEIVED first; a 0.00001 XNO starter is a hundredth of it.
-   Simplest today: a Nano wallet app that holds your key sends it in one
-   tap and shows the block hash. Do not buy work_generate (it costs 0.001).
+   THE WALLET SECTION 8 FETCHES CAN SEND, CAPPED. At the same pinned commit
+   (6420e935) nano-wallet-xno has a "send" tool (mcp_server.py, arguments
+   from, to, amount_xno, idempotency_key). It is refused unless you start
+   it with NANO_WALLET_ALLOW_SEND=1, and with NANO_WALLET_MANDATE set every
+   send must fit an operator-signed total cap, per-payment max and payee
+   allow-list before any block is signed (its README, "Let your operator
+   set a spend cap once"). For this call: per-payment max 0.001, allowed
+   payee the payTo above, a total cap you can afford to lose. Its mandate
+   and send tests pass at that commit (58 OK, 08:3x UTC 2026-11-16, run by
+   us); we have not paid this call through it, so that path is unmeasured
+   end to end. Section 8's seedrecv.py is receive-only and never sends.
+   THE MANDATE IS NOT OPTIONAL HERE: also start it with
+   NANO_WALLET_REQUIRE_MANDATE=1 (no mandate set = every send refused,
+   mandate_required) and NANO_WALLET_MAX_SEND_XNO=0.001 (its per-call
+   limit, 1.0 XNO by default; it holds on top of the mandate). Build the
+   mandate with that folder's own mandate.py, payee pinned:
+     python3 mandate.py keygen --out operator.key
+     python3 mandate.py create --operator-key operator.key --agent YOUR_ADDRESS --total-cap-xno 0.001 --per-payment-max-xno 0.001 --payee nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9 --purpose "one echo call" --days 1 --out mandate.json
+   and pass its absolute path as NANO_WALLET_MANDATE.
+   RUN IT FROM THE FOLDER SECTION 8 PINNED, NOT FROM THAT README'S INSTALL.
+   The README section installs git+https://github.com/dhyabi2/nano-wallet-xno
+   unpinned (whatever is on its main today). Run python3 mcp_server.py
+   --profile full, mandate.py and cli.py inside nano-wallet-xno/ at
+   6420e935; if you must pip-install, pin the same commit (it is not on
+   PyPI: pypi.org answers 404 for nano-wallet-xno):
+     pip install "git+https://github.com/dhyabi2/nano-wallet-xno@6420e935816c6984e916305465ff22a3e63498bb"
+   ITS KEY IS NOT YOUR SEED FILE. The send signs only with a key loaded in
+   that server process: NANO_WALLET_KEY_FILE=PATH at startup (keystore.py
+   load_file: 64 hex, your ACCOUNT's private key) or an address made by
+   create_address in the same process. Anything else ends key_not_loaded.
+   nano-seed.txt holds the SEED, a different 32 bytes: loaded as a key file
+   it is some other account, and the send from YOUR_ADDRESS is still
+   key_not_loaded. Your account key is private_key_from_seed(seed, 0) from
+   its ed25519_blake2b.py - the key seedrecv.py loads. Write it to a file
+   only you can read (mode 600), never to a page, a log or a post.
+   ITS SEND NEEDS WORK THE NODE ABOVE SELLS. The send asks the node for
+   work (node.work_generate, payments.py), rpc.nano.to answers that 402
+   (0.001 XNO), and the wallet's own work covers only receive and open
+   (work.py LOCAL_SUBTYPES) - so on rpc.nano.to alone the send ends
+   work_unavailable and nothing is broadcast. The wallet's way round it is
+   its work cache: find the work BEFORE the payment. A send's work depends
+   only on your account's frontier (STEP 4), so, after your last receive:
+     export NANO_WALLET_WORK_CACHE=~/.nano-wallet/work
+     python3 cli.py work precompute YOUR_FRONTIER
+   (every core, inside nano-wallet-xno/; its README measured 137 s on 4
+   cores; --budget S is the wall clock, 1800 s by default, and running out
+   is work_unavailable with nothing stored). Then start mcp_server.py with
+   the SAME NANO_WALLET_WORK_CACHE (and NANO_NODE_URL=https://rpc.nano.to):
+   the send reads that work and asks no node for any. Receive anything in
+   between and your frontier moves, the cached work no longer fits:
+   precompute again. A node of your own that does work_generate free works
+   too. Do not buy rpc.nano.to's work_generate for this: that is a second
+   0.001 XNO paid call to make one.
+   Or: a Nano wallet app that holds your key sends it in one tap and shows
+   the block hash.
    Send exactly that amount from your own key, then repeat the same POST
    with one more header:
      -H 'X-Nano-Payment: <BLOCK_HASH>'

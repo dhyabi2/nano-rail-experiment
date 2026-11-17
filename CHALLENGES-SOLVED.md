@@ -148,6 +148,33 @@ existing secret guard in test_echo_what_the_send_takes.py bars one from this sec
 compare line was run as printed and gives 01c428a7db0c0cf4. A version field in the manifest itself is the box's to
 add. `unittest discover -s specs` 1029 OK.
 
+### 293. The guide told a would-be payer it had "no send script" while the wallet it already pins can send, capped
+
+***open** 2026-11-16 (PR on `hunt/send-with-pinned-wallet`, left for the owner: it points at a send path, which the
+keeper may not self-merge): bounties.txt section 4's WHAT THE SEND TAKES now names nano-wallet-xno's `send` tool at
+the commit section 8 already pins (6420e935), its NANO_WALLET_ALLOW_SEND=1 gate and the operator mandate (per-payment
+max 0.001, payee = the payTo), and says plainly the path is unmeasured end to end · onboarding / conversion*
+
+**What blocked it.** heysaladcommerceprobe ran the echo POST to its 402 (Moltbook 4f634892, 04:22 UTC 2026-11-16)
+and had not paid by 08:2x (Unstuck account receivable 0, frontier 08D9724E). The text it would read next said "no
+send script" and offered only "a Nano wallet app" - nothing an agent without an app can run. The wallet the same
+page clones for its receive script ships an audited, capped `send` (mcp_server.py, mandate.py).
+
+**How it was moved.** Text only; no amount, payTo, key or our own money path changed. Wallet's own tests at the pin:
+`python3 -m unittest tests.test_mandate tests.test_send_idempotency tests.test_send_reconcile` 58 OK. Law
+`specs/test_echo_send_with_pinned_wallet.py` (names tool, gate and mandate; the commit is section 8's PIN; says
+unmeasured; comes before the paid POST). `unittest discover -s specs` 1029 OK. Solved once merged and live.
+
+**Break review (c1228919, 2026-11-16) and the fix.** Read against the wallet at 6420e935: the send gets its work from
+node.work_generate (payments.py), rpc.nano.to sells that (402) and the wallet's local work is receive/open only
+(work.py LOCAL_SUBTYPES), so on that node the send ended `work_unavailable` - while the same note said "Do not buy
+work_generate". It also never said how the key is loaded (NANO_WALLET_KEY_FILE or create_address, else
+`key_not_loaded`; section 8's file is a seed, not that key). The note now names the work cache (NANO_WALLET_WORK_CACHE,
+`python3 cli.py work precompute YOUR_FRONTIER`, prework.py), the key file, NANO_WALLET_REQUIRE_MANDATE=1 and
+NANO_WALLET_MAX_SEND_XNO=0.001, a mandate with `--payee` our Unstuck account, and a pip line pinned to 6420e935 (not on
+PyPI: 404). The law gains six tests that fail on c1228919's text (work cache, no contradiction, key, pinned install,
+mandate not optional, payee = ops/outside-payees.py's UNSTUCK). `unittest discover -s specs` 1035 OK.
+
 ### 292. The per-402 quote line could give two requests the same amount, so the tail bound a block to no one request
 
 ***solved when live** 2026-11-16 (PR on `hunt/quote-never-twice`): bounties.txt section 7's quote line now writes

@@ -1,5 +1,9 @@
 # For the box: the host root's llms.txt names the one paid job, and a plain GET on / leads somewhere (challenge #271)
 
+SEATS CLOSED 2026-11-17 19:28:13 UTC with 0 verdicts (challenge #300): before the box installs the block below,
+replace its seat lines with the closed line of bounties.txt section 9 (WHERE IT STANDS NOW) - the seats it offers can
+no longer be paid. The rest of this draft (the root redirect, the 426) stands.
+
 This is a draft. `/llms.txt` and `/` at https://172-86-112-140.sslip.io are served by the box's Caddy (challenge #71
 put them there from `drafts/box-root-crawler-files.md`); the deploy job replaces only seven named files, none of them
 these two. The owner or the box operator applies it. Text only: no address but treasury2 (section 9's payer), no

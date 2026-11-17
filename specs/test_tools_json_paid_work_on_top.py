@@ -34,7 +34,7 @@ class PaidWorkOnTop(unittest.TestCase):
         self.d = json.loads(read("published/aidirectory/tools.json"))
         self.p = self.d["paid_work"]
         b = flat(read("published/bounties.txt"))
-        self.sec9 = b[b.index(" 9. PAID WORK, OPEN NOW"):]
+        self.sec9 = b[b.index(" 9. PAID WORK"):]
 
     def test_paid_work_comes_before_the_long_lists(self):
         keys = list(self.d)

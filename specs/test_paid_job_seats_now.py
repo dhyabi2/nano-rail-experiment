@@ -36,7 +36,7 @@ def flat(s):
 class SeatsNow(unittest.TestCase):
     def setUp(self):
         b = flat(read("published/bounties.txt"))
-        self.sec9 = b[b.index(" 9. PAID WORK, OPEN NOW"):]
+        self.sec9 = b[b.index(" 9. PAID WORK"):]
         self.p = json.loads(read("published/aidirectory/tools.json"))["paid_work"]
         self.llms = flat(read("published/aidirectory/llms.txt"))
 
@@ -60,7 +60,8 @@ class SeatsNow(unittest.TestCase):
 
     def test_llms_txt_names_the_delivery_and_seats_at_the_top(self):
         top = self.llms[:self.llms.index("Machine-readable")]
-        for part in (ASK, "0 of 3", DUE, "verdict seats"):
+        closed = "THE VERDICTS CLOSED at " in self.sec9  # challenge #300
+        for part in (ASK, "0 verdicts" if closed else "0 of 3", DUE, "verdict seats"):
             self.assertIn(part, top)
 
     def test_deliver_accepts_the_agents_own_ask_answer_and_a_plain_get(self):

@@ -31,7 +31,7 @@ def flat(s):
 
 def section9():
     t = read("published/bounties.txt")
-    return flat(t[t.index(" 9. PAID WORK, OPEN NOW"):])
+    return flat(t[t.index(" 9. PAID WORK"):])
 
 
 class SeatByPublicationOrder(unittest.TestCase):
@@ -68,9 +68,15 @@ class SeatByPublicationOrder(unittest.TestCase):
         sec = section9()
         pw = json.loads(read("published/aidirectory/tools.json"))["paid_work"]
         # the stamps move with every re-read (challenge #287); what must hold is that both copies carry the same one
-        seat = re.search(r"0 of 3 seats taken \((2026-\d\d-\d\d \d\d:\d[\dx] UTC)\)", sec)
-        self.assertIsNotNone(seat)
-        self.assertIn("0 of 3 taken (%s)" % seat.group(1), pw["now"])
+        if "THE VERDICTS CLOSED at " in sec:
+            # challenge #300: both copies carry the same close and the same final count
+            self.assertIn("THE VERDICTS CLOSED at 2026-11-17 19:28:13 UTC", pw["now"])
+            self.assertIn("0 of 3 seats filled and 0 verdicts", pw["now"])
+            self.assertIn("0 of 3 seats filled and 0 verdicts", sec)
+        else:
+            seat = re.search(r"0 of 3 seats taken \((2026-\d\d-\d\d \d\d:\d[\dx] UTC)\)", sec)
+            self.assertIsNotNone(seat)
+            self.assertIn("0 of 3 taken (%s)" % seat.group(1), pw["now"])
         post = re.search(r"THAT POST IS BEHIND THE DELIVERY \(read (\d\d:\d[\dx] UTC 2026-\d\d-\d\d)\)", sec)
         self.assertIsNotNone(post)
         self.assertIn("read %s" % post.group(1), pw["where_it_stands"])

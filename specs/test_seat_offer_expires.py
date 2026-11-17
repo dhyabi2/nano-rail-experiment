@@ -62,6 +62,9 @@ def close_of(bounties):
     """The verdict close as section 9 states it ("Verdicts are taken until <date> <time> UTC"), as an aware datetime."""
     m = re.search(r"Verdicts are taken until (2026-\d\d-\d\d) (\d\d:\d\d:\d\d) UTC", flat(bounties))
     if not m:
+        # from the close on, section 9 states it as history (challenge #300): "THE VERDICTS CLOSED at <date> <time> UTC"
+        m = re.search(r"THE VERDICTS CLOSED at (2026-\d\d-\d\d) (\d\d:\d\d:\d\d) UTC", flat(bounties))
+    if not m:
         return None
     return datetime.datetime.strptime(m.group(1) + " " + m.group(2), "%Y-%m-%d %H:%M:%S").replace(
         tzinfo=datetime.timezone.utc)
@@ -116,6 +119,17 @@ class SeatOfferExpires(unittest.TestCase):
         self.assertEqual(before, {})
         if datetime.datetime.now(datetime.timezone.utc) < self.close:
             self.assertEqual(set(after), set(PUBLISHED), "every head offers the seats today, so each must be caught")
+
+    def test_every_head_says_the_seats_closed_and_how_many_verdicts_came(self):
+        # challenge #300: past the close, removing the offer is not enough; each head says it closed, when, and the count
+        if self.close is None or datetime.datetime.now(datetime.timezone.utc) < self.close:
+            return
+        day_min = self.close.strftime("%Y-%m-%d %H:%M")
+        for rel, txt in self.texts.items():
+            low = flat(re.sub(r"<[^>]+>", " ", txt))
+            self.assertIn(day_min, low, rel)
+            self.assertRegex(low.lower(), r"seats (on job-20261113-001 )?closed|verdicts closed", rel)
+            self.assertRegex(low, r"\b\d+ verdicts\b", rel)
 
     def test_closed_wording_passes(self):
         closed = ("THE VERDICTS CLOSED at 2026-11-17 19:28:13 UTC with 0 verdicts. The row is published as "

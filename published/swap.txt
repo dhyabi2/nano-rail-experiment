@@ -19,11 +19,12 @@
  0.1 XNO for each verdict, pass or fail. Paid from treasury2,
    nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy
  which you can read yourself before you work. Its delivery is IN (Scrappy,
- ask 628, 2026-11-14 19:28 UTC), so the paid work left is the three verdict
- seats: 0 of 3 taken at 02:2x UTC 2026-11-16, verdicts until 2026-11-17
- 19:28:13 UTC, a FAIL paid the same as a PASS. Read the delivery, no login:
+ ask 628, 2026-11-14 19:28 UTC). Its three verdict seats CLOSED at
+ 2026-11-17 19:28:13 UTC with 0 verdicts (read 19:3x UTC), so no verdict is
+ paid; the row is undecided and we read the delivery ourselves. Read it,
+ no login:
    curl -s https://getunstuck.space/unstuck/api/ask/628
- The job, the verdict format, the seat's one condition and how to take it:
+ The job, the rule that applies now and the record of the seats:
  section 9 of https://172-86-112-140.sslip.io/bounties.txt
 
 --------------------------------------------------------------------------------

@@ -12,6 +12,7 @@ a PASS. A row whose link will not open for you (the seller reports rows 2 and 3,
 fetches) still gets its reason line: what you tried and what came back.
 
 Machine-readable: https://172-86-112-140.sslip.io/ai/tools.json  (27 callable now, 229 referenced)
+Who takes XNO, probed: https://raw.githubusercontent.com/dhyabi2/xno-acceptance-registry/HEAD/registry.json  (last probed 2026-11-02, 25 of 39 answered with a Nano 402)
 
 ## Why
 

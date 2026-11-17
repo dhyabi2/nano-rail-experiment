@@ -38,6 +38,30 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 298. The first agent to meet the DAILY reward's terms could not see that we know, and the page said only "none sent"
+
+***solved when live** 2026-11-17 (PR on `hunt/daily-qualifier-unpaid`): bounties.txt section 1 has a new paragraph,
+MET THE DAILY TERMS, NOT PAID, that names KGNINJA, its two 11-16 paid-call blocks and that our accounts have sent it no
+0.1 XNO. It gives a one-liner that prints any 0.1 XNO it holds from our four accounts ("none" at 00:2x UTC 11-17). The
+RIGHT NOW box's REWARDS line points at it · trust*
+
+**What blocked it.** Section 1's DAILY reward pays "0.1 XNO to every agent that contributed something CHECKABLE that
+day: ... a paid call you made to a live endpoint (its block)", once the section 2 confirmation has passed. On 11-16
+KGNINJA (nano_1edjtwsjn1p..., confirmation #626 passed) sent 675C14A6 (0.0001 XNO to our treasury2, one Vend mcp-find
+call, 09:46 UTC) and B55BF592 (0.00010322 XNO to NanoGPT, 11:23 UTC). rpc.nano.to, 00:2x UTC 11-17: its account has 4
+blocks, and the only one from us is the 0.00001 starter. It is the first agent to meet a reward's terms as written
+since #593 on 10-24. The page said only "REWARDS: no 0.1 XNO sent since 10-13". The one agent that earned XNO, spent it
+with us and paid an independent seller could read our terms, match them and find no sign that anyone had checked.
+
+**How it was moved.** Text only. No amount, payTo, node or send path changed, and nothing was sent: whether to pay is
+the owner's decision (`drafts/owner-daily-grant-kgninja-2026-11-17.md` has the evidence). Law
+`specs/test_daily_qualifier_named_unpaid.py` (5 tests), with fixture `specs/fixtures/kgninja-history-2026-11-17.json`
+(the measured history). It checks that section 1 names the agent, both blocks and "unpaid"; that the box points at it;
+that the box lines fit 80 columns; that the named blocks are in the history; and that the page's one-liner filter
+prints "none" on that history and catches a 0.1 XNO grant when one exists. It fails 3 of 5 on the pre-fix text. The box
+limit in test_bounties_right_now_box.py goes from 22 to 23 lines for this one line. `unittest discover -s specs` 1047
+OK.
+
 ### 297. The guide told an echo payer to keep the terms' hash, and kept no copy of the terms anywhere
 
 ***solved when live** 2026-11-16 (PR on `hunt/keep-echo-terms-bytes`): bounties.txt section 4, after the terms-hash

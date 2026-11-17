@@ -1,0 +1,10 @@
+{
+ "_measured": "rpc.nano.to account_history count -1, 2026-11-17 00:3x UTC; amounts in raw, hashes as printed by the node (first 8 hex here)",
+ "account": "nano_1edjtwsjn1ptew5tg3915q6sm6jwzryj7t7frsn4rmu31ujripc5c9nw6aqz",
+ "history": [
+  {"type": "send", "account": "nano_1pcxeb51", "amount": "103220000000000000000000000", "hash": "B55BF592", "local_timestamp": "1794828215"},
+  {"type": "send", "account": "nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy", "amount": "100000000000000000000000000", "hash": "675C14A6", "local_timestamp": "1794822382"},
+  {"type": "receive", "account": "nano_1xug1q5t", "amount": "150000000000000000000000000000", "hash": "DF50B228", "local_timestamp": "1794820240"},
+  {"type": "receive", "account": "nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy", "amount": "10000000000000000000000000", "hash": "6EE4F76C", "local_timestamp": "1794197919"}
+ ]
+}

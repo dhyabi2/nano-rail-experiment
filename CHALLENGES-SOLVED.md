@@ -38,6 +38,116 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 298. The first agent to meet the DAILY reward's terms could not see that we know, and the page said only "none sent"
+
+***solved when live** 2026-11-17 (PR on `hunt/daily-qualifier-unpaid`): bounties.txt section 1 has a new paragraph,
+MET THE DAILY TERMS, NOT PAID, that names KGNINJA, its two 11-16 paid-call blocks and that our accounts have sent it no
+0.1 XNO. It gives a one-liner that prints any 0.1 XNO it holds from our four accounts ("none" at 00:2x UTC 11-17). The
+RIGHT NOW box's REWARDS line points at it · trust*
+
+**What blocked it.** Section 1's DAILY reward pays "0.1 XNO to every agent that contributed something CHECKABLE that
+day: ... a paid call you made to a live endpoint (its block)", once the section 2 confirmation has passed. On 11-16
+KGNINJA (nano_1edjtwsjn1p..., confirmation #626 passed) sent 675C14A6 (0.0001 XNO to our treasury2, one Vend mcp-find
+call, 09:46 UTC) and B55BF592 (0.00010322 XNO to NanoGPT, 11:23 UTC). rpc.nano.to, 00:2x UTC 11-17: its account has 4
+blocks, and the only one from us is the 0.00001 starter. It is the first agent to meet a reward's terms as written
+since #593 on 10-24. The page said only "REWARDS: no 0.1 XNO sent since 10-13". The one agent that earned XNO, spent it
+with us and paid an independent seller could read our terms, match them and find no sign that anyone had checked.
+
+**How it was moved.** Text only. No amount, payTo, node or send path changed, and nothing was sent: whether to pay is
+the owner's decision (`drafts/owner-daily-grant-kgninja-2026-11-17.md` has the evidence). Law
+`specs/test_daily_qualifier_named_unpaid.py` (5 tests), with fixture `specs/fixtures/kgninja-history-2026-11-17.json`
+(the measured history). It checks that section 1 names the agent, both blocks and "unpaid"; that the box points at it;
+that the box lines fit 80 columns; that the named blocks are in the history; and that the page's one-liner filter
+prints "none" on that history and catches a 0.1 XNO grant when one exists. It fails 3 of 5 on the pre-fix text. The box
+limit in test_bounties_right_now_box.py goes from 22 to 23 lines for this one line. `unittest discover -s specs` 1047
+OK.
+
+### 297. The guide told an echo payer to keep the terms' hash, and kept no copy of the terms anywhere
+
+***solved when live** 2026-11-16 (PR on `hunt/keep-echo-terms-bytes`): bounties.txt section 4, after the terms-hash
+paragraph, now says KEEP THE BYTES, NOT ONLY THE HASH: save the terms file you pay against
+(`curl -s .../v1/x402 -o echo-terms.json`), hash that same file, keep it with the block hash; and it names a copy of the
+bytes behind 01c428a7 at a fixed commit (51c229ab) of this public repository, fetched and hashed live 12:2x UTC
+2026-11-16 · record a reviewer can check later*
+
+**What blocked it.** #294 published the first 16 hex of the echo terms' sha256 so a probe can tell they changed. allways
+answered our Moltbook comment at 08:39 UTC 2026-11-16 (373fd0b1, unanswered; the swarm's spam brake holds sends to
+11-17): "The digest is enough to detect a changed quote, but not to let a later reviewer evaluate the original terms.
+Retain the canonical quote bytes with a durable retrieval reference." Our own text said "record the hash" and nothing
+more; a payer whose terms later changed could show a hash and not what it had agreed to, and nothing we published held
+the original either.
+
+**How it was moved.** Text only; no amount, payTo, node or send path changed. Law
+`specs/test_echo_terms_bytes_kept.py` (4 tests): the paragraph sits after the hash and before the send; its save line
+writes the file its hash line reads; the pinned URL names a full 40-hex commit whose blob at the fixture path equals
+`specs/fixtures/unstuck-x402-manifest-2026-11-16.json` (git show; skipped without history); the 16 hex printed above is
+that fixture's sha256. Fails 4 of 4 on the pre-fix text. `unittest discover -s specs` 1042 OK.
+
+### 296. The directory listed 22 of the 23 paid routes; the one it left out is the most capable and costs 100 times more
+
+***solved when live** 2026-11-16 (PR on `hunt/directory-lists-browser-agent`): the /ai/ directory (both HTML copies),
+both llms.txt copies and tools.json now list browser-agent at 0.05 XNO with what it does (a real browser that searches,
+clicks and reads a site, then answers; a job id to poll free; no trial) and "pay the amount its live 402 names". Counts
+27 callable now, 256 total · completeness of our own directory*
+
+**What blocked it.** #295 fixed bounties.txt's price range and left this open: the live Vend manifest (24 resources,
+read 10:2x UTC 2026-11-16) has 23 GET routes and the POST top-up, but the directory showed 22, all 0.0001-0.0005 XNO.
+The directory is the most-read published page after the API (aidirectory 83 outside clients, tools.json 20, by 11:07
+UTC 2026-11-16). A reader who used only the directory never learnt that browser-agent exists, or that one route costs
+0.05 XNO, so a cap sized from the directory would also refuse it.
+
+**How it was moved.** Text only; no amount, payTo, node or send path changed. Law
+`specs/test_directory_lists_every_vend_route.py` (5 tests): every GET route in the manifest fixture appears in all five
+directory copies with its URL and price (tools.json `price`, the llms.txt `](url) - price - ` form, the HTML price
+cell), and tools.json `counts` match its `callable_now` list and the counts printed in the HTML and llms.txt. The law
+fails on the pre-fix text (3 of 5). `specs/test_published_paypercall_routes_exist.py` gains browser-agent with the date
+its manifest was read. `unittest discover -s specs` 1038 OK.
+
+### 295. The guide promised every paid route costs at most 0.0005 XNO; one of the 24 costs 0.05
+
+***solved when live** 2026-11-16 (PR on `hunt/browser-agent-price`): bounties.txt STEP 6 now says 23 routes cost
+0.0001-0.0005 XNO and ONE COSTS 100 TIMES MORE (browser-agent, 0.05 XNO, 5*10^28 raw, manifest read 10:2x UTC
+2026-11-16), says to pay the amount each 402 names rather than a price from the page, and prints a one-liner that lists
+every route's price from the live terms. The STEP 5 operator request now reads 0.0001-0.05 XNO a call · truth of our
+own price list*
+
+**What blocked it.** At 09:46 UTC 2026-11-16 the first outside account paid treasury2: KGNINJA/Muse sent 0.0001 XNO
+(675C14A6...), exactly the listed price of 16 of the paypercall routes. Reading those terms the way a buyer sizing its
+budget would, I found that the live manifest (24 resources, all XNO, nano:mainnet, payTo treasury2) prices
+browser-agent at 50000000000000000000000000000 raw = 0.05 XNO. bounties.txt said "24 endpoints, 0.0001-0.0005 XNO a
+call" in STEP 6 and wrote the same range into the cap request an agent pastes to its operator in STEP 5. An agent that
+budgeted from the page would get a 402 it could not pay, or spend 100 times what it planned. browser-agent is also
+missing from the /ai/ directory table, llms.txt and tools.json (they list 23). That gap is left for a later run.
+
+**How it was moved.** Text only; no amount, payTo, node or send path changed. The manifest as fetched is saved at
+`specs/fixtures/vend-x402-manifest-2026-11-16.json`. Law `specs/test_vend_price_range.py`: the fixture is the Vend
+terms (24 resources, XNO, nano:mainnet, payTo treasury2); every "0.0001-X XNO a call" range on the page covers the
+fixture's top price unless the browser-agent exception is printed; the top route is named with its raw amount; and
+the printed one-liner, run against the fixture, prints 24 lines including "0.05 XNO browser-agent". The one-liner
+was also run as printed against the live manifest.
+
+### 294. The echo route's terms carry no version, so a probe could only say "still live", never what changed
+
+***solved when live** 2026-11-16 (PR on `hunt/echo-terms-hash`): bounties.txt section 4, under the echo call, now
+prints the first 16 hex of the sha256 of GET /unstuck/api/v1/x402 as measured 09:2x UTC 2026-11-16 (01c428a7db0c0cf4,
+the same for /.well-known/x402, stable across fetches), a free one-line compare, what a mismatch means (read the terms
+again, pay only the payTo they name), and that the 402 body cannot be hashed this way (new quoteId per call) ·
+verifiability of our own paid terms*
+
+**What blocked it.** heysaladcommerceprobe ran the echo POST and wrote (Moltbook 4f634892, 04:22 UTC 2026-11-16): "If
+you publish a stable service/manifest version, the next probe can diff the commercial terms rather than merely say
+still live." The manifest has `x402Version` (the protocol) but no revision of its own terms, and no published file
+said what its bytes were, so a returning payer had nothing to diff against. #291 answered the same comment's version
+question; this point was still open.
+
+**How it was moved.** Text only; no amount, payTo, node or send path changed. The manifest as fetched is saved at
+`specs/fixtures/unstuck-x402-manifest-2026-11-16.json`. Law `specs/test_echo_terms_hash.py`: the printed prefix is the
+fixture's sha256, the fixture's terms are the ones the section states (XNO, nano:mainnet, 10^27 raw, payTo Unstuck,
+POST echo), the paragraph sits between the version note and WHAT THE SEND TAKES, and no 64-hex run is printed (the
+existing secret guard in test_echo_what_the_send_takes.py bars one from this section, so the prefix is 16 hex). The
+compare line was run as printed and gives 01c428a7db0c0cf4. A version field in the manifest itself is the box's to
+add. `unittest discover -s specs` 1029 OK.
+
 ### 293. The guide told a would-be payer it had "no send script" while the wallet it already pins can send, capped
 
 ***open** 2026-11-16 (PR on `hunt/send-with-pinned-wallet`, left for the owner: it points at a send path, which the

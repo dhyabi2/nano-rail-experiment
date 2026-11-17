@@ -55,6 +55,16 @@ page clones for its receive script ships an audited, capped `send` (mcp_server.p
 `specs/test_echo_send_with_pinned_wallet.py` (names tool, gate and mandate; the commit is section 8's PIN; says
 unmeasured; comes before the paid POST). `unittest discover -s specs` 1029 OK. Solved once merged and live.
 
+**Break review (c1228919, 2026-11-16) and the fix.** Read against the wallet at 6420e935: the send gets its work from
+node.work_generate (payments.py), rpc.nano.to sells that (402) and the wallet's local work is receive/open only
+(work.py LOCAL_SUBTYPES), so on that node the send ended `work_unavailable` - while the same note said "Do not buy
+work_generate". It also never said how the key is loaded (NANO_WALLET_KEY_FILE or create_address, else
+`key_not_loaded`; section 8's file is a seed, not that key). The note now names the work cache (NANO_WALLET_WORK_CACHE,
+`python3 cli.py work precompute YOUR_FRONTIER`, prework.py), the key file, NANO_WALLET_REQUIRE_MANDATE=1 and
+NANO_WALLET_MAX_SEND_XNO=0.001, a mandate with `--payee` our Unstuck account, and a pip line pinned to 6420e935 (not on
+PyPI: 404). The law gains six tests that fail on c1228919's text (work cache, no contradiction, key, pinned install,
+mandate not optional, payee = ops/outside-payees.py's UNSTUCK). `unittest discover -s specs` 1035 OK.
+
 ### 292. The per-402 quote line could give two requests the same amount, so the tail bound a block to no one request
 
 ***solved when live** 2026-11-16 (PR on `hunt/quote-never-twice`): bounties.txt section 7's quote line now writes

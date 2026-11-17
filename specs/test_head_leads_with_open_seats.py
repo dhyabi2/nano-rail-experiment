@@ -32,18 +32,28 @@ def heads():
     out = [("bounties.txt", box)]
     for p in ("published/aidirectory/llms.txt", "published/aidirectory-llms.txt"):
         t = read(p)
-        out.append((p, flat(t[t.index("Paid work"):t.index("A delivery is in")])))
+        out.append((p, flat(t[t.index("Paid work"):t.index("Machine-readable")])))
     return out
+
+
+def closed():
+    """True once section 9 states the verdict close as history (challenge #300)."""
+    return "THE VERDICTS CLOSED at " in flat(read("published/bounties.txt"))
 
 
 class HeadLeadsWithOpenSeats(unittest.TestCase):
     def test_seats_deadline_size_and_action_come_before_the_delivery_pay(self):
+        # while the seats were open: count, close, size and the one action led the head. From the close
+        # (challenge #300): the head leads with the close, its time and the verdict count, before the delivery pay.
+        parts = ("closed", DUE, "0 verdicts", "no verdict is paid") if closed() else (
+            "0 of 3", DUE, VERDICT, ASK_TITLE, "no account")
         for name, h in heads():
             with self.subTest(name):
                 d = h.index(DELIVERY)
-                for part in ("0 of 3", DUE, VERDICT, ASK_TITLE, "no account"):
-                    self.assertIn(part, h)
-                    self.assertLess(h.index(part), d, part)
+                low = h.lower()
+                for part in parts:
+                    self.assertIn(part.lower(), low)
+                    self.assertLess(low.index(part.lower()), d, part)
 
     def test_head_says_the_delivery_is_already_in(self):
         for name, h in heads():

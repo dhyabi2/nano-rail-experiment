@@ -32,9 +32,17 @@ def text(s):
     return " ".join(html.unescape(re.sub(r"<[^>]+>", " ", s)).split())
 
 
+def s9_text():
+    return " ".join(read("published/bounties.txt").split(" 9. PAID WORK", 1)[1].split())
+
+
+def closed():
+    """True once section 9 states the verdict close as history (challenge #300)."""
+    return "THE VERDICTS CLOSED at " in s9_text()
+
+
 def seat_day_s9():
-    s9 = " ".join(read("published/bounties.txt").split(" 9. PAID WORK", 1)[1].split())
-    return re.search(r"0 of 3 seats taken \((2026-\d\d-\d\d) ", s9).group(1)
+    return re.search(r"0 of 3 seats taken \((2026-\d\d-\d\d) ", s9_text()).group(1)
 
 
 def head_of(page):
@@ -46,6 +54,13 @@ class DirectoryPageLeadsWithSeats(unittest.TestCase):
     def test_seats_named_above_the_onboarding(self):
         for rel in PAGES:
             head = text(head_of(read(rel)))
+            if closed():
+                # challenge #300: the same place now says the seats closed, when, and how many verdicts came
+                self.assertIn("Paid work, seats closed:", head, rel)
+                self.assertIn("closed at " + CLOSE + " with 0 verdicts", head, rel)
+                self.assertIn("no verdict is paid", head, rel)
+                self.assertIn("section 9", head, rel)
+                continue
             self.assertIn("Paid work, open now:", head, rel)
             self.assertRegex(head, r"0 of 3 taken \(\d\d:\dx UTC 2026-\d\d-\d\d\)", rel)
             self.assertIn("until " + CLOSE, head, rel)
@@ -64,6 +79,14 @@ class DirectoryPageLeadsWithSeats(unittest.TestCase):
             self.assertNotIn("1 XNO for the delivery", text(head_of(read(rel))), rel)
 
     def test_every_seat_stamp_is_section_9s_day(self):
+        if closed():
+            # challenge #300: no live count is left to stamp; every copy names the same close and the same count
+            for rel in PAGES + ("published/swap.txt", "published/canon.txt", "published/canon.html"):
+                t = text(read(rel))
+                self.assertNotRegex(t, r"0 of 3 taken", rel)
+                self.assertIn(CLOSE[:16], t, rel)
+                self.assertIn("0 verdicts", t, rel)
+            return
         day = seat_day_s9()
         for rel in PAGES + ("published/swap.txt", "published/canon.txt", "published/canon.html"):
             t = text(read(rel))

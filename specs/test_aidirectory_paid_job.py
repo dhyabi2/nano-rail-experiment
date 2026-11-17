@@ -69,7 +69,7 @@ class PaidJobInDirectory(unittest.TestCase):
 
     def test_job_and_deadline_match_bounties_section_9(self):
         b = flat(read("published/bounties.txt"))
-        sec = b[b.index(" 9. PAID WORK, OPEN NOW"):]
+        sec = b[b.index(" 9. PAID WORK"):]
         self.assertIn("THE JOB (job-20261113-001, open until 2026-11-20 23:59 UTC)", sec)
         self.assertIn(DELIVERY, sec)
         self.assertIn(VERDICT, sec)

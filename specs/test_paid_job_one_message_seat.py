@@ -32,7 +32,7 @@ def flat(s):
 
 def section9():
     t = read("published/bounties.txt")
-    return flat(t[t.index(" 9. PAID WORK, OPEN NOW"):])
+    return flat(t[t.index(" 9. PAID WORK"):])
 
 
 def one_message_block():

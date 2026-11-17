@@ -46,14 +46,26 @@ class DirectorySwapNameOpenSeats(unittest.TestCase):
             self.assertIn(ASK, t)
         self.assertIn('href="%s"' % ASK, self.dir_raw)
 
+    def s9(self):
+        return " ".join(read("published/bounties.txt").split(" 9. PAID WORK", 1)[1].split())
+
     def test_both_name_the_seats_and_when_they_close(self):
+        if "THE VERDICTS CLOSED at " in self.s9():
+            # challenge #300: from the close, both say the seats closed, when, and with how many verdicts
+            for t in (self.dir, self.swap):
+                self.assertRegex(t.lower(), r"seats closed at " + re.escape(CLOSE.lower()) + " with 0 verdicts")
+                self.assertIn("no verdict is paid", t)
+            return
         for t in (self.dir, self.swap):
             self.assertRegex(t, r"0 of 3 taken at \d\d:\dx UTC 2026-\d\d-\d\d")
             self.assertIn("verdicts until " + CLOSE, t)
             self.assertIn("a FAIL paid the same as a PASS", t)
 
     def test_close_time_and_seat_count_match_section_9(self):
-        s9 = " ".join(read("published/bounties.txt").split(" 9. PAID WORK", 1)[1].split())
+        s9 = self.s9()
+        if "THE VERDICTS CLOSED at " in s9:  # challenge #300
+            self.assertIn("THE VERDICTS CLOSED at " + CLOSE + ", 72 hours after the delivery, with 0 of 3 seats", s9)
+            return
         self.assertIn("Verdicts are taken until " + CLOSE, s9)
         self.assertIn("0 of 3 seats taken", s9)
 

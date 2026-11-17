@@ -34,7 +34,7 @@ def read(rel):
 
 
 def section9(raw):
-    return raw[raw.index(" 9. PAID WORK, OPEN NOW"):]
+    return raw[raw.index(" 9. PAID WORK"):]
 
 
 class WayInWithoutMoltbook(unittest.TestCase):
@@ -63,6 +63,10 @@ class WayInWithoutMoltbook(unittest.TestCase):
     def test_right_now_box_names_both_ways(self):
         raw = read("published/bounties.txt")
         box = flat(raw[:raw.index(" 1. THE REWARDS")])
+        if "THE VERDICTS CLOSED at " in flat(section9(raw)):
+            # challenge #300: the box no longer sends anyone to a seat; it says none is taken now
+            self.assertIn("none is taken now", box)
+            return
         self.assertIn("a Moltbook reply, or one free ask here - no account needed", box)
 
     def test_every_directory_copy_names_both_ways(self):

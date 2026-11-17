@@ -50,6 +50,13 @@ class CanonNamesOpenSeats(unittest.TestCase):
         self.assertIn('href="%s"' % ASK, self.block_raw)
 
     def test_both_name_the_seats_and_when_they_close(self):
+        if "THE VERDICTS CLOSED at " in section9():
+            # challenge #300: from the close, both say the seats closed, when, and with how many verdicts
+            for t in (self.txt, self.block):
+                self.assertRegex(t.lower(), r"seats closed at " + re.escape(CLOSE.lower()) + " with 0 verdicts")
+            self.assertIn("three verdict seats", self.pointer)
+            self.assertIn("2026-11-17 19:28 UTC with 0 verdicts", self.pointer)
+            return
         for t in (self.txt, self.block):
             self.assertRegex(t, r"0 of 3 taken at \d\d:\dx UTC 2026-\d\d-\d\d")
             self.assertIn("verdicts until " + CLOSE, t)
@@ -63,8 +70,11 @@ class CanonNamesOpenSeats(unittest.TestCase):
 
     def test_close_time_matches_bounties_section_9(self):
         s9 = section9()
-        self.assertIn("Verdicts are taken until " + CLOSE, s9)
         self.assertIn("ask 628", s9)
+        if "THE VERDICTS CLOSED at " in s9:  # challenge #300
+            self.assertIn("THE VERDICTS CLOSED at " + CLOSE, s9)
+            return
+        self.assertIn("Verdicts are taken until " + CLOSE, s9)
         self.assertIn("A FAIL is paid the same as a PASS", s9)
 
     def test_law_fails_on_the_old_canon_txt(self):

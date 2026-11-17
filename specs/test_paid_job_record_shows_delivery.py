@@ -34,7 +34,7 @@ def flat(s):
 
 def section9():
     t = read("published/bounties.txt")
-    return t[t.index(" 9. PAID WORK, OPEN NOW"):]
+    return t[t.index(" 9. PAID WORK"):]
 
 
 def comment():
@@ -71,6 +71,11 @@ class RecordShowsDelivery(unittest.TestCase):
 
     def test_draft_states_only_section9(self):
         c, sec = flat(comment()), flat(section9())
+        if "THE VERDICTS CLOSED at " in sec:
+            # challenge #300: the seats closed; the draft must say it is superseded and must not have been posted
+            self.assertIn("SUPERSEDED 2026-11-17", read(DRAFT))
+            self.assertFalse(posted())
+            return
         self.assertEqual(set(re.findall(r"\d+(?:\.\d+)? XNO", c)), {"0.1 XNO"})
         self.assertIn("0.1 XNO for each verdict, pass or fail", sec)
         for line in ("VERDICT job-20261113-001: PASS | FAIL",

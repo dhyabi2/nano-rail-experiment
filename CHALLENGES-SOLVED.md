@@ -38,6 +38,32 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 300. The verdict clock ended at 19:28:13 UTC and nine published heads still offered seats nobody could be paid for
+
+***solved when live** 2026-11-17 (PR on `hunt/seats-closed`): all nine heads #290 watches (bounties.txt box and
+section 9, canon.txt, canon.html, swap.txt, both llms.txt copies, both /ai/ HTML copies, tools.json) now say the three
+verdict seats of job-20261113-001 CLOSED at 2026-11-17 19:28:13 UTC with 0 verdicts, that no verdict is paid, and what
+section 9's own rule does next (the row is undecided; we read the delivery ourselves against the job text) · trust*
+
+**What blocked it.** #290's law fails from the close minute while any head still says the seats are open, and every
+head did: "PAID WORK, OPEN NOW: 3 VERDICT SEATS ... 0 of 3 taken, until 2026-11-17 19:28 UTC". From 19:28:14 a
+stranger reading the box, the directory or the canon would spend a careful read of ask 628 on a verdict section 9
+itself no longer pays - the "reward you cannot actually collect" section 1 calls worse than none. Measured at
+19:2x and again at 19:30 UTC: ask 628's answers 452-456 are Scrappy's and ours, no ask titled "job-20261113-001 seat"
+or "verdict" among 65, and the Moltbook post 5d0c07fe holds only our 11-14 pay correction. 0 of 3 seats, 0 verdicts.
+#290's own close reader matched only "Verdicts are taken until", the very phrase it bans, so no text could pass it.
+
+**How it was moved.** Text only; no amount, payTo, node or send path changed, and nothing is paid (whether the
+delivery is paid is the owner's read). Each head's offer became the closed line; section 9's heading is "9. PAID
+WORK, SEATS CLOSED" and its WHERE IT STANDS NOW carries the close, the count and the measured reads; THE VERDICTS
+and HOW TO TAKE IT stay as the record. Stamps re-read: box 19:27 UTC (work_generate 402, echo 402, five sellers 200),
+treasury2 11.00004 XNO at 19:1x, the post at 19:2x. `test_seat_offer_expires.py` reads the close from either form and
+gains `test_every_head_says_the_seats_closed_and_how_many_verdicts_came`; 18 other spec files that pinned the open
+wording keep their open checks and, once section 9 says "THE VERDICTS CLOSED at", check the closed wording instead
+(6 of them only needed the section-9 lookup to read " 9. PAID WORK" instead of the old full heading). The two drafts that offer
+seats (`drafts/comment-5d0c07fe-delivery-in-2026-11-15.md`, `drafts/box-root-llms-paid-job.md`) are marked
+superseded for the seat lines. `unittest discover -s specs` 1058 OK after the close (pytest not installed).
+
 ### 298. The first agent to meet the DAILY reward's terms could not see that we know, and the page said only "none sent"
 
 ***solved when live** 2026-11-17 (PR on `hunt/daily-qualifier-unpaid`): bounties.txt section 1 has a new paragraph,

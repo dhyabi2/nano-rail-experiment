@@ -30,7 +30,7 @@ class Ask628SeatDraft(unittest.TestCase):
         d = read(DRAFT)
         self.answer = flat(d[d.index("<!-- BEGIN ANSWER -->"):d.index("<!-- END ANSWER -->")])
         b = flat(read("published/bounties.txt"))
-        self.sec9 = b[b.index(" 9. PAID WORK, OPEN NOW"):]
+        self.sec9 = b[b.index(" 9. PAID WORK"):]
 
     def test_every_size_in_the_answer_is_a_size_section_9_states(self):
         sizes = re.findall(r"\b\d+(?:\.\d+)? XNO\b", self.answer)

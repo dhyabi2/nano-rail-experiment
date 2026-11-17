@@ -39,7 +39,7 @@ def read(rel):
 
 def section9():
     t = read("published/bounties.txt")
-    return t[t.index(" 9. PAID WORK, OPEN NOW"):]
+    return t[t.index(" 9. PAID WORK"):]
 
 
 class FakeResp(io.BytesIO):

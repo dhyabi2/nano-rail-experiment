@@ -31,7 +31,7 @@ def flat(s):
 class UnreadableRow(unittest.TestCase):
     def setUp(self):
         b = flat(read("published/bounties.txt"))
-        sec9 = b[b.index(" 9. PAID WORK, OPEN NOW"):]
+        sec9 = b[b.index(" 9. PAID WORK"):]
         self.verdicts = sec9[sec9.index("THE VERDICTS (three seats)"):sec9.index("THE PAY, in the only words")]
         self.p = json.loads(read("published/aidirectory/tools.json"))["paid_work"]
 
@@ -64,6 +64,9 @@ class UnreadableRow(unittest.TestCase):
         a = read("published/aidirectory/llms.txt")
         self.assertEqual(a, read("published/aidirectory-llms.txt"))
         head = flat(a[:a.index("Machine-readable:")])
+        if "seats closed" in head:  # challenge #300: no seat is left to advise; the head says they closed
+            self.assertIn("0 verdicts", head)
+            return
         self.assertIn("still gets its reason line: what you tried and what came back", head)
 
     def test_bounties_lines_stay_narrow(self):

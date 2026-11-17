@@ -33,11 +33,12 @@ def stamps(txt):
     head = "\n".join(txt.splitlines()[:8])
     m = re.search(r"Updated (2026-\d\d-\d\d)\.", head)
     updated = m.group(1) if m else None
-    sec = flat(txt[txt.index(" 9. PAID WORK, OPEN NOW"):]) if " 9. PAID WORK, OPEN NOW" in txt else ""
+    sec = flat(txt[txt.index(" 9. PAID WORK"):]) if " 9. PAID WORK" in txt else ""
     found = {}
     pats = {
         "where it stands": r"WHERE IT STANDS NOW \((2026-\d\d-\d\d) ",
-        "seat count": r"0 of 3 seats taken \((2026-\d\d-\d\d) ",
+        # while the seats were open, the dated count; from the close (challenge #300), the dated close itself
+        "seat count": r"(?:0 of 3 seats taken \(|THE VERDICTS CLOSED at )(2026-\d\d-\d\d) ",
         "treasury read": r"which held [\d.]+ XNO at \d\d:\d[\dx] UTC (2026-\d\d-\d\d)",
         "post read": r"THAT POST IS BEHIND THE DELIVERY \(read \d\d:\d[\dx] UTC (2026-\d\d-\d\d)\)",
     }
@@ -58,6 +59,14 @@ class SeatReadsNotOlderThanPage(unittest.TestCase):
     def test_llms_and_tools_carry_the_same_seat_day(self):
         _, found = stamps(read("published/bounties.txt"))
         day = found["seat count"]
+        if "THE VERDICTS CLOSED at " in flat(read("published/bounties.txt")):
+            # challenge #300: no live count is left; llms.txt and tools.json name the same close day and count
+            for rel in ("published/aidirectory/llms.txt", "published/aidirectory-llms.txt"):
+                t = flat(read(rel))
+                self.assertIn("closed at %s 19:28:13 UTC with 0 verdicts" % day, t, rel)
+            now = json.loads(read("published/aidirectory/tools.json"))["paid_work"]["now"]
+            self.assertIn("CLOSED at %s 19:28:13 UTC" % day, now)
+            return
         for rel in ("published/aidirectory/llms.txt", "published/aidirectory-llms.txt"):
             m = re.search(r"0 of 3 taken \(\d\d:\d[\dx] UTC (2026-\d\d-\d\d)\)", read(rel))
             self.assertIsNotNone(m, rel)

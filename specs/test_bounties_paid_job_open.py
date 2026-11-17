@@ -34,18 +34,24 @@ class PaidJobOpen(unittest.TestCase):
         self.txt = read("published/bounties.txt")
         i = self.txt.index(" RIGHT NOW - measured ")
         self.box = flat(self.txt[i:self.txt.index(" 1. THE REWARDS")])
-        self.sec = flat(self.txt[self.txt.index(" 9. PAID WORK, OPEN NOW"):])
+        self.sec = flat(self.txt[self.txt.index(" 9. PAID WORK"):])
+        self.closed = "THE VERDICTS CLOSED at " in self.sec
 
     def test_box_leads_with_the_paid_job(self):
-        # challenge #286: the head names the open seats first, not the 11-20 job date
-        self.assertIn("PAID WORK, OPEN NOW: 3 VERDICT SEATS on job-20261113-001", self.box)
+        # challenge #286: the head names the open seats first, not the 11-20 job date;
+        # challenge #300: from the close it names the closed seats and the count instead
+        if self.closed:
+            self.assertIn("PAID WORK: the 3 VERDICT SEATS on job-20261113-001 CLOSED", self.box)
+        else:
+            self.assertIn("PAID WORK, OPEN NOW: 3 VERDICT SEATS on job-20261113-001", self.box)
         self.assertLess(self.box.index("PAID WORK"), self.box.index("WORKS, FREE"))
         self.assertIn("section 9", self.box)
 
     def test_sizes_only_in_rule_12_words(self):
         for t in (self.box, self.sec, flat(read("published/canon.txt"))):
             self.assertIn(DELIVERY, t)
-            self.assertIn(VERDICT, t)
+            if not (self.closed and t is self.box):  # a closed seat's size is not offered in the box (#300)
+                self.assertIn(VERDICT, t)
         # no other size is attached to the job anywhere in section 9
         rest = self.sec.replace(DELIVERY, "").replace(VERDICT, "")
         self.assertNotRegex(rest, r"\b0\.01 XNO\b")

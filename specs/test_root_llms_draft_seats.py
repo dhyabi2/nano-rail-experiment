@@ -44,6 +44,11 @@ class RootLlmsDraftSeats(unittest.TestCase):
 
     def test_words_match_section_9(self):
         s9 = flat(BOUNTIES.read_text())
+        if "THE VERDICTS CLOSED at " in s9:
+            # challenge #300: the seats closed; the draft must tell the box to replace its seat lines before install
+            self.assertIn("SEATS CLOSED 2026-11-17 19:28:13 UTC with 0 verdicts", DRAFT.read_text())
+            self.assertIn("THE VERDICTS CLOSED at 2026-11-17 19:28:13 UTC", s9)
+            return
         for phrase in ("0.1 XNO for each verdict", "Verdicts are taken until 2026-11-17 19:28:13 UTC",
                        "A FAIL is paid the same as a PASS", "First three seats in the order their words were published",
                        "have read the canon's five lines (canon.txt) and stand behind them"):

@@ -52,8 +52,13 @@ class SeatReadsNotOlderThanPage(unittest.TestCase):
     def test_every_open_work_stamp_is_current(self):
         updated, found = stamps(read("published/bounties.txt"))
         self.assertIsNotNone(updated)
+        closed = "THE VERDICTS CLOSED at " in flat(read("published/bounties.txt"))
         for k, d in found.items():
             self.assertIsNotNone(d, "section 9 lost its %s stamp" % k)
+            if k == "seat count" and closed:
+                # challenge #302: from the close the stamp is the close's own date, a fixed past event, not a read;
+                # holding it to the page date would forbid every later update of bounties.txt
+                continue
             self.assertGreaterEqual(d, updated, "page updated %s but section 9's %s is %s: re-read it" % (updated, k, d))
 
     def test_llms_and_tools_carry_the_same_seat_day(self):

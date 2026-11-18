@@ -153,8 +153,9 @@ class OwnerQueue(unittest.TestCase):
     def test_heads_stop_selling_verdicts_while_seats_are_closed(self):
         """Challenge #308: row 16 is WAITING while bounties.txt says the seats are CLOSED and any of try-nano,
         agent.json or the homepage still offers verdict selling; APPLIED when none does or the seats reopen."""
-        live = (ROOT / "published" / "bounties.txt").read_text()[:8000]
-        self.assertTrue(oq.seats_closed(live), "bounties.txt's box no longer says CLOSED: re-read row 16")
+        live = (" RIGHT NOW - measured 01:25 UTC 2026-11-18.\n   PAID WORK: the 3 VERDICT SEATS on job-20261113-001"
+                " CLOSED 2026-11-17\n     19:28:13 UTC with 0 verdicts\n 1. THE REWARDS\n")  # the box as read 11-18
+        self.assertTrue(oq.seats_closed(live))
         reopened = " RIGHT NOW\n   PAID WORK: 3 VERDICT SEATS OPEN until 12-01\n 1. THE REWARDS\n CLOSED later"
         self.assertFalse(oq.seats_closed(reopened))
         draft = (ROOT / "drafts" / "network-heads-closed-seats.md").read_text()

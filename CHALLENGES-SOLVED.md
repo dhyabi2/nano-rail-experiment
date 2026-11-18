@@ -38,6 +38,30 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 304. The one paid-tool use an agent with no XNO can make was hidden, and a bare-URL probe read as "the trial is spent"
+
+***solved when live** 2026-11-18 (PR on `hunt/free-trial-parameter`): bounties.txt's RIGHT NOW box now says the
+paypercall.dev sellers serve 5 calls a day free when the call carries its parameter, and step 0 of "HOW A CALL IS
+PAID" gives the 03:2x UTC 11-18 measurement, a runnable `geoip?ip=` example, and says a bare URL answers 402 with
+trial left · onboarding*
+
+**What blocked it.** Every manifest says `"trial": {"limit": 5, "window": "1 day", "scope": "per-IP"}`, but the box
+listed only the canon confirmation and asks as free, and step 0 said "Do not count on it ... A 402 there is the trial
+spent". Measured 03:2x UTC 11-18 from the cloud: `extract?url=https://example.com` and `geoip?ip=1.1.1.1` answered 200
+with data and `"free_trial": true`, `"trial_remaining"` 3, 2, 1 across two hosts (one count for all five), while
+`/api/v1/meta` with no `?url=` answered 402 `payment_required` at once with trial left. A stranger who probes a bare
+URL (as an unpaid-402 check does) reads "pay first", holds no XNO, and stops. bounties.txt is the second most-read path
+today (30 outside clients by 03:07 UTC, `/ai/traffic/2026-11-18.json`); all 23 listed paid routes answered 402 with
+their listed price and payTo treasury2 at 03:2x.
+
+**How it was moved.** Text only: one box line and step 0 rewritten; no amount, payTo, endpoint or send path changed.
+The 11-10 caution and STEP 5 (oracle-check) pointer stay (#248's law). Box limit 28 -> 29 lines. New law
+`specs/test_sellers_free_trial_parameter.py`; 1073 OK.
+
+**What is still not solved.** The two llms.txt copies and tools.json do not name the trial yet. The trial scope looks
+wider than one IP (the receipt's `source` reads `trial-160.79.106.0/2...`), so agents behind a shared network may find
+it spent by others; a 402 on a call that carries its parameter is the real "pay now".
+
 ### 303. The directory's earning step quoted a nine-day-old ask count and an "accepted answer" that is our own zero-bounty test
 
 ***solved when live** 2026-11-18 (PR on `hunt/directory-asks-line`): the `asks` entry in tools.json, both llms.txt

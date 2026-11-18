@@ -6,6 +6,7 @@ WAITING) when nothing answered; every draft the queue names exists; drafts/OWNER
 import importlib.util
 import json
 import pathlib
+import re
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -148,6 +149,41 @@ class OwnerQueue(unittest.TestCase):
                          oq.WAITING)
         self.assertEqual(oq.p_root_llms_paid_job(stub({"/llms.txt": (502, "")}))[0], oq.UNKNOWN)
         self.assertEqual({r["rank"]: r["state"] for r in oq.run(stub({}))}[15], oq.UNKNOWN)
+
+    def test_heads_stop_selling_verdicts_while_seats_are_closed(self):
+        """Challenge #308: row 16 is WAITING while bounties.txt says the seats are CLOSED and any of try-nano,
+        agent.json or the homepage still offers verdict selling; APPLIED when none does or the seats reopen."""
+        live = (ROOT / "published" / "bounties.txt").read_text()[:8000]
+        self.assertTrue(oq.seats_closed(live), "bounties.txt's box no longer says CLOSED: re-read row 16")
+        reopened = " RIGHT NOW\n   PAID WORK: 3 VERDICT SEATS OPEN until 12-01\n 1. THE REWARDS\n CLOSED later"
+        self.assertFalse(oq.seats_closed(reopened))
+        draft = (ROOT / "drafts" / "network-heads-closed-seats.md").read_text()
+        new_texts = re.findall(r"(?:NEW|becomes)\s+`([^`]*)`", draft.split("## The change", 1)[1])
+        self.assertGreaterEqual(len(new_texts), 4)
+        for text in new_texts:
+            self.assertIsNone(oq.SELL_VERDICT.search(text), text)
+        old_try = '{"what":"... take listed jobs, sell verdicts, post what you are stuck on"}'
+        new_try = '{"what":"... take a listed job or an evaluator seat when bounties.txt section 9 lists one open"}'
+        home_old = "<h2>How a job is judged</h2><p>Evaluators sell verdicts.</p><h3>Sell a verdict</h3>"
+        home_new = "<p>Evaluators are paid per verdict, while a job lists seats.</p><h3>Judge a delivery</h3>"
+        agent_new = '{"description":"Take listed jobs and evaluator seats when bounties.txt section 9 lists one open"}'
+
+        def table(try_nano, agent, home, bounties=(200, live)):
+            return {"bounties.txt": bounties, "try-nano": try_nano, "agent.json": agent, "getunstuck.space/": home}
+
+        self.assertEqual(oq.p_heads_closed_seats(stub(table((200, old_try), (200, agent_new), (200, home_new)))),
+                         (oq.WAITING, "seats closed, still offering verdict selling: try-nano"))
+        self.assertEqual(oq.p_heads_closed_seats(stub(table((200, new_try), (200, agent_new), (200, home_old))))[0],
+                         oq.WAITING)
+        self.assertEqual(oq.p_heads_closed_seats(stub(table((200, new_try), (200, agent_new), (200, home_new))))[0],
+                         oq.APPLIED)
+        self.assertEqual(oq.p_heads_closed_seats(stub(table((200, old_try), (200, agent_new), (200, home_old),
+                                                            (200, reopened))))[0], oq.APPLIED)
+        self.assertEqual(oq.p_heads_closed_seats(stub(table((502, ""), (200, agent_new), (200, home_new))))[0],
+                         oq.UNKNOWN)
+        self.assertEqual(oq.p_heads_closed_seats(stub(table((200, new_try), (200, agent_new), (200, home_new),
+                                                            (200, "Bad Gateway"))))[0], oq.UNKNOWN)
+        self.assertEqual({r["rank"]: r["state"] for r in oq.run(stub({}))}[16], oq.UNKNOWN)
 
     def test_every_named_draft_exists_and_the_page_lists_every_row(self):
         page = (ROOT / "drafts" / "OWNER-QUEUE.md").read_text()

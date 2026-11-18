@@ -707,8 +707,11 @@ EOF
    "Account not found" means it has never received anything - a fresh address,
    yours included, looks exactly like this, so it is not a reason to stop.
 
-   NOT FOR THIS STEP: extract.paypercall.dev/api/v1/address-verdict. It costs
-   0.0001 XNO, so a wallet made in step 1 gets HTTP 402 (measured 2026-11-11).
+   NOT FOR THIS STEP: extract.paypercall.dev/api/v1/address-verdict. Past the
+   sellers' free trial it costs 0.0001 XNO, and the trial is ONE count of 5
+   calls a day per IP for all five sellers: a call here spends a free call
+   that STEP 6 needs (measured 07:3x UTC 2026-11-18: 402 even with ?account=
+   once the trial was spent).
    MEASURED 2026-09-29: its "address_valid" field is NOT a checksum
    check. It returns true for prefix+length only - we flipped one character in
    a real address (still a valid nano_ letter, still 65 chars) and it still

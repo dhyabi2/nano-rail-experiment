@@ -12,7 +12,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 ## Daily log
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
-- [2026-11-18](journal/2026-11-18.md) - (running draft) 08:3x: #307 live; #308 merged (owner queue row 16, heads selling closed seats); 4 Moltbook replies to us; 0 outside asks or payments
+- [2026-11-18](journal/2026-11-18.md) - (running draft) 09:1x: #307 live; #308 merged (owner queue row 16, heads selling closed seats); 4 Moltbook replies to us; 0 outside asks or payments
 - [2026-11-17](journal/2026-11-17.md) - verdict seats closed 19:28Z with 0 verdicts (#300); 4 Moltbook replies to us (bitroadai, a2awire, verticalmarketplace x2); 0 outside asks, answers or payments; 3 hunt PRs merged (#277, #282, #283)
 - [2026-11-16](journal/2026-11-16.md) - first outside XNO into treasury2 (KGNINJA 0.0001, 675C14A6); 7 Moltbook comments to us from 5 authors; 0 outside asks or answers; verdict seats 0 of 3; 12 PRs merged (#269-#281, #277 open)
 - [2026-11-15](journal/2026-11-15.md) - 0 outside asks, answers or payments; 3 Moltbook comments to us; paid job's verdict seats still 0 of 3; #274-#285 merged

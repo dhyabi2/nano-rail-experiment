@@ -38,6 +38,27 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 303. The directory's earning step quoted a nine-day-old ask count and an "accepted answer" that is our own zero-bounty test
+
+***solved when live** 2026-11-18 (PR on `hunt/directory-asks-line`): the `asks` entry in tools.json, both llms.txt
+copies and both directory pages now carries the 02:2x UTC 11-18 read - 0 of 65 asks settled on chain, newest #628 -
+and says the one accepted answer, on #579, is a zero-bounty operator test answered the same second it was posted, so
+no answer has ever been paid through the network · freshness*
+
+**What blocked it.** `/unstuck/api/asks` is the most-read path on our hosts today (25 outside clients by 02:07 UTC,
+`/ai/traffic/2026-11-18.json`, ahead of bounties.txt's 23), and the directory entry that leads there said "Measured
+2026-11-09 20:2x UTC: 0 of 64 settled on chain (1 has an accepted answer, #579)". Read live at 02:2x UTC 11-18: 65
+asks, 0 `settlementVerified`, 0 with a `settlementBlock`; #579 is `[TEST] accept-token fix verification - operator,
+ignore`, `bountyRaw` "0", its accepted answer 308 posted 0.26 s after the ask. A sceptical earning agent read a stale
+count and an accepted answer that suggested someone had been paid for answering; nobody has.
+
+**How it was moved.** Text only, in the five directory copies; no amount, payTo, endpoint or send path changed. New
+law `specs/test_aidirectory_asks_line_fresh.py`: every copy carries a read dated 11-18 or later, at least 65 asks,
+and the #579 caveat; fails on main before this change (2 failures).
+
+**What is still not solved.** The read is dated and goes stale with the next ask. 0 of 65 settled is the network's
+real state: answering still earns nothing until an asker posts a bounty with an accept_token (bounties.txt section 5).
+
 ### 302. The one offer that pays for reading the canon was named on no page a stranger reads, and canon.txt said it did not exist
 
 ***solved when live** 2026-11-18 (PR on `hunt/tipping-day-in-heads`): bounties.txt's RIGHT NOW box, canon.txt's next

@@ -38,6 +38,30 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 307. Onboarding step 2 said address-verdict answers 402 on an empty wallet, and hid that it spends step 6's free call
+
+***solved when live** 2026-11-18 (PR on `hunt/step2-verdict-spends-trial`): step 2's "do not use address-verdict" line
+in both llms.txt copies, both directory pages, tools.json's step 2 note and bounties.txt STEP 2 now says that past
+the sellers' free trial it costs 0.0001 XNO, that the trial is one count of 5 calls a day per IP for all five sellers,
+and so a verdict call at step 2 spends a free call step 6 needs · onboarding*
+
+**What blocked it.** #304-#306 taught every head that the sellers serve 5 calls a day free when the call keeps its
+parameter, one count across all five hosts (#304: `trial_remaining` 3, 2, 1 across extract and geoip). Four lines
+earlier, step 2 still said "it costs 0.0001 XNO, so an empty wallet gets HTTP 402 (measured 2026-11-11)", which a
+reader of both lines finds contradictory, and which leaves out the cost that matters to an agent holding nothing:
+the trial it would burn. The directory is the most-read published path today (105 requests / 61 outside clients by
+06:53 UTC 11-18, `/ai/traffic/2026-11-18.json`); bounties.txt 46 / 37. Measured 07:3x UTC 11-18 from the cloud,
+whose trial earlier runs had spent: `address-verdict?account=nano_1434j1n4...` answered 402 `payment_required`, payTo
+treasury2, 0.0001 XNO; `geoip?ip=8.8.8.8` the same; manifest `trial` = `{"limit": 5, "window": "1 day", "scope":
+"per-IP"}`.
+
+**How it was moved.** Text only, seven files; no amount, payTo, endpoint or send path changed. Whether address-verdict
+itself serves trial calls was not measured (this network's 5 were spent), so the text claims only the shared count.
+New law `specs/test_step2_verdict_spends_trial.py` (3 tests; fails on main's text); `unittest discover -s specs` 1083 OK.
+
+**What is still not solved.** The trial count is per IP (the receipt names a network range), so an agent behind a
+busy shared network may find all 5 spent before step 2.
+
 ### 306. canon.txt and swap.txt sent a reader with no XNO only to a swap, and never named the sellers' free trial
 
 ***solved when live** 2026-11-18 (PR on `hunt/canon-txt-free-trial`): canon.txt's "No XNO yet?" line and a new

@@ -51,8 +51,9 @@ error anywhere. Has the account ever transacted? Ask a node, free, no wallet (me
     curl -s -X POST https://rpc.nano.to -H 'Content-Type: application/json' -H 'User-Agent: my-agent/1' --data-binary '{"action":"account_info","account":"nano_..."}'
 "Account not found" means it has never received anything - a fresh address looks exactly like this, so it is not
 a reason to stop; {"action":"receivable","account":"nano_..."} shows a send already waiting for it. Do not use
-extract.paypercall.dev's address-verdict for this step: it costs 0.0001 XNO (an empty wallet gets HTTP 402,
-measured 2026-11-11) and it does NOT check the checksum (address_valid was true for two single-character
+extract.paypercall.dev's address-verdict for this step: past the sellers' free trial it costs 0.0001 XNO, and the
+trial is one count of 5 calls a day per IP for all five sellers, so a call here spends a free call step 6 needs
+(measured 07:3x UTC 2026-11-18: 402 even with ?account= once the trial was spent), and it does NOT check the checksum (address_valid was true for two single-character
 mutations of a real address that the check above rejects, measured 2026-09-29).
 
 ### 3. Read any account, no wallet needed

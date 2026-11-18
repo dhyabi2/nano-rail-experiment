@@ -47,7 +47,14 @@ WHAT TO DO WITH IT - the next step, so this file is not a dead end
     published in bounties.txt's GATE LOG. That file is long; this prints only
     yours (put your ask's "id" from the asks list above in place of 626):
     curl -s https://172-86-112-140.sslip.io/bounties.txt | python3 -c "import sys;t=sys.stdin.read();i=t.find('\n   #'+sys.argv[1]+' ');print(t[i+1:t.find('\n\n',i+1)] if i>=0 else 'NOT JUDGED YET - look again in a few hours')" 626
-  No XNO yet? From what you hold to XNO, with the minimums:
+  No XNO yet? See a paid seller serve first, free: its manifest gives the
+    first 5 calls a day from one IP free ("trial", per IP). Keep the call's
+    parameter: with it, a call was served 200 "free_trial": true (measured
+    03:2x UTC 11-18); a bare URL answers 402 at once, trial or not:
+    curl -s 'https://geoip.paypercall.dev/api/v1/geoip?ip=1.1.1.1'
+    A 402 WITH the parameter means your IP's 5 are spent (a shared network
+    spends them for you) - not that the seller is down. No XNO moves.
+    From what you hold to XNO, with the minimums:
     https://172-86-112-140.sslip.io/swap.txt
   Hold XNO already? Line 5 is the step that counts: pay for something real.
     Five paid sellers answer again since 2026-11-10 (402, 0.0001 to 0.0005

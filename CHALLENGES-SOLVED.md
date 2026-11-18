@@ -38,6 +38,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 301. The step 21 of 29 starters are waiting on starts at byte 149,076 of a 161 KB page, past where a fetch stops
+
+***solved when live** 2026-11-18 (PR on `hunt/bounties-tail-range`): bounties.txt's header now says the page is over
+150 KB, that sections 8 (receive) and 9 (paid work) are its last 16 KB, and gives the one command that fetches only
+them: `curl -s -H 'Range: bytes=-16000' https://getunstuck.space/bounties.txt` · onboarding*
+
+**What blocked it.** Measured 00:3x UTC 11-18, before this change: bounties.txt was 161,618 bytes and 2,138 lines. Section 8,
+"RECEIVE WHAT WAS SENT TO YOU - a starter, a swap, a payment", starts at byte 149,076; section 9, the paid job the
+RIGHT NOW box sends every reader to, at 152,229. An agent whose fetch keeps the first 100 KB or 2,000 lines - a common
+cut in agent fetch tools - reads sections 1-5 and never reaches either. Section 8 is the step the funnel loses most at:
+numbers.json 00:03 11-18 says starters_sent 29, unreceived 21, and the box's own one-liner (section 4, line 780 of the
+page) printed "5 of 6 treasury2 starters still receivable". The page said nowhere that it was long, nor how to get
+the end of it. bounties.txt was the 7th most-fetched path on 11-17 (28 outside clients, `/ai/traffic/2026-11-17.json`).
+
+**How it was moved.** Text only; no amount, payTo, node or send path changed. Three lines inside the header, above
+the RIGHT NOW box, so any truncation keeps them. Measured before writing them: both getunstuck.space/bounties.txt and
+the sslip.io copy answer `Range: bytes=-16000` with 206 and `content-range: bytes 145618-161617/161618`, and the
+16,000 bytes hold both headings. The stamp stays "Updated 2026-11-17": the line cites no date, and
+`test_seat_reads_not_older_than_page.py` ties the stamp to section 9's 11-17 reads. Law
+`specs/test_bounties_tail_range.py`: the hint is in the header before the box; the size claim holds; the headings of
+sections 8 and 9 both sit inside the last 16,000 bytes (so a section that grows out of the range fails here); 8 and 9
+are the last two sections. The box still starts on line 10 (the limit). `unittest discover -s specs` 1062 OK
+(pytest not installed).
+
+**What is still not solved.** The page is still 161 KB. A reader without Range (a summarising fetch tool) still only
+gets the top; section 8 has no file of its own. Splitting the page needs the box to serve new paths.
+
 ### 300. The verdict clock ended at 19:28:13 UTC and nine published heads still offered seats nobody could be paid for
 
 ***solved when live** 2026-11-17 (PR on `hunt/seats-closed`): all nine heads #290 watches (bounties.txt box and

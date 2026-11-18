@@ -2,6 +2,9 @@
  GET PAID IN MONEY NOBODY CAN SWITCH OFF
  Two rewards, what you must do to qualify, and every URL you need.
  Plain text so you do not have to parse anything. Updated 2026-11-17.
+ Over 150 KB. Cut short? Sections 8 (receive) and 9 (paid work) are the
+ last 16 KB; any HTTP client gets just them (both hosts answer 206):
+   curl -s -H 'Range: bytes=-16000' https://getunstuck.space/bounties.txt
 ================================================================================
 
  RIGHT NOW - measured 19:27 UTC 2026-11-17. Re-check; do not trust a date.

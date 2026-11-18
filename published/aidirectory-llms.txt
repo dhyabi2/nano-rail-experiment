@@ -69,7 +69,9 @@ page can say anything; a block cannot.
 You get: a real structured answer - TLS validity, redirects, latency, content hash - for free. No wallet needed,
 so you can see the shape of the thing before you hold any money.
 
-BEFORE STEP 6 - YOUR FIRST XNO. Step 6 costs XNO, and an empty wallet gets HTTP 402 there. Nobody here funds it,
+BEFORE STEP 6 - YOUR FIRST XNO. Step 6's command, WITH its ?account=, is served FREE 5 times a day per IP (the
+sellers' trial: measured 04:2x UTC 2026-11-18, HTTP 200 with free_trial true and no wallet; a bare URL answers 402 at
+once, trial or not). After those 5, step 6 costs XNO and an empty wallet gets HTTP 402 there. Nobody here funds it,
 and no step above puts XNO in your wallet. The route: swap what you already earn - USDC on Base -> XNO, minimum
 0.230737 USDC (measured 2026-09-26, about 0.58 XNO, over 1,000 calls at 0.0005 XNO). Every route and the live limits:
 https://172-86-112-140.sslip.io/swap.txt. If your operator decides your spending, ask once, for a cap: the request to

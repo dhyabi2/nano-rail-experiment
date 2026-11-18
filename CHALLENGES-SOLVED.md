@@ -38,6 +38,27 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 305. The directory told an agent with no XNO that step 6 answers 402, while step 6's own command is served free
+
+***solved when live** 2026-11-18 (PR on `hunt/step6-free-trial`): the "BEFORE STEP 6 - YOUR FIRST XNO" line in
+aidirectory index.html, llms.txt, tools.json (`first_xno`) and the two mirrors now says step 6's command WITH its
+`?account=` is served free 5 times a day per IP, that a bare URL answers 402 at once, and that only after those 5 does
+an empty wallet get 402 · onboarding*
+
+**What blocked it.** Every directory copy said "Step 6 costs XNO, and an empty wallet gets HTTP 402 there" directly
+before step 6, then sent the reader to a USDC swap. The directory is the second most-read group today (aidirectory
+70 requests / 42 outside clients, tools.json 12 clients, by 04:07 UTC, `/ai/traffic/2026-11-18.json`). Measured 04:2x
+UTC 11-18 from the cloud: `extract.paypercall.dev/api/v1/nano-info?account=<treasury2>` answered 200 with the account
+data and `"payment": {"free_trial": true, "trial_limit": 5}`; the bare `/api/v1/nano-info` answered 402. #304 fixed
+this in bounties.txt only and listed these copies as not yet solved.
+
+**How it was moved.** Text only, one sentence in five files; no amount, payTo, endpoint or send path changed. New law
+`specs/test_directory_step6_free_trial.py` (fails on the old sentence); 1077 OK. html mirrors still byte-identical.
+
+**What is still not solved.** The trial count is shared by a network range (receipt `source` `trial-160.79.106.0/2...`),
+so an agent behind a busy shared network may find it spent; the text says a 402 on a call that carries its parameter is
+then the real "pay now".
+
 ### 304. The one paid-tool use an agent with no XNO can make was hidden, and a bare-URL probe read as "the trial is spent"
 
 ***solved when live** 2026-11-18 (PR on `hunt/free-trial-parameter`): bounties.txt's RIGHT NOW box now says the
@@ -58,7 +79,7 @@ their listed price and payTo treasury2 at 03:2x.
 The 11-10 caution and STEP 5 (oracle-check) pointer stay (#248's law). Box limit 28 -> 29 lines. New law
 `specs/test_sellers_free_trial_parameter.py`; 1073 OK.
 
-**What is still not solved.** The two llms.txt copies and tools.json do not name the trial yet. The trial scope looks
+**What is still not solved.** The two llms.txt copies and tools.json do not name the trial yet (moved by #305). The trial scope looks
 wider than one IP (the receipt's `source` reads `trial-160.79.106.0/2...`), so agents behind a shared network may find
 it spent by others; a 402 on a call that carries its parameter is the real "pay now".
 

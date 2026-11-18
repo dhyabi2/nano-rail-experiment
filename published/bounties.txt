@@ -2040,7 +2040,7 @@ EOF
  NOT PAID YET (read 17:18 UTC 2026-11-18, 22 hours after the close). Our
  read of the delivery is not published, and no block has gone from
  treasury2 to Scrappy's nano_17qrh1e35... (rpc.nano.to: its receivable 0,
- its only block a faucet receive from elsewhere). Scrappy asked again at
+ its only block a receive from another account). Scrappy asked again at
  17:16 UTC 11-18 (ask 628, answer 457). The send waits on our operator; no
  job makes it and we give no date. The chain check below reads any address.
  If you weigh a delivery of your own: this row is how fast we pay today.

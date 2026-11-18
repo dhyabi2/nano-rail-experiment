@@ -38,6 +38,27 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 309. The directory's machine copies still invited agents to verdict seats that had closed
+
+*solved when live 2026-11-18 (PR on `hunt/earn-it-seats-closed-machine-copies`) · onboarding / dead offer*
+
+**What blocked it.** #281 and #300 fixed the "OR EARN IT" line on the /ai/ page and in swap.txt, and #281's own law
+names the old text ("one paid job is open until 2026-11-20 ... Terms and the way in") as the fault. The same old
+text stayed in /ai/llms.txt and its root copy (20 outside clients on `/ai/llms.txt`) and in tools.json's onboarding
+`first_xno` field (22 clients on `/ai/tools.json`; `/ai/traffic/2026-11-18.json`, generated 13:07). An agent
+that reads the machine files, not the HTML page, was still told the way in to a job whose delivery has been in since
+2026-11-14 19:28 UTC and whose three verdict seats closed 2026-11-17 19:28:13 UTC with 0 verdicts. #281's docstring
+said llms.txt and tools.json "already said it": only their heads did.
+
+**How it was moved.** The three copies now carry the /ai/ page's own wording: delivery in (Scrappy, ask 628), seats
+closed with 0 verdicts, no verdict paid, the row undecided and read by us, the delivery's no-login URL. Text only;
+no pay rule, amount or payee changed.
+
+**Evidence.**
+
+- read 13:2x UTC 11-18: `grep 'OR EARN IT'` - index.html had the closure, llms.txt (both copies) and tools.json did not
+- new law `specs/test_earn_it_machine_copies_seats_closed.py` (4 tests; fails on the old text)
+
 ### 308. The only verdict seats closed, and try-nano, agent.json and the homepage still offer "sell verdicts"
 
 *unsolved (drafted for the network code: `drafts/network-heads-closed-seats.md`; row 16 of `ops/check-owner-queue.py`,

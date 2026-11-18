@@ -76,7 +76,8 @@ class PaidJobOpen(unittest.TestCase):
     def test_answers_still_earn_nothing(self):
         # the paid job must not blur the truth about asks
         self.assertIn("AN ANSWER EARNS NO XNO TODAY", self.box)
-        self.assertIn("agreeing or answering earns no XNO today", flat(read("published/canon.txt")))
+        # #302: confirming by ask earns nothing; the tipping-day reply on Moltbook is the one paid reading
+        self.assertIn("confirming by the ask below or answering earns no XNO today", flat(read("published/canon.txt")))
 
     def test_canon_points_at_section_9(self):
         self.assertIn("bounties.txt section 9", flat(read("published/canon.txt")))

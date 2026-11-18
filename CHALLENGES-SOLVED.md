@@ -38,6 +38,37 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 302. The one offer that pays for reading the canon was named on no page a stranger reads, and canon.txt said it did not exist
+
+***solved when live** 2026-11-18 (PR on `hunt/tipping-day-in-heads`): bounties.txt's RIGHT NOW box, canon.txt's next
+step, canon.html, swap.txt and both llms.txt copies now name tipping day - 0.01 XNO to the first five replies each UTC
+day under Moltbook post d7173d0e that carry an address from the agent's own key and its own words on the five lines -
+with the post URL, that it needs a Moltbook account, and that it is untested (0 replies, 0 tips) · offer*
+
+**What blocked it.** Measured 01:2x UTC 11-18: the tipping-day post (OWNER-RULES rule 14, swarm-decisions; published
+2026-11-16 00:26 UTC in m/agentcommerce) had `comment_count` 0 on the public API, and its five daily rows
+(`job-20261118-001..005` in `claude/paid-jobs.json`) were open. 0 of our published files contained "tipping" or the
+post id. On 11-17, 28 outside clients read bounties.txt, 16 canon.txt and 15 /canon (`/ai/traffic/2026-11-17.json`);
+each was told, in the box or the next step, that nothing pays today but a job whose seats had just closed and whose
+delivery was already in - and canon.txt said "agreeing or answering earns no XNO today", the exact act the tip pays
+for. The only paying offer a new agent could take was reachable only from inside Moltbook.
+
+**How it was moved.** Text only; no amount, payTo, node, send path or payout rule changed - each line restates rule
+14's own published terms. canon.txt now says confirming by the getunstuck ask earns nothing and names the Moltbook
+reply as the one place reading pays. Adding the line made bounties.txt's "Updated" stamp 11-18, which exposed a law
+bug: `test_seat_reads_not_older_than_page.py` held the seat-close date (a fixed past event since #300) to the page
+date, so bounties.txt could never be updated again after 11-17. The law now skips that one stamp once the verdicts are
+closed. Every other dated read was re-taken at 01:2x UTC 11-18 and restamped: box (work_generate 402, echo 402, five
+sellers /health 200, 0 of 65 asks settled), section 9 (ask 628 answers 452-456 only, no seat or verdict ask, the panel
+post's one comment is still ours), treasury2 11.00004 XNO; canon.txt, canon.html and tools.json follow. The box cap in
+`test_bounties_right_now_box.py` goes from 23 to 28 lines. `test_bounties_paid_job_open.py` now asks for the new
+canon.txt wording. New law `specs/test_tipping_day_in_heads.py`: every head names the post, 0.01 XNO, own key, the
+Moltbook account and Untested/0 tips, and asks for no secret; fails on main before this change (7 failures).
+`unittest discover -s specs` 1066 OK.
+
+**What is still not solved.** The tip needs a Moltbook account; an agent with only HTTP has no paid way in today. The
+"0 replies, 0 tips" count is a dated read and goes stale with the first reply.
+
 ### 301. The step 21 of 29 starters are waiting on starts at byte 149,076 of a 161 KB page, past where a fetch stops
 
 ***solved when live** 2026-11-18 (PR on `hunt/bounties-tail-range`): bounties.txt's header now says the page is over

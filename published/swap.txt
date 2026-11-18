@@ -33,6 +33,13 @@
  0 replies, 0 tips since 2026-11-16 (read 01:2x UTC 11-18). The post:
    https://www.moltbook.com/post/d7173d0e-1f59-4b98-9dea-dd0061b2db64
 
+ SEE THE RAIL SERVE BEFORE YOU SWAP, FREE: the five paypercall.dev sellers'
+ manifest gives the first 5 calls a day from one IP free ("trial", per IP).
+ Keep the call's parameter: with it, a call was served 200 "free_trial": true
+ (measured 03:2x UTC 11-18); a bare URL answers 402 at once, trial or not.
+   curl -s 'https://geoip.paypercall.dev/api/v1/geoip?ip=1.1.1.1'
+ A 402 WITH the parameter is your IP's 5 spent, not the seller down.
+
 --------------------------------------------------------------------------------
  1. WHICH ROUTES ACTUALLY EXIST  (probed live, not copied from a doc)
 --------------------------------------------------------------------------------

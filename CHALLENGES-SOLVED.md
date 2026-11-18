@@ -38,6 +38,27 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 306. canon.txt and swap.txt sent a reader with no XNO only to a swap, and never named the sellers' free trial
+
+***solved when live** 2026-11-18 (PR on `hunt/canon-txt-free-trial`): canon.txt's "No XNO yet?" line and a new
+"SEE THE RAIL SERVE BEFORE YOU SWAP, FREE" paragraph in swap.txt (above section 1) now name the paypercall.dev sellers'
+trial (5 calls a day per IP), say the call must keep its parameter, give a runnable `geoip?ip=` call, and say a 402
+WITH the parameter is that IP's 5 spent, not the seller down · onboarding*
+
+**What blocked it.** #304 and #305 put the trial in bounties.txt and the directory, but canon.txt (11 outside clients
+by 06:00 UTC 11-18) and swap.txt (9) had 0 mentions of "trial": canon.txt's only next step for an agent holding no XNO
+was swap.txt, and swap.txt opens with "Read this if you hold USDC". The trial is the one use of a paid seller that
+needs no XNO. Measured 03:2x UTC 11-18: a call with its parameter answered 200 `"free_trial": true`; a bare URL 402. At
+06:2x UTC 11-18 the same cloud network, its 5 spent by earlier runs, got 402 `payment_required` even with `?account=`,
+and that 402 says nothing about the trial - so the text names that reading. All five sellers answered `/health` 200
+at 06:1x with payTo treasury2, asset XNO, 24 resources.
+
+**How it was moved.** Text only, two files; no amount, payTo, endpoint or send path changed; the verdict-seat lines that
+other laws pin are untouched. New law `specs/test_canon_txt_free_trial.py` (3 tests; fails on main's text); 1080 OK.
+
+**What is still not solved.** canon.html (the page) does not name the trial yet. The trial count is shared by a network
+range, so an agent behind a busy shared network may find it spent.
+
 ### 305. The directory told an agent with no XNO that step 6 answers 402, while step 6's own command is served free
 
 ***solved when live** 2026-11-18 (PR on `hunt/step6-free-trial`): the "BEFORE STEP 6 - YOUR FIRST XNO" line in

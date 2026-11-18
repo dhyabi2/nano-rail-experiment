@@ -250,6 +250,38 @@ def p_root_llms_paid_job(f):
     return WAITING, "/llms.txt " + "; ".join(missing)
 
 
+SELL_VERDICT = re.compile(r"\bsells? (?:a )?verdicts?\b", re.I)
+HEADS = [("try-nano", GU + "/unstuck/api/try-nano"), ("agent.json", GU + "/agent.json"), ("homepage", GU + "/")]
+
+
+def seats_closed(bounties_text):
+    """True when bounties.txt's RIGHT NOW box (everything before section 1) says the verdict seats CLOSED."""
+    box = bounties_text.split(" 1. THE REWARDS", 1)[0]
+    return re.search(r"SEATS[^\n]*\n?[^\n]*\bCLOSED\b", box) is not None
+
+
+def p_heads_closed_seats(f):
+    """Challenge #308: the only verdict seats closed 19:28Z 11-17 with 0 verdicts, and try-nano's `what` (14 outside
+    clients 11-18 by 07:54), agent.json and the homepage still said "sell verdicts". WAITING while bounties.txt says
+    the seats are CLOSED and a head still offers verdict selling; APPLIED when no head does, or when the seats are no
+    longer closed (then the offer is true). Any failed read is UNKNOWN."""
+    st, b = f(GU + "/bounties.txt", limit=8000)
+    if st != 200 or "RIGHT NOW" not in b:
+        return UNKNOWN, "bounties.txt http %s" % st
+    if not seats_closed(b):
+        return APPLIED, "bounties.txt no longer says the verdict seats are closed"
+    offering = []
+    for name, url in HEADS:
+        st, t = f(url, limit=2000000)
+        if st != 200 or not t.strip():
+            return UNKNOWN, "%s http %s" % (name, st)
+        if SELL_VERDICT.search(t):
+            offering.append(name)
+    if offering:
+        return WAITING, "seats closed, still offering verdict selling: " + ", ".join(offering)
+    return APPLIED, "seats closed and no head offers verdict selling"
+
+
 # rank, who, action, what it unblocks, draft, challenge, probe
 QUEUE = [
     (1, "owner", "restart the five paid sellers", "every paid call but the echo; STEP 6 of every guide",
@@ -285,6 +317,9 @@ QUEUE = [
     (15, "box", "name the paid job in the root llms.txt and send a plain GET / to /ai/",
      "crawlers reading the host root's llms.txt (8 outside clients on / 11-14, 7 got 426)",
      "drafts/box-root-llms-paid-job.md", "#271", p_root_llms_paid_job),
+    (16, "network", "stop offering 'sell verdicts' while no seat is open",
+     "readers of try-nano, agent.json and the homepage finding the offer true (14 outside clients on try-nano 11-18)",
+     "drafts/network-heads-closed-seats.md", "#308", p_heads_closed_seats),
 ]
 
 

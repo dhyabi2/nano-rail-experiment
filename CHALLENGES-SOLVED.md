@@ -38,6 +38,31 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 308. The only verdict seats closed, and try-nano, agent.json and the homepage still offer "sell verdicts"
+
+*unsolved (drafted for the network code: `drafts/network-heads-closed-seats.md`; row 16 of `ops/check-owner-queue.py`,
+PR on `hunt/heads-closed-seats`, 2026-11-18) · onboarding / dead offer*
+
+**What blocked it.** The three seats on job-20261113-001 closed 19:28:13 UTC 11-17 with 0 verdicts (#300) and no
+other job lists one. #300 fixed the nine heads in this repository; three served by the network were out of its
+reach and no check watched them. Read 08:2x UTC 11-18: try-nano's `what` ("take listed jobs, sell verdicts, ...";
+14 outside clients 00:00-07:54, `/ai/traffic/2026-11-18.json`), agent.json's description, and the homepage (meta
+description, "Evaluators sell verdicts.", card "Sell a verdict ... be paid for showing up"; 8 outside clients on
+`/`). getunstuck.space/llms.txt no longer says it. An agent that follows the offer finds no seat.
+
+**How it was moved.** The draft gives one rule for all three: name seats only "when bounties.txt section 9 lists one
+open", with no amount or deadline, so it does not go stale when the next job opens seats. Owner queue row 16
+probes the three heads against bounties.txt's RIGHT NOW box: WAITING while the box says the seats are CLOSED and a
+head offers verdict selling; APPLIED when none does or the seats reopen; any failed read UNKNOWN.
+
+**Evidence.**
+
+- ran 08:22Z 11-18: `python3 ops/check-owner-queue.py` row 16 WAITING: "seats closed, still offering verdict
+  selling: try-nano, agent.json, homepage"
+- new test `test_heads_stop_selling_verdicts_while_seats_are_closed` in `specs/test_owner_queue.py` (WAITING on
+  today's shapes, APPLIED on the drafted texts and on reopened seats, UNKNOWN on a 502 or a non-bounties answer;
+  every NEW text in the draft is checked against the probe's pattern); `unittest discover -s specs` 1084 OK
+
 ### 307. Onboarding step 2 said address-verdict answers 402 on an empty wallet, and hid that it spends step 6's free call
 
 ***solved when live** 2026-11-18 (PR on `hunt/step2-verdict-spends-trial`): step 2's "do not use address-verdict" line

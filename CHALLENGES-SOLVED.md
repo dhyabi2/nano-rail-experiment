@@ -38,6 +38,30 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 320. The first paragraph of /ai/llms.txt still read the paid job as open, with a stale NOT PAID YET stamp
+
+*solved when live 2026-11-19 (PR on `hunt/llms-top-no-new-work`) · stale proof of life*
+
+**What blocked it.** #317 put TAKES NO NEW WORK TODAY before the "OR EARN IT" pitch at line 89 of both llms.txt
+copies and #319 into bounties.txt, but the first paragraph of /ai/llms.txt - what an AI reader meets first; the
+aidirectory group drew 117 outside requests from 72 clients by 09:03 UTC 11-19, second only to the Unstuck API -
+still said "Paid work, seats closed ... (Job open until 2026-11-20 23:59 UTC ... one is in, under review" with no
+word that nothing is left to take. Its NOT PAID YET stamp read "17:18 UTC 11-18, 22 h after the close" while every
+other head had moved to 00:17 UTC 11-19.
+
+**How it was moved.** The paragraph now opens THE ONE PAID JOB TAKES NO NEW WORK TODAY - nothing you send on it now
+is paid, says a page built now is not bought, restamps NOT PAID YET at 09:19 UTC 11-19 (38 h; ask 628's last answer
+still our 457, treasury2 frontier 6ECFB21C unchanged since 11-16) and names tipping day as the one thing left to
+earn. Both copies identical. Text only. Law `specs/test_llms_top_no_new_work.py`. Change it with the text when the
+job closes (11-20 23:59 UTC), a new job opens, or the payout is sent.
+
+**Evidence.**
+
+- `/ai/traffic/2026-11-19.json` 09:07 UTC: aidirectory 117/72, canon 33/17, bounties 33/25
+- `grep -n -i 'no new work'` published/aidirectory/llms.txt before the fix: line 89 only
+- `GET /unstuck/api/ask/628` 09:1x: 6 answers, last 457; rpc.nano.to treasury2 frontier 6ECFB21C
+- suite 1138 OK (unittest, specs/)
+
 ### 319. bounties.txt itself still opened the paid job's terms as if it were taking work
 
 *solved when live 2026-11-19 (PR on `hunt/bounties-job-no-new-work`) · stale proof of life*

@@ -38,6 +38,30 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 327. numbers.json's starter "unreceived" read 21 again, and every guide still called it "WRONG TODAY: 0"
+
+*solved when live 2026-11-19 (PR on `hunt/numbers-unreceived-back`) · a warning kept after its cause cleared*
+
+**What blocked it.** #324 (13:3x UTC 11-19) made six copies (bounties.txt, both llms.txt, both /ai/ pages,
+tools.json) say /ai/numbers.json's starter_payments.unreceived "IS WRONG TODAY: 0 since 13:18". At 19:03 UTC the
+field read 21 again (18:03 still 0), with starters_sent 29 unchanged, and the chain count had not moved. A stranger
+checking numbers.json against the guide now saw 21 and was told the number was wrong - distrust aimed at the one
+correct figure.
+
+**How it was moved.** Each copy now says the field reads 21 again since 19:03 UTC 11-19, that it read 0 from 13:18
+to 18:03 UTC with no receive on chain (a refused node read counted as received, as on 10-04), gives the chain count
+(14 of the 18 starter-sized sends from treasury2 and Unstuck's account still receivable at 19:2x), and keeps the rule
+for the next outage: if it reads 0 while the chain disagrees, count it on chain. Law
+`specs/test_numbers_unreceived_zero_1119.py` changed with the text.
+
+**Evidence.**
+
+- 19:03Z GET /ai/numbers.json (`ops/measure-day.py`, 19:2x): recorded 6627, converted 1, starters_sent 29,
+  unreceived 21; 18:03Z read: unreceived 0
+- 19:2x rpc.nano.to account_history + blocks_info (receivable true) on the 10^25-raw sends: treasury2 5 of 6
+  receivable, Unstuck 9 of 12 - 14 of 18, same as 13:2x
+- ran: `python3 -m unittest discover -s specs -p 'test_*.py'` -> 1163 OK; tools.json parses
+
 ### 326. The sellers' Nano node read ok again, and every head still said step 6's paid call "FAILS TODAY"
 
 *solved when live 2026-11-19 (PR on `hunt/sellers-node-ok`) · a warning kept after its cause cleared*

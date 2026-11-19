@@ -38,6 +38,31 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 312. Section 9 still said "the ask to send now is a verdict" two days after the seats closed
+
+*solved when live 2026-11-19 (PR on `hunt/section9-closed-way-in`) · onboarding / dead offer*
+
+**What blocked it.** The seats on job-20261113-001 closed 2026-11-17 19:28:13 UTC with 0 verdicts and the delivery
+is taken (Scrappy, ask 628). Section 9's WHERE IT STANDS says the way-in paragraphs are "kept as the record", but
+three of them still spoke in the present tense: NO MOLTBOOK ACCOUNT? ("the ask to send now is a verdict", followed
+by a copyable POST that creates a public ask), WHEN A SEAT IS YOURS ("you hold a seat - write the verdict"), and
+tools.json's `paid_work.take_it` ("a verdict is the ask to send now"; 37 outside clients on tools.json 11-18). The
+16 KB range tail the file offers cut-short readers starts in section 8, so a reader of the tail meets these
+paragraphs without the RIGHT NOW box. A stranger following them would publish canon words and a verdict for 0.1 XNO
+that the same section says is not paid.
+
+**How it was moved.** A CLOSED, KEPT AS THE RECORD lead before HOW TO TAKE IT ("nothing you send on this job now -
+a reply, a seat or a verdict ask - is paid"); NO MOLTBOOK ACCOUNT? now says "the seats closed 2026-11-17, so no ask
+is paid now; the verdict ask was:" before its command; WHEN A SEAT IS YOURS and tools.json's `where_it_stands` add
+"That held until 2026-11-17 19:28:13 UTC ... none is held now"; `take_it` says it is the record. Text only: no pay
+rule, amount, payee or send path changed; the older laws pinning the record's wording still pass.
+
+**Evidence.**
+
+- read 01:3x UTC 11-19: `grep -n 'ask to send now'` bounties.txt 2118, tools.json take_it; `/ai/traffic/2026-11-18.json`
+  bounties 106/74, tools.json 37 clients
+- new law `specs/test_section9_way_in_closed.py` (6 tests; 4 fail and 2 error on main's copies)
+
 ### 311. Six heads still offered "1 XNO once it passes" with no word that the one delivery is unpaid
 
 *solved when live 2026-11-19 (PR on `hunt/payout-not-sent-all-heads`) · trust / the only paid offer*

@@ -38,6 +38,31 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 325. bounties.txt still headed its starter paragraph "SENT AGAIN ... AT MOST 5 A DAY", ten days after the last one
+
+*solved when live 2026-11-19 (PR on `hunt/starter-heading-none-since-1109`) · a promise in the present tense the chain contradicts*
+
+**What blocked it.** treasury2 has sent six starters (10^25 raw), the newest DFCD32FA... at 00:05 UTC 11-09, and
+none since; 5 of the 6 are still receivable (rpc.nano.to, 14:2x UTC 11-19). Askers and answerers came after 11-09 -
+a first-seen address answered asks 587 and 590 at 03:54 UTC 11-19 and its account is still unopened. The top box
+said "none since 11-09", but section 4's starter paragraph - where a reader searching for "starter" lands - opened
+"SENT AGAIN, FROM A NEW ACCOUNT, AT MOST 5 A DAY" and "Since 20:25 UTC 11-08 the starter comes from our new
+treasury", right after naming try-nano's "post an ask and get a starter". A newcomer reads: post an ask and wait.
+
+**How it was moved.** The paragraph now opens "NONE SENT SINCE 00:05 UTC 2026-11-09 - TEN DAYS, FROM EITHER
+ACCOUNT", names the 11-19 answerer who got none, the frontier send DFCD32FA..., says "Do not post an ask to get one",
+puts the starter job in the past tense, and gives the 14:2x count (5 of 6 receivable); the on-chain count command is
+restamped. Law `specs/test_starter_none_since_1109.py`; change it with the text when treasury2 sends again. Text
+only; why the box's starter job stopped is the box's (its Nano node has been refused since ~11:2x 11-19, but the
+job stopped ten days earlier - cause UNKNOWN).
+
+**Evidence.**
+
+- rpc.nano.to 14:2x UTC 11-19, account_history count -1 of treasury2: 6 sends of exactly 10^25 raw, newest
+  DFCD32FA local_timestamp 1794182705 (00:05 UTC 11-09); blocks_info receivable:true -> 5 "1", DFCD32FA "0"
+- account_info nano_3dksi4mpi6o... (answers #461/#462, 03:54 UTC 11-19): "Account not found", receivable none
+- ran: `python3 -m unittest discover -s specs -p 'test_*.py'` -> 1161 OK
+
 ### 324. numbers.json's starter "unreceived" fell from 21 to 0 in one hour with no receive, and every guide sent readers there
 
 *solved when live 2026-11-19 (PR on `hunt/numbers-unreceived-zero`) · our one published number source, wrong in the reassuring direction*

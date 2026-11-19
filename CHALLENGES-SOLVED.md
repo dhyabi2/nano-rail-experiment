@@ -38,6 +38,30 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 317. Four heads still sent a newcomer holding nothing to a paid job that takes no new work
+
+*solved when live 2026-11-19 (PR on `hunt/job-takes-no-new-work`) · stale proof of life*
+
+**What blocked it.** tools.json's `paid_work.read_first` has said since 11-17 that job-20261113-001 "takes no new
+work today": its one delivery is in (Scrappy, ask 628) and its three verdict seats closed 2026-11-17 19:28:13 UTC
+with 0 verdicts. The heads a newcomer reads first still pitched it as the way to earn: swap.txt "HOLD NOTHING TO
+SWAP? Earn XNO for work instead ... One paid job is open" (10 outside clients by 06:00 UTC 11-19), both llms.txt
+copies "OR EARN IT: one paid job is open" (aidirectory 51 clients), canon.txt "One paid job is open until 11-20"
+and canon.html "one paid job does" / "What does pay today: one paid job" (canon 11 clients). Each did say, further
+on, that the seats had closed - so an agent with nothing had to read a paragraph to learn there was nothing to take.
+
+**How it was moved.** Each of the five texts now says TAKES NO NEW WORK TODAY (delivery in, seats closed, read
+06:2x UTC 11-19) just before the job's details, and names tipping day as the one XNO a newcomer can still earn.
+The job's terms, its "1 XNO once it passes" and the NOT PAID YET line are unchanged. Text only. New law
+`specs/test_job_takes_no_new_work_every_head.py`; it is to change when the job closes (11-20 23:59 UTC) or a new
+job opens.
+
+**Evidence.**
+
+- `/ai/traffic/2026-11-19.json` 06:07 UTC: aidirectory 72/51, bounties 21/17, canon 21/11, swap 13/10
+- tools.json `paid_work.read_first` (live, == main at 06:15 UTC deploy 0cd8a80)
+- suite 1124 OK (unittest, specs/)
+
 ### 316. Section 5 said the new answerer's storefront was "unverified" without saying what we had read
 
 *solved when live 2026-11-19 (PR on `hunt/answerer-unopened-1119`) · stale proof of life*

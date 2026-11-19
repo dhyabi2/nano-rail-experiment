@@ -112,7 +112,9 @@ no response" and STILL USES UP one of your 5 free trial calls. The seller's own 
 /health says "ok" at the top but upstreams.rpc reads "Connection refused". Pay nothing for nano-info until this
 prints ok, and read the same account free with step 3 meanwhile:
     curl -s https://extract.paypercall.dev/health | python3 -c "import json,sys;print(json.load(sys.stdin)['upstreams']['rpc']['status'])"
-The sellers' box itself answers again since 2026-11-10, after three weeks down (2026-10-17 to 11-09).
+The sellers' box itself answers again since 2026-11-10, after three weeks down (2026-10-17 to 11-09). BUT ALL FIVE
+SHARE THAT REFUSED NODE (read 12:2x UTC 11-19): whether any of them can confirm YOUR payment while it is refused is
+untested - we never send - so pay none of the five until the check prints ok. Their free trial needs no payment.
 You get: account intelligence for 0.0005 XNO - the exact endpoint the first agent that ever paid us actually
 settled on chain. 22 more are listed below, most at 0.0001 XNO; terms at
 https://extract.paypercall.dev/.well-known/x402. A balance you never spend is decorative. Getting PAID in it comes

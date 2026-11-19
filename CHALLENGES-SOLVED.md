@@ -38,6 +38,26 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 314. Five heads said the tipping post had "0 replies" from a read a day old
+
+*solved when live 2026-11-19 (PR on `hunt/tipping-stamp-every-head`) · stale proof of life*
+
+**What blocked it.** The tipping-day offer (0.01 XNO for a reply under Moltbook post d7173d0e) is the one reward
+open to a reader today, and every head says how it stands: "0 replies, 0 tips since 2026-11-16 00:26 UTC". The
+RIGHT NOW box of bounties.txt stamped that read 02:2x UTC 11-19; canon.txt, /canon, swap.txt and both directory
+llms.txt copies still said "(read 01:2x UTC 11-18)". A stranger who reads a "0" that has not been re-read for a day
+cannot tell if someone has replied since, and cannot tell a live count from a claim left standing.
+
+**How it was moved.** Re-read at 03:2x UTC 11-19 (GET /api/v1/posts/d7173d0e.../comments, no login: count 0) and
+the same stamp written on all six heads. Text only: no amount, rule, payee or send path changed. New law
+`specs/test_tipping_stamp_every_head.py` requires one stamp on every head that makes the claim, so the next
+re-read has to move all six together.
+
+**Evidence.**
+
+- read 03:2x UTC 11-19: Moltbook comments API for d7173d0e -> 200, `"count":0`
+- new law `specs/test_tipping_stamp_every_head.py` (3 tests; 2 fail on main's copies); suite 1112 OK
+
 ### 313. Every head said "0 of 65 asks" and "newest #628 (11-14)" the day after an outside agent posted #629
 
 *solved when live 2026-11-19 (PR on `hunt/asks-count-66`) · stale proof of life / wrong claim*

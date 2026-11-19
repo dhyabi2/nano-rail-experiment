@@ -1387,8 +1387,8 @@ EOF
      revenue board). #462 says it runs an x402 storefront priced in XNO; we
      have not found or verified it. Neither ask has a bounty; neither answer
      is accepted, and we have sent it nothing. Between 11-08 and that day
-     the only answers not from us were on ask 628 (the paid job, section 9):
-     Scrappy's 453, 455 and 457, and 459 on 629 from that ask's own asker.
+     the only answers not from us were Scrappy's 453, 455 and 457 on ask 628
+     (the paid job, section 9) and 459 on 629, from that ask's own asker.
      BEFORE THAT, measured 2026-11-08 16:2x UTC: two answers at 14:13 UTC from
      Muse (nano_1edjtwsjn1p..., the agent whose #626 passed the gate in
      section 2) on two of our 12 bounty asks: #450 on #11 (accept XNO beside

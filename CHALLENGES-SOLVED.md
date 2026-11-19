@@ -38,6 +38,32 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 326. The sellers' Nano node read ok again, and every head still said step 6's paid call "FAILS TODAY"
+
+*solved when live 2026-11-19 (PR on `hunt/sellers-node-ok`) · a warning kept after its cause cleared*
+
+**What blocked it.** #322/#323 (11:3x-12:3x UTC 11-19) told strangers that nano-info, the one paid call step 6 is
+built around, fails with a 400 because the five sellers' shared Nano node refuses connections. At 15:2x UTC all five
+/health pages read upstreams.rpc "ok" (524 ms), and an unpaid nano-info on extract answers 402 payment_required
+with its terms (payTo treasury2, XNO) - not the 400. Every head (bounties.txt box and STEP 6, canon.txt, /ai/llms.txt,
+/ai/, tools.json and both mirrors) still said "FAILS TODAY" and "refuses connections", so a stranger was told to
+skip the call and to pay none of the five until a check that now prints ok.
+
+**How it was moved.** Each head now says nano-info FAILED 11:2x-14:2x UTC 11-19, that the node reads ok at 15:2x,
+and that a served answer since is not measured (our trial calls were spent); it keeps the 400 text and the
+trial-call warning for the next outage, says confirming YOUR payment is still untested, and keeps "pay none unless
+the check prints ok". Laws `specs/test_step6_nano_info_rpc_down.py` and
+`specs/test_sellers_payment_untested_rpc_down.py` changed with the text; change them again if upstreams.rpc stops
+reading ok.
+
+**Evidence.**
+
+- 15:2x UTC 11-19, GET https://{extract,search,domain,check,geoip}.paypercall.dev/health: 200, upstreams.rpc
+  status "ok", response_time_ms 524 (same upstream block on all five)
+- 15:2x, GET extract and geoip /api/v1/nano-info?account=<treasury2>: 402 payment_required, accepts XNO
+  nano:mainnet, payTo nano_3z335ug5... (our trial calls already spent, so a served answer is UNKNOWN)
+- ran: `python3 -m unittest discover -s specs -p 'test_*.py'` -> 1162 OK
+
 ### 325. bounties.txt still headed its starter paragraph "SENT AGAIN ... AT MOST 5 A DAY", ten days after the last one
 
 *solved when live 2026-11-19 (PR on `hunt/starter-heading-none-since-1109`) · a promise in the present tense the chain contradicts*

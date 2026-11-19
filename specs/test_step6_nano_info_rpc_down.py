@@ -13,6 +13,11 @@ again since 2026-11-10".
 Each head now says the command fails, that the failed call spends a trial call, and gives the one-line check of
 upstreams.rpc to run before paying. Change this law with the text when upstreams.rpc reads ok again.
 
+Changed for challenge #326 (15:2x UTC 11-19): upstreams.rpc reads "ok" on all five sellers and an unpaid nano-info
+answers 402 with its terms again, not the 400. Every head still said "FAILS TODAY" and "refuses connections", so a
+stranger was told to skip the one paid call step 6 is built around. Each head now says it FAILED 11:2x-14:2x, that
+the node reads ok at 15:2x, keeps the 400 text and the trial-call warning for the next outage, and keeps the check.
+
 Run: python3 specs/test_step6_nano_info_rpc_down.py
 """
 import json
@@ -41,7 +46,10 @@ class Step6NanoInfoRpcDown(unittest.TestCase):
         for p in HEADS:
             t = flat(read(p))
             with self.subTest(p):
-                self.assertIn("FAILS", t)
+                self.assertIn("FAILED 11:2x-14:2x UTC 11-19", t)
+                self.assertNotIn("FAILS TODAY", t)
+                self.assertNotIn("refuses connections", t)
+                self.assertIn("ok at 15:2x", t)
                 self.assertIn("Nano RPC unreachable or returned no response", t.replace("&quot;", '"'))
                 self.assertIn("STILL USES UP one of your 5 free trial calls", t)
                 self.assertNotIn(OLD, t)
@@ -58,13 +66,14 @@ class Step6NanoInfoRpcDown(unittest.TestCase):
             t = read(p)
             i = t.index(cmd)
             with self.subTest(p):
-                self.assertLess(t.index("FAILS", i) - i, 120)
+                self.assertLess(t.index("FAILED", i) - i, 120)
 
     def test_bounties_box_warns_that_health_200_is_not_enough(self):
         t = flat(read("published/bounties.txt"))
         box = t[t.index("RIGHT NOW - measured"):t.index("1. THE REWARDS")]
-        self.assertIn("BUT NANO-INFO FAILS", box)
-        self.assertIn("200 above is not enough", box)
+        self.assertNotIn("NANO-INFO FAILS", box)
+        self.assertIn("200 ABOVE IS NOT ENOUGH", box)
+        self.assertIn("ok at 15:2x", box)
 
     def test_tools_json_step6(self):
         d = json.loads(read("published/aidirectory/tools.json"))
@@ -82,7 +91,8 @@ class Step6NanoInfoRpcDown(unittest.TestCase):
         walk(d)
         self.assertTrue(found)
         for o in found:
-            self.assertIn("FAILS", o["right_now"])
+            self.assertIn("FAILED 11:2x-14:2x UTC 11-19", o["right_now"])
+            self.assertNotIn("FAILS TODAY", o["right_now"])
             self.assertIn(CHECK, o["right_now"])
             self.assertNotIn(OLD, o["right_now"])
 
@@ -91,6 +101,11 @@ class Step6NanoInfoRpcDown(unittest.TestCase):
                "(2026-10-17 to 11-09). Two paid calls do answer even when it is down")
         self.assertNotIn("FAILS", old)
         self.assertIn(OLD, old)
+
+    def test_law_fails_on_the_1119_outage_text(self):
+        old = "RIGHT NOW: THE COMMAND ABOVE FAILS TODAY (why, and the check, in the next paragraph)."
+        self.assertNotIn("FAILED 11:2x-14:2x UTC 11-19", old)
+        self.assertIn("FAILS TODAY", old)
 
 
 if __name__ == "__main__":

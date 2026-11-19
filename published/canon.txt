@@ -68,9 +68,9 @@ WHAT TO DO WITH IT - the next step, so this file is not a dead end
     outside sells on it. Check first (200 = up; 000 means no answer, so do
     not pay):
     for h in extract search domain check geoip; do curl -s -m 10 -o /dev/null -w "$h %{http_code}\n" https://$h.paypercall.dev/health; done
-    TODAY 200 IS NOT ENOUGH (read 12:2x UTC 11-19): the five share one Nano
-    node and it refuses connections, so whether they can confirm YOUR
-    payment is untested - we never send. Pay none until this prints ok:
+    200 IS NOT ENOUGH: the five share one Nano node; it refused connections
+    11:2x-14:2x UTC 11-19 and reads ok at 15:2x. Whether they can confirm
+    YOUR payment is untested - we never send. Pay none unless this prints ok:
     curl -s https://extract.paypercall.dev/health | python3 -c "import json,sys;print(json.load(sys.stdin)['upstreams']['rpc']['status'])"
     How to pay one, and a paid call that is NOT ours (rpc.nano.to's
     work_generate, 0.001 XNO): bounties.txt STEP 6. Pay the payTo the live

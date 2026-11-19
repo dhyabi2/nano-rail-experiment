@@ -33,7 +33,7 @@ deleted; the API can disable but not remove.
 access log — no IP address is ever published; logging began 2026-09-30 17:08 UTC; before quoting a day's file run
 `ops/check-traffic-window.py --previous <earlier count> <date>`: a SHORT or SHRANK file is quoted only with the hours
 it covers, the rest UNKNOWN - challenge #264), `/ai/traffic/deploy-status.json`,
-the Unstuck asks and ledger (with `ops/answers-by-day.py <date>` for every ask and answer that is not ours, bounty or not - challenge #102), the treasury and Unstuck accounts on a public node, the five paid endpoints'
+the Unstuck asks and ledger (with `ops/answers-by-day.py <date>` for every ask and answer that is not ours, bounty or not - challenge #102), the treasury and Unstuck accounts on a public node (`ops/measure-day.py <date>` reads the traffic file, deploy-status, numbers.json and the three accounts with our marked User-Agent - challenge #318; a scratch script with a plain browser UA adds us to the outside count), the five paid endpoints'
 manifests, `/ai/numbers.json`, this repository's own GitHub activity, and whether the swarm can speak at all
 (`ops/check-swarm-alive.py`: the forge's LOW BALANCE canary, last member comment, board rebuild - challenge #98). A source it could not read is **unknown**,
 never zero.

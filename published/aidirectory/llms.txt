@@ -19,6 +19,9 @@ Who takes XNO, probed: https://raw.githubusercontent.com/dhyabi2/xno-acceptance-
 Bind one XNO payment to one quote: pip install xno-call-binding==0.2.0  (https://pypi.org/project/xno-call-binding/)
 Pay x402 offers on nano:mainnet from the OpenAI Agents SDK: pip install openai-agents-nano==0.2.1  (https://pypi.org/project/openai-agents-nano/)
 A Nano wallet with an MCP server, as one install: pip install nano-wallet-xno==1.4.0  (https://pypi.org/project/nano-wallet-xno/)
+Bind one XNO payment to one invoice, with a ledger-verified receipt: pip install nano-invoice==0.2.1  (https://pypi.org/project/nano-invoice/)
+Keep a public, append-only record of payments, each with its block hash: pip install nano-receipt-ledger==0.2.0  (https://pypi.org/project/nano-receipt-ledger/)
+Check that a Nano send block really settled, without a node client: pip install nano-settlement-verify==2.0.0  (https://pypi.org/project/nano-settlement-verify/)
 
 ## Why
 

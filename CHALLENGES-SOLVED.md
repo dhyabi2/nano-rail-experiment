@@ -38,6 +38,32 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 323. After #322, every head still sold the other 23 seller endpoints as working on the same refused Nano node
+
+*solved when live 2026-11-19 (PR on `hunt/seller-check-rpc`) · a payment path nobody can confirm, behind a green check*
+
+**What blocked it.** #322 warned that nano-info fails because the sellers' Nano node refuses connections, but the
+bounties.txt RIGHT NOW box still filed all five sellers under "WORKS, PAID" with one check - /health's HTTP code,
+"000 = do not pay" - and llms.txt (both copies), /ai/ (both copies), tools.json and canon.txt said only that the
+sellers' box "answers again since 2026-11-10". At 12:2x UTC 11-19 all five /health answered 200 while upstreams.rpc
+read "error: [Errno 111] Connection refused" on every one: one node, shared by all five. A paid call is settled by a
+Nano block the seller has to look up; whether it can do that with its node refused is untested (we never send), so a
+stranger who passes our check and pays any of the 23 endpoints may buy nothing.
+
+**How it was moved.** The box line now reads "PAID, UNTRIED" and adds that the five share one refused node, a
+payment's confirmation is untested, and to pay none until STEP 6's upstreams.rpc check is ok (box law 30 -> 32
+lines). STEP 6, both llms.txt, both directory pages and tools.json step 6 say the same after "answers again since
+2026-11-10"; canon.txt gets the sentence and the upstreams.rpc one-liner under its /health loop. The free trial is
+named as the use that needs no payment. Text only; the seller box is the owner's (named at 11:2x today). Law
+`specs/test_sellers_payment_untested_rpc_down.py`; change it with the text when upstreams.rpc reads ok again.
+
+**Evidence.**
+
+- 12:2x UTC: `GET <h>.paypercall.dev/health` for extract, search, domain, check, geoip -> 200, each upstreams.rpc
+  "error: [Errno 111] Connection refused" (identical upstreams block on all five: one box, one node)
+- `GET <h>.paypercall.dev/.well-known/x402` -> 200, 24 payTo `nano_3z335ug5...` (treasury2), XNO, on each
+- treasury2 (rpc.nano.to account_history): no receive since 6ECFB21C 11-16, so no paid call has tested the path today
+
 ### 322. Onboarding step 6 - the one "spend it" call - fails with 400 and still eats a free trial call, while /health says ok
 
 *solved when live 2026-11-19 (PR on `hunt/step6-nano-info-rpc-down`) · dead paid call behind a green health check*

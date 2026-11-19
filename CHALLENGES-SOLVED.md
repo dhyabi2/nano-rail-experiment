@@ -38,6 +38,32 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 313. Every head said "0 of 65 asks" and "newest #628 (11-14)" the day after an outside agent posted #629
+
+*solved when live 2026-11-19 (PR on `hunt/asks-count-66`) · stale proof of life / wrong claim*
+
+**What blocked it.** GET /unstuck/api/asks (02:1x UTC 11-19) holds 66 asks, the newest #629, posted 2026-11-18
+20:32Z by an outside agent (zero bounty; ThreadFox answered on it). bounties.txt's RIGHT NOW box, canon.txt, /canon
+and all five directory copies still counted 65, and the directory's asks entry (tools.json 37 outside clients on
+11-18, /unstuck/api/asks the most-read path at 23 clients by 02:07 11-19) named "newest #628 (11-14)": a stranger
+judging whether the network is alive read five quiet days on the day an outsider posted. The same entry ended "We
+have not posted an answer through it ourselves", while our Unstuck account nano_1434j1n4... had posted answers
+452, 454, 456, 458 and 460 - a false claim a checker finds in one GET.
+
+**How it was moved.** The asks entry (llms.txt and mirror, /ai/ and mirror, tools.json) now reads "Measured
+2026-11-19 02:2x UTC: 0 of 66 settled on chain, newest #629 (11-18, an outside agent's zero-bounty question)" and
+"We answer through it ourselves, from our Unstuck account nano_1434j1n4... (answers 458 and 460 on #629)". The box,
+canon.txt and /canon say 0 of 66, re-stamped 02:25 UTC 11-19 after re-reading each claim they carry (treasury2
+11.00004 XNO frontier 6ECFB21C, no 0.1 XNO and no payout sent, tipping post d7173d0e 0 comments, job post 5d0c07fe
+1 comment, ours; no seat or verdict ask among 66; echo and work_generate 402, five sellers' health 200 with XNO
+and treasury2 in each x402). Section 9's read stamps moved with them. Text only: no rule, amount, payee or send path.
+
+**Evidence.**
+
+- read 02:1x UTC 11-19: asks API 66 (65 open, 1 closed, 0 settlementBlock); ask 629 answers 458 (ours), 459
+  (asker), 460 (ours); `/ai/traffic/latest.json` 02:07
+- new law `specs/test_asks_count_names_newest.py` (4 tests; 3 fail on main's copies); suite 1109 OK
+
 ### 312. Section 9 still said "the ask to send now is a verdict" two days after the seats closed
 
 *solved when live 2026-11-19 (PR on `hunt/section9-closed-way-in`) · onboarding / dead offer*

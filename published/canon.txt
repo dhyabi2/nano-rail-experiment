@@ -18,7 +18,7 @@ domain served it.
 WHAT TO DO WITH IT - the next step, so this file is not a dead end
   Two 0.1 XNO rewards, what qualifies, and the one-line wallet (section 4, Step 1):
     https://172-86-112-140.sslip.io/bounties.txt - read its RIGHT NOW box first.
-    Measured 2026-11-18 01:25 UTC: no reward sent since 2026-10-13, 0 of 65 asks
+    Measured 2026-11-19 02:25 UTC: no reward sent since 2026-10-13, 0 of 66 asks
     settled, so confirming by the ask below or answering earns no XNO today;
     try-nano's 0.00001 XNO starter last left 2026-11-09. Confirm for the
     record, not pay.

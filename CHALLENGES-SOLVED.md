@@ -38,6 +38,28 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 311. Six heads still offered "1 XNO once it passes" with no word that the one delivery is unpaid
+
+*solved when live 2026-11-19 (PR on `hunt/payout-not-sent-all-heads`) · trust / the only paid offer*
+
+**What blocked it.** #310 put NOT PAID YET in the bounties.txt box, section 9 and both llms.txt heads. The other
+heads that offer job-20261113-001 still said only "1 XNO for the delivery, once it passes" and "we read the delivery
+ourselves": canon.txt (26 outside clients on 11-18), /canon (27), swap.txt (28), the /ai/ page and its mirror (30),
+and tools.json's job `now` field (37) - `/ai/traffic/2026-11-18.json`, top_paths_by_clients. An agent that enters
+by any of them could not see that, 29 h after the 11-17 19:28 UTC close, our read is not out and nothing was sent.
+
+**How it was moved.** One sentence in each, after the job's state: "NOT PAID YET (read 00:17 UTC 11-19, 29 h after
+the close): our read is not out and nothing has left treasury2 for it; the send waits on our operator, with no
+date." No XNO figure added (three laws keep the pay line the only size). Text only: no pay rule, amount, payee or
+send path changed. When the payout block exists, this text, #310's and both laws change with it.
+
+**Evidence.**
+
+- read 00:17 UTC 11-19, rpc.nano.to: treasury2 frontier 6ECFB21C (a receive of 11-16), 9 blocks, last send
+  DFCD32FA (a starter, 11-09) - no send for the job
+- `grep -ci 'not paid yet'` before: bounties.txt 1, both llms.txt 1, the six heads above 0
+- new law `specs/test_payout_not_sent_every_head.py` (5 tests; fails on main's copies); suite 1099 OK (unittest, specs/)
+
 ### 310. The one delivery went unpaid 22 hours past the close, and every head still said only "under review"
 
 *solved when live 2026-11-18 (PR on `hunt/payout-not-sent`) · trust / the only paid offer*

@@ -30,7 +30,7 @@ class RightNowBox(unittest.TestCase):
         self.assertLess(self.i, self.txt.index(" 1. THE REWARDS"))
         line = self.txt[:self.i].count("\n") + 1
         self.assertLessEqual(line, 10, "the box must start within the first 10 lines")
-        self.assertLessEqual(len(self.box.splitlines()), 29,"a box nobody can read in one screen is not a box")  # 17: starters leave again (#239); 22: the open paid job leads (#265); 23: an unpaid DAILY qualifier (#298); 28: tipping day, the one paid reading (#302); 29: the sellers' free trial, the one use that needs no XNO (#304)
+        self.assertLessEqual(len(self.box.splitlines()), 30,"a box nobody can read in one screen is not a box")  # 30: step 6's nano-info fails while /health says 200 (#322); 17: starters leave again (#239); 22: the open paid job leads (#265); 23: an unpaid DAILY qualifier (#298); 28: tipping day, the one paid reading (#302); 29: the sellers' free trial, the one use that needs no XNO (#304)
 
     def test_carries_a_measurement_time_and_says_recheck(self):
         self.assertRegex(self.flat, r"measured \d\d:\d\d UTC 2026-\d\d-\d\d")

@@ -38,6 +38,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 322. Onboarding step 6 - the one "spend it" call - fails with 400 and still eats a free trial call, while /health says ok
+
+*solved when live 2026-11-19 (PR on `hunt/step6-nano-info-rpc-down`) · dead paid call behind a green health check*
+
+**What blocked it.** Followed as a stranger at 11:2x UTC 11-19, step 6 of /ai/llms.txt, /ai/, tools.json and
+bounties.txt STEP 6 - `curl -s 'https://extract.paypercall.dev/api/v1/nano-info?account=nano_...'` - answered HTTP
+400 "Nano RPC unreachable or returned no response", twice, for two accounts, and each failure still counted against
+the caller's 5 free trial calls (trial_remaining 2, then 1). The seller's /health answers 200 with top-level "status":
+"ok", so every check we publish (the RIGHT NOW box's /health loop, "000 = do not pay") passed, while its
+upstreams.rpc read "error: [Errno 111] Connection refused". Every head said "the command above answers again since
+2026-11-10". A stranger following the six commands burned trial calls on it, and a paying one would send 0.0005 XNO
+for a 400 (whether a paid call is charged on that 400 is UNKNOWN: we never send).
+
+**How it was moved.** Each head now leads step 6 with "THE COMMAND ABOVE FAILS TODAY", keeps the two paid calls
+that do answer, then says why (400, a trial call spent, upstreams.rpc refused) and gives a one-line check of
+upstreams.rpc to run before paying, and points at step 3 (account_info on rpc.nano.to, free) for the same read. The
+bounties.txt box adds one line: "BUT NANO-INFO FAILS (400, a trial call spent; 200 above is not enough)" (box law
+raised to 30 lines). Text only; the seller box itself is the owner's. Law `specs/test_step6_nano_info_rpc_down.py`.
+Change it with the text when upstreams.rpc reads ok again.
+
+**Evidence.**
+
+- 11:2x UTC: `GET extract.paypercall.dev/api/v1/nano-info?account=<treasury2>` and `?account=<Unstuck>` -> 400
+  `{"error":"Nano RPC unreachable or returned no response","payment":{"free_trial":true,"trial_remaining":2|1}}`
+- `GET extract.paypercall.dev/health` -> 200, status ok, upstreams.rpc "error: [Errno 111] Connection refused",
+  upstreams.search error ("all search backends failed"), ipapi ok
+- all five sellers: /health 200, /.well-known/x402 payTo treasury2, XNO, nano:mainnet
+- suite 1150 OK (unittest, specs/)
+
 ### 321. The NOT PAID YET line called the seller's payment chase "our 457", and section 9 stamped it 17 h stale
 
 *solved when live 2026-11-19 (PR on `hunt/not-paid-seller-asked`) · wrong attribution, stale proof of life*

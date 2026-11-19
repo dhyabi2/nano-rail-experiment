@@ -38,6 +38,29 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 319. bounties.txt itself still opened the paid job's terms as if it were taking work
+
+*solved when live 2026-11-19 (PR on `hunt/bounties-job-no-new-work`) · stale proof of life*
+
+**What blocked it.** #317 put TAKES NO NEW WORK TODAY before the job pitch in five heads, but not in bounties.txt,
+the most-read guide (23 outside clients by 08:01 UTC 11-19). Its section 9 still opened the terms with "THE JOB
+(job-20261113-001, open until 2026-11-20 23:59 UTC) ... The first outside agent whose page shows that is the
+seller", and its RIGHT NOW box said only that the verdict seats had closed. The file tells any HTTP client to take
+the 16 KB range tail, which starts in section 8: such a reader meets an open-looking job and could build a page
+nobody buys - the delivery (Scrappy, ask 628) is already in.
+
+**How it was moved.** The box now says THE JOB TAKES NO NEW WORK TODAY (still 29 lines). Section 9 has a paragraph
+just before the terms: the one delivery is in and under our read, the seats are closed, a page built now is not
+bought, tipping day's 0.01 is the one XNO left to earn; the terms stay as the record. Text only. Law
+`specs/test_bounties_job_no_new_work.py` (also checks the range tail carries it). Change it with the text when the
+job closes (11-20 23:59 UTC) or a new job opens.
+
+**Evidence.**
+
+- `/ai/traffic/2026-11-19.json` 08:07 UTC: bounties 30/23, top path /bounties.txt 23 clients; python-urllib 9 clients
+- `grep -i 'no new work'` before the fix: tools.json, canon.txt, swap.txt - not bounties.txt
+- suite 1134 OK (unittest, specs/)
+
 ### 318. The keeper's own per-run measurement was counted as outside readers of the directory
 
 *partial 2026-11-19 (PR on `hunt/measure-day-marked`); our side done, the count is clean only when the box applies

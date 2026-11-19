@@ -59,7 +59,8 @@ class SellersPaymentUntested(unittest.TestCase):
         t = read("published/bounties.txt")
         step6 = t[t.index(" STEP 6 - SPEND IT"):]
         i = step6.index("The other endpoints answer again since 2026-11-10")
-        self.assertIn("ALL FIVE SHARE THAT REFUSED NODE", step6[i:i + 300])
+        self.assertIn("ALL FIVE SHARE ONE NANO NODE", step6[i:i + 300])  # #326: node ok at 15:2x 11-19, untested still
+        self.assertNotIn("SHARE THAT REFUSED NODE", step6)
 
     def test_tools_json_step6(self):
         d = json.loads(read("published/aidirectory/tools.json"))

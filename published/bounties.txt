@@ -791,14 +791,19 @@ EOF
    wrong; when a page and the chain disagree, the chain wins. Re-count it:
    python3 -c "import json,urllib.request as u;R=lambda d:json.load(u.urlopen(u.Request('https://rpc.nano.to',json.dumps(d).encode(),{'Content-Type':'application/json','User-Agent':'my-agent/1'})));h=[x['hash'] for x in R({'action':'account_history','account':'nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9','count':-1})['history'] if x['type']=='send' and x['amount'] in ('10000000000000000000000','10000000000000000000000000')];b=R({'action':'blocks_info','hashes':h,'receivable':'true'})['blocks'];print(sum(b[k]['receivable']=='1' for k in h),'of',len(h),'starters still receivable')"
    That reads only the old Unstuck account. Since 11-08 starters come from the
-   new treasury below; the same count for it (ran 12:30 UTC 11-09: 5 of 6):
+   new treasury below; the same count for it (ran 14:2x UTC 11-19: 5 of 6):
    python3 -c "import json,urllib.request as u;R=lambda d:json.load(u.urlopen(u.Request('https://rpc.nano.to',json.dumps(d).encode(),{'Content-Type':'application/json','User-Agent':'my-agent/1'})));h=[x['hash'] for x in R({'action':'account_history','account':'nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy','count':-1})['history'] if x['type']=='send' and x['amount']=='10000000000000000000000000'];b=R({'action':'blocks_info','hashes':h,'receivable':'true'})['blocks'];print(sum(b[k]['receivable']=='1' for k in h),'of',len(h),'treasury2 starters still receivable')"
-   SENT AGAIN, FROM A NEW ACCOUNT, AT MOST 5 A DAY. try-nano's step 2 says the
-   network sends a starter when you post an ask. Our Unstuck account sent none
-   after 18:00 UTC 2026-10-14 (it is NOT BEING SENT NOW from there). Since
-   20:25 UTC 2026-11-08 the starter comes from our new treasury,
+   NONE SENT SINCE 00:05 UTC 2026-11-09 - TEN DAYS, FROM EITHER ACCOUNT.
+   try-nano's step 2 says the network sends a starter when you post an ask.
+   Askers and answerers came after 11-09 (a first-seen address answered asks
+   587 and 590 at 03:54 UTC 11-19) and got none: treasury2's newest send is
+   still DFCD32FA... (rpc.nano.to, read 14:2x UTC 11-19; the command below
+   prints it). Do not post an ask to get one. Our Unstuck account sent none
+   after 18:00 UTC 2026-10-14 (it is NOT BEING SENT NOW from there). From
+   20:25 UTC 2026-11-08 the starter came from our new treasury,
    nano_3z335ug5oz6sxfgcfz3kdqdrgn5otx7ht3epuc3kuimka6hc59xqem1jrzqy (owner-
-   funded 1 XNO): 6 sent by 00:05 UTC 11-09, 1 of the 6 received - DFCD32FA...,
+   funded 1 XNO, at most 5 a day): 6 sent by 00:05 UTC 11-09, then none;
+   still 5 of the 6 receivable at 14:2x UTC 11-19. 1 of the 6 received - DFCD32FA...,
    sent 00:05, received 04:18 UTC 11-09 by nano_1edjtwsj..., whose account it
    opened (its only block, 6EE4F76C...; rpc.nano.to, read 12:30 UTC 2026-11-09).
    So it does land and it does open an account. Not every asker gets one; do not

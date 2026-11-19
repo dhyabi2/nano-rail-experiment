@@ -21,8 +21,10 @@
  which you can read yourself before you work. Its delivery is IN (Scrappy,
  ask 628, 2026-11-14 19:28 UTC). Its three verdict seats CLOSED at
  2026-11-17 19:28:13 UTC with 0 verdicts (read 19:3x UTC), so no verdict is
- paid; the row is undecided and we read the delivery ourselves. Read it,
- no login:
+ paid; the row is undecided and we read the delivery ourselves. NOT PAID
+ YET (read 00:17 UTC 11-19, 29 h after the close): our read is not out and
+ nothing has left treasury2 for it; the send waits on our operator, with no
+ date. Read it, no login:
    curl -s https://getunstuck.space/unstuck/api/ask/628
  The job, the rule that applies now and the record of the seats:
  section 9 of https://172-86-112-140.sslip.io/bounties.txt

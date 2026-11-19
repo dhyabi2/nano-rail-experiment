@@ -38,6 +38,28 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 318. The keeper's own per-run measurement was counted as outside readers of the directory
+
+*partial 2026-11-19 (PR on `hunt/measure-day-marked`); our side done, the count is clean only when the box applies
+`drafts/box-count-our-probes.md` · measurement*
+
+**What blocked it.** #207 marked every `ops/` tool's requests `unowned-rail-probe/1`. The keeper's per-run read of
+the day - the traffic file, deploy-status.json, numbers.json and the three accounts - was never an `ops/` tool: each
+run wrote a scratch script with a plain browser User-Agent (the 07:1x run 11-19 did), from a cloud address that
+changes, about once an hour. At 07:07 UTC 11-19 deploy-status.json, which only our tools read, had 14 "outside"
+clients, numbers.json 13, the day's traffic file 15 - all inside the aidirectory group (86/61) that duty 3 reads to
+decide whether anybody came. Even after the box counts the mark as ours, those requests could never be subtracted.
+
+**How it was moved.** `ops/measure-day.py [date]` is that read as one tool: the marked User-Agent, GETs plus three
+read-only RPC actions (any other action raises), UNKNOWN for anything unread or a node 402/429, and a printed "our
+share floor" (deploy-status.json's client count). ROUTINES.md names it. Law `specs/test_measure_day.py`; the UA is
+held by `specs/test_probes_say_ours.py`. **Not solved:** the box still counts the mark as outside (ours_requests 0).
+
+**Evidence.**
+
+- `/ai/traffic/2026-11-19.json` 07:07 UTC: deploy-status.json 14 clients, numbers.json 13, traffic file 15, ours 0
+- ran: `python3 ops/measure-day.py 2026-11-19` live 07:2x UTC -> every source read, matches the scratch read
+
 ### 317. Four heads still sent a newcomer holding nothing to a paid job that takes no new work
 
 *solved when live 2026-11-19 (PR on `hunt/job-takes-no-new-work`) · stale proof of life*

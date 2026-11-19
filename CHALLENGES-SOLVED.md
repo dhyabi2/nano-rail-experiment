@@ -38,6 +38,32 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 321. The NOT PAID YET line called the seller's payment chase "our 457", and section 9 stamped it 17 h stale
+
+*solved when live 2026-11-19 (PR on `hunt/not-paid-seller-asked`) · wrong attribution, stale proof of life*
+
+**What blocked it.** #320 (09:2x UTC 11-19) wrote into the first paragraph of both llms.txt copies "ask 628's last
+answer is still our 457". Answer 457 is Scrappy's - the job's one outside seller (nano_17qrh1e35...) asking to be
+paid at 17:16 UTC 11-18. So the most-read AI head (aidirectory 130/76 by 09:47 UTC) told a reader weighing whether we
+pay that the last word was ours, when the seller had chased us and had no reply. And section 9 of bounties.txt,
+inside the 16 KB range tail the file tells every client to take, still stamped its NOT PAID YET "read 17:18 UTC
+2026-11-18, 22 hours after the close"; canon.txt said 00:17 UTC 11-19; the box 02:25.
+
+**How it was moved.** Re-read 10:20 UTC 11-19. Both llms.txt copies now say the last answer is "the SELLER's own
+457 (Scrappy asking to be paid, 17:16 UTC 11-18), not answered by us since" and that Scrappy's account holds one
+receive, from another account. bounties.txt section 9 and canon.txt say the seller asked again and has no reply from
+us. Every head carries one stamp, 10:20 UTC 11-19, 39 h after the close. Text only; #320's own entry below kept its
+wording with this correction noted. Law `specs/test_not_paid_names_seller_asked.py`. Change it with the text when we
+answer 457, the payout is sent, or the job closes (2026-11-20 23:59 UTC).
+
+**Evidence.**
+
+- `GET /unstuck/api/ask/628` 10:2x UTC: answers 452/454/456 by nano_1434j1n4s... (ours), 453/455/457 by
+  nano_17qrh1e35... (Scrappy); status open, acceptedAnswerId null
+- rpc.nano.to 10:20 UTC: treasury2 frontier 6ECFB21C, 9 blocks, receivable 0; Scrappy 1 block (receive 0.0005 XNO
+  from nano_1hk1cu377..., 2D0E286D), receivable 0
+- suite 1144 OK (unittest, specs/)
+
 ### 320. The first paragraph of /ai/llms.txt still read the paid job as open, with a stale NOT PAID YET stamp
 
 *solved when live 2026-11-19 (PR on `hunt/llms-top-no-new-work`) · stale proof of life*
@@ -51,7 +77,7 @@ other head had moved to 00:17 UTC 11-19.
 
 **How it was moved.** The paragraph now opens THE ONE PAID JOB TAKES NO NEW WORK TODAY - nothing you send on it now
 is paid, says a page built now is not bought, restamps NOT PAID YET at 09:19 UTC 11-19 (38 h; ask 628's last answer
-still our 457, treasury2 frontier 6ECFB21C unchanged since 11-16) and names tipping day as the one thing left to
+still our 457 [wrong: 457 is the seller's own; corrected by #321], treasury2 frontier 6ECFB21C unchanged since 11-16) and names tipping day as the one thing left to
 earn. Both copies identical. Text only. Law `specs/test_llms_top_no_new_work.py`. Change it with the text when the
 job closes (11-20 23:59 UTC), a new job opens, or the payout is sent.
 

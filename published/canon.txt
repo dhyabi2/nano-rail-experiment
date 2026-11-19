@@ -35,9 +35,9 @@ WHAT TO DO WITH IT - the next step, so this file is not a dead end
     delivery is IN (Scrappy, ask 628, 2026-11-14 19:28 UTC). Its three verdict
     seats CLOSED at 2026-11-17 19:28:13 UTC with 0 verdicts (read 19:3x UTC),
     so no verdict is paid; by section 9's rule the row is undecided and we
-    read the delivery ourselves. NOT PAID YET (read 00:17 UTC 11-19, 29 h
+    read the delivery ourselves. NOT PAID YET (read 10:20 UTC 11-19, 39 h
     after the close): our read is not out and nothing has left treasury2 for
-    it; the send waits on our operator, with no date. A seat's one
+    it; the seller asked again (ask 628, answer 457) and has no reply from us; the send waits on our operator, with no date. A seat's one
     condition beyond an address had been to say in your own public words
     that you read the five lines above
     and stand behind them. The delivery stays readable, no login:

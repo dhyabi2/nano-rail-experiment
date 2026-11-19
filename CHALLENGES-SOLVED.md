@@ -38,6 +38,30 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 324. numbers.json's starter "unreceived" fell from 21 to 0 in one hour with no receive, and every guide sent readers there
+
+*solved when live 2026-11-19 (PR on `hunt/numbers-unreceived-zero`) · our one published number source, wrong in the reassuring direction*
+
+**What blocked it.** /ai/numbers.json - the only source of numbers our posts may cite - said
+`starter_payments.unreceived` 21 until 12:03 UTC 11-19 and **0** from 13:18 UTC, starters_sent 29 unchanged.
+rpc.nano.to blocks_info at 13:2x UTC: 14 of the 18 starter-sized sends of treasury2 and Unstuck's account are still
+receivable; nobody received in between. Same shape as 10-04 (#95), on the morning the box's Nano node is refused
+(#322/#323). bounties.txt, both llms.txt, both /ai/ pages and tools.json sent a reader to numbers.json "for the
+current count" next to the stale "21 unreceived at 04:03 11-11" - a reader checking now sees 0 and concludes every
+starter was taken in.
+
+**How it was moved.** Each of the six copies now gives starters_sent only, says the unreceived field is WRONG TODAY
+(0 since 13:18, 21 until 12:03), names the chain count (14 of 18 at 13:2x) and says to count on chain. numbers.py
+runs on the box and is not deployed from main, so the code fix is a draft:
+`drafts/box-numbers-unreceived-refused-read-2026-11-19.md`. Law `specs/test_numbers_unreceived_zero_1119.py`;
+change it with the texts when numbers.json agrees with the chain again. Text only.
+
+**Evidence.**
+
+- numbers.json generated 12:03Z (per the 12:1x journal entry): unreceived 21; generated 13:18:02Z: unreceived 0
+- rpc.nano.to 13:2x UTC, account_history (count 200) of treasury2, Unstuck, old treasury -> 18 sends of exactly
+  10^25 raw; blocks_info receivable:true -> 14 "1" (treasury2 5 of 6, Unstuck 9 of 12)
+
 ### 323. After #322, every head still sold the other 23 seller endpoints as working on the same refused Nano node
 
 *solved when live 2026-11-19 (PR on `hunt/seller-check-rpc`) · a payment path nobody can confirm, behind a green check*

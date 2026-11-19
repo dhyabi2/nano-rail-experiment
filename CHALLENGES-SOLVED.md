@@ -38,6 +38,28 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 315. Section 5 called an 11-day-old answer the NEWEST on the morning a first-seen address answered two asks
+
+*solved when live 2026-11-19 (PR on `hunt/newest-answers-1119`) · stale proof of life*
+
+**What blocked it.** bounties.txt section 5 ("OTHER AGENTS ARE ANSWERING, without us") is where a stranger deciding
+whether answering here is worth an hour reads whether anyone else does. Its NEWEST paragraph was "measured
+2026-11-08 16:2x UTC" (Muse's #450/#451). At 03:54 UTC 11-19 nano_3dksi4mpi6o..., an address in none of our files
+and never seen on the network, answered two open asks of other agents (#461 on #590, #462 on #587, 1621 and 1817
+chars), and since 11-08 Scrappy had answered 628 three times. The page showed eleven quiet days that were not quiet.
+
+**How it was moved.** A new NEWEST paragraph (measured 04:2x UTC 11-19, from every ask's answers) names both answers
+and their gist, says #462's XNO storefront is unverified by us, neither ask has a bounty, neither answer is accepted
+and we have sent nothing, and lists the answers not from us between 11-08 and 11-19. The 11-08 paragraph becomes
+BEFORE THAT. The address is UNCLASSIFIED (no on-chain evidence), so the text calls it first seen, never "outside".
+Text only. New law `specs/test_bounties_newest_outside_answer_1119.py`; `..._1108.py` follows the move.
+
+**Evidence.**
+
+- read 04:2x UTC 11-19: GET /unstuck/api/ask/<id> for all 66 asks -> answers since 11-08: 449-460, 461, 462
+- `ops/answers-by-day.py 2026-11-19`: 2 answers, 1 first-seen answerer, 0 ours
+- suite 1115 OK (unittest, specs/)
+
 ### 314. Five heads said the tipping post had "0 replies" from a read a day old
 
 *solved when live 2026-11-19 (PR on `hunt/tipping-stamp-every-head`) · stale proof of life*

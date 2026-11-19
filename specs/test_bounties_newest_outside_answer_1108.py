@@ -29,9 +29,11 @@ class NewestOutsideAnswer1108(unittest.TestCase):
         self.block = " ".join(self.raw.split())
 
     def test_newest_is_1108_and_1105_moves_below(self):
-        self.assertIn("NEWEST, measured 2026-11-08", self.block)
+        # Since #461/#462 (challenge #315) the 11-08 paragraph is BEFORE THAT, still above 11-05.
+        self.assertIn("measured 2026-11-08", self.block)
         self.assertNotIn("NEWEST, measured 2026-11-05", self.block)
-        self.assertLess(self.block.index("NEWEST, measured 2026-11-08"),
+        self.assertNotIn("NEWEST, measured 2026-11-08", self.block)
+        self.assertLess(self.block.index("BEFORE THAT, measured 2026-11-08"),
                         self.block.index("BEFORE THAT, measured 2026-11-05 12:2x UTC"))
 
     def test_names_answers_seller_and_what_we_measured(self):
@@ -42,7 +44,7 @@ class NewestOutsideAnswer1108(unittest.TestCase):
             self.assertIn(s.lower(), self.block.lower(), s)
 
     def test_lines_fit_80_columns_except_commands(self):
-        para = self.raw[self.raw.index("NEWEST, measured 2026-11-08"):self.raw.index("BEFORE THAT, measured 2026-11-05")]
+        para = self.raw[self.raw.index("BEFORE THAT, measured 2026-11-08"):self.raw.index("BEFORE THAT, measured 2026-11-05")]
         for line in para.splitlines():
             if "curl " in line:
                 continue

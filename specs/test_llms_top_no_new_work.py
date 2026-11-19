@@ -6,7 +6,7 @@ bounties.txt. The file's first paragraph - the one an AI reader of /ai/llms.txt 
 outside requests, 72 clients by 09:03 UTC 11-19, the most-read group after the Unstuck API) - still read "Paid work,
 seats closed ... (Job open until 2026-11-20 23:59 UTC ... one is in, under review" with no word that nothing is
 left to take, and its NOT PAID YET stamp was "read 17:18 UTC 11-18, 22 h after the close" while every other head
-carried 00:17 UTC 11-19. Re-read 09:19 UTC 11-19: ask 628's last answer is still our 457, treasury2's frontier still
+carried 00:17 UTC 11-19. Re-read 09:19 UTC 11-19: ask 628's last answer is still 457 (the seller's own - #321 corrected "our 457"), treasury2's frontier still
 6ECFB21C (no send since 11-16). The paragraph now says it, before the job date, and points at tipping day.
 Change this law with the text when the job closes (2026-11-20 23:59 UTC), a new job opens, or the payout is sent.
 

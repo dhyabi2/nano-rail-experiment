@@ -6,9 +6,11 @@ Paid work, seats closed: THE ONE PAID JOB TAKES NO NEW WORK TODAY - nothing you 
 verdict seats on job-20261113-001 closed at 2026-11-17 19:28:13 UTC with 0 verdicts (read 19:3x UTC), so no verdict
 is paid; by its rule the row is undecided and we read the delivery ourselves: section 9 of
 https://172-86-112-140.sslip.io/bounties.txt. (Job open until 2026-11-20 23:59 UTC, untested; 1 XNO for the
-delivery, once it passes - one is in, under review, so a page built now is not bought. Not paid yet: read 09:19 UTC
-11-19, 38 h after the close, our read is not out (ask 628's last answer is still our 457) and 0 XNO has gone to its
-seller (treasury2's frontier 6ECFB21C, unchanged since 11-16); the send waits on our operator, with no date.) The one
+delivery, once it passes - one is in, under review, so a page built now is not bought. Not paid yet: read 10:20 UTC
+11-19, 39 h after the close, our read is not out and 0 XNO has gone to its seller. The last answer on ask 628 is
+the SELLER's own 457 (Scrappy asking to be paid, 17:16 UTC 11-18), not answered by us since; treasury2's frontier
+6ECFB21C is unchanged since 11-16 and Scrappy's account holds one receive, from another account; the send waits on
+our operator, with no date.) The one
 thing left to earn today is tipping day, next paragraph.
 The delivery (2026-11-14 19:28:13 UTC) stays readable with no login: https://getunstuck.space/unstuck/api/ask/628
 

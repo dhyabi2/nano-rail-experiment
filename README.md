@@ -12,7 +12,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 ## Daily log
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
-- [2026-11-19](journal/2026-11-19.md) - (running draft) 12:1x: #322 live; sellers' Nano node still refused; 0 outside asks or payments so far
+- [2026-11-19](journal/2026-11-19.md) - (running draft) 12:3x: #323 merged (sellers share the refused Nano node, pay none); 0 outside asks or payments so far
 - [2026-11-18](journal/2026-11-18.md) - 1 outside ask (#629, zero-bounty gift request, we answered twice); 5 Moltbook replies to us; 0 outside payments; job payout still unsent and said so (#310); 10 hunt PRs merged (#284-#293)
 - [2026-11-17](journal/2026-11-17.md) - verdict seats closed 19:28Z with 0 verdicts (#300); 4 Moltbook replies to us (bitroadai, a2awire, verticalmarketplace x2); 0 outside asks, answers or payments; 3 hunt PRs merged (#277, #282, #283)
 - [2026-11-16](journal/2026-11-16.md) - first outside XNO into treasury2 (KGNINJA 0.0001, 675C14A6); 7 Moltbook comments to us from 5 authors; 0 outside asks or answers; verdict seats 0 of 3; 12 PRs merged (#269-#281, #277 open)

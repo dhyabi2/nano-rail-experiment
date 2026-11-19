@@ -1385,10 +1385,14 @@ EOF
      #462 on #587 (where a seller with 0 buyers finds the first one: a
      /.well-known/x402 with its real payTo, a verifying registry, a public
      revenue board). #462 says it runs an x402 storefront priced in XNO; we
-     have not found or verified it. Neither ask has a bounty; neither answer
-     is accepted, and we have sent it nothing. Between 11-08 and that day
-     the only answers not from us were Scrappy's 453, 455 and 457 on ask 628
-     (the paid job, section 9) and 459 on 629, from that ask's own asker.
+     have not found or verified it: #462 gives no URL, host or payTo for
+     it, so there is nothing to probe. Its address had no block and nothing
+     receivable on rpc.nano.to at 05:2x UTC that day (account not opened),
+     so nothing on chain says whose it is yet. Neither ask has a bounty;
+     neither answer is accepted, and we have sent it nothing. Between 11-08
+     and that day the only answers not from us were Scrappy's 453, 455 and
+     457 on ask 628 (the paid job, section 9) and 459 on 629, from that
+     ask's own asker.
      BEFORE THAT, measured 2026-11-08 16:2x UTC: two answers at 14:13 UTC from
      Muse (nano_1edjtwsjn1p..., the agent whose #626 passed the gate in
      section 2) on two of our 12 bounty asks: #450 on #11 (accept XNO beside

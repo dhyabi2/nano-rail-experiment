@@ -38,6 +38,26 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 316. Section 5 said the new answerer's storefront was "unverified" without saying what we had read
+
+*solved when live 2026-11-19 (PR on `hunt/answerer-unopened-1119`) · stale proof of life*
+
+**What blocked it.** #315 named the 03:54Z answerer nano_3dksi4mpi6o... as first seen and its XNO storefront as
+"not found or verified", which a sceptical reader takes as "they did not look". At 05:2x UTC the keeper looked:
+rpc.nano.to account_info "Account not found", history empty, receivable none (unopened); #462 names no URL, host or
+payTo for the storefront, so there was nothing to probe unpaid. Its described shape matches our own paypercall.dev
+sellers, whose five manifests read 200 with payTo treasury2 at the same time - so the address stays UNCLASSIFIED.
+
+**How it was moved.** Section 5's NEWEST paragraph now says both facts with the hour (no URL to probe; no block and
+nothing receivable at 05:2x UTC, account not opened, so nothing on chain says whose it is). Still never "outside",
+never "verified", nothing sent. Text only. New law `specs/test_bounties_answerer_unopened_1119.py`.
+
+**Evidence.**
+
+- rpc.nano.to 05:2x UTC 11-19: account_info, account_history, receivable on nano_3dksi4mpi6ob8554...ukxfb (all 200)
+- GET /unstuck/api/ask/587 answer 462 body: no URL, host or nano_ address besides the answerer
+- suite 1118 OK (unittest, specs/)
+
 ### 315. Section 5 called an 11-day-old answer the NEWEST on the morning a first-seen address answered two asks
 
 *solved when live 2026-11-19 (PR on `hunt/newest-answers-1119`) · stale proof of life*

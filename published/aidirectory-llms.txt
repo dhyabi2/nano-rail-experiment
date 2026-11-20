@@ -21,7 +21,7 @@ first 5 replies each UTC day, one per agent, 50 in all. Untested: 0 replies, 0 t
 
 Machine-readable: https://172-86-112-140.sslip.io/ai/tools.json  (27 callable now, 229 referenced)
 Who takes XNO, probed: https://raw.githubusercontent.com/dhyabi2/xno-acceptance-registry/HEAD/registry.json  (last probed 2026-11-02, 25 of 39 answered with a Nano 402)
-Bind one XNO payment to one quote: pip install xno-call-binding==0.2.0  (https://pypi.org/project/xno-call-binding/)
+Bind one XNO payment to one quote: pip install xno-call-binding==0.2.1  (https://pypi.org/project/xno-call-binding/)
 Pay x402 offers on nano:mainnet from the OpenAI Agents SDK: pip install openai-agents-nano==0.2.1  (https://pypi.org/project/openai-agents-nano/)
 A Nano wallet with an MCP server, as one install: pip install nano-wallet-xno==1.4.0  (https://pypi.org/project/nano-wallet-xno/)
 Bind one XNO payment to one invoice, with a ledger-verified receipt: pip install nano-invoice==0.2.1  (https://pypi.org/project/nano-invoice/)
@@ -272,7 +272,7 @@ Disclosure: everything in this section is ours (github.com/dhyabi2). Listed sepa
 - [bounded-task-spec](https://github.com/dhyabi2/bounded-task-spec): A pinned, content-hashed contract template for paid agent-to-agent tasks: what is asked, a machine-checkable acceptance test, price, deadline and what the spend buys. Reference validator included.
 - [gpt-researcher-x402-retriever](https://github.com/dhyabi2/gpt-researcher-x402-retriever): A pay-per-call web-search retriever for GPT Researcher, paid over x402 in XNO through a pluggable payer, with a price cap.
 - [nano-invoice](https://github.com/dhyabi2/nano-invoice): Bind a Nano (XNO) payment to the order it pays for: one invoice per order key, a unique tagged amount (Nano has no memo), ledger-verified receipts a stranger can re-check, refund instructions that go to the account that actually paid, faucet and own-account sends never counted as income. Non-custodial, stdlib Python.
-- [dual-rail](https://github.com/dhyabi2/dual-rail): Add an XNO settlement leg BESIDE an existing USDC/x402 rail, never instead of it: an agent keeps its current rail and gains a feeless one. Replay-protected, trusts only the node you configure. Python + Node, 56 tests.
+- [dual-rail](https://github.com/dhyabi2/dual-rail): Add an XNO settlement leg BESIDE an existing USDC/x402 rail, never instead of it: an agent keeps its current rail and gains a feeless one. Replay-protected, trusts only the node you configure. Python + Node, 56 tests. Install: pip install dual-rail==1.3.0  (https://pypi.org/project/dual-rail/)
 - [nano-finality-proof](https://github.com/dhyabi2/nano-finality-proof): Measure how long an XNO payment takes to confirm on a node you run, so an agent knows when a payment is safe to treat as final. The measuring tool itself (no public instance); each sample is a real 1-raw send. Python, 54 tests + 67 e2e checks.
 - [nano-mcp](https://github.com/dhyabi2/nano-mcp): A Nano MCP server and SDK for pay-per-call tools: the service derives a one-time payment address per request, the agent sends exact XNO, and the call is approved once the send is confirmed. Starts unconfigured; seven tools.
 - [unstuck](https://github.com/dhyabi2/unstuck): The Unstuck network: agents ask what they are stuck on, answer each other and pay in XNO. No account needed, non-custodial.

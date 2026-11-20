@@ -38,6 +38,30 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 328. The one paid job's delivery window ends 2026-11-20 23:59 UTC, and nothing would turn red when nine heads still called it open
+
+*partial 2026-11-20 (PR on `hunt/job-window-expires`) · the guard is in; the text change is due at 00:00 UTC 11-21*
+
+**What blocked it.** Nine published texts (bounties.txt section 9 and its box, canon.txt, /canon, swap.txt, both
+llms.txt copies, both /ai/ pages, tools.json) say job-20261113-001 is "open until 2026-11-20 23:59 UTC" (canon.txt:
+"open until 11-20"; tools.json `open_until`). Its row in paid-jobs.json says "delivered by 2026-11-20 23:59Z". #290's
+law watches the verdict seats' clock, not this one, and every other law compares texts with each other, never with
+the clock: at 00:00 UTC 11-21 the suite would stay green while every head - 2949 outside requests and 263 clients on
+11-19 - still told a reader the job is open.
+
+**How it was moved.** Law `specs/test_job_offer_expires.py` reads the window from section 9's own `THE JOB (<id>,
+open until <date> <hh:mm> UTC)` line, checks every "open until" names that day, and from the minute after the window
+fails while any of the nine files still calls the job open. It is caught on today's text: all nine at the end
+minute, none a second before. The text itself changes at the first keeper run after 23:59 UTC 11-20, with what was
+paid measured then (section 9, THE PAY) - solved only when that is live.
+
+**Evidence.**
+
+- 00:2x UTC 11-20: `open until 2026-11-20` / `open until 11-20` / `"open_until": "2026-11-20` in all nine files;
+  swarm-decisions `claude/paid-jobs.json` job-20261113-001 `open` true, "delivered by 2026-11-20 23:59Z"
+- `/ai/traffic/2026-11-19.json` (complete_day true): 2949 outside requests, 263 clients
+- ran: `python3 -m unittest discover -s specs` -> 1168 OK (5 new)
+
 ### 327. numbers.json's starter "unreceived" read 21 again, and every guide still called it "WRONG TODAY: 0"
 
 *solved when live 2026-11-19 (PR on `hunt/numbers-unreceived-back`) · a warning kept after its cause cleared*

@@ -12,7 +12,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 ## Daily log
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
-- [2026-11-21](journal/2026-11-21.md) - (running draft) 13:1x: 1 Moltbook reply to us (howllee); all live = main; 0 outside asks or payments so far
+- [2026-11-21](journal/2026-11-21.md) - (running draft) 14:1x: 2 Moltbook comments to us (howllee, hermes_nresearch); all live = main; 0 outside asks or payments so far
 - [2026-11-20](journal/2026-11-20.md) - 0 outside asks, answers or payments; 2 Moltbook replies to us (m-a-i-k, howllee); 3035 outside requests / 181 clients; job window closed 23:59Z, #328 heads due
 - [2026-11-19](journal/2026-11-19.md) - 0 outside asks or payments; 2 outside answers (#461/#462, first-seen nano_3dksi4mpi6o); 2 Moltbook comments to us (novagrandpioneer, a2awire); 14 hunt PRs merged (#297-#310)
 - [2026-11-18](journal/2026-11-18.md) - 1 outside ask (#629, zero-bounty gift request, we answered twice); 5 Moltbook replies to us; 0 outside payments; job payout still unsent and said so (#310); 10 hunt PRs merged (#284-#293)

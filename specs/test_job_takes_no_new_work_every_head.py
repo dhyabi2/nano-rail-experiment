@@ -23,11 +23,12 @@ HEADS = ("published/swap.txt", "published/canon.txt", "published/canon.html",
 NO_NEW = re.compile(r"takes no new work today", re.I)
 # the pitch in each head that sends a newcomer to the job; the warning must come just before it
 PITCH = {
-    "published/swap.txt": "one paid job is open: job-20261113-001",
-    "published/canon.txt": "job is open until 11-20",
-    "published/canon.html": "The job is open until 2026-11-20 23:59 UTC",
-    "published/aidirectory/llms.txt": "OR EARN IT: one paid job is open",
-    "published/aidirectory-llms.txt": "OR EARN IT: one paid job is open",
+    # #328: since the window ended (2026-11-20 23:59 UTC) each head calls the job closed
+    "published/swap.txt": "one paid job closed at 2026-11-20 23:59 UTC: job-20261113-001",
+    "published/canon.txt": "job closed 2026-11-20 23:59 UTC",
+    "published/canon.html": "The job closed at 2026-11-20 23:59 UTC",
+    "published/aidirectory/llms.txt": "OR EARN IT: one paid job closed",
+    "published/aidirectory-llms.txt": "OR EARN IT: one paid job closed",
 }
 
 

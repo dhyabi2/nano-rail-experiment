@@ -36,7 +36,7 @@ class LlmsTopNoNewWork(unittest.TestCase):
             h = first_paragraph(read(p))
             with self.subTest(p):
                 self.assertIn("TAKES NO NEW WORK TODAY", h)
-                self.assertLess(h.index("TAKES NO NEW WORK TODAY"), h.index("open until 2026-11-20"))
+                self.assertLess(h.index("TAKES NO NEW WORK TODAY"), h.index("closed 2026-11-20"))  # #328
 
     def test_points_at_what_is_left(self):
         for p in COPIES:
@@ -48,7 +48,7 @@ class LlmsTopNoNewWork(unittest.TestCase):
             h = first_paragraph(read(p))
             with self.subTest(p):
                 self.assertNotIn("17:18 UTC 11-18", h)
-                self.assertRegex(h, r"Not paid yet: read \d\d:\d\d UTC 11-19")
+                self.assertRegex(h, r"Not paid yet: read \d\d:\d\d UTC 11-(19|2\d)")  # #328: re-read 11-21
 
     def test_law_fails_on_the_old_paragraph(self):
         old = ("Paid work, seats closed: the three verdict seats on job-20261113-001 closed ... (Job open until "

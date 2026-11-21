@@ -17,7 +17,7 @@ import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NO_NEW = "TAKES NO NEW WORK TODAY"
-TERMS = "THE JOB (job-20261113-001, open until 2026-11-20 23:59 UTC)"
+TERMS = "THE JOB (job-20261113-001, closed 2026-11-20 23:59 UTC)"  # #328: closed since the window ended
 
 
 def read():

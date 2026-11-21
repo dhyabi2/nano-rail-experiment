@@ -44,7 +44,7 @@ class PaidWorkOnTop(unittest.TestCase):
         self.assertLessEqual(i, 3, keys)
 
     def test_job_deadline_and_pay_match_bounties_section_9(self):
-        self.assertIn("THE JOB (%s, open until %s)" % (self.p["job"], self.p["open_until"]), self.sec9)
+        self.assertIn("THE JOB (%s, closed %s)" % (self.p["job"], self.p["closed"]), self.sec9)  # #328
         for sentence in self.p["pay"].split(". "):
             self.assertIn(sentence.rstrip("."), self.sec9)
         self.assertIn("Untested", self.sec9)

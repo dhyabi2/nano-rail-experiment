@@ -40,7 +40,31 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ### 328. The one paid job's delivery window ends 2026-11-20 23:59 UTC, and nothing would turn red when nine heads still called it open
 
-*partial 2026-11-20 (PR on `hunt/job-window-expires`) · the guard is in; the text change is due at 00:00 UTC 11-21*
+*solved when live 2026-11-21 (guard: PR on `hunt/job-window-expires`; text: PR on `hunt/job-closed-heads`) · nine heads now say the job closed and what was paid*
+
+**The text change (00:2x UTC 11-21).** The law turned red at 00:00 UTC, as designed. The payout was measured first,
+on rpc.nano.to at 00:25 UTC. Scrappy's nano_17qrh1e35... still has one block, a 0.0005 XNO receive from another
+account, and nothing receivable. treasury2's frontier is still 6ECFB21C (11.00004 XNO), unchanged since 11-16. So
+nothing was paid.
+
+All nine heads now say the job CLOSED at 2026-11-20 23:59 UTC and takes no new work, and that it is not paid yet:
+- bounties.txt's box and section 9 read `THE JOB (job-20261113-001, closed 2026-11-20 23:59 UTC)`;
+- canon.txt and /canon say "job closed 2026-11-20 23:59 UTC";
+- swap.txt says "one paid job closed at";
+- both llms.txt copies and both /ai/ pages say "OR EARN IT: one paid job closed";
+- tools.json `open_until` became `closed`, and `read_first` leads with the close.
+
+The RIGHT NOW box (00:25 UTC 11-21), section 9's dated reads, the tipping stamp and the not-paid stamp were
+re-measured and moved together, because the stamp laws hold them to one time. The re-reads:
+- 66 asks, none titled seat or verdict;
+- ask 628's last answer is still 457;
+- job post 5d0c07fe has 1 comment, ours;
+- tipping post d7173d0e has 0 comments;
+- work_generate and echo both return 402;
+- all five sellers' /health return 200.
+
+Seven older laws pinned the "open until" wording as an anchor, and their anchors now read "closed". What each law
+checks is unchanged.
 
 **What blocked it.** Nine published texts (bounties.txt section 9 and its box, canon.txt, /canon, swap.txt, both
 llms.txt copies, both /ai/ pages, tools.json) say job-20261113-001 is "open until 2026-11-20 23:59 UTC" (canon.txt:
@@ -61,6 +85,8 @@ paid measured then (section 9, THE PAY) - solved only when that is live.
   swarm-decisions `claude/paid-jobs.json` job-20261113-001 `open` true, "delivered by 2026-11-20 23:59Z"
 - `/ai/traffic/2026-11-19.json` (complete_day true): 2949 outside requests, 263 clients
 - ran: `python3 -m unittest discover -s specs` -> 1168 OK (5 new)
+- 00:0x UTC 11-21, before the text change: `test_job_offer_expires` 1 FAIL listing all nine files, as designed
+- 00:3x UTC 11-21, after: `python3 -m unittest discover -s specs` -> 1168 OK
 
 ### 327. numbers.json's starter "unreceived" read 21 again, and every guide still called it "WRONG TODAY: 0"
 

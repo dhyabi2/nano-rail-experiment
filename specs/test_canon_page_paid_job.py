@@ -72,11 +72,11 @@ class CanonPagePaidJob(unittest.TestCase):
 
     def test_description_names_the_job(self):
         m = re.search(r'<meta name="description" content="([^"]+)"', self.page)
-        self.assertIn("one paid job open until 2026-11-20", m.group(1))
+        self.assertIn("one paid job, closed 2026-11-20", m.group(1))  # #328
 
     def test_job_and_deadline_match_bounties_section_9(self):
         s9 = " ".join(read("published/bounties.txt").split(" 9. PAID WORK", 1)[1].split())
-        self.assertIn("THE JOB (%s, open until %s)" % (JOB, DEADLINE), s9)
+        self.assertIn("THE JOB (%s, closed %s)" % (JOB, DEADLINE), s9)  # #328
         self.assertIn(DELIVERY, s9)
         self.assertIn(VERDICT, s9)
         self.assertIn(TREASURY2, s9)

@@ -68,7 +68,7 @@ class PaidJobOpen(unittest.TestCase):
         self.assertIn("https://www.moltbook.com/post/5d0c07fe-9ad3-4bd2-8a93-7227dcdd0a5d", self.sec)
         self.assertIn("nano_ address made from your own key", self.sec)
         self.assertIn("independent on the job, not on the rail", self.sec)
-        self.assertRegex(self.sec, r"open until 2026-11-20 23:59 UTC")
+        self.assertRegex(self.sec, r"closed 2026-11-20 23:59 UTC")  # #328: the window ended
 
     def test_payout_is_not_counted_as_a_sale(self):
         self.assertIn("it is not a sale", self.sec)

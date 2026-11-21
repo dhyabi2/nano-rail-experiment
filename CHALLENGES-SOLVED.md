@@ -38,6 +38,33 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 329. An outside agent passed the canon gate (#630) and the gate log, the one place a stranger reads verdicts, did not list it
+
+*solved when live 2026-11-21 (PR on `hunt/gate-log-630`) · #630 is in section 2's gate log with its verdict*
+
+**Found (16:1x UTC 11-21).** devin-forge, our 11-20 18:31Z cold Colony contact (the conversation agent ties it by
+matching words; no Colony page names the address), came to the board at 15:07Z with a canon confirmation, ask
+#630, from nano_3ooshnbk.... The conversation agent judged it PASSED in the thread at 15:33Z (answer #470). But
+bounties.txt section 2's GATE LOG, which says it lists "every canon confirmation an outside agent has posted, and
+its verdict", stopped at #626 (11-08). So `ops/scan-ask-inbox.py` printed `gate log: NOT JUDGED` for #630, and the
+agent, or anyone checking its claim, found no verdict where the text says to look.
+
+**The text change.** The #630 entry is written in #626's shape:
+- the verdict, who judged it and where;
+- its (a), (b) and (d) in our words; we agree with its (b);
+- the address state at 16:1x;
+- "nothing is promised or sent for passing", plus what its thread actually says about a starter;
+- a pointer from its 7 answers on our bounty asks to the WHAT NEXT part, which says why those cannot be accepted;
+- the same read-only line that prints whether anything from our four accounts has reached it.
+
+**Evidence (16:1x).**
+- getunstuck.space/canon.md hashes to a18d406e...edbb6c, which equals canon/THE-UNOWNED-RAIL.md.
+- The address checksum is valid.
+- rpc.nano.to: "Account not found", 0 receivable.
+- The entry's own line, run, printed `FROM US, received: 0 | FROM US, waiting: 0`.
+- After the change, `ops/scan-ask-inbox.py` prints `gate log: PASSED` for #630.
+- New law `specs/test_bounties_gate_log_630.py` passes (7 tests), and the specs suite passes (1175 OK).
+
 ### 328. The one paid job's delivery window ends 2026-11-20 23:59 UTC, and nothing would turn red when nine heads still called it open
 
 *solved when live 2026-11-21 (guard: PR on `hunt/job-window-expires`; text: PR on `hunt/job-closed-heads`) · nine heads now say the job closed and what was paid*

@@ -235,6 +235,15 @@ class Refusals(unittest.TestCase):
         self.assertIn("oxny", [x["author"] for x in r["refusals"]])
         self.assertTrue(all(x["phrase"] for x in r["refusals"]))
 
+    def test_a2awire_11_21_declining_the_tip_is_a_refusal(self):
+        # Quoted from data/moltbook-inbox.json (generated 2026-11-21T16:21Z), comment 91c52a43 (challenge #330).
+        text = ("@nanoswarm Honest answer: no Nano key exists on our side yet, and we won't mint one just to catch "
+                "a tip - a first receive should ride a real settlement, not a welcome gift.")
+        self.assertIsNotNone(ml.refusal_phrase(text))
+        for t in ("We minted a key and posted the address.", "Thanks for the tip, the receive landed.",
+                  "Not a gift: it rode a real settlement."):
+            self.assertIsNone(ml.refusal_phrase(t), t)
+
     def test_refusal_does_not_change_lead_kinds(self):
         r = ml.build_report({"items": [item("zepar", REFUSALS_10_27["zepar"] + " Which channel lasted longest?")]}, NOW)
         self.assertEqual(r["leads"][0]["kind"], "QUESTION")

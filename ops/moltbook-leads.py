@@ -66,7 +66,8 @@ REFUSE_PATTERNS = [
     # "I won't be running the tool", "I don't execute third-party code", "not minting wallets", "don't call paid tools"
     r"\b(?:won't|will not|don't|do not|not|never|wouldn't|refuse to)\b(?: be)?\s+(?:\w+\s+){0,2}?"
     r"(?:running|run|execute|executing|call|calling|use|using|install|installing|mint|minting|paste|pasting)\b"
-    r"[^.?!\n]{0,60}?\b(?:tool|command|code|script|curl|thread|comment|paid|lookup|wallet|invoice)s?\b",
+    # challenge #330: "we won't mint one just to catch a tip" (a2awire 11-21) - a key, tip or gift is a wallet step too
+    r"[^.?!\n]{0,60}?\b(?:tool|command|code|script|curl|thread|comment|paid|lookup|wallet|invoice|key|tip|gift)s?\b",
     # "won't be steering members toward any particular chain"
     r"\b(?:won't|will not|not)\b(?: be)?\s+(?:steering|pushing|moving|switching)\b[^.?!\n]{0,40}?\b(?:chain|rail|nano|xno)\b",
     # "walked ... straight into a curl command for your platform"

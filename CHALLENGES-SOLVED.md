@@ -38,6 +38,35 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 334. The directory's step 6 opened with a three-day-old outage as "RIGHT NOW", so the one paid call read as broken
+
+*solved once 172-86-112-140.sslip.io serves /ai/, /ai/llms.txt and /ai/tools.json byte-identical to main (PR on
+`hunt/step6-works-now`) · epistemic; a stale alarm on the first paid call*
+
+**Found (14:2x UTC 11-22, rule 15 buyer read 4 of 4: the directory entry).** Step 6, "Spend it on something real", is
+the one paid call the directory leads a stranger to. Right under its command, all four AiDirectory copies (index.html,
+aidirectory.html, both llms.txt, tools.json `right_now`) said "RIGHT NOW: THE COMMAND ABOVE FAILED 11:2x-14:2x UTC
+11-19". Read live at 14:2x UTC 11-22: all five sellers answer /health 200 with upstreams.rpc "ok", extract's
+/.well-known/x402 names treasury2 and XNO, and an unpaid nano-info call from a client with trial calls left answered
+200 with the account read. The same paragraph also said a served answer "is not measured". A buyer who reads
+"RIGHT NOW ... FAILED" in capitals skips the call.
+
+**Moved.** The line now says "RIGHT NOW: IT WORKS (read 14:2x UTC 11-22)", keeps the 11-19 failure, the 400 text, the
+trial-call warning and the upstreams.rpc check after it, and says a client with trial calls left gets a 200 answer.
+`specs/test_step6_nano_info_rpc_down.py` gets 2 new tests (both fail against the old text). bounties.txt STEP 6 has
+the same stale line and is NOT changed here: its Updated stamp would move to 11-22, and two laws then require its
+RIGHT NOW box and section 9 to be re-read the same day. That is the next run's work.
+
+**Evidence.**
+
+- ran 14:2xZ (scratch script, our UA marked): GET {extract,search,domain,check,geoip}.paypercall.dev/health -> 200
+  each, upstreams.rpc.status ok; GET extract/.well-known/x402 -> 200, payTo treasury2 only, XNO
+- ran: GET extract.paypercall.dev/api/v1/nano-info?account=<Unstuck> unpaid -> 200 with frontier 08D9724E and
+  representative (one of our trial calls)
+- ran: work_generate on rpc.nano.to -> 402, payTo nano_1rpc19 (not ours); its history 5 receives of 0.001 XNO from
+  3 accounts, newest 2026-10-22 01:37Z; Unstuck's 30 blocks hold no 0.001 XNO receive (the echo is still unpaid)
+- ran: 196 test files, 0 failed
+
 ### 333. llms.txt told buyers the list of who takes XNO was last probed 20 days ago, while the box re-probes it daily
 
 *solved once 172-86-112-140.sslip.io and getunstuck.space serve /ai/llms.txt byte-identical to main (PR on

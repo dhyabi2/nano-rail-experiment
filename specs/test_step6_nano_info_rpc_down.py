@@ -60,13 +60,28 @@ class Step6NanoInfoRpcDown(unittest.TestCase):
             with self.subTest(p):
                 self.assertTrue(CHECK in t or CHECK_HTML in t, p + ": no upstreams.rpc check")
 
-    def test_failure_sits_right_under_the_command_in_the_aidirectory_copies(self):
+    def test_status_sits_right_under_the_command_in_the_aidirectory_copies(self):
+        # Challenge #334 (14:2x UTC 11-22): the line right under the command says it works now; the 11-19
+        # failure follows it in the same sentence, no longer as "RIGHT NOW".
         cmd = "api/v1/nano-info?account=nano_...'"
         for p in HEADS[:4]:
             t = read(p)
             i = t.index(cmd)
             with self.subTest(p):
-                self.assertLess(t.index("FAILED", i) - i, 120)
+                self.assertLess(t.index("IT WORKS (read 14:2x UTC 11-22)", i) - i, 120)
+                self.assertLess(t.index("FAILED", i) - i, 260)
+
+    def test_no_head_calls_the_1119_outage_right_now(self):
+        # Challenge #334: three days after the node came back, every head still opened step 6 with
+        # "RIGHT NOW: THE COMMAND ABOVE FAILED", so a stranger read the one paid call as broken.
+        # The four AiDirectory copies changed here; bounties.txt STEP 6 changes with its RIGHT NOW box re-run.
+        for p in HEADS[:4]:
+            t = flat(read(p))
+            with self.subTest(p):
+                self.assertNotIn("RIGHT NOW: THE COMMAND ABOVE FAILED", t)
+                self.assertIn("RIGHT NOW: IT WORKS (read 14:2x UTC 11-22)", t.replace("</b>", ""))
+                self.assertNotIn("a served answer since is not measured", t)
+                self.assertIn("with trial calls left it answers 200", t)
 
     def test_bounties_box_warns_that_health_200_is_not_enough(self):
         t = flat(read("published/bounties.txt"))

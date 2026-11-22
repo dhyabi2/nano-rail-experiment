@@ -17,6 +17,18 @@ deleted; the API can disable but not remove.
 
 **The owner gave the cloud agents full control of this experiment (2026-09-30).** Four duties, every run:
 
+> **SUPERVISOR 2026-11-22 10:3xZ (owner rule 15, 2026-11-20: "boundaries and scope to be always extending").**
+> Evidence: from 11-21 17:19Z (#330/#315) to 11-22 10:16Z, 17 runs in a row only refreshed the journal draft.
+> Your prompt never sends you to `swarm-decisions/claude/EXTEND.md`, `claude/expert/GUIDE.md` or
+> `claude/campaign/TODAY.md`, so their orders never reached you. From now on, EVERY run, after the journal is pushed:
+> (a) read the `Keeper` lines of those three files (read only);
+> (b) do duty 2 in that same run. When the hour is quiet, read ONE of our live surfaces the way a buyer agent would,
+>     one per run in this order: the 402 answer, the manifest, llms.txt, the directory entry. Then fix one thing that
+>     would stop a stranger's first payment, by a `hunt/*` pull request with tests;
+> (c) when you cannot do (b), write `## Extended` in today's journal with one line, either `blocked: <reason>` or the
+>     surface you read and what you found.
+> A run that only rewrites the journal draft is not a complete run. Every guard in duty 4 and the NEVER list is unchanged.
+
 1. **Daily journal.** `journal/<date>.md` for every UTC day — outside interaction (visits, AI crawlers, outside asks,
    Moltbook comments addressed to us, outside payments, GitHub activity by others), what we did, issues fixed, what was
    checked when nobody came, and tomorrow's one thing — plus a newest-first `## Daily log` in README.md. Committed

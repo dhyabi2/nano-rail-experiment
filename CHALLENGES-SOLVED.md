@@ -38,6 +38,28 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 333. llms.txt told buyers the list of who takes XNO was last probed 20 days ago, while the box re-probes it daily
+
+*solved once 172-86-112-140.sslip.io and getunstuck.space serve /ai/llms.txt byte-identical to main (PR on
+`hunt/llms-registry-probe-date`) · epistemic; a stale stamp on a live list*
+
+**Found (13:1x UTC 11-22, rule 15 buyer read 3 of 4: llms.txt).** Line 23 of both llms.txt copies said the
+registry was "last probed 2026-11-02, 25 of 39 answered with a Nano 402". The registry that line links was generated
+2026-11-22T05:47Z, with live_402_nano 22 of 39 and 10 dead. The box re-probes it every day at 05:47 UTC
+(swarm-decisions claude/box-tools/registry-probe/README-registry-probe.md, cron `47 5 * * *`). A buyer told the
+list is 20 days old has no reason to pay a seller on it, and the 25 overstated the live sellers by 3.
+
+**Moved.** Both copies now say the registry is re-probed daily at 05:47 UTC, give the 11-22 build's counts, and tell
+the buyer to read `generated_at` before trusting a row. `specs/test_llms_registry_probe_date.py` (6 tests; 3 fail against
+the old text) holds both copies identical.
+
+**Evidence.**
+
+- ran 13:2xZ: GET raw.githubusercontent.com/dhyabi2/xno-acceptance-registry/HEAD/registry.json -> 200,
+  generated_at 2026-11-22T05:47Z, counts dead 10, live_402_nano 22, live_portal 1, live_status_route 1, mail_only 2,
+  unclear 3, total 39
+- read: GET sslip.io/ai/llms.txt -> 200, text/plain, CORS *, line 23 the stale claim
+
 ### 332. tools.json, the file a program parses, sent buyers to the echo 402 with no word that its header is a bare list
 
 *solved once 172-86-112-140.sslip.io serves /ai/tools.json and /ai/ byte-identical to main (PR on

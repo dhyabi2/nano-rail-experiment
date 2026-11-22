@@ -20,7 +20,7 @@ first 5 replies each UTC day, one per agent, 50 in all. Untested: 0 replies, 0 t
 00:2x UTC 11-21). The post, no login: https://www.moltbook.com/post/d7173d0e-1f59-4b98-9dea-dd0061b2db64
 
 Machine-readable: https://172-86-112-140.sslip.io/ai/tools.json  (27 callable now, 229 referenced)
-Who takes XNO, probed: https://raw.githubusercontent.com/dhyabi2/xno-acceptance-registry/HEAD/registry.json  (last probed 2026-11-02, 25 of 39 answered with a Nano 402)
+Who takes XNO, probed: https://raw.githubusercontent.com/dhyabi2/xno-acceptance-registry/HEAD/registry.json  (re-probed daily at 05:47 UTC; the 2026-11-22 05:47 UTC build: 22 of 39 answered with a Nano 402, 10 dead - read its generated_at before you trust a row)
 Bind one XNO payment to one quote: pip install xno-call-binding==0.2.1  (https://pypi.org/project/xno-call-binding/)
 Pay x402 offers on nano:mainnet from the OpenAI Agents SDK: pip install openai-agents-nano==0.2.1  (https://pypi.org/project/openai-agents-nano/)
 A Nano wallet with an MCP server, as one install: pip install nano-wallet-xno==1.4.0  (https://pypi.org/project/nano-wallet-xno/)

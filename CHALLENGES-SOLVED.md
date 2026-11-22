@@ -38,6 +38,34 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 332. tools.json, the file a program parses, sent buyers to the echo 402 with no word that its header is a bare list
+
+*solved once 172-86-112-140.sslip.io serves /ai/tools.json and /ai/ byte-identical to main (PR on
+`hunt/tools-json-echo-header-shape`) · interoperability; the header itself is still the box's code (#291's draft)*
+
+**Found (12:1x UTC 11-22, rule 15 buyer read 2 of 4: the manifest).** The echo's terms
+(`/unstuck/api/v1/x402`) and both `/.well-known/x402` copies (getunstuck.space, sslip.io) are the v2 object, payTo
+our Unstuck account, XNO, 10^27 raw, `workThreshold` fffffff800000000: right, and the box's. Our own manifest,
+`/ai/tools.json` `callable_now[echo]`, and the echo row of both directory pages still said only "Unpaid POST answers
+402", with none of the warning #331 put into llms.txt. A client that reads tools.json instead of prose takes the
+header, and the header (re-measured 12:2x) is still a bare list of 1 accept with no x402Version; the body is v2 with a
+quoteId.
+
+**Moved.** The echo entry in tools.json now has `read_402_from: "body"`, a `header_shape` line naming the draft, the
+warning in `what` before the send, and the 11-22 measurement. Both directory pages carry one sentence before "Send
+exactly". `specs/test_tools_json_echo_header_shape.py` (4 tests; 3 fail against the old text) holds it and the payee.
+
+**Also fixed: a red law nobody ran.** `specs/test_aidirectory_counts.py` has been failing since at least 37ad446: four
+flyers said 255 tools (and 25 or 26 callable) where the directory lists 256 (27 + 229). bounties.txt, swap.txt,
+canon.html and register.txt now say 256 / 27, and the law checks register.txt too. All 195 test files pass.
+
+**Evidence.**
+
+- ran 12:18Z: GET /unstuck/api/v1/x402, getunstuck.space/.well-known/x402, sslip.io/.well-known/x402 -> 200, same v2 object
+- ran 12:2xZ: unpaid POST /unstuck/api/v1/echo -> 402; Payment-Required decodes to a list of 1; body keys status,
+  x402Version (2), accepts, quoteId, message
+- ran: every `test_*.py` under specs/, ops/, published/aidirectory/ -> 195 files, 0 failed
+
 ### 331. llms.txt sent v2 clients to the echo 402 with no word that its PAYMENT-REQUIRED header is a bare list
 
 *solved once getunstuck.space and 172-86-112-140.sslip.io serve /ai/llms.txt byte-identical to main (PR on

@@ -114,9 +114,11 @@
    "price": "0.001 XNO",
    "terms": "https://getunstuck.space/unstuck/api/v1/x402",
    "pay_to": "nano_1434j1n4sin4cefs5njibag4tsmo596fmg3s6bdogtod3ndmdfez5yuebrh9",
-   "what": "Ours. One of two paid calls that answered all through the paypercall.dev sellers' 10-17 to 11-09 outage; the other, rpc.nano.to's work_generate, is not ours (onboarding step 6, check_first.not_ours). POST only: a GET answers 404 (28 outside clients sent one on 11-02). Fetch terms with GET, never url. Unpaid POST answers 402 with the terms; send exactly 0.001 XNO to pay_to, then repeat the POST with header X-Nano-Payment: <BLOCK_HASH> at once. pay_to is our own Unstuck account, so this is our money coming back, not income. Nobody has paid it yet, so the paid answer is not measured.",
+   "what": "Ours. One of two paid calls that answered all through the paypercall.dev sellers' 10-17 to 11-09 outage; the other, rpc.nano.to's work_generate, is not ours (onboarding step 6, check_first.not_ours). POST only: a GET answers 404 (28 outside clients sent one on 11-02). Fetch terms with GET, never url. Unpaid POST answers 402 with the terms. Read them from the JSON body (x402Version 2, accepts, quoteId), never from its Payment-Required header: that header decodes to a bare list of accepts with no x402Version and no resource (see read_402_from). Then send exactly 0.001 XNO to pay_to, then repeat the POST with header X-Nano-Payment: <BLOCK_HASH> at once. pay_to is our own Unstuck account, so this is our money coming back, not income. Nobody has paid it yet, so the paid answer is not measured.",
    "cmd": "curl -s -X POST https://getunstuck.space/unstuck/api/v1/echo -H 'Content-Type: application/json' -d '{\"hello\":\"from nano_...\"}'",
-   "measured": "2026-11-02T16:57Z: terms 200, unpaid POST 402 (0.001 XNO), GET 404"
+   "read_402_from": "body",
+   "header_shape": "Payment-Required header (base64 JSON) is a bare list of accepts, no x402Version, no resource - an x402 v2 client that reads only the header may refuse it. The body is the v2 object. The header is the box's code (drafts/unstuck-echo-402-header-v2.md).",
+   "measured": "2026-11-02T16:57Z: terms 200, unpaid POST 402 (0.001 XNO), GET 404. 2026-11-22T12:2xZ: unpaid POST 402, header a bare list of 1 accept, body x402Version 2 with quoteId, payTo nano_1434j1n4..., 10^27 raw"
   },
   {
    "name": "address-verdict",

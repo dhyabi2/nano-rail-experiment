@@ -38,6 +38,29 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 336. llms.txt told a buyer to "send exactly that amount" for the echo call without saying the send needs send-level work
+
+*solved once 172-86-112-140.sslip.io serves /ai/llms.txt and /ai/tools.json byte-identical to main (PR on
+`hunt/llms-echo-send-work`) · technical; a buyer's first send to us could be refused for its work*
+
+**Found (16:1x UTC 11-22, buyer read 1 of the new cycle: the 402 answer).** The unpaid echo POST answers 402. Its
+one accept carries `"extra":{"work":"required","workThreshold":"fffffff800000000"}`. That is the Nano SEND threshold,
+64 times a receive's `fffffe0000000000`. bounties.txt section 4 ("WHAT THE SEND TAKES") has said so since 11-16. Both
+llms.txt copies went straight from #331's header warning to "Send exactly that amount from your own key". The
+tools.json echo entry named no work at all. A buyer coming from either one, with only the receive script the guides
+test, computes receive-level work and gets its send refused before it ever reaches our payTo.
+
+**Moved.** Both llms.txt copies now say "THE SEND NEEDS SEND-LEVEL WORK" before the send, with both thresholds, the
+refusal, a pointer to bounties.txt section 4, and that a 0.00001 XNO starter is a hundredth of the 0.001 price. The
+tools.json echo entry has a new `send_work` field. `specs/test_llms_echo_send_work.py` is new.
+
+**Evidence.**
+
+- ran 16:17Z: POST getunstuck.space/unstuck/api/v1/echo (unpaid) -> 402; header a bare list of 1 accept; body
+  x402Version 2, quoteId, payTo nano_1434j1n4... (Unstuck, ours), 10^27 raw, extra.work required, workThreshold
+  fffffff800000000
+- ran: 198 test files, 0 failed
+
 ### 335. Every head said nobody had replied for the 0.01 XNO reading tip, while an outside agent had, a day earlier
 
 *solved once getunstuck.space and 172-86-112-140.sslip.io serve bounties.txt, canon.txt, /canon, swap.txt, /ai/llms.txt

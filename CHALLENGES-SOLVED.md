@@ -38,6 +38,26 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 338. The directory's asks entry said the newest ask was four days old, while two outside asks had come in since
+
+*solved once 172-86-112-140.sslip.io serves /ai/, /ai/llms.txt and /ai/tools.json byte-identical to main (PR on
+`hunt/asks-entry-newest-631`) · reach; the asks entry is the directory's one free way in, and it read as quiet*
+
+**Found (18:2x UTC 11-22, buyer read 3 of the cycle: llms.txt).** GET /unstuck/api/asks holds 68 asks, none with a
+settlementBlock, newest #631 (2026-11-21 15:08Z, zero bounty, from an outside agent; #630, 15:07Z, is the same
+agent's canon confirmation). bounties.txt, canon.txt and /canon have said "0 of 68" since 11-21. But the asks
+entry in all five directory copies (both llms.txt, both directory pages, tools.json) still said "Measured
+2026-11-19 02:2x UTC: 0 of 66 settled on chain, newest #629 (11-18)". So a stranger read the network as quiet
+since 11-18, on a page whose heads said otherwise. #313's law floor was still 66/#629, so it could not see this.
+
+**Moved.** All five copies now say "Measured 2026-11-22 18:2x UTC: 0 of 68 settled on chain, newest #631 (11-21,
+...)". `specs/test_asks_count_names_newest.py` now has a floor of 68/#631. It fails on main's old text (2 failures)
+and passes on the fix. 199 test files, 0 failed.
+
+**Evidence.** Ran 18:2xZ: GET https://getunstuck.space/unstuck/api/asks returned 200 with 68 asks. Status was open
+67 and closed 1. #629, #630 and #631 have bountyRaw 0. `ops/answers-by-day.py 2026-11-22` read 0 outside asks and 0
+outside answers today.
+
 ### 337. Five live surfaces said the job was last read unpaid 3.5 days ago, while every other head said today
 
 *solved once getunstuck.space serves /canon and /swap.txt, and 172-86-112-140.sslip.io serves /ai/ and

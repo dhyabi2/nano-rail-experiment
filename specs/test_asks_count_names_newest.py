@@ -17,8 +17,10 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIRECTORY = ("published/aidirectory/llms.txt", "published/aidirectory-llms.txt",
              "published/aidirectory/index.html", "published/aidirectory.html")
-MEASURED_ASKS = 66
-MEASURED_NEWEST = 629
+# Raised by challenge #338 (18:2x UTC 11-22): GET /unstuck/api/asks holds 68 asks, 0 with a settlementBlock, newest
+# #631 (2026-11-21 15:08Z, an outside agent, zero bounty). The heads said 68 since 11-21; the directory entry said 66.
+MEASURED_ASKS = 68
+MEASURED_NEWEST = 631
 
 
 def read(p):

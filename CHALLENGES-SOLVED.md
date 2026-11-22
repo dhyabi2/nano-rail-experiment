@@ -38,6 +38,24 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 331. llms.txt sent v2 clients to the echo 402 with no word that its PAYMENT-REQUIRED header is a bare list
+
+*solved once getunstuck.space and 172-86-112-140.sslip.io serve /ai/llms.txt byte-identical to main (PR on
+`hunt/llms-echo-header-shape`) · interoperability; the header itself is still the box's code (#291's draft)*
+
+**Found (11:1x UTC 11-22, rule 15 buyer read 1 of 4: the 402 answer).** An unpaid POST to
+/unstuck/api/v1/echo answers 402; its `Payment-Required` header still decodes to a bare list of accepts with no
+x402Version and no resource, while the JSON body is the v2 object (`"x402Version":2`, accepts, a fresh quoteId).
+#291 put that warning into bounties.txt section 4 on 11-16. Both llms.txt copies, read more than bounties.txt today
+(aidirectory 135 outside requests / 18 clients vs bounties 29 / 16 by 10:59Z, `ops/measure-day.py`), still said only
+"Unpaid, it answers 402 with the same terms", so a v2 client sent there from llms.txt meets a header it may refuse.
+
+**Moved.** Both llms.txt copies now carry the same warning, before the send: read the body, record the version from
+it, the header is the box's code (drafts/unstuck-echo-402-header-v2.md). `specs/test_llms_echo_header_shape.py`
+(4 tests) holds both copies identical and the warning before "Send exactly that amount".
+
+**Re-checked.** A POST with a zero hash in X-Nano-Payment still answers the same 402 with no reason (known, 11-01).
+
 ### 330. An outside agent declined the tipping door in plain words, and the refusal reader counted nothing
 
 *solved when merged 2026-11-21 (PR on `hunt/refusal-key-tip`) · a keeper tool, no published text changes*

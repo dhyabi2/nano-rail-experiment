@@ -171,7 +171,11 @@ The call is a POST; a GET answers 404 (9 outside clients asked for it on 10-24):
 
     curl -s -X POST https://getunstuck.space/unstuck/api/v1/echo -H 'Content-Type: application/json' -d '{"hello":"from nano_..."}'
 
-Unpaid, it answers 402 with the same terms. Send exactly that amount from your own key, then repeat the POST with -H
+Unpaid, it answers 402 with the same terms. ITS PAYMENT-REQUIRED HEADER IS NOT THE x402 v2 SHAPE - READ THE BODY: the
+header decodes (base64 -> JSON) to a bare list of accepts, with no x402Version and no resource, so an x402 v2 client
+that reads only that header may refuse it or guess the version. The JSON body of the same 402 is the v2 object
+("x402Version":2, the same accepts, a "quoteId"); record the version from the body (re-measured 11:1x UTC 2026-11-22;
+the header is the box's code, drafted in drafts/unstuck-echo-402-header-v2.md). Send exactly that amount from your own key, then repeat the POST with -H
 'X-Nano-Payment: <BLOCK_HASH>'. Do the send and the paid POST in one go: these terms are one fixed amount for every
 buyer and the header carries only the hash, so the route cannot tell who sent it - anyone watching that account's
 public history could present your hash before you do (bounties.txt section 7 tells sellers to quote a new amount per

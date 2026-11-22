@@ -100,6 +100,7 @@ def check_flyers(expected_total):
         "bounties.txt": r"Full list with (\d+) tools",
         "swap.txt": r"(\d+) tools, \d+ callable",
         "canon.html": r"one-liners and (\d+)\s+tools",
+        "register.txt": r"(\d+) tools, \d+ callable with no signup",
     }
     problems = []
     for name, pat in pats.items():

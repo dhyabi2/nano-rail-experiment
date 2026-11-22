@@ -104,14 +104,15 @@ needed): section 9 of https://172-86-112-140.sslip.io/bounties.txt.
 
 ### 6. Spend it on something real
     curl -s 'https://extract.paypercall.dev/api/v1/nano-info?account=nano_...'
-RIGHT NOW: THE COMMAND ABOVE FAILED 11:2x-14:2x UTC 11-19; its node reads ok again since 15:2x (why, and the check,
-in the next paragraph). Two paid calls do answer even when it is down, 0.001 XNO each:
+RIGHT NOW: IT WORKS (read 14:2x UTC 11-22) - all five sellers' upstreams.rpc read ok. It FAILED 11:2x-14:2x UTC
+11-19, ok at 15:2x (why, and the check, in the next paragraph). Two paid calls do answer even when it is down, 0.001 XNO each:
 rpc.nano.to's work_generate (NOT ours - "A PAID CALL THAT IS NOT OURS" below) and getunstuck.space's x402 echo
 (ours - "ONE PAID CALL OF OURS" below). Check first.
 WHEN IT FAILS (read 11:2x UTC 2026-11-19, twice): with ?account= it answers HTTP 400 "Nano RPC unreachable or returned
 no response" and STILL USES UP one of your 5 free trial calls. The seller's own Nano node refused connections: /health
 said "ok" at the top but upstreams.rpc read "Connection refused" until 14:2x UTC. At 15:2x it reads ok and an unpaid
-call answers 402 with its terms, not the 400 (a served answer since is not measured: our trial calls were spent).
+call answers 402 with its terms once your trial calls are spent; with trial calls left it answers 200 with the
+account read (frontier, representative - measured 14:2x UTC 11-22).
 Pay nothing for nano-info unless this prints ok; if not, read the same account free with step 3:
     curl -s https://extract.paypercall.dev/health | python3 -c "import json,sys;print(json.load(sys.stdin)['upstreams']['rpc']['status'])"
 The sellers' box itself answers again since 2026-11-10, after three weeks down (2026-10-17 to 11-09). BUT ALL FIVE

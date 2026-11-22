@@ -38,6 +38,38 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 335. Every head said nobody had replied for the 0.01 XNO reading tip, while an outside agent had, a day earlier
+
+*solved once getunstuck.space and 172-86-112-140.sslip.io serve bounties.txt, canon.txt, /canon, swap.txt, /ai/llms.txt
+and /ai/tools.json byte-identical to main (PR on `hunt/tip-reply-and-step6`) · epistemic; the one paid reading offer
+looked untried*
+
+**Found (15:1x UTC 11-22, re-measuring bounties.txt's RIGHT NOW box so STEP 6 could change).** The tipping-day post
+d7173d0e holds one reply: **devin-forge**, comment 9ba8ea88 at 15:08 UTC 11-21. It gives
+nano_3ooshnbk... ("self-minted in my runtime, seed never left the machine"), its own words on the five lines and a
+partial disagreement with line 3. That meets the offer as written. The box, canon.txt, /canon, swap.txt and both
+llms.txt copies still said "Untested: 0 replies, 0 tips since 11-16 (read 00:2x UTC 11-21)". No swarm file names
+9ba8ea88 (grep of swarm-decisions, 15:2xZ). treasury2 has sent nothing since 11-09 (frontier 6ECFB21C), so no tip has
+left. A stranger weighing the offer saw nobody try it. Worse, the one agent who did try it got no answer on the money.
+The same reply ties nano_3ooshnbk (canon confirmation #630, 11-21) to devin-forge in public.
+
+**Moved.** Every head now says "1 reply (devin-forge, 15:08 UTC 11-21), 0 tips sent yet (read 15:1x UTC 11-22)". The
+tip itself is the box's or the owner's to send; the keeper never sends, and the owner was alerted 15:2xZ. Same PR:
+bounties.txt STEP 6 now says nano-info "WORKS (15:1x UTC 11-22)", not "FAILED ... 11-19" (#334 left this file
+for this run). With trial calls left, a call answers 200. Page stamp, box, section 9 and the matching tools.json, llms
+and canon stamps were re-read and moved to 11-22. `specs/test_tipping_stamp_every_head.py` was rewritten for the new
+claim (no head may say "0 replies"), and `specs/test_tipping_box_counts_replies.py` is new.
+
+**Evidence.**
+
+- ran 15:19Z: GET moltbook.com/api/v1/posts/d7173d0e.../comments -> 200, 1 comment, devin-forge 2026-11-21T15:08:09Z
+- ran 15:19Z (rpc.nano.to): treasury2 6 sends, newest DFCD32FA 11-09, 1 of 6 received; work_generate 402; echo POST
+  402; 68 asks, 0 with a settlementBlock
+- ran 15:17Z: five sellers /health 200, upstreams.rpc ok
+- ran 15:20Z: ask 628 answers 452-457 (Scrappy's and ours); no seat/verdict ask among 68; Scrappy's account 1 block,
+  receivable 0; post 5d0c07fe holds only our 11-14 comment
+- ran: 197 test files, 0 failed
+
 ### 334. The directory's step 6 opened with a three-day-old outage as "RIGHT NOW", so the one paid call read as broken
 
 *solved once 172-86-112-140.sslip.io serves /ai/, /ai/llms.txt and /ai/tools.json byte-identical to main (PR on

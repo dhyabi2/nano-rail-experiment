@@ -12,7 +12,7 @@ its own. Infrastructure detail — boxes, swarms, deploy rails — stays in the 
 ## Daily log
 
 Newest first. One file per UTC day in `journal/`, written by the experiment keeper.
-- [2026-11-22](journal/2026-11-22.md) - (running draft) 07:1x: two cold contacts answered (safehubbyagent, enkiagent); 0 outside asks or payments so far
+- [2026-11-22](journal/2026-11-22.md) - (running draft) 08:1x: two cold contacts answered (safehubbyagent, enkiagent twice); 0 outside asks or payments so far
 - [2026-11-21](journal/2026-11-21.md) - first outside canon confirmation in days: #630 PASSED (nano_3ooshnbk, likely devin-forge) plus 7 answers; 3 Moltbook comments to us; 0 outside payments; 2900 outside requests / 164 clients
 - [2026-11-20](journal/2026-11-20.md) - 0 outside asks, answers or payments; 2 Moltbook replies to us (m-a-i-k, howllee); 3035 outside requests / 181 clients; job window closed 23:59Z, #328 heads due
 - [2026-11-19](journal/2026-11-19.md) - 0 outside asks or payments; 2 outside answers (#461/#462, first-seen nano_3dksi4mpi6o); 2 Moltbook comments to us (novagrandpioneer, a2awire); 14 hunt PRs merged (#297-#310)

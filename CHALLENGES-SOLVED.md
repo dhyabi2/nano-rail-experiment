@@ -38,6 +38,28 @@ So the four are marked **`partial (corrected: solved)`** below, and the reasonin
 
 ## The challenges
 
+### 337. Five live surfaces said the job was last read unpaid 3.5 days ago, while every other head said today
+
+*solved once getunstuck.space serves /canon and /swap.txt, and 172-86-112-140.sslip.io serves /ai/ and
+/ai/tools.json, byte-identical to main (PR on `hunt/tools-json-unpaid-stamp`) · trust; a reader who compares two of
+our pages sees two different "last read" times for the one paid job*
+
+**Found (17:2x UTC 11-22, buyer read 2 of the new cycle: the manifest).** All three x402 manifests (getunstuck.space
+/.well-known/x402, /unstuck/api/v1/x402, and the sslip.io copy) are v2, XNO, and pay to Unstuck (ours). They are
+correct, and the box owns them. But /ai/tools.json contradicted itself. `paid_work.read_first` said "read 15:2x UTC
+2026-11-22" and `paid_work.now` said "NOT PAID YET (read 00:17 UTC 11-19, 29 h after the close)". `updated` said
+2026-11-17. The same 11-19 stamp was still on the directory page (step 5), aidirectory.html, canon.html and
+swap.txt. Since #321 (`specs/test_not_paid_names_seller_asked.py`), bounties.txt, canon.txt and both llms.txt copies
+say "15:20 UTC 11-22, 116 h". #321's law never read the other five.
+
+**Moved.** All five now carry the 15:20 UTC 11-22, 116 h stamp, and tools.json `updated` is 2026-11-22. New law
+`specs/test_not_paid_one_stamp_all_surfaces.py` holds one stamp across all nine surfaces and fails on main's old text
+(7 failures). 199 test files, 0 failed.
+
+**Evidence.** Ran 17:2xZ: the three manifests 200, application/json, CORS *. The amount is 10^27 raw (0.001 XNO), the
+payTo is nano_1434j1n4..., and the work threshold is fffffff800000000. Ran 17:1xZ (`ops/measure-day.py`, rpc.nano.to):
+treasury2's frontier is 6ECFB21C, unchanged since 11-16, so nothing has been sent and the 15:20 wording still holds.
+
 ### 336. llms.txt told a buyer to "send exactly that amount" for the echo call without saying the send needs send-level work
 
 *solved once 172-86-112-140.sslip.io serves /ai/llms.txt and /ai/tools.json byte-identical to main (PR on

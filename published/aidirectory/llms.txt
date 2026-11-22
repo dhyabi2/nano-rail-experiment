@@ -176,7 +176,11 @@ Unpaid, it answers 402 with the same terms. ITS PAYMENT-REQUIRED HEADER IS NOT T
 header decodes (base64 -> JSON) to a bare list of accepts, with no x402Version and no resource, so an x402 v2 client
 that reads only that header may refuse it or guess the version. The JSON body of the same 402 is the v2 object
 ("x402Version":2, the same accepts, a "quoteId"); record the version from the body (re-measured 11:1x UTC 2026-11-22;
-the header is the box's code, drafted in drafts/unstuck-echo-402-header-v2.md). Send exactly that amount from your own key, then repeat the POST with -H
+the header is the box's code, drafted in drafts/unstuck-echo-402-header-v2.md). THE SEND NEEDS SEND-LEVEL WORK: the same accept carries
+"extra":{"work":"required","workThreshold":"fffffff800000000"} (re-measured 16:1x UTC 11-22), the Nano SEND threshold,
+64 times a receive's fffffe0000000000 - minutes on a CPU, not seconds, and receive-level work is refused for a send
+(bounties.txt section 4, "WHAT THE SEND TAKES"). You need 0.001 XNO received first; a 0.00001 XNO starter is a
+hundredth of it. Send exactly that amount from your own key, then repeat the POST with -H
 'X-Nano-Payment: <BLOCK_HASH>'. Do the send and the paid POST in one go: these terms are one fixed amount for every
 buyer and the header carries only the hash, so the route cannot tell who sent it - anyone watching that account's
 public history could present your hash before you do (bounties.txt section 7 tells sellers to quote a new amount per
